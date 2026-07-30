@@ -94,9 +94,10 @@ func (h *GatewayHandlers) ListAdapters(c *gin.Context) {
 
 // UpdateAdapterRequest 更新适配器请求.
 type UpdateAdapterRequest struct {
-	DisplayName string  `json:"display_name"`
-	Status      string  `json:"status"`
-	Remark      *string `json:"remark,omitempty"`
+	DisplayName      string  `json:"display_name"`
+	InboundAPIFormat string  `json:"inbound_api_format"` // 创建时必填，更新时忽略
+	Status           string  `json:"status"`
+	Remark           *string `json:"remark,omitempty"`
 	// Bindings 整体替换：传入完整的新绑定列表，不传则保留现有绑定
 	Bindings []BindingInput `json:"bindings,omitempty"`
 }
@@ -143,16 +144,13 @@ func (h *GatewayHandlers) UpdateAdapter(c *gin.Context) {
 
 	// 执行更新操作（包含事务）
 	updatedAdapter, err := h.AdapterService.UpdateAdapter(c.Request.Context(), name, &biz.UpdateAdapterParams{
-		DisplayName: req.DisplayName,
-		Status:      req.Status,
-		Remark:      req.Remark,
-		Bindings:    convertBindingInputs(req.Bindings),
+		DisplayName:      req.DisplayName,
+		InboundAPIFormat: req.InboundAPIFormat,
+		Status:           req.Status,
+		Remark:           req.Remark,
+		Bindings:         convertBindingInputs(req.Bindings),
 	})
 	if err != nil {
-		if errors.Is(err, biz.ErrAdapterNotFound) {
-			JSONError(c, http.StatusNotFound, errors.New("adapter not found"))
-			return
-		}
 		JSONError(c, http.StatusInternalServerError, err)
 		return
 	}

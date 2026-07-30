@@ -461,10 +461,11 @@ type TargetInfo struct {
 
 // UpdateAdapterParams 更新适配器参数
 type UpdateAdapterParams struct {
-	DisplayName string
-	Status      string
-	Remark      *string
-	Bindings    []BindingInput
+	DisplayName      string
+	InboundAPIFormat string // 创建时必填，更新时忽略
+	Status           string
+	Remark           *string
+	Bindings         []BindingInput
 }
 
 // BindingInput 绑定输入
@@ -573,32 +574,50 @@ func (svc *AdapterService) UpdateAdapter(ctx context.Context, name string, param
 	err := svc.RunInTransaction(ctx, func(txCtx context.Context) error {
 		db := svc.entFromContext(txCtx)
 
-		// 查找适配器
+		// 查找适配器，不存在则创建（upsert）
 		a, err := db.Adapter.Query().
 			Where(adapter.Name(name), adapter.DeletedAtEQ(0)).
 			Only(txCtx)
 		if err != nil {
-			if ent.IsNotFound(err) {
-				return ErrAdapterNotFound
+			if !ent.IsNotFound(err) {
+				return fmt.Errorf("failed to query adapter: %w", err)
 			}
-			return fmt.Errorf("failed to query adapter: %w", err)
-		}
-
-		// 更新适配器字段
-		update := db.Adapter.UpdateOne(a)
-		if params.DisplayName != "" {
-			update = update.SetDisplayName(params.DisplayName)
-		}
-		if params.Status != "" {
-			update = update.SetStatus(adapter.Status(params.Status))
-		}
-		if params.Remark != nil {
-			update = update.SetRemark(*params.Remark)
-		}
-
-		_, err = update.Save(txCtx)
-		if err != nil {
-			return fmt.Errorf("failed to update adapter: %w", err)
+			// 创建新适配器
+			if params.InboundAPIFormat == "" {
+				return fmt.Errorf("inbound_api_format is required when creating adapter %q", name)
+			}
+			create := db.Adapter.Create().
+				SetName(name).
+				SetInboundAPIFormat(params.InboundAPIFormat)
+			if params.DisplayName != "" {
+				create = create.SetDisplayName(params.DisplayName)
+			}
+			if params.Status != "" {
+				create = create.SetStatus(adapter.Status(params.Status))
+			}
+			if params.Remark != nil {
+				create = create.SetRemark(*params.Remark)
+			}
+			a, err = create.Save(txCtx)
+			if err != nil {
+				return fmt.Errorf("failed to create adapter: %w", err)
+			}
+		} else {
+			// 更新适配器字段
+			update := db.Adapter.UpdateOne(a)
+			if params.DisplayName != "" {
+				update = update.SetDisplayName(params.DisplayName)
+			}
+			if params.Status != "" {
+				update = update.SetStatus(adapter.Status(params.Status))
+			}
+			if params.Remark != nil {
+				update = update.SetRemark(*params.Remark)
+			}
+			_, err = update.Save(txCtx)
+			if err != nil {
+				return fmt.Errorf("failed to update adapter: %w", err)
+			}
 		}
 
 		// 如果传入了 bindings，整体替换
@@ -758,35 +777,51 @@ func (svc *AdapterService) UpdateModelGroup(ctx context.Context, name string, pa
 	err := svc.RunInTransaction(ctx, func(txCtx context.Context) error {
 		db := svc.entFromContext(txCtx)
 
-		// 查找模型组
+		// 查找模型组，不存在则创建（upsert）
 		g, err := db.ModelGroup.Query().
 			Where(modelgroup.Name(name), modelgroup.DeletedAtEQ(0)).
 			Only(txCtx)
 		if err != nil {
-			if ent.IsNotFound(err) {
-				return ErrModelGroupNotFound
+			if !ent.IsNotFound(err) {
+				return fmt.Errorf("failed to query model group: %w", err)
 			}
-			return fmt.Errorf("failed to query model group: %w", err)
-		}
-
-		// 更新模型组字段
-		update := db.ModelGroup.UpdateOne(g)
-		if params.DisplayName != "" {
-			update = update.SetDisplayName(params.DisplayName)
-		}
-		if params.Status != "" {
-			update = update.SetStatus(modelgroup.Status(params.Status))
-		}
-		if params.SelectionStrategy != "" {
-			update = update.SetSelectionStrategy(modelgroup.SelectionStrategy(params.SelectionStrategy))
-		}
-		if params.Remark != nil {
-			update = update.SetRemark(*params.Remark)
-		}
-
-		_, err = update.Save(txCtx)
-		if err != nil {
-			return fmt.Errorf("failed to update model group: %w", err)
+			// 创建新模型组
+			create := db.ModelGroup.Create().SetName(name)
+			if params.DisplayName != "" {
+				create = create.SetDisplayName(params.DisplayName)
+			}
+			if params.Status != "" {
+				create = create.SetStatus(modelgroup.Status(params.Status))
+			}
+			if params.SelectionStrategy != "" {
+				create = create.SetSelectionStrategy(modelgroup.SelectionStrategy(params.SelectionStrategy))
+			}
+			if params.Remark != nil {
+				create = create.SetRemark(*params.Remark)
+			}
+			g, err = create.Save(txCtx)
+			if err != nil {
+				return fmt.Errorf("failed to create model group: %w", err)
+			}
+		} else {
+			// 更新模型组字段
+			update := db.ModelGroup.UpdateOne(g)
+			if params.DisplayName != "" {
+				update = update.SetDisplayName(params.DisplayName)
+			}
+			if params.Status != "" {
+				update = update.SetStatus(modelgroup.Status(params.Status))
+			}
+			if params.SelectionStrategy != "" {
+				update = update.SetSelectionStrategy(modelgroup.SelectionStrategy(params.SelectionStrategy))
+			}
+			if params.Remark != nil {
+				update = update.SetRemark(*params.Remark)
+			}
+			_, err = update.Save(txCtx)
+			if err != nil {
+				return fmt.Errorf("failed to update model group: %w", err)
+			}
 		}
 
 		// 如果传入了 protocols，整体替换

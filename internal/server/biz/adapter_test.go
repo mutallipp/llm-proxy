@@ -697,12 +697,25 @@ func TestAdapterService_UpdateAdapter(t *testing.T) {
 		require.Equal(t, "disabled", result.Status)
 	})
 
-	t.Run("update non-existent adapter", func(t *testing.T) {
-		_, err := svc.UpdateAdapter(ctx, "non-existent", &UpdateAdapterParams{
+	t.Run("upsert non-existent adapter without inbound_api_format", func(t *testing.T) {
+		// 创建时缺少 inbound_api_format 应报错
+		_, err := svc.UpdateAdapter(ctx, "upsert-missing-format", &UpdateAdapterParams{
 			DisplayName: "Test",
 		})
 		require.Error(t, err)
-		require.ErrorIs(t, err, ErrAdapterNotFound)
+		require.Contains(t, err.Error(), "inbound_api_format is required")
+	})
+
+	t.Run("upsert non-existent adapter creates it", func(t *testing.T) {
+		info, err := svc.UpdateAdapter(ctx, "upsert-new-adapter", &UpdateAdapterParams{
+			DisplayName:      "Upserted",
+			InboundAPIFormat: "openai/chat/completions",
+			Status:           "enabled",
+		})
+		require.NoError(t, err)
+		require.Equal(t, "upsert-new-adapter", info.Name)
+		require.Equal(t, "openai/chat/completions", info.InboundAPIFormat)
+		require.Equal(t, "enabled", info.Status)
 	})
 
 	t.Run("update adapter bindings", func(t *testing.T) {
@@ -795,12 +808,14 @@ func TestAdapterService_UpdateModelGroup(t *testing.T) {
 		require.Equal(t, "Updated MG Name", updated.DisplayName)
 	})
 
-	t.Run("update non-existent model group", func(t *testing.T) {
-		_, err := svc.UpdateModelGroup(ctx, "non-existent", &UpdateModelGroupParams{
-			DisplayName: "Test",
+	t.Run("upsert non-existent model group creates it", func(t *testing.T) {
+		info, err := svc.UpdateModelGroup(ctx, "upsert-new-group", &UpdateModelGroupParams{
+			DisplayName: "Upserted Group",
+			Status:      "enabled",
 		})
-		require.Error(t, err)
-		require.ErrorIs(t, err, ErrModelGroupNotFound)
+		require.NoError(t, err)
+		require.Equal(t, "upsert-new-group", info.Name)
+		require.Equal(t, "enabled", info.Status)
 	})
 
 	t.Run("update with nil params", func(t *testing.T) {
