@@ -247,6 +247,58 @@ docker compose exec axonhub axonhub config migrate  # 如果有手动迁移步�
 
 MVP 阶段没有独立 migration 命令，Ent 自动迁移在启动时跑。
 
+## 11. 公司 VPN / 宿主机代理配置
+
+`docker-compose.yml` 已内置 `extra_hosts: host.docker.internal:host-gateway`，容器可通过 `host.docker.internal` 访问宿主机网络服务（如宿主机代理程序）。
+
+代理地址 **不硬编入 docker-compose.yml**，而是通过环境变量按需注入。
+
+### 11.1 本地开发：通过 `.env` 文件注入
+
+> `.env` 已在 `.gitignore` 中，**不要将它提交到 Git**。
+
+在仓库根目录创建 `.env`（不提交）：
+
+```bash
+# .env 示例——占位符请替换为宿主机实际代理地址和端口
+
+# 通过宿主机代理访问公司网络或 VPN
+# 宿主机必须允许来自 Docker 网关（默认 172.17.0.1）的连接
+HTTP_PROXY=http://host.docker.internal:<proxy-port>
+HTTPS_PROXY=http://host.docker.internal:<proxy-port>
+ALL_PROXY=http://host.docker.internal:<proxy-port>
+# 内部地址跳过代理
+NO_PROXY=localhost,127.0.0.1,postgres,redis,host.docker.internal
+```
+
+完成后重启服务使配置生效：
+
+```bash
+docker compose up -d
+```
+
+### 11.2 CI / OpenStack / 云环境：通过平台环境变量注入
+
+在 CI 系统或 OpenStack 渲染器配置中设置以下环境变量（占位符请替换为实际地址）：
+
+```
+HTTP_PROXY=http://<proxy-host>:<proxy-port>
+HTTPS_PROXY=http://<proxy-host>:<proxy-port>
+ALL_PROXY=http://<proxy-host>:<proxy-port>
+NO_PROXY=localhost,127.0.0.1,postgres,redis,host.docker.internal
+```
+
+### 11.3 没有代理（普通部署）
+
+无需任何操作。`HTTP_PROXY` 等变量默认为空字符串，不影响正常网络请求。
+
+### 11.4 宿主机代理注意事项
+
+- 宿主机代理程序必须监听全部网络接口（不能只绑 `127.0.0.1`），才能接收来自 Docker 网关的连接。
+- 宿主机代理的 Socks5/HTTP 地址和端口属个人 / 公司配置，**不将实际地址写入任何配置文件或 commit**。
+- macOS 下 `host-gateway` 在 Docker Desktop 4.x 及以上已直接支持，无需额外设置。
+- Linux 宿主机：`host-gateway` 映射到 Docker bridge 网关 IP（默认 `172.17.0.1`），确保防火墙放行该 IP 的入站流量到代理端口。
+
 ## 10. 已知缺口（不要被吹过头）
 
 - ❌ 没有针对负向用例（坏协议、坏 key、超时）的 e2e 测试

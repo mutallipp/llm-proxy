@@ -94,6 +94,11 @@ package-lock.json
 bun.lock
 # Environment variables
 .env
+.env.*
+!.env.example
+# Docker Compose 本地覆盖配置（不入仓）
+docker-compose.override.yml
+docker-compose.*.local.yml
 # Editor directories and files
 .idea
 .vscode
