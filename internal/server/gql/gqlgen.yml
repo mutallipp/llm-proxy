@@ -1,0 +1,753 @@
+# schema tells gqlgen where the GraphQL schema is located.
+schema:
+  # axonhub.graphql must be loaded before ent.graphql because it defines DisabledAPIKey
+  # which is referenced by the disabled_api_keys field in Channel schema
+  - axonhub.graphql
+  - ent.graphql
+  - dashboard.graphql
+  - scopes.graphql
+  - me.graphql
+  - system.graphql
+  - filter.graphql
+  - model.graphql
+  - backup.graphql
+  - channel_probe.graphql
+  - prompt.graphql
+  - prompt_protection_rule.graphql
+  - price.graphql
+  - cost.graphql
+  - analytics.graphql
+
+omit_gqlgen_version_in_file_notice: true
+
+#exec:
+#  layout: follow-schema
+#  dir: ./graph
+#  package: graph
+
+# resolver reports where the resolver implementations go.
+resolver:
+  layout: follow-schema
+  dir: .
+
+# gqlgen will search for any type names in the schema in these go packages
+# if they match it will use them, otherwise it will generate them.
+
+# autobind tells gqngen to search for any type names in the GraphQL schema in the
+# provided package. If they match it will use them, otherwise it will generate new.
+autobind:
+  - github.com/99designs/gqlgen/graphql/introspection
+  - github.com/mutallipp/llm-proxy/internal/ent
+  - github.com/mutallipp/llm-proxy/internal/ent/user
+  - github.com/mutallipp/llm-proxy/internal/ent/apikey
+  - github.com/mutallipp/llm-proxy/internal/ent/request
+  - github.com/mutallipp/llm-proxy/internal/ent/requestexecution
+  - github.com/mutallipp/llm-proxy/internal/ent/channel
+  - github.com/mutallipp/llm-proxy/internal/server/biz
+
+converters:
+  - from: "*github.com/mutallipp/llm-proxy/internal/objects.GUID"
+    to: "int"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrToInt"
+
+  - from: "github.com/mutallipp/llm-proxy/internal/objects.GUID"
+    to: "int"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrToInt"
+
+  - from: "github.com/mutallipp/llm-proxy/internal/objects.GUID"
+    to: "*int"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrToIntPtr"
+
+  - from: "*github.com/mutallipp/llm-proxy/internal/objects.GUID"
+    to: "*int"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrToIntPtr"
+
+  - from: "[]*github.com/mutallipp/llm-proxy/internal/objects.GUID"
+    to: "[]*int"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrsToIntPtrs"
+
+  - from: "[]*github.com/mutallipp/llm-proxy/internal/objects.GUID"
+    to: "[]int"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrsToInts"
+
+# This section declares type mapping between the GraphQL and Go type systems.
+models:
+  # Defines the ID field as Go 'int'.
+  ID:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.GUID
+  Node:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/ent.Noder
+  Cursor:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/gql.Cursor
+  JSONRawMessage:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.JSONRawMessage
+  JSONRawMessageInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.JSONRawMessage
+  Any:
+    model:
+      - github.com/99designs/gqlgen/graphql.Any
+  Decimal:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.Decimal
+  DecimalInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.Decimal
+  ModelMapping:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelMapping
+  ModelMappingInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelMapping
+  ReasoningEffortMapping:
+    model:
+      - github.com/mutallipp/llm-proxy/llm.ReasoningEffortMapping
+  ReasoningEffortMappingInput:
+    model:
+      - github.com/mutallipp/llm-proxy/llm.ReasoningEffortMapping
+  ProxyType:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ProxyType
+  ProxyConfig:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ProxyConfig
+  ProxyConfigInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ProxyConfig
+  CapabilityPolicy:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.CapabilityPolicy
+  ChannelEndpoint:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelEndpoint
+  AdapterTargetCapabilities:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.AdapterTargetCapabilities
+  ChannelEndpointInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelEndpoint
+  ChannelPolicies:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelPolicies
+  ChannelPoliciesInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelPolicies
+  ChannelSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelSettings
+  ChannelSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelSettings
+  RetryableErrorPattern:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.RetryableErrorPattern
+  RetryableErrorPatternInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.RetryableErrorPattern
+  OpenCodeGoQuotaSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OpenCodeGoQuotaSettings
+  OpenCodeGoQuotaSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OpenCodeGoQuotaSettings
+  ChannelProviderQuotaSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelProviderQuotaSettings
+  ChannelProviderQuotaSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelProviderQuotaSettings
+  ChannelRateLimit:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelRateLimit
+  ChannelRateLimitInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelRateLimit
+  ChannelCredentials:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelCredentials
+  ChannelCredentialsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelCredentials
+  OAuthCredentials:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OAuthCredentials
+  OAuthCredentialsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OAuthCredentials
+  BulkCreateChannelsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.BulkCreateChannelsInput
+  SaveChannelEndpointsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SaveChannelEndpointsInput
+  QueryChannelInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.QueryChannelsInput
+  StoragePolicy:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.StoragePolicy
+  CleanupOption:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.CleanupOption
+  UpdateStoragePolicyInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.StoragePolicy
+  CleanupOptionInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.CleanupOption
+  RetryPolicy:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.RetryPolicy
+  UpdateRetryPolicyInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.RetryPolicy
+  WebhookNotifierConfig:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookNotifierConfig
+  WebhookNotifierConfigInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookNotifierConfig
+  WebhookTarget:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookTarget
+  WebhookTargetInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookTarget
+  WebhookSubscription:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookSubscription
+  WebhookSubscriptionInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookSubscription
+  AutoDisableChannel:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoDisableChannel
+  AutoDisableChannelStatus:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoDisableChannelStatus
+  AutoDisableChannelInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoDisableChannel
+  AutoDisableChannelStatusInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoDisableChannelStatus
+  UpstreamErrorPolicy:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UpstreamErrorPolicy
+  UpstreamErrorPolicyInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UpstreamErrorPolicy
+  UpdateAPIKeyProfilesInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfiles
+  APIKeyProfileInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfile
+  APIKeyProfiles:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfiles
+  APIKeyProfile:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfile
+  UpdateProjectProfilesInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ProjectProfiles
+  ProjectProfileInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ProjectProfile
+  ProjectProfiles:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ProjectProfiles
+  ProjectProfile:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ProjectProfile
+  ChannelTagsMatchMode:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsMatchMode
+  APIKeyQuotaInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuota
+  APIKeyQuota:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuota
+  APIKeyQuotaPeriodInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriod
+  APIKeyQuotaPeriod:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriod
+  APIKeyQuotaPeriodType:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriodType
+  APIKeyQuotaPastDurationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDuration
+  APIKeyQuotaPastDuration:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDuration
+  APIKeyQuotaPastDurationUnit:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDurationUnit
+  APIKeyQuotaCalendarDurationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDuration
+  APIKeyQuotaCalendarDuration:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDuration
+  APIKeyQuotaCalendarDurationUnit:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDurationUnit
+  BackupOptionsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/backup.BackupOptions
+  RestoreOptionsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/backup.RestoreOptions
+  BackupConflictStrategy:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/backup.ConflictStrategy
+  GCPCredential:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.GCPCredential
+  GCPCredentialInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.GCPCredential
+  ModelIdentify:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ModelIdentify
+  UserInfo:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.UserInfo
+  RoleInfo:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.RoleInfo
+  UserProjectInfo:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.UserProjectInfo
+  DataStorageSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.DataStorageSettings
+  DataStorageSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.DataStorageSettings
+  S3:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.S3
+  S3Input:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.S3
+  GCS:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.GCS
+  GCSInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.GCS
+  WebDAV:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.WebDAV
+  WebDAVInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.WebDAV
+  Segment:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.Segment
+  RequestMetadata:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.RequestMetadata
+  UsageMetadata:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UsageMetadata
+  Span:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.Span
+  SpanValue:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanValue
+  SpanUserQuery:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanUserQuery
+  SpanUserImageURL:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanUserImageURL
+  SpanThinking:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanThinking
+  SpanText:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanText
+  SpanImageURL:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanImageURL
+  SpanFunctionCall:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanFunctionCall
+  SpanFunctionResult:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanFunctionResult
+  SpanToolUse:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanToolUse
+  SpanToolResult:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanToolResult
+  SpanSystemInstruction:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanSystemInstruction
+  SpanType:
+    model:
+      - string
+  ModelIdentityWithStatus:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ModelIdentityWithStatus
+  SaveChannelModelPriceInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SaveChannelModelPriceInput
+  ModelPrice:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelPrice
+  ModelPriceInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelPrice
+  ModelPriceItem:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelPriceItem
+  ModelPriceItemInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelPriceItem
+  Pricing:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.Pricing
+  PricingInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.Pricing
+  TieredPricing:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.TieredPricing
+  TieredPricingInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.TieredPricing
+  PriceTier:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceTier
+  PriceTierInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceTier
+  PromptWriteCacheVariant:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptWriteCacheVariant
+  PromptWriteCacheVariantInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptWriteCacheVariant
+  PriceSchedule:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceSchedule
+  PriceScheduleInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceSchedule
+  PriceOverride:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceOverride
+  PriceOverrideInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceOverride
+  OverrideWhen:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideWhen
+  OverrideWhenInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideWhen
+  DailyTimeRange:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.DailyTimeRange
+  DailyTimeRangeInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.DailyTimeRange
+  DateRange:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.DateRange
+  DateRangeInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.DateRange
+  PricingMode:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PricingMode
+  PriceItemCode:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceItemCode
+  PromptWriteCacheVariantCode:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptWriteCacheVariantCode
+  ModelCard:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCard
+  ModelCardInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCard
+  ModelCardReasoning:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardReasoning
+  ModelCardReasoningInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardReasoning
+  ModelCardModalities:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardModalities
+  ModelCardModalitiesInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardModalities
+  ModelCardCost:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardCost
+  ModelCardCostInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardCost
+  ModelCardLimit:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardLimit
+  ModelCardLimitInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardLimit
+  ModelSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelSettings
+  ModelSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelSettings
+  ModelAssociation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelAssociation
+  ModelAssociationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelAssociation
+  ModelAssociationWhen:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelAssociationWhen
+  ModelAssociationWhenInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelAssociationWhen
+  FilterConditionType:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ConditionType
+  FilterCondition:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.Condition
+  FilterConditionInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.Condition
+  ChannelModelAssociation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelModelAssociation
+  ChannelModelAssociationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelModelAssociation
+  ChannelRegexAssociation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelRegexAssociation
+  ChannelRegexAssociationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelRegexAssociation
+  RegexAssociation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.RegexAssociation
+  RegexAssociationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.RegexAssociation
+  ModelIDAssociation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelIDAssociation
+  ModelIDAssociationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelIDAssociation
+  ExcludeAssociation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ExcludeAssociation
+  ExcludeAssociationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ExcludeAssociation
+  ChannelTagsModelAssociation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsModelAssociation
+  ChannelTagsModelAssociationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsModelAssociation
+  ChannelTagsRegexAssociation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsRegexAssociation
+  ChannelTagsRegexAssociationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsRegexAssociation
+  ModelChannelConnection:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ModelChannelConnection
+  ChannelModelEntry:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelModelEntry
+  UnassociatedChannel:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UnassociatedChannel
+  HeaderEntry:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.HeaderEntry
+  HeaderEntryInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.HeaderEntry
+  OverrideOperation:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideOperation
+  OverrideOperationInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideOperation
+  OverrideMatch:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideMatch
+  OverrideMatchInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideMatch
+  TierCost:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.TierCost
+  CostItem:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.CostItem
+  TierCostInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.TierCost
+  CostItemInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.CostItem
+  TransformOptions:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.TransformOptions
+  TransformOptionsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.TransformOptions
+  SystemVersion:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/build.Info
+  SystemModelSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemModelSettings
+  UpdateSystemModelSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemModelSettings
+  DeveloperModelSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.DeveloperModelSettings
+  DeveloperModelSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.DeveloperModelSettings
+  SystemChannelSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemChannelSettings
+  UpdateSystemChannelSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UpdateSystemChannelSettings
+  SystemGeneralSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemGeneralSettings
+  UpdateSystemGeneralSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemGeneralSettings
+  VideoStorageSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.VideoStorageSettings
+  UpdateVideoStorageSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.VideoStorageSettings
+  ProxyPreset:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ProxyPreset
+  SaveProxyPresetInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ProxyPreset
+  ChannelProbeSetting:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelProbeSetting
+  UpdateChannelProbeSettingInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelProbeSetting
+  ChannelModelAutoSyncSetting:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelModelAutoSyncSetting
+  UpdateChannelModelAutoSyncSettingInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelModelAutoSyncSetting
+  ChannelProbePoint:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelProbePoint
+  ChannelProbeData:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelProbeData
+  GetChannelProbeDataInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.GetChannelProbeDataInput
+  ProbeFrequency:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ProbeFrequency
+  AutoSyncFrequency:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoSyncFrequency
+  QuotaEnforcementMode:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.QuotaEnforcementMode
+  TraceStickyMode:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.TraceStickyMode
+  TriggerGcCleanupInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/gc.TriggerGcCleanupInput
+  GcCleanupPreviewItem:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/gc.GcCleanupPreviewItem
+  PromptSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptSettings
+  PromptSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptSettings
+  PromptProtectionSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptProtectionSettings
+  PromptProtectionSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptProtectionSettings
+  PromptProtectionAction:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptProtectionAction
+  PromptProtectionScope:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptProtectionScope
+  PromptAction:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptAction
+  PromptActionInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptAction
+  PromptActivationCondition:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationCondition
+  PromptActivationConditionInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationCondition
+  PromptActionType:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActionType
+  PromptActivationConditionType:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationConditionType
+  PromptActivationConditionComposite:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationConditionComposite
+  PromptActivationConditionCompositeInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationConditionComposite
+  DisabledAPIKey:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.DisabledAPIKey
+  DeleteDisabledAPIKeysPayload:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.DeleteDisabledAPIKeysResult

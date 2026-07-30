@@ -1,0 +1,165 @@
+# llm-proxy Docker Compose Configuration
+#
+# CONFIGURATION OPTIONS:
+# 1. 环境变量 - 适用于敏感配置 (如数据库DSN、密码等)，优先级高于配置文件
+#    参考: https://github.com/mutallipp/llm-proxy/blob/main/docs/deployment/configuration.md#configuration-priority
+#
+# 2. 配置文件 - 适用于复杂配置 (如缓存、日志、监控等)
+#    创建 config.yml 文件并取消 volumes 配置的注释
+#    配置参考: https://github.com/mutallipp/llm-proxy/blob/main/docs/deployment/configuration.md
+#
+# 3. 简单部署 - 如果不需要复杂配置，可以注释掉 config 的 volumes 配置
+#    仅使用环境变量进行基本配置即可运行
+
+services:
+  # llm-proxy 主服务
+  # 连接到本机已有的 postgres 容器（在 shared-net 网络上），
+  # axonhub 库已在 infra/postgres 里创建好。
+  llm-proxy:
+    build:
+      context: .
+    image: llm-proxy:latest
+    container_name: llm-proxy
+    # 允许容器通过 host.docker.internal 访问宿主机服务（如宿主机代理）
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # 数据库配置可以通过环境变量设置，优先级高于配置文件
+      AXONHUB_DB_DIALECT: postgres
+      AXONHUB_DB_DSN: postgres://dev:dev123@postgres:5432/axonhub?sslmode=disable
+      # MVP 必要开关：允许消费入口不携带 API Key
+      # 背景：Adapter Gateway 一期设计下，消费层 API Key 不校验、不落库、不转发。
+      # 如果你仍在使用传统多用户鉴权，请改成 false 并通过 APIKey 体系访问。
+      AXONHUB_SERVER_API_AUTH_ALLOW_NO_AUTH: "true"
+      # ── 代理配置（可选） ──────────────────────────────────────────────────────
+      # 默认为空，普通部署不受影响。
+      # 使用项目命名空间变量（AXONHUB_*）避免宿主机同名变量（HTTP_PROXY 等）泄入容器。
+      # 如需使用公司 VPN / 宿主机代理，在 .env 文件或 CI/OpenStack 环境变量中注入。
+      # 详细说明见 docs/deployment/adapter-mvp.md §11。
+      HTTP_PROXY: ${AXONHUB_HTTP_PROXY:-}
+      HTTPS_PROXY: ${AXONHUB_HTTPS_PROXY:-}
+      ALL_PROXY: ${AXONHUB_ALL_PROXY:-}
+      NO_PROXY: ${AXONHUB_NO_PROXY:-localhost,127.0.0.1,postgres,redis,host.docker.internal}
+    ports:
+      - "8090:8090"
+    volumes:
+      # 配置文件挂载 - 用于复杂配置，如缓存、日志、监控等
+      # 参考: https://github.com/mutallipp/llm-proxy/blob/main/docs/deployment/configuration.md
+      - ./config.yml:/app/config.yml:ro
+      # - llm-proxy_data:/data
+    networks:
+      - shared-net
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8090/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # SQLite 配置示例 (取消注释以使用 SQLite)
+  # 注意: 此服务与上面的 'llm-proxy' 服务冲突。请只启用其中一个。
+  # 先执行 
+  # mkdir data
+  # chmod 777 data
+  # llm-proxy-sqlite:
+  #   image: llm-proxy:latest
+  #   container_name: llm-proxy-sqlite-app
+  #   environment:
+  #     AXONHUB_DB_DIALECT: sqlite3
+  #     AXONHUB_DB_DSN: file:/data/axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
+  #   ports:
+  #     - "8090:8090"
+  #   volumes:
+  #     # 配置文件挂载 - 用于复杂配置
+  #     # 参考: https://github.com/mutallipp/llm-proxy/blob/main/docs/deployment/configuration.md
+  #     - ./config.yml:/app/config.yml:ro
+  #     - ./data:/data
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "wget",
+  #         "--no-verbose",
+  #         "--tries=1",
+  #         "--spider",
+  #         "http://localhost:8090/health",
+  #       ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+
+  # MySQL 配置示例 (取消注释以使用 MySQL)
+  # 注意: 此服务与上面的 'llm-proxy' 服务冲突。请只启用其中一个。
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: llm-proxy-mysql
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-axonhub_root_password}
+  #     MYSQL_DATABASE: axonhub
+  #     MYSQL_USER: axonhub
+  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-axonhub_password}
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   ports:
+  #     - "3306:3306"
+  #   networks:
+  #     - llm-proxy-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-axonhub_root_password}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #
+  # # llm-proxy 主服务 (MySQL 版本)
+  # # 注意: 取消注释此服务时，请注释掉上面的 PostgreSQL 版本 axonhub 服务
+  # llm-proxy-mysql:
+  #   image: llm-proxy:latest
+  #   container_name: llm-proxy-mysql-app
+  #   environment:
+  #     AXONHUB_DB_DIALECT: mysql
+  #     # DSN 格式参考: ${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(mysql:3306)/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=True&loc=Local
+  #     AXONHUB_DB_DSN: axonhub:${MYSQL_PASSWORD:-axonhub_password}@tcp(mysql:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+  #   ports:
+  #     - "8090:8090"
+  #   volumes:
+  #     # 配置文件挂载 - 用于复杂配置
+  #     # 参考: https://github.com/mutallipp/llm-proxy/blob/main/docs/deployment/configuration.md
+  #     - ./config.yml:/app/config.yml:ro
+  #     # - llm-proxy_data:/data
+  #   networks:
+  #     - llm-proxy-network
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "wget",
+  #         "--no-verbose",
+  #         "--tries=1",
+  #         "--spider",
+  #         "http://localhost:8090/health",
+  #       ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+
+networks:
+  shared-net:
+    external: true
+    name: shared-net

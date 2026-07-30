@@ -1,0 +1,15 @@
+{
+  "x-codex-beta-features": "terminal_resize_reflow",
+  "x-codex-turn-metadata": "{\"session_id\":\"019fae78-a859-7861-8b25-6f49dc0fe3c5\",\"thread_id\":\"019fae78-a859-7861-8b25-6f49dc0fe3c5\",\"turn_id\":\"019fae78-a86f-7c40-8223-2dc4e328a92a\",\"sandbox\":\"seatbelt\",\"turn_started_at_unix_ms\":1785338570864}",
+  "x-codex-window-id": "<dynamic>",
+  "x-client-request-id": "<dynamic>",
+  "session-id": "<dynamic>",
+  "thread-id": "<dynamic>",
+  "accept": "text/event-stream",
+  "authorization": "<redacted>",
+  "content-type": "application/json",
+  "originator": "codex_exec",
+  "user-agent": "codex_exec/0.132.0 (Mac OS 14.7.7; arm64) ghostty/1.3.2-main-_36775cd (codex_exec; 0.132.0)",
+  "host": "<capture-host>",
+  "content-length": "44336"
+}

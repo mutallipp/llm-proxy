@@ -1,0 +1,70 @@
+package server
+
+import (
+	"time"
+
+	"github.com/mutallipp/llm-proxy/internal/tracing"
+)
+
+type Config struct {
+	Host        string        `conf:"host" yaml:"host" json:"host"`
+	Port        int           `conf:"port" yaml:"port" json:"port"`
+	PublicURL   string        `conf:"public_url" yaml:"public_url" json:"public_url"`
+	Name        string        `conf:"name" yaml:"name" json:"name"`
+	BasePath    string        `conf:"base_path" yaml:"base_path" json:"base_path"`
+	PidFile     string        `conf:"pid_file" yaml:"pid_file" json:"pid_file"`
+	ReadTimeout time.Duration `conf:"read_timeout" yaml:"read_timeout" json:"read_timeout"`
+
+	// RequestTimeout is the maximum duration for processing a request.
+	RequestTimeout time.Duration `conf:"request_timeout" yaml:"request_timeout" json:"request_timeout"`
+
+	// LLMRequestTimeout is the maximum duration for processing a request to LLM.
+	LLMRequestTimeout time.Duration `conf:"llm_request_timeout" yaml:"llm_request_timeout" json:"llm_request_timeout"`
+
+	Trace     tracing.Config `conf:"trace" yaml:"trace" json:"trace"`
+	Dashboard Dashboard      `conf:"dashboard" yaml:"dashboard" json:"dashboard"`
+
+	Debug            bool            `conf:"debug" yaml:"debug" json:"debug"`
+	DisableSSLVerify bool            `conf:"disable_ssl_verify" yaml:"disable_ssl_verify" json:"disable_ssl_verify"`
+	CORS             CORS            `conf:"cors" yaml:"cors" json:"cors"`
+	API              API             `conf:"api" yaml:"api" json:"api"`
+	IPAccessControl  IPAccessControl `conf:"ip_access_control" yaml:"ip_access_control" json:"ip_access_control"`
+}
+
+// Dashboard holds configuration for the dashboard cache settings.
+type Dashboard struct {
+	// AllTimeTokenStatsSoftTTL is the duration after which cached all-time token stats
+	// are considered stale and will be refreshed asynchronously (stale-while-revalidate).
+	// Default: 1 hour
+	AllTimeTokenStatsSoftTTL time.Duration `conf:"all_time_token_stats_soft_ttl" yaml:"all_time_token_stats_soft_ttl" json:"all_time_token_stats_soft_ttl"`
+
+	// AllTimeTokenStatsHardTTL is the maximum duration for which cached all-time token stats
+	// are considered valid. After this, synchronous refresh is required.
+	// Default: 24 hours
+	AllTimeTokenStatsHardTTL time.Duration `conf:"all_time_token_stats_hard_ttl" yaml:"all_time_token_stats_hard_ttl" json:"all_time_token_stats_hard_ttl"`
+}
+
+type CORS struct {
+	Enabled          bool          `conf:"enabled" yaml:"enabled" json:"enabled"`
+	AllowedOrigins   []string      `conf:"allowed_origins" yaml:"allowed_origins" json:"allowed_origins"`
+	AllowedMethods   []string      `conf:"allowed_methods" yaml:"allowed_methods" json:"allowed_methods"`
+	AllowedHeaders   []string      `conf:"allowed_headers" yaml:"allowed_headers" json:"allowed_headers"`
+	ExposedHeaders   []string      `conf:"exposed_headers" yaml:"exposed_headers" json:"exposed_headers"`
+	AllowCredentials bool          `conf:"allow_credentials" yaml:"allow_credentials" json:"allow_credentials"`
+	MaxAge           time.Duration `conf:"max_age" yaml:"max_age" json:"max_age"`
+}
+
+type API struct {
+	Auth APIAuth `conf:"auth" yaml:"auth" json:"auth"`
+}
+
+type APIAuth struct {
+	AllowNoAuth bool   `conf:"allow_no_auth" yaml:"allow_no_auth" json:"allow_no_auth"`
+	KeyPrefix   string `conf:"key_prefix" yaml:"key_prefix" json:"key_prefix"`
+}
+
+type IPAccessControl struct {
+	Enabled     bool     `conf:"enabled" yaml:"enabled" json:"enabled"`
+	AllowedIPs  []string `conf:"allowed_ips" yaml:"allowed_ips" json:"allowed_ips"`
+	RedirectURL string   `conf:"redirect_url" yaml:"redirect_url" json:"redirect_url"`
+}

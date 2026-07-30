@@ -1,0 +1,69 @@
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend-builder
+
+# 换 apk 源为 aliyun, 避免 dl-cdn.alpinelinux.org 被防火墙过滤
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
+
+WORKDIR /build
+# 容器内走国内镜像, 避开 Docker 网络栈访问 registry.npmjs.org 变慢
+# 关闭 corepack 自检, corepack prepare 走 github.com 被屏蔽, 改为 npm install -g
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm install -g pnpm@10 && \
+    pnpm config set registry https://registry.npmmirror.com
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+COPY ./frontend .
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+RUN pnpm build
+
+# Copy dist to a stage with the target platform to avoid architecture mismatch
+FROM alpine:3.20 AS frontend-dist
+COPY --from=frontend-builder /build/dist /dist
+
+FROM golang:1.26-alpine AS backend-builder
+
+# 换 apk 源为 aliyun, 避免 dl-cdn.alpinelinux.org 被防火墙过滤
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
+
+# Go 模块走国内镜像, 避开 Docker 网络栈访问 proxy.golang.org 变慢
+ARG GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct
+ENV GOPROXY=${GOPROXY}
+
+WORKDIR /build
+
+RUN apk add --no-cache git ca-certificates tzdata
+
+COPY go.mod go.sum ./
+COPY llm/go.mod llm/go.sum llm/
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOTOOLCHAIN=auto go mod download
+
+COPY . .
+COPY --from=frontend-dist /dist /build/internal/server/static/dist
+
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    GOTOOLCHAIN=auto go build \
+    -tags=nomsgpack \
+    -ldflags "-s -w -X 'github.com/mutallipp/llm-proxy/internal/build.Version=$(cat internal/build/VERSION 2>/dev/null || echo dev)' -X 'github.com/mutallipp/llm-proxy/internal/build.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)'" \
+    -o axonhub \
+    ./cmd/axonhub
+
+FROM alpine:3.20
+
+# 换 apk 源为 aliyun, 避免 dl-cdn.alpinelinux.org 被防火墙过滤
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
+
+RUN apk add --no-cache ca-certificates tzdata
+
+WORKDIR /app
+COPY --from=backend-builder /build/axonhub /app/axonhub
+
+EXPOSE 8090
+ENTRYPOINT ["/app/axonhub"]

@@ -1,0 +1,171 @@
+package gql
+
+import (
+	"context"
+	"testing"
+
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/enttest"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcache"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+)
+
+func setupTestSystemMutationResolver(t *testing.T) (*mutationResolver, context.Context, *ent.Client) {
+	t.Helper()
+
+	client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
+	systemService := &biz.SystemService{
+		Cache: xcache.NewFromConfig[ent.System](xcache.Config{Mode: xcache.ModeMemory}),
+	}
+
+	ctx := context.Background()
+	ctx = ent.NewContext(ctx, client)
+	ctx = authz.WithTestBypass(ctx)
+
+	resolver := &mutationResolver{&Resolver{systemService: systemService}}
+	return resolver, ctx, client
+}
+
+func TestMutationResolver_UpdateSystemChannelSettings_MergesAutoSyncWithoutOverwritingProbe(t *testing.T) {
+	resolver, ctx, client := setupTestSystemMutationResolver(t)
+	defer client.Close()
+
+	err := resolver.systemService.SetChannelSetting(ctx, biz.SystemChannelSettings{
+		Probe: biz.ChannelProbeSetting{
+			Enabled:   true,
+			Frequency: biz.ProbeFrequency5Min,
+		},
+		AutoSync: biz.ChannelModelAutoSyncSetting{
+			Frequency: biz.AutoSyncFrequencyOneHour,
+		},
+	})
+	require.NoError(t, err)
+
+	ok, err := resolver.UpdateSystemChannelSettings(ctx, biz.UpdateSystemChannelSettings{
+		AutoSync: &biz.ChannelModelAutoSyncSetting{
+			Frequency: biz.AutoSyncFrequencySixHours,
+		},
+	})
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	setting, err := resolver.systemService.ChannelSetting(ctx)
+	require.NoError(t, err)
+	require.True(t, setting.Probe.Enabled)
+	require.Equal(t, biz.ProbeFrequency5Min, setting.Probe.Frequency)
+	require.Equal(t, biz.AutoSyncFrequencySixHours, setting.AutoSync.Frequency)
+}
+
+func TestMutationResolver_UpdateSystemChannelSettings_MergesProbeWithoutOverwritingAutoSync(t *testing.T) {
+	resolver, ctx, client := setupTestSystemMutationResolver(t)
+	defer client.Close()
+
+	err := resolver.systemService.SetChannelSetting(ctx, biz.SystemChannelSettings{
+		Probe: biz.ChannelProbeSetting{
+			Enabled:   true,
+			Frequency: biz.ProbeFrequency5Min,
+		},
+		AutoSync: biz.ChannelModelAutoSyncSetting{
+			Frequency: biz.AutoSyncFrequencySixHours,
+		},
+	})
+	require.NoError(t, err)
+
+	ok, err := resolver.UpdateSystemChannelSettings(ctx, biz.UpdateSystemChannelSettings{
+		Probe: &biz.ChannelProbeSetting{
+			Enabled:   false,
+			Frequency: biz.ProbeFrequency1Hour,
+		},
+	})
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	setting, err := resolver.systemService.ChannelSetting(ctx)
+	require.NoError(t, err)
+	require.False(t, setting.Probe.Enabled)
+	require.Equal(t, biz.ProbeFrequency1Hour, setting.Probe.Frequency)
+	require.Equal(t, biz.AutoSyncFrequencySixHours, setting.AutoSync.Frequency)
+}
+
+func TestMutationResolver_UpdateSystemChannelSettings_MergesPrompts(t *testing.T) {
+	resolver, ctx, client := setupTestSystemMutationResolver(t)
+	defer client.Close()
+
+	err := resolver.systemService.SetChannelSetting(ctx, biz.SystemChannelSettings{
+		Probe: biz.ChannelProbeSetting{
+			Enabled:   true,
+			Frequency: biz.ProbeFrequency5Min,
+		},
+		AutoSync: biz.ChannelModelAutoSyncSetting{
+			Frequency: biz.AutoSyncFrequencyOneHour,
+		},
+		TestSystemPrompt: "initial system",
+		TestUserPrompt:   "initial user",
+	})
+	require.NoError(t, err)
+
+	userPrompt := "updated user"
+	ok, err := resolver.UpdateSystemChannelSettings(ctx, biz.UpdateSystemChannelSettings{
+		TestUserPrompt: &userPrompt,
+	})
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	setting, err := resolver.systemService.ChannelSetting(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "initial system", setting.TestSystemPrompt)
+	require.Equal(t, "updated user", setting.TestUserPrompt)
+	require.True(t, setting.Probe.Enabled)
+	require.Equal(t, biz.AutoSyncFrequencyOneHour, setting.AutoSync.Frequency)
+
+	emptyPrompt := ""
+	ok, err = resolver.UpdateSystemChannelSettings(ctx, biz.UpdateSystemChannelSettings{
+		TestSystemPrompt: &emptyPrompt,
+	})
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	setting, err = resolver.systemService.ChannelSetting(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "You are a helpful assistant.", setting.TestSystemPrompt)
+	require.Equal(t, "updated user", setting.TestUserPrompt)
+}
+
+func TestUpdateSystemChannelSettingsInput_PromptPresence(t *testing.T) {
+	ec := &executionContext{}
+
+	tests := []struct {
+		name           string
+		input          map[string]any
+		expectedSystem *string
+		expectedUser   *string
+	}{
+		{name: "omitted", input: map[string]any{}},
+		{name: "null", input: map[string]any{"testSystemPrompt": nil, "testUserPrompt": nil}},
+		{
+			name:           "empty",
+			input:          map[string]any{"testSystemPrompt": "", "testUserPrompt": " "},
+			expectedSystem: lo.ToPtr(""),
+			expectedUser:   lo.ToPtr(" "),
+		},
+		{
+			name:           "value",
+			input:          map[string]any{"testSystemPrompt": "custom system", "testUserPrompt": "custom user"},
+			expectedSystem: lo.ToPtr("custom system"),
+			expectedUser:   lo.ToPtr("custom user"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input, err := ec.unmarshalInputUpdateSystemChannelSettingsInput(t.Context(), tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expectedSystem, input.TestSystemPrompt)
+			require.Equal(t, tt.expectedUser, input.TestUserPrompt)
+		})
+	}
+}
