@@ -124,7 +124,7 @@ export function useAdapters() {
 export function useModelGroups() {
   return useQuery({
     queryKey: ['gateway-model-groups'],
-    queryFn: () => apiRequest<{ model_groups: ModelGroup[] }>('/admin/gateway/model_groups', { requireAuth: true }),
+    queryFn: () => apiRequest<{ model_groups: ModelGroup[] }>('/admin/gateway/model-groups', { requireAuth: true }),
   });
 }
 
@@ -145,7 +145,7 @@ export function useUpsertModelGroup() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ name, data }: { name: string; data: ModelGroupUpdateInput }) =>
-      apiRequest<ModelGroupUpdateResponse>(`/admin/gateway/model_groups/${encodeURIComponent(name)}`, {
+      apiRequest<ModelGroupUpdateResponse>(`/admin/gateway/model-groups/${encodeURIComponent(name)}`, {
         method: 'PUT',
         body: data,
         requireAuth: true,
@@ -169,6 +169,6 @@ export function useRefreshGateway() {
 export function useGatewayRuntime() {
   return useQuery({
     queryKey: ['gateway-runtime'],
-    queryFn: () => apiRequest<Record<string, unknown>>('/admin/gateway/runtime-status', { requireAuth: true }),
+    queryFn: () => apiRequest<Record<string, unknown>>('/admin/gateway/runtime', { requireAuth: true }),
   });
 }
