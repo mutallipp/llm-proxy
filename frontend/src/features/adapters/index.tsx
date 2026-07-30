@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
   INBOUND_API_FORMATS,
   type AdapterBinding,
+  type AdapterTestResult,
   type AdapterUpdateInput,
   type GatewayAdapter,
   testAdapterBinding,
@@ -58,8 +59,14 @@ function BindingTestButton({ adapterName, inboundApiFormat, binding }: BindingTe
         inboundApiFormat,
         sourceModelId: binding.source_model_id,
       });
-      setState('success');
-      toast.success(`测试成功（${result.latency.toFixed(2)}s）：${result.summary || '无内容'}`);
+      if (!result.ok) {
+        // 非 2xx：显示错误
+        setState('failed');
+        toast.error(result.error ?? `HTTP ${result.status}`);
+      } else {
+        setState('success');
+        toast.success(`测试成功（${result.latency.toFixed(2)}s）：${result.summary || '无内容'}`);
+      }
     } catch (error) {
       setState('failed');
       toast.error(error instanceof Error ? error.message : '测试失败');
@@ -84,6 +91,247 @@ function BindingTestButton({ adapterName, inboundApiFormat, binding }: BindingTe
       )}
       {state === 'testing' ? '测试中' : state === 'success' ? '通过' : state === 'failed' ? '失败' : '测试'}
     </Button>
+  );
+}
+
+// ===================== curl 预览生成 =====================
+
+/**
+ * 根据入站协议和源模型 ID 生成与实际请求一致的 curl 命令预览。
+ * 不含 Authorization/API Key，仅展示入站协议和请求体结构。
+ */
+function buildCurl(adapterName: string, inboundApiFormat: string, sourceModelId: string): string {
+  const origin = window.location.origin;
+  const encodedName = encodeURIComponent(adapterName);
+
+  if (inboundApiFormat === 'anthropic/messages') {
+    const bodyObj = {
+      model: sourceModelId,
+      max_tokens: 16,
+      messages: [{ role: 'user', content: 'Reply with OK.' }],
+      stream: false,
+    };
+    return [
+      `curl -X POST '${origin}/${encodedName}/v1/messages' \\`,
+      `  -H 'Content-Type: application/json' \\`,
+      `  -d '${JSON.stringify(bodyObj)}'`,
+    ].join('\n');
+  } else if (inboundApiFormat === 'openai/responses') {
+    const bodyObj = {
+      model: sourceModelId,
+      input: 'Reply with OK.',
+      max_output_tokens: 16,
+      stream: false,
+    };
+    return [
+      `curl -X POST '${origin}/${encodedName}/v1/responses' \\`,
+      `  -H 'Content-Type: application/json' \\`,
+      `  -d '${JSON.stringify(bodyObj)}'`,
+    ].join('\n');
+  } else {
+    // openai/chat_completions（默认）
+    const bodyObj = {
+      model: sourceModelId,
+      max_tokens: 16,
+      messages: [{ role: 'user', content: 'Reply with OK.' }],
+      stream: false,
+    };
+    return [
+      `curl -X POST '${origin}/${encodedName}/v1/chat/completions' \\`,
+      `  -H 'Content-Type: application/json' \\`,
+      `  -d '${JSON.stringify(bodyObj)}'`,
+    ].join('\n');
+  }
+}
+
+// ===================== Adapter 测试弹窗 =====================
+
+interface AdapterTestDialogProps {
+  adapter: GatewayAdapter | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogProps) {
+  const { data: modelGroupData } = useModelGroups();
+  const modelGroups = modelGroupData?.model_groups ?? [];
+
+  // 只展示已启用的绑定项
+  const enabledBindings = adapter?.bindings.filter((b) => b.enabled) ?? [];
+
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState<AdapterTestResult | null>(null);
+
+  // 弹窗打开时重置状态
+  useEffect(() => {
+    if (open) {
+      setSelectedIndex(0);
+      setResult(null);
+    }
+  }, [open]);
+
+  if (!adapter) return null;
+
+  const selectedBinding = enabledBindings[selectedIndex];
+
+  // 切换绑定时清除上次结果
+  const handleSelectBinding = (value: string) => {
+    setSelectedIndex(Number(value));
+    setResult(null);
+  };
+
+  // 获取模型组显示名称
+  const getGroupName = (modelGroupId: number) => {
+    const g = modelGroups.find((mg) => mg.id === modelGroupId);
+    return g?.display_name || g?.name || `模型组 #${modelGroupId}`;
+  };
+
+  // 当前绑定的 curl 预览
+  const curlPreview = selectedBinding
+    ? buildCurl(adapter.name, adapter.inbound_api_format, selectedBinding.source_model_id)
+    : '';
+
+  // 尝试将原始响应 JSON 格式化
+  const formattedResponse = (() => {
+    if (!result?.rawResponse) return '';
+    try {
+      return JSON.stringify(JSON.parse(result.rawResponse), null, 2);
+    } catch {
+      return result.rawResponse;
+    }
+  })();
+
+  const runTest = async () => {
+    if (!selectedBinding || testing) return;
+    setTesting(true);
+    setResult(null);
+    try {
+      const res = await testAdapterBinding({
+        adapterName: adapter.name,
+        inboundApiFormat: adapter.inbound_api_format,
+        sourceModelId: selectedBinding.source_model_id,
+      });
+      setResult(res);
+      if (res.ok) {
+        toast.success(`测试成功（${res.latency.toFixed(2)}s）`);
+      } else {
+        toast.error(res.error ?? `HTTP ${res.status}`);
+      }
+    } catch (err) {
+      // testAdapterBinding 已捕获网络错误，这里仅作兴底处理
+      toast.error(err instanceof Error ? err.message : '测试失败');
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!testing) onOpenChange(o); }}>
+      <DialogContent className='w-[96vw] max-w-[1000px] max-h-[90vh] overflow-y-auto'>
+        <DialogHeader>
+          <DialogTitle>测试 Adapter：{adapter.display_name || adapter.name}</DialogTitle>
+          <DialogDescription>
+            通过 Adapter 入站协议发送最小请求，验证整条链路连通性。
+          </DialogDescription>
+        </DialogHeader>
+
+        {enabledBindings.length === 0 ? (
+          // 没有已启用绑定时的提示
+          <div className='py-8 text-center'>
+            <p className='text-muted-foreground'>该 Adapter 暂无可用的已启用绑定，请先在编辑中添加并启用绑定。</p>
+          </div>
+        ) : (
+          <div className='space-y-4'>
+            {/* 绑定选择器 */}
+            <div className='space-y-2'>
+              <Label>选择绑定</Label>
+              <Select value={String(selectedIndex)} onValueChange={handleSelectBinding}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {enabledBindings.map((binding, i) => (
+                    <SelectItem key={`${binding.source_model_id}-${i}`} value={String(i)}>
+                      {binding.source_model_id} · {getGroupName(binding.model_group_id)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className='text-muted-foreground text-xs'>
+                测试使用真实 Adapter 入站协议和逆辑模型，不直接测试目标模型 ID。
+              </p>
+            </div>
+
+            {/* curl 预览 */}
+            {curlPreview && (
+              <div className='space-y-2'>
+                <Label>将要执行的请求（curl 预览）</Label>
+                <pre className='bg-muted text-muted-foreground overflow-x-auto rounded-md p-3 text-xs leading-relaxed whitespace-pre-wrap break-all'>
+                  {curlPreview}
+                </pre>
+              </div>
+            )}
+
+            {/* 执行测试按钮 */}
+            <Button onClick={runTest} disabled={testing || !selectedBinding} className='w-full'>
+              {testing ? (
+                <>
+                  <IconLoader2 className='mr-2 h-4 w-4 animate-spin' />
+                  测试中...
+                </>
+              ) : (
+                <>
+                  <IconFlask className='mr-2 h-4 w-4' />
+                  执行测试
+                </>
+              )}
+            </Button>
+
+            {/* 测试结果展示区 */}
+            {result && (
+              <div className='space-y-3 rounded-md border p-4'>
+                {/* 状态和耗时 */}
+                <div className='flex flex-wrap items-center gap-4'>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-sm font-medium'>状态：</span>
+                    <Badge variant={result.ok ? 'default' : 'destructive'}>
+                      {result.status > 0 ? `HTTP ${result.status}` : '网络错误'}
+                    </Badge>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-sm font-medium'>耗时：</span>
+                    <span className='text-muted-foreground text-sm'>{result.latency.toFixed(2)}s</span>
+                  </div>
+                </div>
+
+                {/* 错误信息 */}
+                {result.error && (
+                  <div className='space-y-1'>
+                    <p className='text-sm font-medium text-destructive'>错误信息</p>
+                    <p className='text-destructive text-sm'>{result.error}</p>
+                  </div>
+                )}
+
+                {/* 响应内容 */}
+                {formattedResponse && (
+                  <div className='space-y-1'>
+                    <p className='text-sm font-medium'>响应内容</p>
+                    <pre className='bg-muted max-h-64 overflow-y-auto overflow-x-auto rounded-md p-3 text-xs whitespace-pre-wrap break-all'>
+                      <code>{formattedResponse}</code>
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant='outline' onClick={() => onOpenChange(false)} disabled={testing}>关闭</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -392,6 +640,10 @@ export default function AdaptersManagement() {
   const [deleting, setDeleting] = useState<GatewayAdapter | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  // 测试弹窗状态
+  const [testTarget, setTestTarget] = useState<GatewayAdapter | null>(null);
+  const [isTestOpen, setIsTestOpen] = useState(false);
+
   const adapters = data?.adapters ?? [];
   const modelGroups = modelGroupData?.model_groups ?? [];
 
@@ -496,6 +748,17 @@ export default function AdaptersManagement() {
                         </td>
                         <td className='p-3'>
                           <div className='flex flex-wrap justify-end gap-1'>
+                            {/* 列表行测试按钮：非启用状态时 disabled 并显示提示 */}
+                            <span title={adapter.status !== 'enabled' ? '请先启用 Adapter' : undefined}>
+                              <Button
+                                size='sm'
+                                variant='ghost'
+                                onClick={() => { setTestTarget(adapter); setIsTestOpen(true); }}
+                                disabled={adapter.status !== 'enabled'}
+                              >
+                                <IconFlask className='mr-1 h-4 w-4' />测试
+                              </Button>
+                            </span>
                             <Button
                               size='sm'
                               variant='ghost'
@@ -593,6 +856,16 @@ export default function AdaptersManagement() {
           提示：绑定和状态变更会整体提交 Adapter 配置，并自动刷新运行时快照。
         </p>
       </Main>
+
+      {/* 测试弹窗 */}
+      <AdapterTestDialog
+        adapter={testTarget}
+        open={isTestOpen}
+        onOpenChange={(o) => {
+          setIsTestOpen(o);
+          if (!o) setTestTarget(null);
+        }}
+      />
 
       {/* 创建/编辑弹窗 */}
       <AdapterDialog adapter={editing} open={dialogOpen} onOpenChange={setDialogOpen} />

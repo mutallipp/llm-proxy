@@ -233,13 +233,18 @@ export function useDeleteModelGroup() {
 // ===================== Adapter 绑定测试 =====================
 
 export interface AdapterTestResult {
-  latency: number;
-  summary: string;
+  latency: number;      // 响应耗时（秒）
+  summary: string;      // 简短内容摘要（成功时提取）
+  status: number;       // HTTP 状态码，网络错误时为 0
+  ok: boolean;          // 是否为 2xx
+  rawResponse: string;  // 原始响应文本（JSON 字符串或纯文本）
+  error?: string;       // 错误信息（非 2xx 或网络错误时填充）
 }
 
 /**
  * 直接调用 Adapter 路由发送最小非流式请求，用于验证链路连通性。
  * 使用当前管理员 JWT 以便追踪，不传消费端 API Key。
+ * 非 2xx 不再抛出，而是返回含 ok:false 和 error 的结果，便于 UI 展示完整错误信息。
  */
 export async function testAdapterBinding(params: {
   adapterName: string;
@@ -286,38 +291,67 @@ export async function testAdapterBinding(params: {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  // 捕获网络层错误（DNS 失败、连接拒绝等）
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+  } catch (networkError) {
+    const latency = (Date.now() - startTime) / 1000;
+    return {
+      latency,
+      summary: '',
+      status: 0,
+      ok: false,
+      rawResponse: '',
+      error: networkError instanceof Error ? networkError.message : '网络错误',
+    };
+  }
 
   const latency = (Date.now() - startTime) / 1000;
+  // 先读取原始文本，保留完整响应内容供 UI 展示
+  const rawResponse = await response.text().catch(() => '');
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => '');
+    // 非 2xx：尝试从响应体中提取可读错误信息
     let errMsg = `HTTP ${response.status}`;
     try {
-      const parsed = JSON.parse(errorText);
+      const parsed = JSON.parse(rawResponse);
       if (parsed?.message) errMsg = parsed.message;
-      else if (parsed?.error) errMsg = typeof parsed.error === 'string' ? parsed.error : parsed.error?.message ?? errMsg;
+      else if (parsed?.error) errMsg = typeof parsed.error === 'string' ? parsed.error : (parsed.error?.message ?? errMsg);
     } catch {
-      if (errorText) errMsg += `: ${errorText.slice(0, 200)}`;
+      if (rawResponse) errMsg += `: ${rawResponse.slice(0, 200)}`;
     }
-    throw new Error(errMsg);
+    return {
+      latency,
+      summary: '',
+      status: response.status,
+      ok: false,
+      rawResponse,
+      error: errMsg,
+    };
   }
 
-  const data = await response.json().catch(() => ({}));
+  // 2xx：解析 JSON 并提取简短摘要
+  let data: Record<string, unknown> = {};
+  try {
+    data = JSON.parse(rawResponse);
+  } catch {
+    // 非 JSON 格式直接作为摘要返回
+    return { latency, summary: rawResponse.slice(0, 120), status: response.status, ok: true, rawResponse };
+  }
 
-  // 提取简短响应摘要
   let summary = '';
   if (inboundApiFormat === 'anthropic/messages') {
-    summary = (data?.content?.[0]?.text ?? '').slice(0, 120);
+    summary = ((data?.content as Array<{ text?: string }>)?.[0]?.text ?? '').slice(0, 120);
   } else if (inboundApiFormat === 'openai/responses') {
-    summary = (data?.output?.[0]?.content?.[0]?.text ?? '').slice(0, 120);
+    summary = ((data?.output as Array<{ content?: Array<{ text?: string }> }>)?.[0]?.content?.[0]?.text ?? '').slice(0, 120);
   } else {
-    summary = (data?.choices?.[0]?.message?.content ?? '').slice(0, 120);
+    summary = ((data?.choices as Array<{ message?: { content?: string } }>)?.[0]?.message?.content ?? '').slice(0, 120);
   }
 
-  return { latency, summary };
+  return { latency, summary, status: response.status, ok: true, rawResponse };
 }
