@@ -1,7 +1,9 @@
 FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend-builder
 
 WORKDIR /build
-RUN corepack enable && corepack prepare pnpm@10 --activate
+# 容器内走国内镜像, 避开 Docker 网络栈访问 registry.npmjs.org 变慢
+RUN corepack enable && corepack prepare pnpm@10 --activate && \
+    pnpm config set registry https://registry.npmmirror.com
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
@@ -15,6 +17,10 @@ FROM alpine:3.20 AS frontend-dist
 COPY --from=frontend-builder /build/dist /dist
 
 FROM golang:1.26-alpine AS backend-builder
+
+# Go 模块走国内镜像, 避开 Docker 网络栈访问 proxy.golang.org 变慢
+ARG GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct
+ENV GOPROXY=${GOPROXY}
 
 WORKDIR /build
 

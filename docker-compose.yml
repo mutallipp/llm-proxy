@@ -16,7 +16,8 @@ services:
   # 连接到本机已有的 postgres 容器（在 shared-net 网络上），
   # axonhub 库已在 infra/postgres 里创建好。
   axonhub:
-    image: looplj/axonhub:latest
+    build:
+      context: .
     container_name: axonhub-app
     environment:
       # 数据库配置可以通过环境变量设置，优先级高于配置文件
