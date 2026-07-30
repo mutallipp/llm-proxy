@@ -675,7 +675,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                           }
                           className='h-8 text-center'
                         />
-                        {/* 启用状态（可编辑） */
+                        {/* 启用状态（可编辑） */}
                         <Select
                           value={target.enabled ? 'enabled' : 'disabled'}
                           onValueChange={(value) =>
