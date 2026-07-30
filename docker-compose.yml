@@ -22,8 +22,12 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-axonhub_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # MVP 默认不暴露 Postgres 5432 到宿主机, 仅容器间访问。
+    # 如需本地调试, 取消下一行注释并记得加防火墙。
+    # ports:
+    #   - "5432:5432"
+    expose:
+      - "5432"
     networks:
       - axonhub-network
     restart: unless-stopped
@@ -41,6 +45,10 @@ services:
       # 数据库配置可以通过环境变量设置，优先级高于配置文件
       AXONHUB_DB_DIALECT: postgres
       AXONHUB_DB_DSN: postgres://axonhub:${DB_PASSWORD:-axonhub_password}@postgres:5432/axonhub?sslmode=disable
+      # MVP 必要开关：允许消费入口不携带 API Key
+      # 背景：Adapter Gateway 一期设计下，消费层 API Key 不校验、不落库、不转发。
+      # 如果你仍在使用传统多用户鉴权，请改成 false 并通过 APIKey 体系访问。
+      AXONHUB_SERVER_API_AUTH_ALLOW_NO_AUTH: "true"
     ports:
       - "8090:8090"
     volumes:
