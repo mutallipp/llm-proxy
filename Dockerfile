@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend-builder
 
 WORKDIR /build
 RUN corepack enable && corepack prepare pnpm@10 --activate
@@ -11,10 +11,10 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build
 
 # Copy dist to a stage with the target platform to avoid architecture mismatch
-FROM alpine AS frontend-dist
+FROM alpine:3.20 AS frontend-dist
 COPY --from=frontend-builder /build/dist /dist
 
-FROM golang:alpine AS backend-builder
+FROM golang:1.26-alpine AS backend-builder
 
 WORKDIR /build
 
@@ -41,7 +41,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     -o axonhub \
     ./cmd/axonhub
 
-FROM alpine
+FROM alpine:3.20
 
 RUN apk add --no-cache ca-certificates tzdata
 
