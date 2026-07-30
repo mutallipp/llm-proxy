@@ -50,11 +50,17 @@ func (s *StreamPolicySelector) Select(ctx context.Context, req *llm.Request) ([]
 }
 
 func streamPolicyOf(candidate *ChannelModelsCandidate) objects.CapabilityPolicy {
-	if candidate == nil || candidate.Channel == nil {
+	if candidate == nil {
 		return objects.CapabilityPolicyUnlimited
 	}
 
-	if candidate.Channel.Policies.Stream != "" {
+	// 目标级策略优先；有明确设置时不覆盖为渠道策略
+	if candidate.StreamPolicy != "" {
+		return candidate.StreamPolicy
+	}
+
+	// 回退到渠道级策略
+	if candidate.Channel != nil && candidate.Channel.Policies.Stream != "" {
 		return candidate.Channel.Policies.Stream
 	}
 

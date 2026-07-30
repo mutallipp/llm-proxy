@@ -30,8 +30,9 @@ import {
 
 // 空目标的 capabilities 默认值
 const EMPTY_CAPABILITIES = {
-  supports_tools: false,
+  supports_tools: true,
   supports_stream: true,
+  stream_policy: 'unlimited' as const,
   input_modalities: ['text'],
   output_modalities: ['text'],
 };
@@ -50,6 +51,7 @@ type NewTargetDraft = {
   target_model_id: string;
   outbound_api_format: string;
   enabled: boolean;
+  stream_policy: string;
 };
 
 // 对 targets 列表重新按下标赋 priority（从 1 开始）
@@ -185,6 +187,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
     target_model_id: '',
     outbound_api_format: API_FORMATS[0],
     enabled: true,
+    stream_policy: 'unlimited',
   });
 
   // 弹窗打开时重置所有状态
@@ -271,7 +274,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
               outbound_api_format: target.outbound_api_format,
               priority: p.targets.length + 1,
               enabled: target.enabled,
-              capabilities: { ...EMPTY_CAPABILITIES },
+              capabilities: { ...EMPTY_CAPABILITIES, stream_policy: target.stream_policy || 'unlimited' },
             },
           ],
         };
@@ -488,7 +491,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
 
                 <CardContent className='space-y-3'>
                   {/* 新增目标表单 */}
-                  <div className='grid gap-2 rounded-md bg-muted/40 p-3 sm:grid-cols-[1fr_1fr_1fr_80px_80px_auto]'>
+                  <div className='grid gap-2 rounded-md bg-muted/40 p-3 sm:grid-cols-[1fr_1fr_1fr_110px_80px_80px_auto]'>
                     {/* 选择渠道 */}
                     <Select
                       value={targetDraft.channel_id}
@@ -538,6 +541,20 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                         </Select>
                       );
                     })()}
+                    {/* 流式响应策略 */}
+                    <Select
+                      value={targetDraft.stream_policy || 'unlimited'}
+                      onValueChange={(value) => updateNewTarget(protocolIndex, { stream_policy: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='unlimited'>默认（跟随下游）</SelectItem>
+                        <SelectItem value='require'>流式</SelectItem>
+                        <SelectItem value='forbid'>非流式</SelectItem>
+                      </SelectContent>
+                    </Select>
                     {/* 启用/禁用 */}
                     <Select
                       value={targetDraft.enabled ? 'enabled' : 'disabled'}
@@ -578,7 +595,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                       return (
                       <div
                         key={`${target.id ?? 'new'}-${targetIndex}`}
-                        className='grid items-center gap-2 p-3 text-sm sm:grid-cols-[1fr_1fr_1fr_60px_80px_auto]'
+                        className='grid items-center gap-2 p-3 text-sm sm:grid-cols-[1fr_1fr_1fr_110px_60px_80px_auto]'
                       >
                         {/* 渠道名 */}
                         <span className='truncate text-muted-foreground'>
@@ -630,6 +647,24 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                             </SelectContent>
                           </Select>
                         </div>
+                        {/* 流式响应策略（可编辑） */}
+                        <Select
+                          value={target.capabilities?.stream_policy || 'unlimited'}
+                          onValueChange={(value) =>
+                            updateTarget(protocolIndex, targetIndex, {
+                              capabilities: { ...target.capabilities, stream_policy: value },
+                            })
+                          }
+                        >
+                          <SelectTrigger className='h-8'>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value='unlimited'>默认（跟随下游）</SelectItem>
+                            <SelectItem value='require'>流式</SelectItem>
+                            <SelectItem value='forbid'>非流式</SelectItem>
+                          </SelectContent>
+                        </Select>
                         {/* 优先级（可编辑） */}
                         <Input
                           type='number'
@@ -640,7 +675,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                           }
                           className='h-8 text-center'
                         />
-                        {/* 启用状态（可编辑） */}
+                        {/* 启用状态（可编辑） */
                         <Select
                           value={target.enabled ? 'enabled' : 'disabled'}
                           onValueChange={(value) =>

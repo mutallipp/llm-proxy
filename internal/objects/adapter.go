@@ -7,6 +7,9 @@ import "time"
 type AdapterTargetCapabilities struct {
 	SupportsTools    bool     `json:"supports_tools"`
 	SupportsStream   bool     `json:"supports_stream"`
+	// StreamPolicy 目标级流式响应策略："unlimited"（跟随下游）、"require"（强制流式）、"forbid"（禁止流式）。
+	// 空字符串表示旧数据，按 supports_stream bool 兼容处理。
+	StreamPolicy     string   `json:"stream_policy,omitempty"`
 	InputModalities  []string `json:"input_modalities"`
 	OutputModalities []string `json:"output_modalities"`
 }

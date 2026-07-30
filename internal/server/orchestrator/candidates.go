@@ -25,11 +25,12 @@ import (
 
 // ChannelModelsCandidate represents a resolved channel and its matched model entries.
 type ChannelModelsCandidate struct {
-	Channel     *biz.Channel
-	Priority    int
-	Models      []biz.ChannelModelEntry
-	APIFormat   string // selected endpoint API format for this candidate
-	TraceSticky bool   // selected from the last successful trace or thread channel
+	Channel      *biz.Channel
+	Priority     int
+	Models       []biz.ChannelModelEntry
+	APIFormat    string                   // selected endpoint API format for this candidate
+	TraceSticky  bool                     // selected from the last successful trace or thread channel
+	StreamPolicy objects.CapabilityPolicy // 目标级流式策略；空值表示跟随渠道策略
 }
 
 // resolvedAssociationCandidate keeps the association-level metadata produced by

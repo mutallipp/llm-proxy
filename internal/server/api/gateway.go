@@ -212,6 +212,8 @@ type TargetDTO struct {
 type TargetCapabilitiesDTO struct {
 	SupportsTools    bool     `json:"supports_tools"`
 	SupportsStream   bool     `json:"supports_stream"`
+	// StreamPolicy 目标级流式响应策略："unlimited"、"require"、"forbid"。空字符串按旧数据兼容处理。
+	StreamPolicy     string   `json:"stream_policy,omitempty"`
 	InputModalities  []string `json:"input_modalities"`
 	OutputModalities []string `json:"output_modalities"`
 }
@@ -244,6 +246,7 @@ func (h *GatewayHandlers) ListModelGroups(c *gin.Context) {
 					Capabilities: TargetCapabilitiesDTO{
 						SupportsTools:    target.Capabilities.SupportsTools,
 						SupportsStream:   target.Capabilities.SupportsStream,
+						StreamPolicy:     target.Capabilities.StreamPolicy,
 						InputModalities:  target.Capabilities.InputModalities,
 						OutputModalities: target.Capabilities.OutputModalities,
 					},
@@ -346,6 +349,12 @@ func (h *GatewayHandlers) UpdateModelGroup(c *gin.Context) {
 			}
 			if target.OutboundAPIFormat == "" {
 				JSONError(c, http.StatusBadRequest, errors.New("target outbound_api_format is required"))
+				return
+			}
+			// 校验 stream_policy 必须为合法枚举値
+			sp := target.Capabilities.StreamPolicy
+			if sp != "" && sp != "unlimited" && sp != "require" && sp != "forbid" {
+				JSONError(c, http.StatusBadRequest, errors.New("invalid stream_policy: must be unlimited, require, or forbid"))
 				return
 			}
 		}
@@ -456,6 +465,7 @@ func convertProtocolInputs(inputs []ProtocolInput) []biz.ProtocolInput {
 				Capabilities: biz.AdapterTargetCapabilitiesInput{
 					SupportsTools:    target.Capabilities.SupportsTools,
 					SupportsStream:   target.Capabilities.SupportsStream,
+					StreamPolicy:     target.Capabilities.StreamPolicy,
 					InputModalities:  target.Capabilities.InputModalities,
 					OutputModalities: target.Capabilities.OutputModalities,
 				},

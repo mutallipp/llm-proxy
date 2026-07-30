@@ -31,9 +31,13 @@ export interface AdapterUpdateInput {
   bindings: Omit<AdapterBinding, 'id'>[];
 }
 
+export type StreamPolicy = 'unlimited' | 'require' | 'forbid';
+
 export interface TargetCapabilities {
   supports_tools: boolean;
   supports_stream: boolean;
+  /** 目标级流式策略：unlimited（跟随下游）| require（强制流式）| forbid（禁止流式）。缺省按 unlimited 处理。 */
+  stream_policy?: StreamPolicy | string;
   input_modalities: string[];
   output_modalities: string[];
 }

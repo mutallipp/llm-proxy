@@ -390,6 +390,7 @@ func cloneTargetCapabilities(capabilities objects.AdapterTargetCapabilities) obj
 	return objects.AdapterTargetCapabilities{
 		SupportsTools:    capabilities.SupportsTools,
 		SupportsStream:   capabilities.SupportsStream,
+		StreamPolicy:     capabilities.StreamPolicy,
 		InputModalities:  append([]string(nil), capabilities.InputModalities...),
 		OutputModalities: append([]string(nil), capabilities.OutputModalities...),
 	}
@@ -513,6 +514,8 @@ type TargetInput struct {
 type AdapterTargetCapabilitiesInput struct {
 	SupportsTools    bool
 	SupportsStream   bool
+	// StreamPolicy 目标级流式策略："unlimited" | "require" | "forbid" | ""
+	StreamPolicy     string
 	InputModalities  []string
 	OutputModalities []string
 }
@@ -883,6 +886,7 @@ func (svc *AdapterService) UpdateModelGroup(ctx context.Context, name string, pa
 					capabilities := objects.AdapterTargetCapabilities{
 						SupportsTools:    target.Capabilities.SupportsTools,
 						SupportsStream:   target.Capabilities.SupportsStream,
+						StreamPolicy:     target.Capabilities.StreamPolicy,
 						InputModalities:  target.Capabilities.InputModalities,
 						OutputModalities: target.Capabilities.OutputModalities,
 					}

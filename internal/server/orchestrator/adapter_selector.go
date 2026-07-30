@@ -72,7 +72,8 @@ func (s *AdapterCandidateSelector) Select(ctx context.Context, req *llm.Request)
 				ActualModel:  target.TargetModelID,
 				Source:       "adapter",
 			}},
-			APIFormat: target.OutboundAPIFormat,
+			APIFormat:    target.OutboundAPIFormat,
+			StreamPolicy: objects.CapabilityPolicy(target.Capabilities.StreamPolicy),
 		})
 	}
 
@@ -111,8 +112,19 @@ func hasOutboundEndpoint(channel *biz.Channel, outboundAPIFormat string) bool {
 
 func targetSupportsRequest(target *objects.RuntimeModelGroupTarget, req *llm.Request) bool {
 	capabilities := target.Capabilities
-	if req.Stream != nil && *req.Stream && !capabilities.SupportsStream {
-		return false
+	switch objects.CapabilityPolicy(capabilities.StreamPolicy) {
+	case objects.CapabilityPolicyForbid:
+		// 目标级禁止流式：下游明确要求流式时过滤
+		if req.Stream != nil && *req.Stream {
+			return false
+		}
+	case objects.CapabilityPolicyRequire, objects.CapabilityPolicyUnlimited:
+		// 目标级强制流式或跟随下游：不依据 supports_stream bool 过滤
+	default:
+		// 旧数据（stream_policy 为空）：沿用 supports_stream bool 兼容逻辑
+		if req.Stream != nil && *req.Stream && !capabilities.SupportsStream {
+			return false
+		}
 	}
 	if len(req.Tools) > 0 && !capabilities.SupportsTools {
 		return false
