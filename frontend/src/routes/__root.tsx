@@ -18,7 +18,7 @@ function DocumentTitleSync() {
   const { data: brandSettings } = useBrandSettings({ enabled: hasToken });
 
   useEffect(() => {
-    document.title = (hasToken && brandSettings?.title) || 'AxonHub';
+    document.title = (hasToken && brandSettings?.title) || 'llm-proxy';
   }, [brandSettings?.title, hasToken]);
 
   return null;

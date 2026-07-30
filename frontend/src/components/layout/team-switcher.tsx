@@ -28,7 +28,7 @@ export function TeamSwitcher({
   const { t } = useTranslation();
 
   // Use brand name if available, otherwise fall back to team name
-  const displayName = brandSettings?.brandName || activeTeam?.name || 'AxonHub';
+  const displayName = brandSettings?.brandName || activeTeam?.name || 'llm-proxy';
 
   // Only show dropdown if there are multiple teams
   const showDropdown = teams.length > 1;
