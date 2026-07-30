@@ -1,8 +1,13 @@
 FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend-builder
 
+# 换 apk 源为 aliyun, 避免 dl-cdn.alpinelinux.org 被防火墙过滤
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
+
 WORKDIR /build
 # 容器内走国内镜像, 避开 Docker 网络栈访问 registry.npmjs.org 变慢
-RUN corepack enable && corepack prepare pnpm@10 --activate && \
+# 关闭 corepack 自检, corepack prepare 走 github.com 被屏蔽, 改为 npm install -g
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm install -g pnpm@10 && \
     pnpm config set registry https://registry.npmmirror.com
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
@@ -17,6 +22,9 @@ FROM alpine:3.20 AS frontend-dist
 COPY --from=frontend-builder /build/dist /dist
 
 FROM golang:1.26-alpine AS backend-builder
+
+# 换 apk 源为 aliyun, 避免 dl-cdn.alpinelinux.org 被防火墙过滤
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
 
 # Go 模块走国内镜像, 避开 Docker 网络栈访问 proxy.golang.org 变慢
 ARG GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct
@@ -48,6 +56,9 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     ./cmd/axonhub
 
 FROM alpine:3.20
+
+# 换 apk 源为 aliyun, 避免 dl-cdn.alpinelinux.org 被防火墙过滤
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
 
 RUN apk add --no-cache ca-certificates tzdata
 
