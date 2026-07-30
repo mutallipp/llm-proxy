@@ -326,7 +326,8 @@ func shouldForceStreamingForCandidate(candidate *ChannelModelsCandidate, req *ll
 		return false
 	}
 
-	if candidate.Channel.Policies.Stream != objects.CapabilityPolicyRequire {
+	// 使用 streamPolicyOf 优先取目标级策略，无目标级策略时回退到渠道级
+	if streamPolicyOf(candidate) != objects.CapabilityPolicyRequire {
 		return false
 	}
 

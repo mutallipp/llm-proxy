@@ -577,6 +577,40 @@ func TestShouldForceStreamingForCandidate(t *testing.T) {
 			&llm.Request{Stream: lo.ToPtr(true), RequestType: llm.RequestTypeChat, APIFormat: llm.APIFormatOpenAIChatCompletion},
 		))
 	})
+
+	// 目标级策略覆盖渠道级策略的测试
+	newCandidateWithTargetPolicy := func(channelPolicy objects.CapabilityPolicy, targetPolicy objects.CapabilityPolicy, apiFormat llm.APIFormat) *ChannelModelsCandidate {
+		return &ChannelModelsCandidate{
+			APIFormat:    apiFormat.String(),
+			StreamPolicy: targetPolicy,
+			Channel: &biz.Channel{
+				Channel: &ent.Channel{
+					Policies: objects.ChannelPolicies{Stream: channelPolicy},
+				},
+			},
+		}
+	}
+
+	t.Run("目标级 require 覆盖渠道级 unlimited ，应强制流式", func(t *testing.T) {
+		require.True(t, shouldForceStreamingForCandidate(
+			newCandidateWithTargetPolicy(objects.CapabilityPolicyUnlimited, objects.CapabilityPolicyRequire, llm.APIFormatOpenAIChatCompletion),
+			&llm.Request{RequestType: llm.RequestTypeChat, APIFormat: llm.APIFormatOpenAIChatCompletion},
+		))
+	})
+
+	t.Run("目标级 unlimited 覆盖渠道级 require ，不应强制流式", func(t *testing.T) {
+		require.False(t, shouldForceStreamingForCandidate(
+			newCandidateWithTargetPolicy(objects.CapabilityPolicyRequire, objects.CapabilityPolicyUnlimited, llm.APIFormatOpenAIChatCompletion),
+			&llm.Request{RequestType: llm.RequestTypeChat, APIFormat: llm.APIFormatOpenAIChatCompletion},
+		))
+	})
+
+	t.Run("目标级策略为空时回退渠道级 require", func(t *testing.T) {
+		require.True(t, shouldForceStreamingForCandidate(
+			newCandidateWithTargetPolicy(objects.CapabilityPolicyRequire, "", llm.APIFormatOpenAIChatCompletion),
+			&llm.Request{RequestType: llm.RequestTypeChat, APIFormat: llm.APIFormatOpenAIChatCompletion},
+		))
+	})
 }
 
 func TestIsCompletedAggregatedOutboundResponse(t *testing.T) {
