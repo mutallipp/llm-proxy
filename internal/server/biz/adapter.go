@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -961,4 +962,305 @@ func (svc *AdapterService) UpdateModelGroup(ctx context.Context, name string, pa
 	})
 
 	return result, err
+}
+
+// adapterNamePattern 合法的 Adapter 名称：首字符字母或数字，后续可含连字符和下划线。
+// 和消费侧路由中 /:adapter/v1 对应，名称不能含斜杠或空白。
+var adapterNamePattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]*$`)
+
+// ValidateAdapterName 校验 Adapter 名称是否合法，返回 ErrAdapterInvalidName 或 nil。
+func ValidateAdapterName(name string) error {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return fmt.Errorf("%w: name must not be empty", ErrAdapterInvalidName)
+	}
+	if !adapterNamePattern.MatchString(name) {
+		return fmt.Errorf("%w: %q — must start with a letter or digit and contain only letters, digits, hyphens, and underscores", ErrAdapterInvalidName, name)
+	}
+	return nil
+}
+
+// RenameAdapterParams 重命名适配器参数。
+type RenameAdapterParams struct {
+	NewName string
+}
+
+// RenameAdapter 安全重命名适配器：事务内创建新适配器并迁移活跃绑定，软删除旧记录。
+// 若新旧名称相同则返回当前配置（no-op）。
+func (svc *AdapterService) RenameAdapter(ctx context.Context, oldName, newName string) (*AdapterInfo, error) {
+	oldName = strings.TrimSpace(oldName)
+	newName = strings.TrimSpace(newName)
+
+	// 校验新名称格式
+	if err := ValidateAdapterName(newName); err != nil {
+		return nil, err
+	}
+
+	// 同名 no-op：直接返回当前配置
+	if oldName == newName {
+		db := svc.entFromContext(ctx)
+		a, err := db.Adapter.Query().
+			Where(adapter.Name(oldName), adapter.DeletedAtEQ(0)).
+			Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return nil, fmt.Errorf("%w: %q", ErrAdapterNotFound, oldName)
+			}
+			return nil, fmt.Errorf("failed to query adapter: %w", err)
+		}
+		return svc.buildAdapterInfo(ctx, a)
+	}
+
+	var result *AdapterInfo
+	err := svc.RunInTransaction(ctx, func(txCtx context.Context) error {
+		db := svc.entFromContext(txCtx)
+
+		// 查找旧适配器（不存在则返回 404）
+		oldAdapter, err := db.Adapter.Query().
+			Where(adapter.Name(oldName), adapter.DeletedAtEQ(0)).
+			Only(txCtx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return fmt.Errorf("%w: %q", ErrAdapterNotFound, oldName)
+			}
+			return fmt.Errorf("failed to query adapter: %w", err)
+		}
+
+		// 检查新名称未被其他未删除适配器占用
+		conflict, err := db.Adapter.Query().
+			Where(adapter.Name(newName), adapter.DeletedAtEQ(0)).
+			Exist(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to check name conflict: %w", err)
+		}
+		if conflict {
+			return fmt.Errorf("%w: %q", ErrAdapterAlreadyExists, newName)
+		}
+
+		// 创建新适配器，保留全部元信息（inboundAPIFormat、displayName、status、remark）
+		createOp := db.Adapter.Create().
+			SetName(newName).
+			SetInboundAPIFormat(oldAdapter.InboundAPIFormat).
+			SetDisplayName(oldAdapter.DisplayName).
+			SetStatus(oldAdapter.Status)
+		if oldAdapter.Remark != nil {
+			createOp = createOp.SetRemark(*oldAdapter.Remark)
+		}
+		newAdapter, err := createOp.Save(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to create renamed adapter: %w", err)
+		}
+
+		// 加载旧适配器的活跃绑定（deleted_at == 0）
+		activeBindings, err := db.AdapterModelBinding.Query().
+			Where(adaptermodelbinding.AdapterID(oldAdapter.ID), adaptermodelbinding.DeletedAtEQ(0)).
+			Order(ent.Asc(adaptermodelbinding.FieldID)).
+			All(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to query active bindings: %w", err)
+		}
+
+		// 为新适配器创建对应绑定
+		for _, b := range activeBindings {
+			createBinding := db.AdapterModelBinding.Create().
+				SetAdapterID(newAdapter.ID).
+				SetModelGroupID(b.ModelGroupID).
+				SetSourceModelID(b.SourceModelID).
+				SetEnabled(b.Enabled)
+			if b.Remark != nil {
+				createBinding = createBinding.SetRemark(*b.Remark)
+			}
+			if _, err := createBinding.Save(txCtx); err != nil {
+				return fmt.Errorf("failed to migrate binding %d: %w", b.ID, err)
+			}
+		}
+
+		// 软删除旧绑定（包含全部，不仅仅是活跃的，保持一致性）
+		now := int(time.Now().Unix())
+		allOldBindings, err := db.AdapterModelBinding.Query().
+			Where(adaptermodelbinding.AdapterID(oldAdapter.ID), adaptermodelbinding.DeletedAtEQ(0)).
+			All(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to query old bindings: %w", err)
+		}
+		for _, b := range allOldBindings {
+			if _, err := db.AdapterModelBinding.UpdateOne(b).SetDeletedAt(now).Save(txCtx); err != nil {
+				return fmt.Errorf("failed to soft-delete old binding %d: %w", b.ID, err)
+			}
+		}
+
+		// 软删除旧适配器
+		if _, err := db.Adapter.UpdateOne(oldAdapter).SetDeletedAt(now).Save(txCtx); err != nil {
+			return fmt.Errorf("failed to soft-delete old adapter: %w", err)
+		}
+
+		// 构建返回值
+		bindings, err := db.AdapterModelBinding.Query().
+			Where(adaptermodelbinding.AdapterID(newAdapter.ID), adaptermodelbinding.DeletedAtEQ(0)).
+			Order(ent.Asc(adaptermodelbinding.FieldID)).
+			All(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to query new bindings: %w", err)
+		}
+
+		bindingInfos := make([]BindingInfo, 0, len(bindings))
+		for _, b := range bindings {
+			bindingInfos = append(bindingInfos, BindingInfo{
+				ID:            b.ID,
+				SourceModelID: b.SourceModelID,
+				ModelGroupID:  b.ModelGroupID,
+				Enabled:       b.Enabled,
+				Remark:        b.Remark,
+			})
+		}
+		result = &AdapterInfo{
+			ID:               newAdapter.ID,
+			Name:             newAdapter.Name,
+			DisplayName:      newAdapter.DisplayName,
+			InboundAPIFormat: newAdapter.InboundAPIFormat,
+			Status:           newAdapter.Status.String(),
+			Remark:           newAdapter.Remark,
+			Bindings:         bindingInfos,
+		}
+		return nil
+	})
+	return result, err
+}
+
+// DeleteAdapter 安全软删除适配器及其所有活跃绑定。
+// 适配器不存在时返回 ErrAdapterNotFound。
+func (svc *AdapterService) DeleteAdapter(ctx context.Context, name string) error {
+	return svc.RunInTransaction(ctx, func(txCtx context.Context) error {
+		db := svc.entFromContext(txCtx)
+
+		// 查找适配器（不存在则 404）
+		a, err := db.Adapter.Query().
+			Where(adapter.Name(name), adapter.DeletedAtEQ(0)).
+			Only(txCtx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return fmt.Errorf("%w: %q", ErrAdapterNotFound, name)
+			}
+			return fmt.Errorf("failed to query adapter: %w", err)
+		}
+
+		now := int(time.Now().Unix())
+
+		// 软删除所有活跃绑定
+		activeBindings, err := db.AdapterModelBinding.Query().
+			Where(adaptermodelbinding.AdapterID(a.ID), adaptermodelbinding.DeletedAtEQ(0)).
+			All(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to query active bindings: %w", err)
+		}
+		for _, b := range activeBindings {
+			if _, err := db.AdapterModelBinding.UpdateOne(b).SetDeletedAt(now).Save(txCtx); err != nil {
+				return fmt.Errorf("failed to soft-delete binding %d: %w", b.ID, err)
+			}
+		}
+
+		// 软删除适配器
+		if _, err := db.Adapter.UpdateOne(a).SetDeletedAt(now).Save(txCtx); err != nil {
+			return fmt.Errorf("failed to soft-delete adapter: %w", err)
+		}
+
+		return nil
+	})
+}
+
+// DeleteModelGroup 安全软删除模型组（含协议和目标）。
+// 若仍有活跃 AdapterModelBinding 引用该组，则返回 ErrModelGroupInUse（409）。
+// 模型组不存在时返回 ErrModelGroupNotFound（404）。
+func (svc *AdapterService) DeleteModelGroup(ctx context.Context, name string) error {
+	return svc.RunInTransaction(ctx, func(txCtx context.Context) error {
+		db := svc.entFromContext(txCtx)
+
+		// 查找模型组（不存在则 404）
+		g, err := db.ModelGroup.Query().
+			Where(modelgroup.Name(name), modelgroup.DeletedAtEQ(0)).
+			Only(txCtx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return fmt.Errorf("%w: %q", ErrModelGroupNotFound, name)
+			}
+			return fmt.Errorf("failed to query model group: %w", err)
+		}
+
+		// 检查是否被活跃绑定引用（引用 → 409）
+		refCount, err := db.AdapterModelBinding.Query().
+			Where(adaptermodelbinding.ModelGroupID(g.ID), adaptermodelbinding.DeletedAtEQ(0)).
+			Count(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to check active bindings: %w", err)
+		}
+		if refCount > 0 {
+			return fmt.Errorf("%w: %d active binding(s) still reference model group %q — remove them first", ErrModelGroupInUse, refCount, name)
+		}
+
+		now := int(time.Now().Unix())
+
+		// 加载该组的所有协议（含已软删除的，避免遗漏；仅对活跃协议做级联）
+		protocols, err := db.ModelGroupProtocol.Query().
+			Where(modelgroupprotocol.ModelGroupID(g.ID), modelgroupprotocol.DeletedAtEQ(0)).
+			All(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to query protocols: %w", err)
+		}
+		for _, p := range protocols {
+			// 软删除协议下的所有活跃目标
+			targets, err := db.ModelGroupTarget.Query().
+				Where(modelgrouptarget.ModelGroupProtocolID(p.ID), modelgrouptarget.DeletedAtEQ(0)).
+				All(txCtx)
+			if err != nil {
+				return fmt.Errorf("failed to query targets for protocol %d: %w", p.ID, err)
+			}
+			for _, t := range targets {
+				if _, err := db.ModelGroupTarget.UpdateOne(t).SetDeletedAt(now).Save(txCtx); err != nil {
+					return fmt.Errorf("failed to soft-delete target %d: %w", t.ID, err)
+				}
+			}
+			// 软删除协议
+			if _, err := db.ModelGroupProtocol.UpdateOne(p).SetDeletedAt(now).Save(txCtx); err != nil {
+				return fmt.Errorf("failed to soft-delete protocol %d: %w", p.ID, err)
+			}
+		}
+
+		// 软删除模型组
+		if _, err := db.ModelGroup.UpdateOne(g).SetDeletedAt(now).Save(txCtx); err != nil {
+			return fmt.Errorf("failed to soft-delete model group: %w", err)
+		}
+
+		return nil
+	})
+}
+
+// buildAdapterInfo 从 ent.Adapter 构建 AdapterInfo（含活跃绑定）。
+func (svc *AdapterService) buildAdapterInfo(ctx context.Context, a *ent.Adapter) (*AdapterInfo, error) {
+	db := svc.entFromContext(ctx)
+	bindings, err := db.AdapterModelBinding.Query().
+		Where(adaptermodelbinding.AdapterID(a.ID), adaptermodelbinding.DeletedAtEQ(0)).
+		Order(ent.Asc(adaptermodelbinding.FieldID)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query bindings: %w", err)
+	}
+	infos := make([]BindingInfo, 0, len(bindings))
+	for _, b := range bindings {
+		infos = append(infos, BindingInfo{
+			ID:            b.ID,
+			SourceModelID: b.SourceModelID,
+			ModelGroupID:  b.ModelGroupID,
+			Enabled:       b.Enabled,
+			Remark:        b.Remark,
+		})
+	}
+	return &AdapterInfo{
+		ID:               a.ID,
+		Name:             a.Name,
+		DisplayName:      a.DisplayName,
+		InboundAPIFormat: a.InboundAPIFormat,
+		Status:           a.Status.String(),
+		Remark:           a.Remark,
+		Bindings:         infos,
+	}, nil
 }

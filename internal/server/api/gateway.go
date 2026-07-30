@@ -470,3 +470,145 @@ func convertProtocolInputs(inputs []ProtocolInput) []biz.ProtocolInput {
 	}
 	return result
 }
+
+// RenameAdapterRequest 适配器重命名请求.
+type RenameAdapterRequest struct {
+	NewName string `json:"new_name" binding:"required"`
+}
+
+// RenameAdapter 将适配器重命名为新名称。事务内完成：创建新适配器、迁移活跃绑定、软删除旧记录。
+// 同名时返回当前配置（no-op）。
+func (h *GatewayHandlers) RenameAdapter(c *gin.Context) {
+	name := c.Param("name")
+	if name == "" {
+		JSONError(c, http.StatusBadRequest, errors.New("adapter name is required"))
+		return
+	}
+
+	var req RenameAdapterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		JSONError(c, http.StatusBadRequest, err)
+		return
+	}
+	if req.NewName == "" {
+		JSONError(c, http.StatusBadRequest, errors.New("new_name is required"))
+		return
+	}
+
+	result, err := h.AdapterService.RenameAdapter(c.Request.Context(), name, req.NewName)
+	if err != nil {
+		switch {
+		case errors.Is(err, biz.ErrAdapterNotFound):
+			JSONError(c, http.StatusNotFound, err)
+		case errors.Is(err, biz.ErrAdapterAlreadyExists):
+			JSONError(c, http.StatusConflict, err)
+		case errors.Is(err, biz.ErrAdapterInvalidName):
+			JSONError(c, http.StatusBadRequest, err)
+		default:
+			JSONError(c, http.StatusInternalServerError, err)
+		}
+		return
+	}
+
+	// 刷新快照，使新名称立即生效
+	refreshResult, err := h.AdapterService.Refresh(c.Request.Context())
+	if err != nil {
+		JSONError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	// 构建返回 AdapterDTO
+	bindings := make([]BindingDTO, 0, len(result.Bindings))
+	for _, b := range result.Bindings {
+		bindings = append(bindings, BindingDTO{
+			ID:            b.ID,
+			SourceModelID: b.SourceModelID,
+			ModelGroupID:  b.ModelGroupID,
+			Enabled:       b.Enabled,
+			Remark:        b.Remark,
+		})
+	}
+	adapterDTO := AdapterDTO{
+		ID:               result.ID,
+		Name:             result.Name,
+		DisplayName:      result.DisplayName,
+		InboundAPIFormat: result.InboundAPIFormat,
+		Status:           result.Status,
+		Remark:           result.Remark,
+		Bindings:         bindings,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"adapter":          adapterDTO,
+		"snapshot_version": refreshResult.SnapshotVersion,
+		"refreshed_at":     refreshResult.RefreshedAt,
+		"diagnostics":      refreshResult.Diagnostics,
+	})
+}
+
+// DeleteAdapter 软删除指定名称的适配器及其所有活跃绑定。
+// 不存在时返回 404，已删除时也返回 404（幂等行为与现有项目习惯一致）。
+func (h *GatewayHandlers) DeleteAdapter(c *gin.Context) {
+	name := c.Param("name")
+	if name == "" {
+		JSONError(c, http.StatusBadRequest, errors.New("adapter name is required"))
+		return
+	}
+
+	if err := h.AdapterService.DeleteAdapter(c.Request.Context(), name); err != nil {
+		if errors.Is(err, biz.ErrAdapterNotFound) {
+			JSONError(c, http.StatusNotFound, err)
+		} else {
+			JSONError(c, http.StatusInternalServerError, err)
+		}
+		return
+	}
+
+	// 刷新快照，使删除立即生效
+	refreshResult, err := h.AdapterService.Refresh(c.Request.Context())
+	if err != nil {
+		JSONError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"snapshot_version": refreshResult.SnapshotVersion,
+		"refreshed_at":     refreshResult.RefreshedAt,
+		"diagnostics":      refreshResult.Diagnostics,
+	})
+}
+
+// DeleteModelGroup 软删除指定名称的模型组（含协议和目标）。
+// 若仍被活跃绑定引用，返回 409 并提示先移除绑定。不存在时返回 404。
+func (h *GatewayHandlers) DeleteModelGroup(c *gin.Context) {
+	name := c.Param("name")
+	if name == "" {
+		JSONError(c, http.StatusBadRequest, errors.New("model group name is required"))
+		return
+	}
+
+	if err := h.AdapterService.DeleteModelGroup(c.Request.Context(), name); err != nil {
+		switch {
+		case errors.Is(err, biz.ErrModelGroupNotFound):
+			JSONError(c, http.StatusNotFound, err)
+		case errors.Is(err, biz.ErrModelGroupInUse):
+			JSONError(c, http.StatusConflict, err)
+		default:
+			JSONError(c, http.StatusInternalServerError, err)
+		}
+		return
+	}
+
+	// 刷新快照，使删除立即生效
+	refreshResult, err := h.AdapterService.Refresh(c.Request.Context())
+	if err != nil {
+		JSONError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"snapshot_version": refreshResult.SnapshotVersion,
+		"refreshed_at":     refreshResult.RefreshedAt,
+		"diagnostics":      refreshResult.Diagnostics,
+	})
+}
