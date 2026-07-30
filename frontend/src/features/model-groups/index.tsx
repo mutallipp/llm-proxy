@@ -353,7 +353,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='w-[96vw] max-w-[1400px] max-h-[90vh] overflow-y-auto'>
+      <DialogContent className='w-[96vw] !max-w-[1400px] max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>{group ? '编辑模型组' : '创建模型组'}</DialogTitle>
           <DialogDescription>配置模型组支持的入站协议及其目标池。</DialogDescription>
