@@ -491,7 +491,8 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
 
                 <CardContent className='space-y-3'>
                   {/* 新增目标表单 */}
-                  <div className='grid gap-2 rounded-md bg-muted/40 p-3 sm:grid-cols-[1fr_1fr_1fr_110px_80px_80px_auto]'>
+                  <div className='overflow-x-auto rounded-md'>
+                  <div className='grid gap-2 bg-muted/40 p-3 sm:min-w-[900px] sm:grid-cols-[1fr_1fr_1fr_110px_80px_80px_auto]'>
                     {/* 选择渠道 */}
                     <Select
                       value={targetDraft.channel_id}
@@ -580,9 +581,10 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                       </Button>
                     </div>
                   </div>
+                  </div>
 
                   {/* 目标列表 */}
-                  <div className='divide-y rounded-md border'>
+                  <div className='divide-y overflow-x-auto rounded-md border'>
                     {protocol.targets.length === 0 && (
                       <p className='text-muted-foreground p-3 text-sm'>暂无目标</p>
                     )}
@@ -595,7 +597,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                       return (
                       <div
                         key={`${target.id ?? 'new'}-${targetIndex}`}
-                        className='grid items-center gap-2 p-3 text-sm sm:grid-cols-[1fr_1fr_1fr_110px_60px_80px_auto]'
+                        className='grid items-center gap-2 p-3 text-sm sm:min-w-[900px] sm:grid-cols-[1fr_1fr_1fr_110px_60px_80px_auto]'
                       >
                         {/* 渠道名 */}
                         <span className='truncate text-muted-foreground'>
