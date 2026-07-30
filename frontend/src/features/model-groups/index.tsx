@@ -14,6 +14,7 @@ import { Header } from '@/components/layout/header';
 import { Main } from '@/components/layout/main';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useQueryChannels, useTestChannel } from '@/features/channels/data/channels';
+import { extractNumberID } from '@/lib/utils';
 import {
   API_FORMATS,
   INBOUND_API_FORMATS,
@@ -76,7 +77,7 @@ function getChannelAvailableFormats(
   channelId: string | number,
   channels: Array<{ id: string; endpoints?: Array<{ apiFormat: string }> | null; defaultEndpoints?: Array<{ apiFormat: string }> | null }>,
 ): string[] {
-  const ch = channels.find((c) => String(c.id) === String(channelId));
+  const ch = channels.find((c) => extractNumberID(c.id) === String(channelId));
   if (!ch) return [...API_FORMATS];
   const fromEndpoints = [
     ...(ch.endpoints ?? []),
@@ -174,13 +175,13 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
 
   // 渠道 id -> 渠道名称映射（用于目标列表显示）
   const channelNames = useMemo(
-    () => new Map(channels.map((ch) => [Number(ch.id), ch.name])),
+    () => new Map(channels.map((ch) => [Number(extractNumberID(ch.id)), ch.name])),
     [channels],
   );
 
   // 生成一个空的新目标草稿（默认选第一个渠道）
   const makeTargetDraft = (): NewTargetDraft => ({
-    channel_id: channels[0]?.id ?? '',
+    channel_id: channels[0] ? extractNumberID(channels[0].id) : '',
     target_model_id: '',
     outbound_api_format: API_FORMATS[0],
     enabled: true,
@@ -498,7 +499,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {channels.map((ch) => (
-                          <SelectItem key={ch.id} value={ch.id}>
+                          <SelectItem key={ch.id} value={extractNumberID(ch.id)}>
                             {ch.name}
                           </SelectItem>
                         ))}
