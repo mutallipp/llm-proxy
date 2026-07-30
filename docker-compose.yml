@@ -32,12 +32,13 @@ services:
       AXONHUB_SERVER_API_AUTH_ALLOW_NO_AUTH: "true"
       # ── 代理配置（可选） ──────────────────────────────────────────────────────
       # 默认为空，普通部署不受影响。
+      # 使用项目命名空间变量（AXONHUB_*）避免宿主机同名变量（HTTP_PROXY 等）泄入容器。
       # 如需使用公司 VPN / 宿主机代理，在 .env 文件或 CI/OpenStack 环境变量中注入。
       # 详细说明见 docs/deployment/adapter-mvp.md §11。
-      HTTP_PROXY: ${HTTP_PROXY:-}
-      HTTPS_PROXY: ${HTTPS_PROXY:-}
-      ALL_PROXY: ${ALL_PROXY:-}
-      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,postgres,redis,host.docker.internal}
+      HTTP_PROXY: ${AXONHUB_HTTP_PROXY:-}
+      HTTPS_PROXY: ${AXONHUB_HTTPS_PROXY:-}
+      ALL_PROXY: ${AXONHUB_ALL_PROXY:-}
+      NO_PROXY: ${AXONHUB_NO_PROXY:-localhost,127.0.0.1,postgres,redis,host.docker.internal}
     ports:
       - "8090:8090"
     volumes:

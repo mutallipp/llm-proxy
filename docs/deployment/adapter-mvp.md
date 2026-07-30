@@ -262,13 +262,13 @@ MVP 阶段没有独立 migration 命令，Ent 自动迁移在启动时跑。
 ```bash
 # .env 示例——占位符请替换为宿主机实际代理地址和端口
 
-# 通过宿主机代理访问公司网络或 VPN
+# 使用项目命名空间变量 AXONHUB_*，避免宿主机环境中同名的 HTTP_PROXY 等变量泄入容器。
 # 宿主机必须允许来自 Docker 网关（默认 172.17.0.1）的连接
-HTTP_PROXY=http://host.docker.internal:<proxy-port>
-HTTPS_PROXY=http://host.docker.internal:<proxy-port>
-ALL_PROXY=http://host.docker.internal:<proxy-port>
+AXONHUB_HTTP_PROXY=http://host.docker.internal:<proxy-port>
+AXONHUB_HTTPS_PROXY=http://host.docker.internal:<proxy-port>
+AXONHUB_ALL_PROXY=http://host.docker.internal:<proxy-port>
 # 内部地址跳过代理
-NO_PROXY=localhost,127.0.0.1,postgres,redis,host.docker.internal
+AXONHUB_NO_PROXY=localhost,127.0.0.1,postgres,redis,host.docker.internal
 ```
 
 完成后重启服务使配置生效：
@@ -282,15 +282,15 @@ docker compose up -d
 在 CI 系统或 OpenStack 渲染器配置中设置以下环境变量（占位符请替换为实际地址）：
 
 ```
-HTTP_PROXY=http://<proxy-host>:<proxy-port>
-HTTPS_PROXY=http://<proxy-host>:<proxy-port>
-ALL_PROXY=http://<proxy-host>:<proxy-port>
-NO_PROXY=localhost,127.0.0.1,postgres,redis,host.docker.internal
+AXONHUB_HTTP_PROXY=http://<proxy-host>:<proxy-port>
+AXONHUB_HTTPS_PROXY=http://<proxy-host>:<proxy-port>
+AXONHUB_ALL_PROXY=http://<proxy-host>:<proxy-port>
+AXONHUB_NO_PROXY=localhost,127.0.0.1,postgres,redis,host.docker.internal
 ```
 
 ### 11.3 没有代理（普通部署）
 
-无需任何操作。`HTTP_PROXY` 等变量默认为空字符串，不影响正常网络请求。
+无需任何操作。`AXONHUB_HTTP_PROXY` 等变量默认为空字符串，容器内 `HTTP_PROXY` 也为空，不影响正常网络请求。
 
 ### 11.4 宿主机代理注意事项
 
