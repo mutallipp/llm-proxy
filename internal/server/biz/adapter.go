@@ -245,7 +245,8 @@ func (svc *AdapterService) loadSnapshot(ctx context.Context) (*objects.AdapterSn
 	protocolsByGroup := make(map[int]map[string]*ent.ModelGroupProtocol)
 	for _, protocol := range protocols {
 		if _, ok := groupEntities[protocol.ModelGroupID]; !ok {
-			return nil, nil, fmt.Errorf("enabled model group protocol %d references disabled or missing model group %d", protocol.ID, protocol.ModelGroupID)
+			// 所属 ModelGroup 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
+			continue
 		}
 		if strings.TrimSpace(protocol.InboundAPIFormat) == "" {
 			return nil, nil, fmt.Errorf("model group protocol %d has empty inbound api format", protocol.ID)
@@ -269,7 +270,8 @@ func (svc *AdapterService) loadSnapshot(ctx context.Context) (*objects.AdapterSn
 	for _, target := range targets {
 		protocol, ok := protocolEntities[target.ModelGroupProtocolID]
 		if !ok {
-			return nil, nil, fmt.Errorf("enabled model group target %d references disabled or missing protocol %d", target.ID, target.ModelGroupProtocolID)
+			// 所属 Protocol 或其父 ModelGroup 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
+			continue
 		}
 
 		diagnostic := objects.AdapterDiagnostic{
@@ -338,11 +340,13 @@ func (svc *AdapterService) loadSnapshot(ctx context.Context) (*objects.AdapterSn
 
 		adapterEntity, ok := adapterEntities[binding.AdapterID]
 		if !ok {
-			return nil, nil, fmt.Errorf("enabled adapter binding %d references disabled or missing adapter %d", binding.ID, binding.AdapterID)
+			// 所属 Adapter 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
+			continue
 		}
 		group, ok := groupEntities[binding.ModelGroupID]
 		if !ok {
-			return nil, nil, fmt.Errorf("enabled adapter binding %d references disabled or missing model group %d", binding.ID, binding.ModelGroupID)
+			// 所属 ModelGroup 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
+			continue
 		}
 		runtimeAdapter := runtimeAdapters[adapterEntity.Name]
 		runtimeGroup := runtimeGroups[group.ID]
