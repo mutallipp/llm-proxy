@@ -4,7 +4,7 @@ import { providersDataSchema, type ProvidersData } from './providers.schema';
 
 const PROVIDERS_URL = 'https://raw.githubusercontent.com/ThinkInAIXYZ/PublicProviderConf/refs/heads/dev/dist/all.json';
 const DEVELOPERS_URL =
-  'https://raw.githubusercontent.com/looplj/axonhub/refs/heads/unstable/frontend/src/features/models/data/providers.json';
+  'https://raw.githubusercontent.com/mutallipp/llm-proxy/refs/heads/unstable/frontend/src/features/models/data/providers.json';
 
 export function useProvidersData() {
   return useQuery<ProvidersData>({

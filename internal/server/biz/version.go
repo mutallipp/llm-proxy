@@ -89,7 +89,7 @@ const releaseCooldownDuration = 30 * time.Minute
 // It skips beta, rc, and prerelease versions, and waits for a cooldown period after release.
 // In monorepo mode, it only considers tags matching "vX.Y.Z" (no service prefix).
 func FetchLatestGitHubRelease(ctx context.Context) (string, error) {
-	baseURL := "https://api.github.com/repos/looplj/axonhub/releases"
+	baseURL := "https://api.github.com/repos/mutallipp/llm-proxy/releases"
 
 	u, err := url.Parse(baseURL)
 	if err != nil {

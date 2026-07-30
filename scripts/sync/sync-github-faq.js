@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 // --- Configuration ---
-const GITHUB_REPO = process.env.GITHUB_REPO || 'looplj/axonhub';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'mutallipp/llm-proxy';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const AXONHUB_BASE_URL = process.env.AXONHUB_BASE_URL || 'http://localhost:8090/v1';
 const AXONHUB_API_KEY = process.env.AXONHUB_API_KEY;

@@ -74,8 +74,8 @@ Welcome to the AxonHub documentation center! This index will help you quickly fi
 ## 🔗 Related Links
 
 - [GitHub Repository](https://github.com/mutallipp/llm-proxy)
-- [DeepWiki Documentation](https://deepwiki.com/looplj/axonhub)
-- [Zread AI](https://zread.ai/looplj/axonhub)
+- [DeepWiki Documentation](https://deepwiki.com/mutallipp/llm-proxy)
+- [Zread AI](https://zread.ai/mutallipp/llm-proxy)
 
 ## 🌐 Multilingual Documentation
 
