@@ -8,17 +8,17 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/pkg/xcontext"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/pipeline"
-	"github.com/looplj/axonhub/llm/streams"
-	"github.com/looplj/axonhub/llm/transformer"
-	"github.com/looplj/axonhub/llm/transformer/shared"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcontext"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/pipeline"
+	"github.com/mutallipp/llm-proxy/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm/transformer/shared"
 )
 
 // OutboundPersistentStream wraps a stream and tracks all responses for final saving to database.

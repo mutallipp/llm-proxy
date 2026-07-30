@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/datastorage"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
 )
 
 // ObjectStore is a minimal object-oriented blob API used natively for backends

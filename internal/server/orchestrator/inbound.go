@@ -7,14 +7,14 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/looplj/axonhub/internal/dumper"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/streams"
-	"github.com/looplj/axonhub/llm/transformer"
+	"github.com/mutallipp/llm-proxy/internal/dumper"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
 )
 
 // InboundPersistentStream wraps a stream and tracks all responses for final saving to database.

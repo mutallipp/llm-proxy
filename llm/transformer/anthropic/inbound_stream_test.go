@@ -9,11 +9,11 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/internal/pkg/xjson"
-	"github.com/looplj/axonhub/llm/internal/pkg/xtest"
-	"github.com/looplj/axonhub/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xjson"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xtest"
+	"github.com/mutallipp/llm-proxy/llm/streams"
 )
 
 type failingResponseStream struct {

@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/server/biz/provider_quota"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/server/biz/provider_quota"
 )
 
 func TestGetProviderType_OpenaiWithWaferURL(t *testing.T) {

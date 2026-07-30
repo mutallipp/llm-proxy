@@ -5,7 +5,7 @@ package privacy
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent"
 
 	"entgo.io/ent/entql"
 	"entgo.io/ent/privacy"

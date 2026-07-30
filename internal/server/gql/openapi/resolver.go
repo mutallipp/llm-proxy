@@ -3,7 +3,7 @@ package openapi
 import (
 	"github.com/99designs/gqlgen/graphql"
 
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 // This file will not be regenerated automatically.

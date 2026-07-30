@@ -11,14 +11,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/apikey"
-	"github.com/looplj/axonhub/internal/ent/enttest"
-	"github.com/looplj/axonhub/internal/ent/project"
-	"github.com/looplj/axonhub/internal/ent/user"
-	"github.com/looplj/axonhub/internal/pkg/xcache"
-	"github.com/looplj/axonhub/internal/pkg/xredis"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/apikey"
+	"github.com/mutallipp/llm-proxy/internal/ent/enttest"
+	"github.com/mutallipp/llm-proxy/internal/ent/project"
+	"github.com/mutallipp/llm-proxy/internal/ent/user"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcache"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xredis"
 )
 
 func TestHashPassword(t *testing.T) {

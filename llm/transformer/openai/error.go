@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cast"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 func TransformOpenAIError(ctx context.Context, rawErr *httpclient.Error) *llm.ResponseError {

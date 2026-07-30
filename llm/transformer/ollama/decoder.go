@@ -6,7 +6,7 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 // init registers the NDJSON decoder for Ollama streaming responses.

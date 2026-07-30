@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
-	"github.com/looplj/axonhub/internal/server/biz/provider_quota"
+	"github.com/mutallipp/llm-proxy/internal/ent/providerquotastatus"
+	"github.com/mutallipp/llm-proxy/internal/server/biz/provider_quota"
 )
 
 func TestQuotaChannelStatus_EffectiveStatus_NoLimits(t *testing.T) {

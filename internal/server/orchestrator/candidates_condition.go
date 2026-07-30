@@ -7,9 +7,9 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 // filterResolvedCandidatesForRequest evaluates `When` only after association

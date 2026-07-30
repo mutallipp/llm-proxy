@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 // DeviceFlowState stores the state of a device flow authorization.

@@ -10,8 +10,8 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 // choiceAggregator is a helper struct to aggregate data for each choice.

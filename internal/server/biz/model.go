@@ -11,17 +11,17 @@ import (
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/contexts"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/ent/model"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/pkg/xerrors"
-	"github.com/looplj/axonhub/internal/pkg/xregexp"
-	"github.com/looplj/axonhub/internal/pkg/xtime"
-	"github.com/looplj/axonhub/internal/scopes"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/model"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xerrors"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xregexp"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xtime"
+	"github.com/mutallipp/llm-proxy/internal/scopes"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 type ModelServiceParams struct {

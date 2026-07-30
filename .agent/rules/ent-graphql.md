@@ -60,10 +60,10 @@ globs: "internal/ent/schema/**/*.go, internal/server/gql/**/*.go, internal/serve
      # 3. Add mappings in gqlgen.yml
      ChannelRateLimit:
        model:
-         - github.com/looplj/axonhub/internal/objects.ChannelRateLimit
+         - github.com/mutallipp/llm-proxy/internal/objects.ChannelRateLimit
      ChannelRateLimitInput:
        model:
-         - github.com/looplj/axonhub/internal/objects.ChannelRateLimit
+         - github.com/mutallipp/llm-proxy/internal/objects.ChannelRateLimit
      ```
 
 ## Schema Changes

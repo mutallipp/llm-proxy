@@ -6,13 +6,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/ent/enttest"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/transformer/anthropic"
-	"github.com/looplj/axonhub/llm/transformer/ollama"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/enttest"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/transformer/anthropic"
+	"github.com/mutallipp/llm-proxy/llm/transformer/ollama"
 )
 
 // TestOllamaAnthropicChannel_WithAPIKey verifies that an ollama_anthropic channel

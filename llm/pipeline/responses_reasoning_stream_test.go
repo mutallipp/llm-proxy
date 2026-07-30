@@ -8,10 +8,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/pipeline"
-	"github.com/looplj/axonhub/llm/streams"
-	responsestransformer "github.com/looplj/axonhub/llm/transformer/openai/responses"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/pipeline"
+	"github.com/mutallipp/llm-proxy/llm/streams"
+	responsestransformer "github.com/mutallipp/llm-proxy/llm/transformer/openai/responses"
 )
 
 func TestPipeline_ResponsesReasoningThenMessageCompletes(t *testing.T) {

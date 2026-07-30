@@ -30,13 +30,13 @@ import (
 	webdavfs "github.com/looplj/afero-webdav"
 	googleoption "google.golang.org/api/option"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/datastorage"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/pkg/xcache"
-	"github.com/looplj/axonhub/internal/pkg/xerrors"
-	"github.com/looplj/axonhub/internal/server/scheduler"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcache"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xerrors"
+	"github.com/mutallipp/llm-proxy/internal/server/scheduler"
 )
 
 // DataStorageService handles data storage operations.

@@ -14,8 +14,8 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/oauth"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/oauth"
 )
 
 const (

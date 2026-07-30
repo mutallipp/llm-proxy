@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/adapter"
-	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
+	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
+	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
 )
 
 // AdapterCreate is the builder for creating a Adapter entity.

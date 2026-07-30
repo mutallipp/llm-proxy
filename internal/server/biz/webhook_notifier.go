@@ -11,10 +11,10 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 const EventChannelAutoDisabled = "channel.auto_disabled"

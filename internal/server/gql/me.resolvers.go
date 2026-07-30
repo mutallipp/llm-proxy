@@ -9,14 +9,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/contexts"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/oidcidentity"
-	"github.com/looplj/axonhub/internal/ent/project"
-	"github.com/looplj/axonhub/internal/ent/user"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/oidcidentity"
+	"github.com/mutallipp/llm-proxy/internal/ent/project"
+	"github.com/mutallipp/llm-proxy/internal/ent/user"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 // UpdateMe is the resolver for the updateMe field.

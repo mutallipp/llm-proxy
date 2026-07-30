@@ -10,16 +10,16 @@ import (
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/promptprotectionrule"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/pkg/watcher"
-	"github.com/looplj/axonhub/internal/pkg/xcache"
-	"github.com/looplj/axonhub/internal/pkg/xcache/live"
-	"github.com/looplj/axonhub/internal/pkg/xerrors"
-	"github.com/looplj/axonhub/internal/pkg/xmap"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/promptprotectionrule"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/pkg/watcher"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcache"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcache/live"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xerrors"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xmap"
 )
 
 type promptProtectionPatternCache struct {

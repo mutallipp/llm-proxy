@@ -3,9 +3,9 @@ package scopes
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/contexts"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/privacy"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/privacy"
 )
 
 // UserReadScopeRule checks read permissions.

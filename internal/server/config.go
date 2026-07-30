@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	"github.com/looplj/axonhub/internal/tracing"
+	"github.com/mutallipp/llm-proxy/internal/tracing"
 )
 
 type Config struct {

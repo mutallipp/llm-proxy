@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 func TestAggregateStreamChunks_EmptyChunks(t *testing.T) {

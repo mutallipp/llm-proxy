@@ -16,7 +16,7 @@ This guide will help you get started with AxonHub quickly. In just a few minutes
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/looplj/axonhub.git
+   git clone https://github.com/mutallipp/llm-proxy.git
    cd axonhub
    ```
 
@@ -38,7 +38,7 @@ This guide will help you get started with AxonHub quickly. In just a few minutes
 ### Method 2: Binary Download
 
 1. **Download the latest release**
-   - Visit [GitHub Releases](https://github.com/looplj/axonhub/releases)
+   - Visit [GitHub Releases](https://github.com/mutallipp/llm-proxy/releases)
    - Download the appropriate binary for your OS
 
 2. **Extract and run**
@@ -389,7 +389,7 @@ log:
 
 ### Getting Help
 
-- Check the [GitHub Issues](https://github.com/looplj/axonhub/issues)
+- Check the [GitHub Issues](https://github.com/mutallipp/llm-proxy/issues)
 - Review the [Architecture Documentation](../development/erd.md)
 - Join the community discussions
 

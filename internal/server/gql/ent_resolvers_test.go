@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent"
 )
 
 func TestPromptResolverProjectID(t *testing.T) {

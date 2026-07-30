@@ -1,8 +1,8 @@
 package ent
 
 import (
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 func (r *Role) IsSystemRole() bool {

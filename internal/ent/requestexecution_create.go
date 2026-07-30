@@ -11,11 +11,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/ent/datastorage"
-	"github.com/looplj/axonhub/internal/ent/request"
-	"github.com/looplj/axonhub/internal/ent/requestexecution"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
+	"github.com/mutallipp/llm-proxy/internal/ent/request"
+	"github.com/mutallipp/llm-proxy/internal/ent/requestexecution"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // RequestExecutionCreate is the builder for creating a RequestExecution entity.

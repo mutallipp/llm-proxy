@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
-	"github.com/looplj/axonhub/internal/ent/modelgroup"
-	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
-	"github.com/looplj/axonhub/internal/ent/predicate"
+	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
+	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 )
 
 // ModelGroupUpdate is the builder for updating ModelGroup entities.

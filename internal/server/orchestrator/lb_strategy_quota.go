@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/internal/server/biz/provider_quota"
+	"github.com/mutallipp/llm-proxy/internal/ent/providerquotastatus"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/biz/provider_quota"
 )
 
 // quotaExhaustedScore is the penalty applied to exhausted channels.

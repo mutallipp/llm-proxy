@@ -3,7 +3,7 @@ package biz
 import (
 	"fmt"
 
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // ValidateRateLimit checks ChannelRateLimit invariants enforced at the API boundary:

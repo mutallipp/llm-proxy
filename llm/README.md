@@ -331,8 +331,8 @@ type Middleware interface {
 package myprovider
 
 import (
-    "github.com/looplj/axonhub/llm"
-    "github.com/looplj/axonhub/llm/transformer"
+    "github.com/mutallipp/llm-proxy/llm"
+    "github.com/mutallipp/llm-proxy/llm/transformer"
 )
 
 type OutboundTransformer struct {

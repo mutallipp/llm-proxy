@@ -3,8 +3,8 @@ package copilot
 import (
 	"context"
 
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/oauth"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/oauth"
 )
 
 // CopilotTokenProvider manages OAuth2 credentials and exchanges them for Copilot tokens.

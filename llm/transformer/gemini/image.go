@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
 )
 
 // buildImageGenerationRequest builds the HTTP request for Gemini image generation/editing.

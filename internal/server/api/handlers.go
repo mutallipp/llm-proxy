@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/looplj/axonhub/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/log"
 )
 
 var logger *log.Logger

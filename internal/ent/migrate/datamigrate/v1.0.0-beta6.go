@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/role"
-	"github.com/looplj/axonhub/internal/ent/schema/schematype"
-	"github.com/looplj/axonhub/internal/ent/userrole"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/role"
+	"github.com/mutallipp/llm-proxy/internal/ent/schema/schematype"
+	"github.com/mutallipp/llm-proxy/internal/ent/userrole"
 )
 
 // V1_0_0_Beta6 implements DataMigrator for version 1.0.0-beta6 migration.

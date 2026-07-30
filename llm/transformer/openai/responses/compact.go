@@ -3,7 +3,7 @@ package responses
 import (
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 // CompactAPIRequest is the request body for POST /v1/responses/compact.

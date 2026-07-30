@@ -10,18 +10,18 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/channelprobe"
-	"github.com/looplj/axonhub/internal/ent/datastorage"
-	"github.com/looplj/axonhub/internal/ent/request"
-	"github.com/looplj/axonhub/internal/ent/requestexecution"
-	"github.com/looplj/axonhub/internal/ent/schema/schematype"
-	"github.com/looplj/axonhub/internal/ent/thread"
-	"github.com/looplj/axonhub/internal/ent/trace"
-	"github.com/looplj/axonhub/internal/ent/usagelog"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/internal/server/scheduler"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/channelprobe"
+	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
+	"github.com/mutallipp/llm-proxy/internal/ent/request"
+	"github.com/mutallipp/llm-proxy/internal/ent/requestexecution"
+	"github.com/mutallipp/llm-proxy/internal/ent/schema/schematype"
+	"github.com/mutallipp/llm-proxy/internal/ent/thread"
+	"github.com/mutallipp/llm-proxy/internal/ent/trace"
+	"github.com/mutallipp/llm-proxy/internal/ent/usagelog"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/scheduler"
 )
 
 var defaultBatchSize = 500

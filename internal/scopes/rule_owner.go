@@ -3,7 +3,7 @@ package scopes
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/ent/privacy"
+	"github.com/mutallipp/llm-proxy/internal/ent/privacy"
 )
 
 // OwnerRule allows owner users to access all functionality.

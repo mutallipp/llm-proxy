@@ -3,7 +3,7 @@ package contexts
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent"
 )
 
 // WithThread stores the thread entity in the context.

@@ -8,10 +8,10 @@ package gql
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/promptprotectionrule"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/promptprotectionrule"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 // CreatePromptProtectionRule is the resolver for the createPromptProtectionRule field.

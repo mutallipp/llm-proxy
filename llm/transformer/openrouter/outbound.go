@@ -12,13 +12,13 @@ import (
 	"github.com/spf13/cast"
 	"github.com/tidwall/gjson"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/auth"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/internal/pkg/xurl"
-	"github.com/looplj/axonhub/llm/streams"
-	"github.com/looplj/axonhub/llm/transformer"
-	"github.com/looplj/axonhub/llm/transformer/openai"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/auth"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xurl"
+	"github.com/mutallipp/llm-proxy/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm/transformer/openai"
 )
 
 // Config holds all configuration for the OpenRouter outbound transformer.

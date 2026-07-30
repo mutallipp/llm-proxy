@@ -15,9 +15,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm/auth"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/transformer/shared"
+	"github.com/mutallipp/llm-proxy/llm/auth"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/transformer/shared"
 )
 
 func webSocketTestContext() context.Context {

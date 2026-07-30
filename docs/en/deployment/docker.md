@@ -9,7 +9,7 @@ This guide covers deploying AxonHub using Docker and Docker Compose. Docker prov
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/looplj/axonhub.git
+git clone https://github.com/mutallipp/llm-proxy.git
 cd axonhub
 ```
 

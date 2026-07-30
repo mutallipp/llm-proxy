@@ -14,10 +14,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm/oauth"
-	"github.com/looplj/axonhub/llm/simulator"
-	"github.com/looplj/axonhub/llm/transformer/openai"
-	"github.com/looplj/axonhub/llm/transformer/shared"
+	"github.com/mutallipp/llm-proxy/llm/oauth"
+	"github.com/mutallipp/llm-proxy/llm/simulator"
+	"github.com/mutallipp/llm-proxy/llm/transformer/openai"
+	"github.com/mutallipp/llm-proxy/llm/transformer/shared"
 )
 
 type staticTokenGetter struct {

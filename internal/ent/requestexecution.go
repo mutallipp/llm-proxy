@@ -10,11 +10,11 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/ent/datastorage"
-	"github.com/looplj/axonhub/internal/ent/request"
-	"github.com/looplj/axonhub/internal/ent/requestexecution"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
+	"github.com/mutallipp/llm-proxy/internal/ent/request"
+	"github.com/mutallipp/llm-proxy/internal/ent/requestexecution"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // RequestExecution is the model entity for the RequestExecution schema.

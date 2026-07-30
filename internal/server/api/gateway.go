@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 // GatewayHandlersParams Gateway 处理器依赖参数.

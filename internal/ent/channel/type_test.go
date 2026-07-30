@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
 )
 
 func TestType_IsAnthropic(t *testing.T) {

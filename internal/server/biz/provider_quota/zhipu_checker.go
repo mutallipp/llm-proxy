@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 const zhipuDefaultQuotaBaseURL = "https://open.bigmodel.cn"

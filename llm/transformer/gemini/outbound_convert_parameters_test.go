@@ -7,7 +7,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 // TestConvertLLMToGeminiRequest_UsesParametersJsonSchema verifies that

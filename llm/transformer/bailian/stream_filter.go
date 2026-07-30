@@ -3,8 +3,8 @@ package bailian
 import (
 	"strings"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/streams"
 )
 
 type toolCallKey struct {

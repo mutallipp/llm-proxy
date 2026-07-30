@@ -8,11 +8,11 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/requestexecution"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/pkg/ringbuffer"
-	"github.com/looplj/axonhub/internal/pkg/xtime"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/requestexecution"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/pkg/ringbuffer"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xtime"
 )
 
 const (

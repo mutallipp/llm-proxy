@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/looplj/axonhub/llm/auth"
-	"github.com/looplj/axonhub/llm/transformer"
-	"github.com/looplj/axonhub/llm/transformer/openai"
+	"github.com/mutallipp/llm-proxy/llm/auth"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm/transformer/openai"
 )
 
 // DefaultBaseURL is the default Fireworks API base URL.

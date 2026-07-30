@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/predicate"
-	"github.com/looplj/axonhub/internal/ent/thread"
-	"github.com/looplj/axonhub/internal/ent/trace"
+	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
+	"github.com/mutallipp/llm-proxy/internal/ent/thread"
+	"github.com/mutallipp/llm-proxy/internal/ent/trace"
 )
 
 // ThreadUpdate is the builder for updating Thread entities.

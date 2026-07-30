@@ -27,64 +27,64 @@ models:
   # Defines the ID field as Go 'int'.
   ID:
     model:
-      - github.com/looplj/axonhub/internal/objects.GUID
+      - github.com/mutallipp/llm-proxy/internal/objects.GUID
   Decimal:
     model:
-      - github.com/looplj/axonhub/internal/objects.Decimal
+      - github.com/mutallipp/llm-proxy/internal/objects.Decimal
   DecimalInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.Decimal
+      - github.com/mutallipp/llm-proxy/internal/objects.Decimal
   ModelMapping:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelMapping
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelMapping
   ModelMappingInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelMapping
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelMapping
   ChannelTagsMatchMode:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelTagsMatchMode
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsMatchMode
   UpdateAPIKeyProfilesInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyProfiles
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfiles
   APIKeyProfiles:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyProfiles
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfiles
   APIKeyProfile:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyProfile
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfile
   APIKeyProfileInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyProfile
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfile
   APIKeyQuota:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuota
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuota
   APIKeyQuotaInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuota
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuota
   APIKeyQuotaPeriod:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPeriod
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriod
   APIKeyQuotaPeriodInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPeriod
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriod
   APIKeyQuotaPeriodType:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPeriodType
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriodType
   APIKeyQuotaPastDuration:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPastDuration
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDuration
   APIKeyQuotaPastDurationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPastDuration
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDuration
   APIKeyQuotaPastDurationUnit:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPastDurationUnit
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDurationUnit
   APIKeyQuotaCalendarDuration:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaCalendarDuration
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDuration
   APIKeyQuotaCalendarDurationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaCalendarDuration
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDuration
   APIKeyQuotaCalendarDurationUnit:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaCalendarDurationUnit
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDurationUnit

@@ -3,9 +3,9 @@ package transformer
 import (
 	"context"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/streams"
 )
 
 // Inbound represents a transformer accpet the request from client and respond to client with the transformed response.

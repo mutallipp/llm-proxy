@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/apikey"
-	"github.com/looplj/axonhub/internal/ent/predicate"
+	"github.com/mutallipp/llm-proxy/internal/ent/apikey"
+	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 )
 
 // APIKeyDelete is the builder for deleting a APIKey entity.

@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
 )
 
 // SpeechRequestBody represents the JSON request body for the OpenAI /audio/speech API.

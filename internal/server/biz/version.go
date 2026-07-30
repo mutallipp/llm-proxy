@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/looplj/axonhub/internal/build"
-	"github.com/looplj/axonhub/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/build"
+	"github.com/mutallipp/llm-proxy/internal/ent"
 )
 
 // Version retrieves the system version from system settings.
@@ -52,7 +52,7 @@ func (s *SystemService) CheckForUpdate(ctx context.Context) (*VersionCheckResult
 	}
 
 	hasUpdate := s.isNewerVersion(currentVersion, latestVersion)
-	releaseURL := fmt.Sprintf("https://github.com/looplj/axonhub/releases/tag/%s", latestVersion)
+	releaseURL := fmt.Sprintf("https://github.com/mutallipp/llm-proxy/releases/tag/%s", latestVersion)
 
 	return &VersionCheckResult{
 		CurrentVersion: currentVersion,

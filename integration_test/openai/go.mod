@@ -1,4 +1,4 @@
-module github.com/looplj/axonhub/openai_test
+module github.com/mutallipp/llm-proxy/openai_test
 
 go 1.25.2
 

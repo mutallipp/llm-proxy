@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/pkg/chunkbuffer"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/pkg/chunkbuffer"
 )
 
 // LiveStreamRegistry provides read access to in-flight stream chunks

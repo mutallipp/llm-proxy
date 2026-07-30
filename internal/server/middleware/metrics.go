@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/looplj/axonhub/internal/metrics"
+	"github.com/mutallipp/llm-proxy/internal/metrics"
 )
 
 // WithMetrics adds metrics collection to HTTP requests.

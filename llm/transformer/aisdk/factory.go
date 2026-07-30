@@ -3,7 +3,7 @@ package aisdk
 import (
 	"net/http"
 
-	"github.com/looplj/axonhub/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
 )
 
 // TransformerType represents the type of AI SDK transformer to use.

@@ -7,13 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/build"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/datastorage"
-	"github.com/looplj/axonhub/internal/ent/enttest"
-	"github.com/looplj/axonhub/internal/ent/migrate/datamigrate"
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/build"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
+	"github.com/mutallipp/llm-proxy/internal/ent/enttest"
+	"github.com/mutallipp/llm-proxy/internal/ent/migrate/datamigrate"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 // mockMigrator is a mock implementation of DataMigrator for testing.

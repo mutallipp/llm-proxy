@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/system"
+	"github.com/mutallipp/llm-proxy/internal/ent/system"
 )
 
 // SystemCreate is the builder for creating a System entity.

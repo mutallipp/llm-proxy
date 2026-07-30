@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 var ErrAPIKeyRequired = errors.New("API key is required")

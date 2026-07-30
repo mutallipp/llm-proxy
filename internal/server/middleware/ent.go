@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/looplj/axonhub/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent"
 )
 
 func WithEntClient(client *ent.Client) func(c *gin.Context) {

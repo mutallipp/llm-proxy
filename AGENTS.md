@@ -42,8 +42,8 @@ AxonHub is an all-in-one AI development platform that serves as a unified API ga
 
 ## Go Modules
 
-- The repository root (`/`) is the main Go module: `github.com/looplj/axonhub`.
-- `llm/` is a separate Go module: `github.com/looplj/axonhub/llm`.
+- The repository root (`/`) is the main Go module: `github.com/mutallipp/llm-proxy`.
+- `llm/` is a separate Go module: `github.com/mutallipp/llm-proxy/llm`.
 
 ### `llm/` Module Notes
 

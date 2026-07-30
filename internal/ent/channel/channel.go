@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 const (
@@ -168,7 +168,7 @@ func ValidColumn(column string) bool {
 // package on the initialization of the application. Therefore,
 // it should be imported in the main as follows:
 //
-//	import _ "github.com/looplj/axonhub/internal/ent/runtime"
+//	import _ "github.com/mutallipp/llm-proxy/internal/ent/runtime"
 var (
 	Hooks        [2]ent.Hook
 	Interceptors [1]ent.Interceptor

@@ -56,7 +56,7 @@ This architecture ensures:
 ### Clone the Project
 
 ```bash
-git clone https://github.com/looplj/axonhub.git
+git clone https://github.com/mutallipp/llm-proxy.git
 cd axonhub
 ```
 

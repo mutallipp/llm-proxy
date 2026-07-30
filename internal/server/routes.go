@@ -5,14 +5,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/request"
-	"github.com/looplj/axonhub/internal/server/api"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/internal/server/gql"
-	"github.com/looplj/axonhub/internal/server/gql/openapi"
-	"github.com/looplj/axonhub/internal/server/middleware"
-	"github.com/looplj/axonhub/internal/server/static"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/request"
+	"github.com/mutallipp/llm-proxy/internal/server/api"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/gql"
+	"github.com/mutallipp/llm-proxy/internal/server/gql/openapi"
+	"github.com/mutallipp/llm-proxy/internal/server/middleware"
+	"github.com/mutallipp/llm-proxy/internal/server/static"
 )
 
 type Handlers struct {

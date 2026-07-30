@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/looplj/axonhub/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/streams"
 )
 
 // MaxErrorBodySize is the maximum number of bytes read from an upstream error

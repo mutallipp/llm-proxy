@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/looplj/axonhub/openai_test/internal/testutil"
+	"github.com/mutallipp/llm-proxy/openai_test/internal/testutil"
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/openai/openai-go/v3/shared"
@@ -17,7 +17,7 @@ import (
 // where client disconnecting immediately after receiving [DONE] should not mark
 // the request as canceled.
 //
-// Issue: https://github.com/looplj/axonhub/issues/827
+// Issue: https://github.com/mutallipp/llm-proxy/issues/827
 //
 // Before the fix:
 // - Client receives all chunks including [DONE]

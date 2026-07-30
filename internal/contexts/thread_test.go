@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/looplj/axonhub/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent"
 )
 
 func TestWithThread(t *testing.T) {

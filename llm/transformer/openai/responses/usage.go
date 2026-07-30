@@ -1,7 +1,7 @@
 package responses
 
 import (
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 type Usage struct {

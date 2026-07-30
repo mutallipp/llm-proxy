@@ -11,9 +11,9 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/api/transport"
 
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/pipeline"
-	"github.com/looplj/axonhub/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/pipeline"
+	"github.com/mutallipp/llm-proxy/llm/streams"
 )
 
 // Executor implements a Vertex AI-specific executor that handles Google Cloud authentication

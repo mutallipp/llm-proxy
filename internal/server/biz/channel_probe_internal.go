@@ -3,7 +3,7 @@ package biz
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/authz"
 )
 
 func (svc *ChannelProbeService) runProbePeriodically(ctx context.Context) {

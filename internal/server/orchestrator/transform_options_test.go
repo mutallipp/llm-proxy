@@ -6,8 +6,8 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 func TestApplyTransformOptions_ReplaceDeveloperRoleWithSystem(t *testing.T) {

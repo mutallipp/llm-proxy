@@ -7,9 +7,9 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/internal/pkg/xmap"
-	"github.com/looplj/axonhub/llm/transformer/shared"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xmap"
+	"github.com/mutallipp/llm-proxy/llm/transformer/shared"
 )
 
 func convertToTextOptions(chatReq *llm.Request) *TextOptions {

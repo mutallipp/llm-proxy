@@ -3,7 +3,7 @@ package api
 import (
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 type APIKeyHandlersParams struct {

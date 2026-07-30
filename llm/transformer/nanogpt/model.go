@@ -1,7 +1,7 @@
 package nanogpt
 
 import (
-	"github.com/looplj/axonhub/llm/transformer/openai"
+	"github.com/mutallipp/llm-proxy/llm/transformer/openai"
 )
 
 // Response represents a NanoGPT chat completion response.

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/looplj/axonhub/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent"
 )
 
 // The APIKeyFunc type is an adapter to allow the use of ordinary

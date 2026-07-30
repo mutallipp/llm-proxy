@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/internal/pkg/xjson"
-	transformer "github.com/looplj/axonhub/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xjson"
+	transformer "github.com/mutallipp/llm-proxy/llm/transformer"
 )
 
 // InboundTransformer implements transformer.Inbound for Anthropic format.

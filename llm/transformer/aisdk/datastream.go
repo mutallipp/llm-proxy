@@ -10,9 +10,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	transformer "github.com/looplj/axonhub/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	transformer "github.com/mutallipp/llm-proxy/llm/transformer"
 )
 
 // DataStreamTransformer implements the AI SDK Data Stream Protocol.

@@ -12,10 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/predicate"
-	"github.com/looplj/axonhub/internal/ent/project"
-	"github.com/looplj/axonhub/internal/ent/user"
-	"github.com/looplj/axonhub/internal/ent/userproject"
+	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
+	"github.com/mutallipp/llm-proxy/internal/ent/project"
+	"github.com/mutallipp/llm-proxy/internal/ent/user"
+	"github.com/mutallipp/llm-proxy/internal/ent/userproject"
 )
 
 // UserProjectQuery is the builder for querying UserProject entities.

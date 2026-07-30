@@ -3,7 +3,7 @@ package anthropic
 import (
 	"slices"
 
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 const (

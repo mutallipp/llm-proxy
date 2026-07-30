@@ -10,13 +10,13 @@ import (
 	// Import bedrock package to register its decoder.
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/auth"
-	_ "github.com/looplj/axonhub/llm/bedrock"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/internal/pkg/xjson"
-	"github.com/looplj/axonhub/llm/transformer"
-	"github.com/looplj/axonhub/llm/vertex"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/auth"
+	_ "github.com/mutallipp/llm-proxy/llm/bedrock"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xjson"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm/vertex"
 )
 
 func init() {

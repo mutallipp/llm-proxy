@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/modelgroup"
-	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
-	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
 )
 
 // ModelGroupProtocolCreate is the builder for creating a ModelGroupProtocol entity.

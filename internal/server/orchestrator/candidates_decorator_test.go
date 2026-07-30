@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 // TestDecoratorChain_FullStack tests the complete decorator chain: Default -> SelectedChannels -> LoadBalanced.

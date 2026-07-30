@@ -3,8 +3,8 @@ package stream
 import (
 	"context"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/pipeline"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/pipeline"
 )
 
 // EnsureUsage creates a decorator that ensures stream requests include usage information

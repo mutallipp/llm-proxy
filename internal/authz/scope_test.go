@@ -6,9 +6,9 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/internal/contexts"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/scopes"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/scopes"
 )
 
 func TestHasScope_SystemPrincipal(t *testing.T) {

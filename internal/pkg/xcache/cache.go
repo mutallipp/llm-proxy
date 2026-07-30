@@ -13,9 +13,9 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 	redis "github.com/redis/go-redis/v9"
 
-	"github.com/looplj/axonhub/internal/log"
-	redis_store "github.com/looplj/axonhub/internal/pkg/xcache/redis"
-	"github.com/looplj/axonhub/internal/pkg/xredis"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	redis_store "github.com/mutallipp/llm-proxy/internal/pkg/xcache/redis"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xredis"
 )
 
 // Cache is an alias to the gocache CacheInterface for convenience.

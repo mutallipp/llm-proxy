@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/looplj/axonhub/internal/server/middleware"
+	"github.com/mutallipp/llm-proxy/internal/server/middleware"
 )
 
 // NewIPAccessControlRuntime creates the single mutable runtime state used by

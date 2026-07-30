@@ -10,10 +10,10 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
-	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // ModelGroupTarget is the model entity for the ModelGroupTarget schema.

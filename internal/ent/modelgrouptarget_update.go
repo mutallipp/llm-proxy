@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
-	"github.com/looplj/axonhub/internal/ent/predicate"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
+	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // ModelGroupTargetUpdate is the builder for updating ModelGroupTarget entities.

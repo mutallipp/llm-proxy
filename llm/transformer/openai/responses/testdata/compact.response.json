@@ -77,7 +77,7 @@
       "content": [
         {
           "type": "input_text",
-          "text": "make build-backend\nBuilding axonhub backend...\ngo build -ldflags \"-s -w\" -tags=nomsgpack -o axonhub ./cmd/axonhub\n# github.com/looplj/axonhub/internal/server/biz\ninternal/server/biz/trace.go:626:36: cannot use req.Input (variable of struct type responses.Input) as \"encoding/json\".RawMessage value in argument to compactInputSummary\ninternal/server/biz/trace.go:663:34: cannot use resp.Output (variable of type []responses.Item) as \"encoding/json\".RawMessage value in argument to compactOutputSummary\nmake: *** [build-backend] Error 1"
+          "text": "make build-backend\nBuilding axonhub backend...\ngo build -ldflags \"-s -w\" -tags=nomsgpack -o axonhub ./cmd/axonhub\n# github.com/mutallipp/llm-proxy/internal/server/biz\ninternal/server/biz/trace.go:626:36: cannot use req.Input (variable of struct type responses.Input) as \"encoding/json\".RawMessage value in argument to compactInputSummary\ninternal/server/biz/trace.go:663:34: cannot use resp.Output (variable of type []responses.Item) as \"encoding/json\".RawMessage value in argument to compactOutputSummary\nmake: *** [build-backend] Error 1"
         }
       ],
       "role": "user"

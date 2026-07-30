@@ -1,7 +1,7 @@
 package claudecode
 
 import (
-	"github.com/looplj/axonhub/llm/oauth"
+	"github.com/mutallipp/llm-proxy/llm/oauth"
 )
 
 // NewTokenProvider creates a new OAuth token provider for Claude Code.

@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/adapter"
-	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
-	"github.com/looplj/axonhub/internal/ent/modelgroup"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
+	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
 )
 
 // --- ValidateAdapterName ---

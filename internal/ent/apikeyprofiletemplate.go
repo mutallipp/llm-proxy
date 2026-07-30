@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/looplj/axonhub/internal/ent/apikeyprofiletemplate"
-	"github.com/looplj/axonhub/internal/ent/project"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent/apikeyprofiletemplate"
+	"github.com/mutallipp/llm-proxy/internal/ent/project"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // APIKeyProfileTemplate is the model entity for the APIKeyProfileTemplate schema.

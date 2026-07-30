@@ -10,8 +10,8 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/pkg/watcher"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/pkg/watcher"
 )
 
 // Cache provides a generic in-memory cache that automatically refreshes

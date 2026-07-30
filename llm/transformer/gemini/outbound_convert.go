@@ -9,10 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/internal/pkg/xurl"
-	geminioai "github.com/looplj/axonhub/llm/transformer/gemini/openai"
-	"github.com/looplj/axonhub/llm/transformer/shared"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xurl"
+	geminioai "github.com/mutallipp/llm-proxy/llm/transformer/gemini/openai"
+	"github.com/mutallipp/llm-proxy/llm/transformer/shared"
 )
 
 // convertLLMToGeminiRequest converts unified Request to Gemini GenerateContentRequest.

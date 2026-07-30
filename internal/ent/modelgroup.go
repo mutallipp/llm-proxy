@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/looplj/axonhub/internal/ent/modelgroup"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
 )
 
 // ModelGroup is the model entity for the ModelGroup schema.

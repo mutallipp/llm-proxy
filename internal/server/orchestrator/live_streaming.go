@@ -3,12 +3,12 @@ package orchestrator
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/pkg/chunkbuffer"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/pipeline"
-	"github.com/looplj/axonhub/llm/streams"
+	"github.com/mutallipp/llm-proxy/internal/pkg/chunkbuffer"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/pipeline"
+	"github.com/mutallipp/llm-proxy/llm/streams"
 )
 
 type livePreviewMiddleware struct {

@@ -3,7 +3,7 @@ package orchestrator
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 // CompositeStrategy combines multiple strategies with configurable weights.

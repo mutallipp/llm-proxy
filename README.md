@@ -9,8 +9,8 @@
 
 <div align="center">
 
-[![Test Status](https://github.com/looplj/axonhub/actions/workflows/test.yml/badge.svg)](https://github.com/looplj/axonhub/actions/workflows/test.yml)
-[![Lint Status](https://github.com/looplj/axonhub/actions/workflows/lint.yml/badge.svg)](https://github.com/looplj/axonhub/actions/workflows/lint.yml)
+[![Test Status](https://github.com/mutallipp/llm-proxy/actions/workflows/test.yml/badge.svg)](https://github.com/mutallipp/llm-proxy/actions/workflows/test.yml)
+[![Lint Status](https://github.com/mutallipp/llm-proxy/actions/workflows/lint.yml/badge.svg)](https://github.com/mutallipp/llm-proxy/actions/workflows/lint.yml)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/looplj/axonhub?logo=go&logoColor=white)](https://golang.org/)
 [![Docker Ready](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
 
@@ -245,7 +245,7 @@ Here are some screenshots of AxonHub in action:
 
 ```bash
 # Download and extract (macOS ARM64 example)
-curl -sSL https://github.com/looplj/axonhub/releases/latest/download/axonhub_darwin_arm64.tar.gz | tar xz
+curl -sSL https://github.com/mutallipp/llm-proxy/releases/latest/download/axonhub_darwin_arm64.tar.gz | tar xz
 cd axonhub_*
 
 # Run with SQLite (default)
@@ -284,7 +284,7 @@ Deploy AxonHub with 1-click on [Render](https://render.com) for free.
 
 <div>
 
-<a href="https://render.com/deploy?repo=https://github.com/looplj/axonhub">
+<a href="https://render.com/deploy?repo=https://github.com/mutallipp/llm-proxy">
   <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
 </a>
 
@@ -300,7 +300,7 @@ Perfect for individual developers and small teams. No complex configuration requ
 
 #### Quick Download & Run
 
-1. **Download the latest release** from [GitHub Releases](https://github.com/looplj/axonhub/releases)
+1. **Download the latest release** from [GitHub Releases](https://github.com/mutallipp/llm-proxy/releases)
 
    - Choose the appropriate version for your operating system:
 
@@ -386,7 +386,7 @@ For detailed configuration instructions, please refer to [configuration document
 
 ```bash
 # Clone project
-git clone https://github.com/looplj/axonhub.git
+git clone https://github.com/mutallipp/llm-proxy.git
 cd axonhub
 
 # Set environment variables
@@ -406,7 +406,7 @@ Deploy AxonHub on Kubernetes using the official Helm chart:
 
 ```bash
 # Quick installation
-git clone https://github.com/looplj/axonhub.git
+git clone https://github.com/mutallipp/llm-proxy.git
 cd axonhub
 helm install axonhub ./deploy/helm
 
@@ -432,7 +432,7 @@ For detailed configuration and troubleshooting, see [Helm Chart Documentation](d
 
 #### Virtual Machine Deployment
 
-Download the latest release from [GitHub Releases](https://github.com/looplj/axonhub/releases)
+Download the latest release from [GitHub Releases](https://github.com/mutallipp/llm-proxy/releases)
 
 ```bash
 # Extract and run
@@ -560,7 +560,7 @@ This project is licensed under multiple licenses (Apache-2.0 and LGPL-3.0). See 
 
 **AxonHub** - All-in-one AI Development Platform, making AI development simpler
 
-[🏠 Homepage](https://github.com/looplj/axonhub) • [📚 Documentation](https://deepwiki.com/looplj/axonhub) • [🐛 Issue Feedback](https://github.com/looplj/axonhub/issues)
+[🏠 Homepage](https://github.com/mutallipp/llm-proxy) • [📚 Documentation](https://deepwiki.com/looplj/axonhub) • [🐛 Issue Feedback](https://github.com/mutallipp/llm-proxy/issues)
 
 Built with ❤️ by the AxonHub team
 

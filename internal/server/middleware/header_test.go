@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 func TestExtractAPIKeyFromHeader(t *testing.T) {

@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm/simulator"
-	"github.com/looplj/axonhub/llm/transformer/anthropic"
+	"github.com/mutallipp/llm-proxy/llm/simulator"
+	"github.com/mutallipp/llm-proxy/llm/transformer/anthropic"
 )
 
 func TestClaudeCodeTransformer_WithSimulator(t *testing.T) {

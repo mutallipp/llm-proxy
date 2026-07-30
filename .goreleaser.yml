@@ -18,9 +18,9 @@ builds:
     flags:
       - -tags=nomsgpack
     ldflags:
-      - -s -w -X github.com/looplj/axonhub/internal/build.Version={{ .Tag }}
-      - -s -w -X github.com/looplj/axonhub/internal/build.Commit={{ .Commit }}
-      - -s -w -X github.com/looplj/axonhub/internal/build.BuildTime={{ .Date }}
+      - -s -w -X github.com/mutallipp/llm-proxy/internal/build.Version={{ .Tag }}
+      - -s -w -X github.com/mutallipp/llm-proxy/internal/build.Commit={{ .Commit }}
+      - -s -w -X github.com/mutallipp/llm-proxy/internal/build.BuildTime={{ .Date }}
     env:
       - CGO_ENABLED=0
     goos:
@@ -107,10 +107,10 @@ brews:
       name: homebrew-axonhub
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     directory: Formula
-    homepage: "https://github.com/looplj/axonhub"
+    homepage: "https://github.com/mutallipp/llm-proxy"
     description: "All-in-one AI development platform. Use any SDK, access any model."
     license: "Apache-2.0"
-    url_template: "https://github.com/looplj/axonhub/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    url_template: "https://github.com/mutallipp/llm-proxy/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     commit_author:
       name: "github-actions[bot]"
       email: "github-actions[bot]@users.noreply.github.com"

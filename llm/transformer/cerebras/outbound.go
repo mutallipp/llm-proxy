@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/auth"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/transformer"
-	"github.com/looplj/axonhub/llm/transformer/openrouter"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/auth"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm/transformer/openrouter"
 )
 
 // DefaultBaseURL is the default Cerebras API base URL.

@@ -5,9 +5,9 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/internal/pkg/xjson"
-	"github.com/looplj/axonhub/llm/internal/pkg/xurl"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xjson"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xurl"
 )
 
 func convertImageSourceToLLMImageURLPart(source *ImageSource, cacheControl *CacheControl) (llm.MessageContentPart, bool) {

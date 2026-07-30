@@ -6,14 +6,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/enttest"
-	"github.com/looplj/axonhub/internal/ent/oidcidentity"
-	"github.com/looplj/axonhub/internal/ent/role"
-	"github.com/looplj/axonhub/internal/ent/schema/schematype"
-	_ "github.com/looplj/axonhub/internal/pkg/sqlite" // Register custom sqlite driver with FK support
-	"github.com/looplj/axonhub/internal/pkg/xcache"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/enttest"
+	"github.com/mutallipp/llm-proxy/internal/ent/oidcidentity"
+	"github.com/mutallipp/llm-proxy/internal/ent/role"
+	"github.com/mutallipp/llm-proxy/internal/ent/schema/schematype"
+	_ "github.com/mutallipp/llm-proxy/internal/pkg/sqlite" // Register custom sqlite driver with FK support
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcache"
 )
 
 func setupTestOIDCService(t *testing.T) (*OIDCService, *ent.Client) {

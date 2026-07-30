@@ -1,6 +1,6 @@
 package anthropic
 
-import "github.com/looplj/axonhub/llm"
+import "github.com/mutallipp/llm-proxy/llm"
 
 // Usage represents usage information in Anthropic format.
 // Total input tokens in a request is the summation of input_tokens, cache_creation_input_tokens, and cache_read_input_tokens.

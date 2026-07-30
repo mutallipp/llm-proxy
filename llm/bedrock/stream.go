@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi"
 	"github.com/tidwall/gjson"
 
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 // eventstreamChunk represents a chunk in the AWS eventstream format.

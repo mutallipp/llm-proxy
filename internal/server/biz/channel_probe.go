@@ -12,15 +12,15 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/ent/channelprobe"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/pkg/xtime"
-	"github.com/looplj/axonhub/internal/scopes"
-	"github.com/looplj/axonhub/internal/server/gql/qb"
-	"github.com/looplj/axonhub/internal/server/scheduler"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/channelprobe"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xtime"
+	"github.com/mutallipp/llm-proxy/internal/scopes"
+	"github.com/mutallipp/llm-proxy/internal/server/gql/qb"
+	"github.com/mutallipp/llm-proxy/internal/server/scheduler"
 )
 
 // ChannelProbePoint represents a single probe data point for a channel.

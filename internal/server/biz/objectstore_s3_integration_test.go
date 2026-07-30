@@ -14,7 +14,7 @@ import (
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	s3fs "github.com/looplj/afero-s3"
 
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // TestS3ObjectStoreIntegration exercises the native S3 ObjectStore against a real

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/pkg/watcher"
+	"github.com/mutallipp/llm-proxy/internal/pkg/watcher"
 )
 
 type testItem struct {

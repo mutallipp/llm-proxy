@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 // Buffer is a thread-safe buffer for accumulating stream chunks.

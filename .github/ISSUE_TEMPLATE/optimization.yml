@@ -18,9 +18,9 @@ body:
       label: Pre-submission Checklist / 提交前检查
       description: Please confirm the following before submitting / 提交前请确认以下内容
       options:
-        - label: I have searched the [existing issues](https://github.com/looplj/axonhub/issues) and this optimization has not been suggested / 我已搜索现有 issues，此优化建议尚未被提出
+        - label: I have searched the [existing issues](https://github.com/mutallipp/llm-proxy/issues) and this optimization has not been suggested / 我已搜索现有 issues，此优化建议尚未被提出
           required: true
-        - label: I have read the [documentation](https://github.com/looplj/axonhub#readme) / 我已阅读文档
+        - label: I have read the [documentation](https://github.com/mutallipp/llm-proxy#readme) / 我已阅读文档
           required: true
 
   - type: checkboxes
@@ -31,7 +31,7 @@ body:
         If this optimization is already covered in the FAQ, the issue will be closed directly.
         如果此优化建议已在 FAQ 中覆盖，该 issue 将被直接关闭。
       options:
-        - label: I have checked the [FAQ](https://github.com/looplj/axonhub/issues/1374) and this optimization has not been suggested there / 我已查阅 FAQ，此优化建议未被提及
+        - label: I have checked the [FAQ](https://github.com/mutallipp/llm-proxy/issues/1374) and this optimization has not been suggested there / 我已查阅 FAQ，此优化建议未被提及
           required: true
 
   - type: textarea

@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/contexts"
-	"github.com/looplj/axonhub/internal/ent"
-	entuser "github.com/looplj/axonhub/internal/ent/user"
+	"github.com/mutallipp/llm-proxy/internal/authz"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	entuser "github.com/mutallipp/llm-proxy/internal/ent/user"
 )
 
 // PermissionValidator provides methods to validate permission hierarchies.

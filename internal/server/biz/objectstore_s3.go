@@ -15,7 +15,7 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	smithy "github.com/aws/smithy-go"
 
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // s3UploadPartSize is the multipart part size used for streaming uploads. The

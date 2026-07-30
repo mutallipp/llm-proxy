@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 type PromptProtectionPreviewInput struct {

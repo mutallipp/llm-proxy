@@ -1,9 +1,9 @@
 package biz
 
 import (
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/pkg/xcache"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcache"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 func NewChannelServiceForTest(client *ent.Client) *ChannelService {

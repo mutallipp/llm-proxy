@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/looplj/axonhub/internal/ent/promptprotectionrule"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent/promptprotectionrule"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // PromptProtectionRule is the model entity for the PromptProtectionRule schema.

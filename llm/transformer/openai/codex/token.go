@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/oauth"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/oauth"
 )
 
 // DefaultTokenURLs are the production OpenAI OAuth endpoints.

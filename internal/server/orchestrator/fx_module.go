@@ -1,7 +1,7 @@
 package orchestrator
 
 import (
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 	"go.uber.org/fx"
 )
 

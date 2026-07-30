@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/looplj/axonhub/internal/contexts"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
 )
 
 // TestWithAdapterConsumerInterceptor_ExtractAPIKey 测试提取 APIKey。

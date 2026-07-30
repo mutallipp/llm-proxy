@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/request"
-	"github.com/looplj/axonhub/internal/ent/thread"
-	"github.com/looplj/axonhub/internal/ent/trace"
-	"github.com/looplj/axonhub/internal/ent/usagelog"
-	"github.com/looplj/axonhub/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/request"
+	"github.com/mutallipp/llm-proxy/internal/ent/thread"
+	"github.com/mutallipp/llm-proxy/internal/ent/trace"
+	"github.com/mutallipp/llm-proxy/internal/ent/usagelog"
+	"github.com/mutallipp/llm-proxy/internal/log"
 )
 
 type ThreadService struct {

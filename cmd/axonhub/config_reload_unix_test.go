@@ -12,8 +12,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/looplj/axonhub/conf"
-	"github.com/looplj/axonhub/internal/server/middleware"
+	"github.com/mutallipp/llm-proxy/conf"
+	"github.com/mutallipp/llm-proxy/internal/server/middleware"
 )
 
 func TestReloadIPAccessControl(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 
-	"github.com/looplj/axonhub/internal/ent/schema/schematype"
-	"github.com/looplj/axonhub/internal/scopes"
+	"github.com/mutallipp/llm-proxy/internal/ent/schema/schematype"
+	"github.com/mutallipp/llm-proxy/internal/scopes"
 )
 
 // System holds the schema definition for the System entity.

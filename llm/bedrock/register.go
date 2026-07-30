@@ -1,7 +1,7 @@
 package bedrock
 
 import (
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 // init registers the AWS EventStream decoder.

@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 func TestCacheControl_ToLLMCacheControl(t *testing.T) {
@@ -679,7 +679,7 @@ func TestOutboundTransformer_TopLevelCacheControlPassthrough(t *testing.T) {
 }
 
 // TestAnthropicInboundOutbound_TopLevelCacheControlEndToEnd verifies the
-// regression reported in https://github.com/looplj/axonhub/issues/1484:
+// regression reported in https://github.com/mutallipp/llm-proxy/issues/1484:
 // Anthropic-in & Anthropic-out flows used to drop the top-level
 // `cache_control` field. After the fix, the field is preserved end-to-end and
 // the breakpoint optimization pipeline is bypassed so Anthropic's automatic

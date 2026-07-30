@@ -12,13 +12,13 @@ import (
 	"go.uber.org/fx"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/biz/provider_quota"
-	"github.com/looplj/axonhub/internal/server/scheduler"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/providerquotastatus"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/biz/provider_quota"
+	"github.com/mutallipp/llm-proxy/internal/server/scheduler"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 const maxConcurrentQuotaChecks = 8

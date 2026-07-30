@@ -3,9 +3,9 @@ package orchestrator
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/pipeline"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/pipeline"
 )
 
 // withRateLimitAdmission enforces strict per-instance RPM before an attempt is

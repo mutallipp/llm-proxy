@@ -6,7 +6,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/looplj/axonhub/llm/transformer/openai"
+	"github.com/mutallipp/llm-proxy/llm/transformer/openai"
 )
 
 func TestResponse_ToOpenAIResponse(t *testing.T) {

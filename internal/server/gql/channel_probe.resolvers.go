@@ -8,8 +8,8 @@ package gql
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 // ChannelID is the resolver for the channelID field.

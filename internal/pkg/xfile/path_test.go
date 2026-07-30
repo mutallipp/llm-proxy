@@ -3,7 +3,7 @@ package xfile_test
 import (
 	"testing"
 
-	"github.com/looplj/axonhub/internal/pkg/xfile"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xfile"
 )
 
 func TestProjectDir(t *testing.T) {

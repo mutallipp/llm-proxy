@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/invopop/jsonschema"
-	"github.com/looplj/axonhub/conf"
+	"github.com/mutallipp/llm-proxy/conf"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -43,7 +43,7 @@ func main() {
 	}
 
 	r.AdditionalFields = func(t reflect.Type) []reflect.StructField {
-		if t.PkgPath() == "github.com/looplj/axonhub/internal/server" && t.Name() == "CORS" {
+		if t.PkgPath() == "github.com/mutallipp/llm-proxy/internal/server" && t.Name() == "CORS" {
 			return []reflect.StructField{
 				{
 					Name: "Debug",

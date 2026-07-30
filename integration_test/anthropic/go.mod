@@ -1,4 +1,4 @@
-module github.com/looplj/axonhub/anthropic_test
+module github.com/mutallipp/llm-proxy/anthropic_test
 
 go 1.25.2
 

@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/looplj/axonhub/internal/ent/adapter"
+	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
 )
 
 // Adapter is the model entity for the Adapter schema.

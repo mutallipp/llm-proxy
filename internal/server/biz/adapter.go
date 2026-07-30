@@ -11,13 +11,13 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/adapter"
-	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
-	"github.com/looplj/axonhub/internal/ent/modelgroup"
-	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
-	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
+	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // RuntimeAdapter 等类型别名让业务层调用方不需要依赖 DTO 的具体存放位置。

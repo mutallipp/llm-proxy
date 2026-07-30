@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/pkg/xfile"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xfile"
 )
 
 func main() {

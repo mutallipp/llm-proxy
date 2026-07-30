@@ -3,8 +3,8 @@ package orchestrator
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
 
 // WeightStrategy prioritizes channels based on their ordering weight.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/looplj/axonhub/internal/pkg/xtime"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xtime"
 )
 
 // DailyThroughputQueryType identifies the type of daily throughput query to build.

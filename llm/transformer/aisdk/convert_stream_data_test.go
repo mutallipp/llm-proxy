@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/internal/pkg/xtest"
-	"github.com/looplj/axonhub/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xtest"
+	"github.com/mutallipp/llm-proxy/llm/streams"
 )
 
 func TestDataStreamTransformer_StreamTransformation_WithTestData(t *testing.T) {

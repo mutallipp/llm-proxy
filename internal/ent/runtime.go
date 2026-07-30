@@ -2,4 +2,4 @@
 
 package ent
 
-// The schema-stitching logic is generated in github.com/looplj/axonhub/internal/ent/runtime/runtime.go
+// The schema-stitching logic is generated in github.com/mutallipp/llm-proxy/internal/ent/runtime/runtime.go

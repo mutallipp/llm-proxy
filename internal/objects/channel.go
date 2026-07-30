@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/oauth"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/oauth"
 )
 
 // ChannelEndpoint represents an outbound API endpoint configuration within a Channel.

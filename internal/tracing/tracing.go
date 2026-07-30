@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/looplj/axonhub/internal/contexts"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
 )
 
 type Config struct {

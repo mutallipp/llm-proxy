@@ -1,4 +1,4 @@
-module github.com/looplj/axonhub/gemini_test
+module github.com/mutallipp/llm-proxy/gemini_test
 
 go 1.25.2
 

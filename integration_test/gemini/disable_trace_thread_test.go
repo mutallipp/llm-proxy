@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/looplj/axonhub/gemini_test/internal/testutil"
+	"github.com/mutallipp/llm-proxy/gemini_test/internal/testutil"
 )
 
 func TestDisableTraceAndThread(t *testing.T) {

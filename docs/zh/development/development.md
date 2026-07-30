@@ -56,7 +56,7 @@ AxonHub 实现了一个双向数据转换管道，确保客户端与 AI 提供�
 ### 克隆项目
 
 ```bash
-git clone https://github.com/looplj/axonhub.git
+git clone https://github.com/mutallipp/llm-proxy.git
 cd axonhub
 ```
 

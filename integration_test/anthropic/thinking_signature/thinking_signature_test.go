@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/looplj/axonhub/anthropic_test/internal/testutil"
+	"github.com/mutallipp/llm-proxy/anthropic_test/internal/testutil"
 )
 
 func TestMain(m *testing.M) {

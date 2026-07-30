@@ -6,9 +6,9 @@ import (
 	"github.com/zhenzou/executors"
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/db"
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/db"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 type NewHttpClientParams struct {

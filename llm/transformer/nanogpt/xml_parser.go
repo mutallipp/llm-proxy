@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/transformer/openai"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/transformer/openai"
 )
 
 // Maximum content length to prevent ReDoS attacks.

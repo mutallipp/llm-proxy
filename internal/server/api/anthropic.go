@@ -8,12 +8,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/internal/contexts"
-	entprivacy "github.com/looplj/axonhub/internal/ent/privacy"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/internal/server/orchestrator"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/transformer/anthropic"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
+	entprivacy "github.com/mutallipp/llm-proxy/internal/ent/privacy"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/orchestrator"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/transformer/anthropic"
 )
 
 type AnthropicHandlersParams struct {

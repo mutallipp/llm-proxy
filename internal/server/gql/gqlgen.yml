@@ -37,717 +37,717 @@ resolver:
 # provided package. If they match it will use them, otherwise it will generate new.
 autobind:
   - github.com/99designs/gqlgen/graphql/introspection
-  - github.com/looplj/axonhub/internal/ent
-  - github.com/looplj/axonhub/internal/ent/user
-  - github.com/looplj/axonhub/internal/ent/apikey
-  - github.com/looplj/axonhub/internal/ent/request
-  - github.com/looplj/axonhub/internal/ent/requestexecution
-  - github.com/looplj/axonhub/internal/ent/channel
-  - github.com/looplj/axonhub/internal/server/biz
+  - github.com/mutallipp/llm-proxy/internal/ent
+  - github.com/mutallipp/llm-proxy/internal/ent/user
+  - github.com/mutallipp/llm-proxy/internal/ent/apikey
+  - github.com/mutallipp/llm-proxy/internal/ent/request
+  - github.com/mutallipp/llm-proxy/internal/ent/requestexecution
+  - github.com/mutallipp/llm-proxy/internal/ent/channel
+  - github.com/mutallipp/llm-proxy/internal/server/biz
 
 converters:
-  - from: "*github.com/looplj/axonhub/internal/objects.GUID"
+  - from: "*github.com/mutallipp/llm-proxy/internal/objects.GUID"
     to: "int"
-    with: "github.com/looplj/axonhub/internal/objects.ConvertGUIDPtrToInt"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrToInt"
 
-  - from: "github.com/looplj/axonhub/internal/objects.GUID"
+  - from: "github.com/mutallipp/llm-proxy/internal/objects.GUID"
     to: "int"
-    with: "github.com/looplj/axonhub/internal/objects.ConvertGUIDPtrToInt"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrToInt"
 
-  - from: "github.com/looplj/axonhub/internal/objects.GUID"
+  - from: "github.com/mutallipp/llm-proxy/internal/objects.GUID"
     to: "*int"
-    with: "github.com/looplj/axonhub/internal/objects.ConvertGUIDPtrToIntPtr"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrToIntPtr"
 
-  - from: "*github.com/looplj/axonhub/internal/objects.GUID"
+  - from: "*github.com/mutallipp/llm-proxy/internal/objects.GUID"
     to: "*int"
-    with: "github.com/looplj/axonhub/internal/objects.ConvertGUIDPtrToIntPtr"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrToIntPtr"
 
-  - from: "[]*github.com/looplj/axonhub/internal/objects.GUID"
+  - from: "[]*github.com/mutallipp/llm-proxy/internal/objects.GUID"
     to: "[]*int"
-    with: "github.com/looplj/axonhub/internal/objects.ConvertGUIDPtrsToIntPtrs"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrsToIntPtrs"
 
-  - from: "[]*github.com/looplj/axonhub/internal/objects.GUID"
+  - from: "[]*github.com/mutallipp/llm-proxy/internal/objects.GUID"
     to: "[]int"
-    with: "github.com/looplj/axonhub/internal/objects.ConvertGUIDPtrsToInts"
+    with: "github.com/mutallipp/llm-proxy/internal/objects.ConvertGUIDPtrsToInts"
 
 # This section declares type mapping between the GraphQL and Go type systems.
 models:
   # Defines the ID field as Go 'int'.
   ID:
     model:
-      - github.com/looplj/axonhub/internal/objects.GUID
+      - github.com/mutallipp/llm-proxy/internal/objects.GUID
   Node:
     model:
-      - github.com/looplj/axonhub/internal/ent.Noder
+      - github.com/mutallipp/llm-proxy/internal/ent.Noder
   Cursor:
     model:
-      - github.com/looplj/axonhub/internal/server/gql.Cursor
+      - github.com/mutallipp/llm-proxy/internal/server/gql.Cursor
   JSONRawMessage:
     model:
-      - github.com/looplj/axonhub/internal/objects.JSONRawMessage
+      - github.com/mutallipp/llm-proxy/internal/objects.JSONRawMessage
   JSONRawMessageInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.JSONRawMessage
+      - github.com/mutallipp/llm-proxy/internal/objects.JSONRawMessage
   Any:
     model:
       - github.com/99designs/gqlgen/graphql.Any
   Decimal:
     model:
-      - github.com/looplj/axonhub/internal/objects.Decimal
+      - github.com/mutallipp/llm-proxy/internal/objects.Decimal
   DecimalInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.Decimal
+      - github.com/mutallipp/llm-proxy/internal/objects.Decimal
   ModelMapping:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelMapping
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelMapping
   ModelMappingInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelMapping
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelMapping
   ReasoningEffortMapping:
     model:
-      - github.com/looplj/axonhub/llm.ReasoningEffortMapping
+      - github.com/mutallipp/llm-proxy/llm.ReasoningEffortMapping
   ReasoningEffortMappingInput:
     model:
-      - github.com/looplj/axonhub/llm.ReasoningEffortMapping
+      - github.com/mutallipp/llm-proxy/llm.ReasoningEffortMapping
   ProxyType:
     model:
-      - github.com/looplj/axonhub/internal/objects.ProxyType
+      - github.com/mutallipp/llm-proxy/internal/objects.ProxyType
   ProxyConfig:
     model:
-      - github.com/looplj/axonhub/internal/objects.ProxyConfig
+      - github.com/mutallipp/llm-proxy/internal/objects.ProxyConfig
   ProxyConfigInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ProxyConfig
+      - github.com/mutallipp/llm-proxy/internal/objects.ProxyConfig
   CapabilityPolicy:
     model:
-      - github.com/looplj/axonhub/internal/objects.CapabilityPolicy
+      - github.com/mutallipp/llm-proxy/internal/objects.CapabilityPolicy
   ChannelEndpoint:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelEndpoint
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelEndpoint
   AdapterTargetCapabilities:
     model:
-      - github.com/looplj/axonhub/internal/objects.AdapterTargetCapabilities
+      - github.com/mutallipp/llm-proxy/internal/objects.AdapterTargetCapabilities
   ChannelEndpointInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelEndpoint
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelEndpoint
   ChannelPolicies:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelPolicies
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelPolicies
   ChannelPoliciesInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelPolicies
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelPolicies
   ChannelSettings:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelSettings
   ChannelSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelSettings
   RetryableErrorPattern:
     model:
-      - github.com/looplj/axonhub/internal/objects.RetryableErrorPattern
+      - github.com/mutallipp/llm-proxy/internal/objects.RetryableErrorPattern
   RetryableErrorPatternInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.RetryableErrorPattern
+      - github.com/mutallipp/llm-proxy/internal/objects.RetryableErrorPattern
   OpenCodeGoQuotaSettings:
     model:
-      - github.com/looplj/axonhub/internal/objects.OpenCodeGoQuotaSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.OpenCodeGoQuotaSettings
   OpenCodeGoQuotaSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.OpenCodeGoQuotaSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.OpenCodeGoQuotaSettings
   ChannelProviderQuotaSettings:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelProviderQuotaSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelProviderQuotaSettings
   ChannelProviderQuotaSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelProviderQuotaSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelProviderQuotaSettings
   ChannelRateLimit:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelRateLimit
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelRateLimit
   ChannelRateLimitInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelRateLimit
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelRateLimit
   ChannelCredentials:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelCredentials
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelCredentials
   ChannelCredentialsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelCredentials
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelCredentials
   OAuthCredentials:
     model:
-      - github.com/looplj/axonhub/internal/objects.OAuthCredentials
+      - github.com/mutallipp/llm-proxy/internal/objects.OAuthCredentials
   OAuthCredentialsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.OAuthCredentials
+      - github.com/mutallipp/llm-proxy/internal/objects.OAuthCredentials
   BulkCreateChannelsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.BulkCreateChannelsInput
+      - github.com/mutallipp/llm-proxy/internal/server/biz.BulkCreateChannelsInput
   SaveChannelEndpointsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SaveChannelEndpointsInput
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SaveChannelEndpointsInput
   QueryChannelInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.QueryChannelsInput
+      - github.com/mutallipp/llm-proxy/internal/server/biz.QueryChannelsInput
   StoragePolicy:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.StoragePolicy
+      - github.com/mutallipp/llm-proxy/internal/server/biz.StoragePolicy
   CleanupOption:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.CleanupOption
+      - github.com/mutallipp/llm-proxy/internal/server/biz.CleanupOption
   UpdateStoragePolicyInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.StoragePolicy
+      - github.com/mutallipp/llm-proxy/internal/server/biz.StoragePolicy
   CleanupOptionInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.CleanupOption
+      - github.com/mutallipp/llm-proxy/internal/server/biz.CleanupOption
   RetryPolicy:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.RetryPolicy
+      - github.com/mutallipp/llm-proxy/internal/server/biz.RetryPolicy
   UpdateRetryPolicyInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.RetryPolicy
+      - github.com/mutallipp/llm-proxy/internal/server/biz.RetryPolicy
   WebhookNotifierConfig:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.WebhookNotifierConfig
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookNotifierConfig
   WebhookNotifierConfigInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.WebhookNotifierConfig
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookNotifierConfig
   WebhookTarget:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.WebhookTarget
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookTarget
   WebhookTargetInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.WebhookTarget
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookTarget
   WebhookSubscription:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.WebhookSubscription
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookSubscription
   WebhookSubscriptionInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.WebhookSubscription
+      - github.com/mutallipp/llm-proxy/internal/server/biz.WebhookSubscription
   AutoDisableChannel:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.AutoDisableChannel
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoDisableChannel
   AutoDisableChannelStatus:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.AutoDisableChannelStatus
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoDisableChannelStatus
   AutoDisableChannelInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.AutoDisableChannel
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoDisableChannel
   AutoDisableChannelStatusInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.AutoDisableChannelStatus
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoDisableChannelStatus
   UpstreamErrorPolicy:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.UpstreamErrorPolicy
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UpstreamErrorPolicy
   UpstreamErrorPolicyInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.UpstreamErrorPolicy
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UpstreamErrorPolicy
   UpdateAPIKeyProfilesInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyProfiles
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfiles
   APIKeyProfileInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyProfile
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfile
   APIKeyProfiles:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyProfiles
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfiles
   APIKeyProfile:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyProfile
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyProfile
   UpdateProjectProfilesInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ProjectProfiles
+      - github.com/mutallipp/llm-proxy/internal/objects.ProjectProfiles
   ProjectProfileInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ProjectProfile
+      - github.com/mutallipp/llm-proxy/internal/objects.ProjectProfile
   ProjectProfiles:
     model:
-      - github.com/looplj/axonhub/internal/objects.ProjectProfiles
+      - github.com/mutallipp/llm-proxy/internal/objects.ProjectProfiles
   ProjectProfile:
     model:
-      - github.com/looplj/axonhub/internal/objects.ProjectProfile
+      - github.com/mutallipp/llm-proxy/internal/objects.ProjectProfile
   ChannelTagsMatchMode:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelTagsMatchMode
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsMatchMode
   APIKeyQuotaInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuota
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuota
   APIKeyQuota:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuota
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuota
   APIKeyQuotaPeriodInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPeriod
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriod
   APIKeyQuotaPeriod:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPeriod
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriod
   APIKeyQuotaPeriodType:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPeriodType
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPeriodType
   APIKeyQuotaPastDurationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPastDuration
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDuration
   APIKeyQuotaPastDuration:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPastDuration
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDuration
   APIKeyQuotaPastDurationUnit:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaPastDurationUnit
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaPastDurationUnit
   APIKeyQuotaCalendarDurationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaCalendarDuration
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDuration
   APIKeyQuotaCalendarDuration:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaCalendarDuration
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDuration
   APIKeyQuotaCalendarDurationUnit:
     model:
-      - github.com/looplj/axonhub/internal/objects.APIKeyQuotaCalendarDurationUnit
+      - github.com/mutallipp/llm-proxy/internal/objects.APIKeyQuotaCalendarDurationUnit
   BackupOptionsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/backup.BackupOptions
+      - github.com/mutallipp/llm-proxy/internal/server/backup.BackupOptions
   RestoreOptionsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/backup.RestoreOptions
+      - github.com/mutallipp/llm-proxy/internal/server/backup.RestoreOptions
   BackupConflictStrategy:
     model:
-      - github.com/looplj/axonhub/internal/server/backup.ConflictStrategy
+      - github.com/mutallipp/llm-proxy/internal/server/backup.ConflictStrategy
   GCPCredential:
     model:
-      - github.com/looplj/axonhub/internal/objects.GCPCredential
+      - github.com/mutallipp/llm-proxy/internal/objects.GCPCredential
   GCPCredentialInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.GCPCredential
+      - github.com/mutallipp/llm-proxy/internal/objects.GCPCredential
   ModelIdentify:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ModelIdentify
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ModelIdentify
   UserInfo:
     model:
-      - github.com/looplj/axonhub/internal/objects.UserInfo
+      - github.com/mutallipp/llm-proxy/internal/objects.UserInfo
   RoleInfo:
     model:
-      - github.com/looplj/axonhub/internal/objects.RoleInfo
+      - github.com/mutallipp/llm-proxy/internal/objects.RoleInfo
   UserProjectInfo:
     model:
-      - github.com/looplj/axonhub/internal/objects.UserProjectInfo
+      - github.com/mutallipp/llm-proxy/internal/objects.UserProjectInfo
   DataStorageSettings:
     model:
-      - github.com/looplj/axonhub/internal/objects.DataStorageSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.DataStorageSettings
   DataStorageSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.DataStorageSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.DataStorageSettings
   S3:
     model:
-      - github.com/looplj/axonhub/internal/objects.S3
+      - github.com/mutallipp/llm-proxy/internal/objects.S3
   S3Input:
     model:
-      - github.com/looplj/axonhub/internal/objects.S3
+      - github.com/mutallipp/llm-proxy/internal/objects.S3
   GCS:
     model:
-      - github.com/looplj/axonhub/internal/objects.GCS
+      - github.com/mutallipp/llm-proxy/internal/objects.GCS
   GCSInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.GCS
+      - github.com/mutallipp/llm-proxy/internal/objects.GCS
   WebDAV:
     model:
-      - github.com/looplj/axonhub/internal/objects.WebDAV
+      - github.com/mutallipp/llm-proxy/internal/objects.WebDAV
   WebDAVInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.WebDAV
+      - github.com/mutallipp/llm-proxy/internal/objects.WebDAV
   Segment:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.Segment
+      - github.com/mutallipp/llm-proxy/internal/server/biz.Segment
   RequestMetadata:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.RequestMetadata
+      - github.com/mutallipp/llm-proxy/internal/server/biz.RequestMetadata
   UsageMetadata:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.UsageMetadata
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UsageMetadata
   Span:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.Span
+      - github.com/mutallipp/llm-proxy/internal/server/biz.Span
   SpanValue:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanValue
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanValue
   SpanUserQuery:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanUserQuery
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanUserQuery
   SpanUserImageURL:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanUserImageURL
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanUserImageURL
   SpanThinking:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanThinking
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanThinking
   SpanText:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanText
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanText
   SpanImageURL:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanImageURL
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanImageURL
   SpanFunctionCall:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanFunctionCall
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanFunctionCall
   SpanFunctionResult:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanFunctionResult
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanFunctionResult
   SpanToolUse:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanToolUse
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanToolUse
   SpanToolResult:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanToolResult
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanToolResult
   SpanSystemInstruction:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SpanSystemInstruction
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SpanSystemInstruction
   SpanType:
     model:
       - string
   ModelIdentityWithStatus:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ModelIdentityWithStatus
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ModelIdentityWithStatus
   SaveChannelModelPriceInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SaveChannelModelPriceInput
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SaveChannelModelPriceInput
   ModelPrice:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelPrice
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelPrice
   ModelPriceInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelPrice
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelPrice
   ModelPriceItem:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelPriceItem
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelPriceItem
   ModelPriceItemInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelPriceItem
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelPriceItem
   Pricing:
     model:
-      - github.com/looplj/axonhub/internal/objects.Pricing
+      - github.com/mutallipp/llm-proxy/internal/objects.Pricing
   PricingInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.Pricing
+      - github.com/mutallipp/llm-proxy/internal/objects.Pricing
   TieredPricing:
     model:
-      - github.com/looplj/axonhub/internal/objects.TieredPricing
+      - github.com/mutallipp/llm-proxy/internal/objects.TieredPricing
   TieredPricingInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.TieredPricing
+      - github.com/mutallipp/llm-proxy/internal/objects.TieredPricing
   PriceTier:
     model:
-      - github.com/looplj/axonhub/internal/objects.PriceTier
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceTier
   PriceTierInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PriceTier
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceTier
   PromptWriteCacheVariant:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptWriteCacheVariant
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptWriteCacheVariant
   PromptWriteCacheVariantInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptWriteCacheVariant
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptWriteCacheVariant
   PriceSchedule:
     model:
-      - github.com/looplj/axonhub/internal/objects.PriceSchedule
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceSchedule
   PriceScheduleInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PriceSchedule
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceSchedule
   PriceOverride:
     model:
-      - github.com/looplj/axonhub/internal/objects.PriceOverride
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceOverride
   PriceOverrideInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PriceOverride
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceOverride
   OverrideWhen:
     model:
-      - github.com/looplj/axonhub/internal/objects.OverrideWhen
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideWhen
   OverrideWhenInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.OverrideWhen
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideWhen
   DailyTimeRange:
     model:
-      - github.com/looplj/axonhub/internal/objects.DailyTimeRange
+      - github.com/mutallipp/llm-proxy/internal/objects.DailyTimeRange
   DailyTimeRangeInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.DailyTimeRange
+      - github.com/mutallipp/llm-proxy/internal/objects.DailyTimeRange
   DateRange:
     model:
-      - github.com/looplj/axonhub/internal/objects.DateRange
+      - github.com/mutallipp/llm-proxy/internal/objects.DateRange
   DateRangeInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.DateRange
+      - github.com/mutallipp/llm-proxy/internal/objects.DateRange
   PricingMode:
     model:
-      - github.com/looplj/axonhub/internal/objects.PricingMode
+      - github.com/mutallipp/llm-proxy/internal/objects.PricingMode
   PriceItemCode:
     model:
-      - github.com/looplj/axonhub/internal/objects.PriceItemCode
+      - github.com/mutallipp/llm-proxy/internal/objects.PriceItemCode
   PromptWriteCacheVariantCode:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptWriteCacheVariantCode
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptWriteCacheVariantCode
   ModelCard:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCard
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCard
   ModelCardInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCard
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCard
   ModelCardReasoning:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCardReasoning
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardReasoning
   ModelCardReasoningInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCardReasoning
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardReasoning
   ModelCardModalities:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCardModalities
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardModalities
   ModelCardModalitiesInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCardModalities
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardModalities
   ModelCardCost:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCardCost
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardCost
   ModelCardCostInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCardCost
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardCost
   ModelCardLimit:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCardLimit
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardLimit
   ModelCardLimitInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelCardLimit
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelCardLimit
   ModelSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelSettings
   ModelSettings:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelSettings
   ModelAssociation:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelAssociation
   ModelAssociationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelAssociation
   ModelAssociationWhen:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelAssociationWhen
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelAssociationWhen
   ModelAssociationWhenInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelAssociationWhen
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelAssociationWhen
   FilterConditionType:
     model:
-      - github.com/looplj/axonhub/internal/objects.ConditionType
+      - github.com/mutallipp/llm-proxy/internal/objects.ConditionType
   FilterCondition:
     model:
-      - github.com/looplj/axonhub/internal/objects.Condition
+      - github.com/mutallipp/llm-proxy/internal/objects.Condition
   FilterConditionInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.Condition
+      - github.com/mutallipp/llm-proxy/internal/objects.Condition
   ChannelModelAssociation:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelModelAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelModelAssociation
   ChannelModelAssociationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelModelAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelModelAssociation
   ChannelRegexAssociation:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelRegexAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelRegexAssociation
   ChannelRegexAssociationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelRegexAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelRegexAssociation
   RegexAssociation:
     model:
-      - github.com/looplj/axonhub/internal/objects.RegexAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.RegexAssociation
   RegexAssociationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.RegexAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.RegexAssociation
   ModelIDAssociation:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelIDAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelIDAssociation
   ModelIDAssociationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ModelIDAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ModelIDAssociation
   ExcludeAssociation:
     model:
-      - github.com/looplj/axonhub/internal/objects.ExcludeAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ExcludeAssociation
   ExcludeAssociationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ExcludeAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ExcludeAssociation
   ChannelTagsModelAssociation:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelTagsModelAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsModelAssociation
   ChannelTagsModelAssociationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelTagsModelAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsModelAssociation
   ChannelTagsRegexAssociation:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelTagsRegexAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsRegexAssociation
   ChannelTagsRegexAssociationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.ChannelTagsRegexAssociation
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelTagsRegexAssociation
   ModelChannelConnection:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ModelChannelConnection
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ModelChannelConnection
   ChannelModelEntry:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ChannelModelEntry
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelModelEntry
   UnassociatedChannel:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.UnassociatedChannel
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UnassociatedChannel
   HeaderEntry:
     model:
-      - github.com/looplj/axonhub/internal/objects.HeaderEntry
+      - github.com/mutallipp/llm-proxy/internal/objects.HeaderEntry
   HeaderEntryInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.HeaderEntry
+      - github.com/mutallipp/llm-proxy/internal/objects.HeaderEntry
   OverrideOperation:
     model:
-      - github.com/looplj/axonhub/internal/objects.OverrideOperation
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideOperation
   OverrideOperationInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.OverrideOperation
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideOperation
   OverrideMatch:
     model:
-      - github.com/looplj/axonhub/internal/objects.OverrideMatch
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideMatch
   OverrideMatchInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.OverrideMatch
+      - github.com/mutallipp/llm-proxy/internal/objects.OverrideMatch
   TierCost:
     model:
-      - github.com/looplj/axonhub/internal/objects.TierCost
+      - github.com/mutallipp/llm-proxy/internal/objects.TierCost
   CostItem:
     model:
-      - github.com/looplj/axonhub/internal/objects.CostItem
+      - github.com/mutallipp/llm-proxy/internal/objects.CostItem
   TierCostInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.TierCost
+      - github.com/mutallipp/llm-proxy/internal/objects.TierCost
   CostItemInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.CostItem
+      - github.com/mutallipp/llm-proxy/internal/objects.CostItem
   TransformOptions:
     model:
-      - github.com/looplj/axonhub/internal/objects.TransformOptions
+      - github.com/mutallipp/llm-proxy/internal/objects.TransformOptions
   TransformOptionsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.TransformOptions
+      - github.com/mutallipp/llm-proxy/internal/objects.TransformOptions
   SystemVersion:
     model:
-      - github.com/looplj/axonhub/internal/build.Info
+      - github.com/mutallipp/llm-proxy/internal/build.Info
   SystemModelSettings:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SystemModelSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemModelSettings
   UpdateSystemModelSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SystemModelSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemModelSettings
   DeveloperModelSettings:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.DeveloperModelSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.DeveloperModelSettings
   DeveloperModelSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.DeveloperModelSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.DeveloperModelSettings
   SystemChannelSettings:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SystemChannelSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemChannelSettings
   UpdateSystemChannelSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.UpdateSystemChannelSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.UpdateSystemChannelSettings
   SystemGeneralSettings:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SystemGeneralSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemGeneralSettings
   UpdateSystemGeneralSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.SystemGeneralSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SystemGeneralSettings
   VideoStorageSettings:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.VideoStorageSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.VideoStorageSettings
   UpdateVideoStorageSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.VideoStorageSettings
+      - github.com/mutallipp/llm-proxy/internal/server/biz.VideoStorageSettings
   ProxyPreset:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ProxyPreset
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ProxyPreset
   SaveProxyPresetInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ProxyPreset
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ProxyPreset
   ChannelProbeSetting:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ChannelProbeSetting
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelProbeSetting
   UpdateChannelProbeSettingInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ChannelProbeSetting
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelProbeSetting
   ChannelModelAutoSyncSetting:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ChannelModelAutoSyncSetting
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelModelAutoSyncSetting
   UpdateChannelModelAutoSyncSettingInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ChannelModelAutoSyncSetting
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelModelAutoSyncSetting
   ChannelProbePoint:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ChannelProbePoint
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelProbePoint
   ChannelProbeData:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ChannelProbeData
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ChannelProbeData
   GetChannelProbeDataInput:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.GetChannelProbeDataInput
+      - github.com/mutallipp/llm-proxy/internal/server/biz.GetChannelProbeDataInput
   ProbeFrequency:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.ProbeFrequency
+      - github.com/mutallipp/llm-proxy/internal/server/biz.ProbeFrequency
   AutoSyncFrequency:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.AutoSyncFrequency
+      - github.com/mutallipp/llm-proxy/internal/server/biz.AutoSyncFrequency
   QuotaEnforcementMode:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.QuotaEnforcementMode
+      - github.com/mutallipp/llm-proxy/internal/server/biz.QuotaEnforcementMode
   TraceStickyMode:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.TraceStickyMode
+      - github.com/mutallipp/llm-proxy/internal/server/biz.TraceStickyMode
   TriggerGcCleanupInput:
     model:
-      - github.com/looplj/axonhub/internal/server/gc.TriggerGcCleanupInput
+      - github.com/mutallipp/llm-proxy/internal/server/gc.TriggerGcCleanupInput
   GcCleanupPreviewItem:
     model:
-      - github.com/looplj/axonhub/internal/server/gc.GcCleanupPreviewItem
+      - github.com/mutallipp/llm-proxy/internal/server/gc.GcCleanupPreviewItem
   PromptSettings:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptSettings
   PromptSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptSettings
   PromptProtectionSettings:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptProtectionSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptProtectionSettings
   PromptProtectionSettingsInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptProtectionSettings
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptProtectionSettings
   PromptProtectionAction:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptProtectionAction
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptProtectionAction
   PromptProtectionScope:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptProtectionScope
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptProtectionScope
   PromptAction:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptAction
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptAction
   PromptActionInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptAction
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptAction
   PromptActivationCondition:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptActivationCondition
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationCondition
   PromptActivationConditionInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptActivationCondition
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationCondition
   PromptActionType:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptActionType
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActionType
   PromptActivationConditionType:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptActivationConditionType
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationConditionType
   PromptActivationConditionComposite:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptActivationConditionComposite
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationConditionComposite
   PromptActivationConditionCompositeInput:
     model:
-      - github.com/looplj/axonhub/internal/objects.PromptActivationConditionComposite
+      - github.com/mutallipp/llm-proxy/internal/objects.PromptActivationConditionComposite
   DisabledAPIKey:
     model:
-      - github.com/looplj/axonhub/internal/objects.DisabledAPIKey
+      - github.com/mutallipp/llm-proxy/internal/objects.DisabledAPIKey
   DeleteDisabledAPIKeysPayload:
     model:
-      - github.com/looplj/axonhub/internal/server/biz.DeleteDisabledAPIKeysResult
+      - github.com/mutallipp/llm-proxy/internal/server/biz.DeleteDisabledAPIKeysResult

@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/looplj/axonhub/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/streams"
 )
 
 // Request represents a generic HTTP request that can be adapted to different providers.

@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/looplj/axonhub/internal/ent/channelmodelprice"
-	"github.com/looplj/axonhub/internal/ent/channelmodelpriceversion"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent/channelmodelprice"
+	"github.com/mutallipp/llm-proxy/internal/ent/channelmodelpriceversion"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // ChannelModelPriceVersion is the model entity for the ChannelModelPriceVersion schema.

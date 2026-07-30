@@ -7,11 +7,11 @@ import (
 	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/internal/pkg/xjson"
-	"github.com/looplj/axonhub/llm/internal/pkg/xmap"
-	"github.com/looplj/axonhub/llm/internal/pkg/xurl"
-	geminioai "github.com/looplj/axonhub/llm/transformer/gemini/openai"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xjson"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xmap"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xurl"
+	geminioai "github.com/mutallipp/llm-proxy/llm/transformer/gemini/openai"
 )
 
 // convertGeminiToLLMRequest converts Gemini GenerateContentRequest to unified Request.

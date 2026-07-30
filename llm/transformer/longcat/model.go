@@ -5,7 +5,7 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm/transformer/openai"
+	"github.com/mutallipp/llm-proxy/llm/transformer/openai"
 )
 
 // Request embeds openai.Request but overrides Messages with longcat-specific Message type.

@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 func normalizeSystemModelSettings(settings *SystemModelSettings) {

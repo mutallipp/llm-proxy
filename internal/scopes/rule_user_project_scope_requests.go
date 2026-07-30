@@ -7,11 +7,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/entql"
 
-	"github.com/looplj/axonhub/internal/contexts"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/apikey"
-	"github.com/looplj/axonhub/internal/ent/privacy"
-	"github.com/looplj/axonhub/internal/ent/request"
+	"github.com/mutallipp/llm-proxy/internal/contexts"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/apikey"
+	"github.com/mutallipp/llm-proxy/internal/ent/privacy"
+	"github.com/mutallipp/llm-proxy/internal/ent/request"
 )
 
 // UserProjectScopeReadRequestsRule is a query rule that restricts users' access to Request and UsageLog records.

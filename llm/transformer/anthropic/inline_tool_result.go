@@ -6,7 +6,7 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 // inlineToolResultFromBlock converts a *_tool_result MessageContentBlock to

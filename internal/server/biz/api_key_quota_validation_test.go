@@ -6,7 +6,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 func TestValidateProfileQuota_PastDurationMinuteAccepted(t *testing.T) {

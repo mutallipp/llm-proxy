@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/pipeline"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/pipeline"
 )
 
 func checkApiKeyModelAccess(inbound *PersistentInboundTransformer) pipeline.Middleware {

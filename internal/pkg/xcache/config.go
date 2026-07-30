@@ -3,7 +3,7 @@ package xcache
 import (
 	"time"
 
-	"github.com/looplj/axonhub/internal/pkg/xredis"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xredis"
 )
 
 // Mode represents the cache backend mode

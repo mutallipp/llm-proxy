@@ -3,7 +3,7 @@ package orchestrator
 import (
 	"context"
 
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 type PromptProtecter interface {

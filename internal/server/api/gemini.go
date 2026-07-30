@@ -8,13 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 
-	entprivacy "github.com/looplj/axonhub/internal/ent/privacy"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/biz"
-	"github.com/looplj/axonhub/internal/server/orchestrator"
-	"github.com/looplj/axonhub/llm/httpclient"
-	"github.com/looplj/axonhub/llm/streams"
-	"github.com/looplj/axonhub/llm/transformer/gemini"
+	entprivacy "github.com/mutallipp/llm-proxy/internal/ent/privacy"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/orchestrator"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/transformer/gemini"
 )
 
 type GeminiHandlersParams struct {

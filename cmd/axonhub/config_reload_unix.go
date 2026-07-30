@@ -11,9 +11,9 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/looplj/axonhub/conf"
-	"github.com/looplj/axonhub/internal/log"
-	"github.com/looplj/axonhub/internal/server/middleware"
+	"github.com/mutallipp/llm-proxy/conf"
+	"github.com/mutallipp/llm-proxy/internal/log"
+	"github.com/mutallipp/llm-proxy/internal/server/middleware"
 )
 
 // registerConfigReload wires the explicitly supported runtime reloads to

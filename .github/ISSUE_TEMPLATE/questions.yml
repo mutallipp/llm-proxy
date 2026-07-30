@@ -18,11 +18,11 @@ body:
       label: Pre-submission Checklist / 提交前检查
       description: Please confirm the following before submitting / 提交前请确认以下内容
       options:
-        - label: I have searched the [existing issues](https://github.com/looplj/axonhub/issues) and this question has not been answered / 我已搜索现有 issues，此问题尚未被解答
+        - label: I have searched the [existing issues](https://github.com/mutallipp/llm-proxy/issues) and this question has not been answered / 我已搜索现有 issues，此问题尚未被解答
           required: true
-        - label: I have checked the [FAQ](https://github.com/looplj/axonhub/issues/1374) / 我已查阅 FAQ
+        - label: I have checked the [FAQ](https://github.com/mutallipp/llm-proxy/issues/1374) / 我已查阅 FAQ
           required: true
-        - label: I have read the [documentation](https://github.com/looplj/axonhub#readme) / 我已阅读文档
+        - label: I have read the [documentation](https://github.com/mutallipp/llm-proxy#readme) / 我已阅读文档
           required: true
 
   - type: textarea

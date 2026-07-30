@@ -8,7 +8,7 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 // ConvertToLLMRequestOptions provides options for message conversion.

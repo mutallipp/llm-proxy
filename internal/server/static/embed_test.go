@@ -12,7 +12,7 @@ import (
 
 	ginstatic "github.com/gin-contrib/static"
 
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 func useTestStaticFS(t *testing.T) {

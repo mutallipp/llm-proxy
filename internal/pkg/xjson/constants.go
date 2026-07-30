@@ -1,6 +1,6 @@
 package xjson
 
-import "github.com/looplj/axonhub/internal/objects"
+import "github.com/mutallipp/llm-proxy/internal/objects"
 
 var (
 	EmptyJSON            = []byte("{}")

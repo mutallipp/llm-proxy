@@ -1,8 +1,8 @@
 package orchestrator
 
 import (
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 // chatCapableAPIFormats lists the API formats that can handle chat requests.

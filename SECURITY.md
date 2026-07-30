@@ -10,7 +10,7 @@ Please do not report security vulnerabilities in public issues, discussions, or 
 
 Use GitHub private vulnerability reporting for this repository:
 
-https://github.com/looplj/axonhub/security/advisories/new
+https://github.com/mutallipp/llm-proxy/security/advisories/new
 
 If private vulnerability reporting is unavailable, open a public issue that only asks for a private security contact. Do not include exploit details, credentials, logs, tokens, or proof-of-concept payloads in the public issue.
 

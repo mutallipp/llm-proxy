@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/adapter"
-	"github.com/looplj/axonhub/internal/ent/predicate"
+	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
+	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 )
 
 // AdapterDelete is the builder for deleting a Adapter entity.

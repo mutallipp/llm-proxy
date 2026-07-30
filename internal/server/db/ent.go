@@ -15,12 +15,12 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/migrate"
-	"github.com/looplj/axonhub/internal/ent/migrate/datamigrate"
-	"github.com/looplj/axonhub/internal/ent/migrate/schemahook"
-	_ "github.com/looplj/axonhub/internal/ent/runtime"
-	_ "github.com/looplj/axonhub/internal/pkg/sqlite"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/migrate"
+	"github.com/mutallipp/llm-proxy/internal/ent/migrate/datamigrate"
+	"github.com/mutallipp/llm-proxy/internal/ent/migrate/schemahook"
+	_ "github.com/mutallipp/llm-proxy/internal/ent/runtime"
+	_ "github.com/mutallipp/llm-proxy/internal/pkg/sqlite"
 )
 
 const defaultSQLiteBusyTimeoutMs = 5000

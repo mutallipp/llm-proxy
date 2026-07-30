@@ -3,7 +3,7 @@ package contexts
 import (
 	"context"
 
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
 // WithRuntimeAdapter 将当前请求使用的适配器运行时配置写入上下文。

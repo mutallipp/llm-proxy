@@ -5,8 +5,8 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/llm"
+	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/llm"
 )
 
 // applyTransformOptions applies channel transform options to create a new llm.Request.

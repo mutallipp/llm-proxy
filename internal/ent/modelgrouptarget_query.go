@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/looplj/axonhub/internal/ent/channel"
-	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
-	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
-	"github.com/looplj/axonhub/internal/ent/predicate"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
+	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
+	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 )
 
 // ModelGroupTargetQuery is the builder for querying ModelGroupTarget entities.

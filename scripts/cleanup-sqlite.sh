@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # AxonHub SQLite Database Cleanup Script
-# Issue: https://github.com/looplj/axonhub/issues/1905
+# Issue: https://github.com/mutallipp/llm-proxy/issues/1905
 #
 # Usage:
 #   ./scripts/cleanup-sqlite.sh [DB_PATH] [RETENTION_DAYS]

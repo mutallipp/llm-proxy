@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/internal/pkg/xtest"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/internal/pkg/xtest"
 )
 
 func Test_convertUsage(t *testing.T) {

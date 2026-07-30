@@ -6,7 +6,7 @@ import (
 
 	"github.com/dlclark/regexp2/v2"
 
-	"github.com/looplj/axonhub/internal/pkg/xmap"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xmap"
 )
 
 type patternCache struct {

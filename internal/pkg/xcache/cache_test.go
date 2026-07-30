@@ -12,7 +12,7 @@ import (
 
 	gocache "github.com/patrickmn/go-cache"
 
-	"github.com/looplj/axonhub/internal/pkg/xredis"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xredis"
 )
 
 func TestNewMemory(t *testing.T) {

@@ -6,8 +6,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/entql"
 
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/privacy"
+	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/privacy"
 )
 
 // UserOwnedFilter interface for filtering queries by user ID.

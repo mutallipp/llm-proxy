@@ -1,6 +1,6 @@
 package openai
 
-import "github.com/looplj/axonhub/llm"
+import "github.com/mutallipp/llm-proxy/llm"
 
 // PromptTokensDetails Breakdown of tokens used in the prompt.
 type PromptTokensDetails struct {

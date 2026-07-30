@@ -1,9 +1,9 @@
 package anthropic
 
 import (
-	"github.com/looplj/axonhub/llm/pipeline"
-	"github.com/looplj/axonhub/llm/transformer"
-	"github.com/looplj/axonhub/llm/vertex"
+	"github.com/mutallipp/llm-proxy/llm/pipeline"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm/vertex"
 )
 
 // VertexTransformer implements the transformer for Anthropic Claude models on Google Vertex AI.

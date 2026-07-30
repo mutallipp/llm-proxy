@@ -1,4 +1,4 @@
-module github.com/looplj/axonhub/llm
+module github.com/mutallipp/llm-proxy/llm
 
 go 1.26.0
 

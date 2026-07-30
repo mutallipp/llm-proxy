@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
 )
 
 // ExchangeStrategy defines the interface for different OAuth token exchange formats.

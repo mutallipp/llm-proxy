@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/auth"
-	"github.com/looplj/axonhub/llm/httpclient"
-	oaitransformer "github.com/looplj/axonhub/llm/transformer/openai"
-	"github.com/looplj/axonhub/llm/transformer/shared"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/auth"
+	"github.com/mutallipp/llm-proxy/llm/httpclient"
+	oaitransformer "github.com/mutallipp/llm-proxy/llm/transformer/openai"
+	"github.com/mutallipp/llm-proxy/llm/transformer/shared"
 )
 
 func TestNewOutboundTransformer(t *testing.T) {

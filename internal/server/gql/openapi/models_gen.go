@@ -5,7 +5,7 @@ package openapi
 import (
 	"time"
 
-	"github.com/looplj/axonhub/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/objects"
 	"github.com/shopspring/decimal"
 )
 

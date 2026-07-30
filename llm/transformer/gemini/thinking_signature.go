@@ -3,8 +3,8 @@ package gemini
 import (
 	"encoding/base64"
 
-	"github.com/looplj/axonhub/llm"
-	"github.com/looplj/axonhub/llm/transformer/shared"
+	"github.com/mutallipp/llm-proxy/llm"
+	"github.com/mutallipp/llm-proxy/llm/transformer/shared"
 )
 
 var ContextEngineeringThoughtSignature = base64.StdEncoding.EncodeToString([]byte("context_engineering_is_the_way_to_go"))
