@@ -13,7 +13,7 @@ import { Header } from '@/components/layout/header';
 import { Main } from '@/components/layout/main';
 import { useQueryChannels } from '@/features/channels/data/channels';
 import {
-  API_FORMATS,
+  INBOUND_API_FORMATS,
   type AdapterUpdateInput,
   type GatewayAdapter,
   useAdapters,
@@ -24,7 +24,7 @@ import {
 
 const EMPTY_ADAPTER: AdapterUpdateInput = {
   display_name: '',
-  inbound_api_format: API_FORMATS[0],
+  inbound_api_format: INBOUND_API_FORMATS[0],
   status: 'enabled',
   bindings: [],
 };
@@ -145,7 +145,7 @@ function AdapterDialog({
             <Label>入站协议</Label>
             <Select value={draft.inbound_api_format} onValueChange={(value) => setDraft({ ...draft, inbound_api_format: value })} disabled={Boolean(adapter)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{API_FORMATS.map((format) => <SelectItem key={format} value={format}>{format}</SelectItem>)}</SelectContent>
+              <SelectContent>{INBOUND_API_FORMATS.map((format) => <SelectItem key={format} value={format}>{format}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className='grid gap-2'>

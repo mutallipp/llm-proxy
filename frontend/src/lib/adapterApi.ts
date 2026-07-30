@@ -93,6 +93,13 @@ export interface ModelGroupUpdateResponse {
   diagnostics?: unknown;
 }
 
+export const INBOUND_API_FORMATS = [
+  'openai/chat_completions',
+  'openai/responses',
+  'anthropic/messages',
+] as const;
+
+// 出站目标可使用的完整协议格式列表。
 export const API_FORMATS = [
   'openai/chat_completions',
   'openai/responses',

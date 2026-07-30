@@ -13,6 +13,7 @@ import { Main } from '@/components/layout/main';
 import { useQueryChannels } from '@/features/channels/data/channels';
 import {
   API_FORMATS,
+  INBOUND_API_FORMATS,
   type ModelGroup,
   type ModelGroupProtocol,
   type ModelGroupTargetInput,
@@ -83,7 +84,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
   const [draft, setDraft] = useState<ModelGroupUpdateInput>(EMPTY_GROUP);
 
   // 新增协议时选择的入站格式
-  const [newProtocolFormat, setNewProtocolFormat] = useState<string>(API_FORMATS[0]);
+  const [newProtocolFormat, setNewProtocolFormat] = useState<string>(INBOUND_API_FORMATS[0]);
 
   // 每个协议对应的"新增目标"草稿，key 为协议下标
   const [newTargets, setNewTargets] = useState<Record<number, NewTargetDraft>>({});
@@ -130,7 +131,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
           }
         : { ...EMPTY_GROUP, protocols: [] },
     );
-    setNewProtocolFormat(API_FORMATS[0]);
+    setNewProtocolFormat(INBOUND_API_FORMATS[0]);
     setNewTargets({});
   }, [group, open]);
 
@@ -336,7 +337,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {API_FORMATS.map((format) => (
+                  {INBOUND_API_FORMATS.map((format) => (
                     <SelectItem key={format} value={format}>
                       {format}
                     </SelectItem>
