@@ -492,13 +492,13 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                 <CardContent className='space-y-3'>
                   {/* 新增目标表单 */}
                   <div className='overflow-x-auto rounded-md'>
-                  <div className='grid gap-2 bg-muted/40 p-3 sm:min-w-[900px] sm:grid-cols-[1fr_1fr_1fr_110px_80px_80px_auto]'>
+                  <div className='grid gap-2 bg-muted/40 p-3 min-w-[1100px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_190px_100px_100px_auto]'>
                     {/* 选择渠道 */}
                     <Select
                       value={targetDraft.channel_id}
                       onValueChange={(value) => updateNewTarget(protocolIndex, { channel_id: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className='w-full min-w-0'>
                         <SelectValue placeholder='选择渠道' />
                       </SelectTrigger>
                       <SelectContent>
@@ -514,6 +514,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                       value={targetDraft.target_model_id}
                       onChange={(e) => updateNewTarget(protocolIndex, { target_model_id: e.target.value })}
                       placeholder='目标模型 ID'
+                      className='w-full min-w-0'
                     />
                     {/* 出站格式：根据所选渠道的 endpoints 过滤 */}
                     {(() => {
@@ -523,7 +524,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                           value={targetDraft.outbound_api_format}
                           onValueChange={(value) => updateNewTarget(protocolIndex, { outbound_api_format: value })}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className='w-full min-w-0'>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -547,7 +548,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                       value={targetDraft.stream_policy || 'unlimited'}
                       onValueChange={(value) => updateNewTarget(protocolIndex, { stream_policy: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className='w-full min-w-0'>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -561,7 +562,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                       value={targetDraft.enabled ? 'enabled' : 'disabled'}
                       onValueChange={(value) => updateNewTarget(protocolIndex, { enabled: value === 'enabled' })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className='w-full min-w-0'>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -597,7 +598,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                       return (
                       <div
                         key={`${target.id ?? 'new'}-${targetIndex}`}
-                        className='grid items-center gap-2 p-3 text-sm sm:min-w-[900px] sm:grid-cols-[1fr_1fr_1fr_110px_60px_80px_auto]'
+                        className='grid items-center gap-2 p-3 text-sm min-w-[1100px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_190px_80px_100px_auto]'
                       >
                         {/* 渠道名 */}
                         <span className='truncate text-muted-foreground'>
@@ -609,10 +610,10 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                           onChange={(e) =>
                             updateTarget(protocolIndex, targetIndex, { target_model_id: e.target.value })
                           }
-                          className='h-8'
+                          className='h-8 w-full min-w-0'
                         />
                         {/* 出站格式（可编辑），根据渠道 endpoints 过滤 */}
-                        <div className='flex items-center gap-1'>
+                        <div className='flex min-w-0 items-center gap-1'>
                           {isFormatMismatch && (
                             <TooltipProvider>
                               <Tooltip>
@@ -631,7 +632,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                               updateTarget(protocolIndex, targetIndex, { outbound_api_format: value })
                             }
                           >
-                            <SelectTrigger className='h-8 flex-1'>
+                            <SelectTrigger className='h-8 min-w-0 flex-1'>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -658,7 +659,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                             })
                           }
                         >
-                          <SelectTrigger className='h-8'>
+                          <SelectTrigger className='h-8 w-full min-w-0'>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -675,7 +676,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                           onChange={(e) =>
                             updateTarget(protocolIndex, targetIndex, { priority: Number(e.target.value) || 1 })
                           }
-                          className='h-8 text-center'
+                          className='h-8 w-full min-w-0 text-center'
                         />
                         {/* 启用状态（可编辑） */}
                         <Select
@@ -684,7 +685,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                             updateTarget(protocolIndex, targetIndex, { enabled: value === 'enabled' })
                           }
                         >
-                          <SelectTrigger className='h-8'>
+                          <SelectTrigger className='h-8 w-full min-w-0'>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
