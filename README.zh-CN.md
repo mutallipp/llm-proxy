@@ -1,6 +1,6 @@
 <div align="center">
 
-# AxonHub - All-in-one AI 开发平台
+# llm-proxy - All-in-one AI 开发平台
 ### 任意 SDK、任意模型、零代码改动
 
 <a href="https://trendshift.io/repositories/16225" target="_blank"><img src="https://trendshift.io/api/badge/repositories/16225" alt="looplj%2Faxonhub | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -96,9 +96,9 @@
 
 ### All-in-one AI 开发平台
 
-**AxonHub 是 AI 网关，让你无需改动一行代码即可切换模型供应商。**
+**llm-proxy 是 AI 网关，让你无需改动一行代码即可切换模型供应商。**
 
-无论你使用的是 OpenAI SDK、Anthropic SDK 还是任何 AI SDK，AxonHub 都会透明地将你的请求转换为与任何支持的模型供应商兼容的格式。无需重构，无需更换 SDK——只需更改配置即可。
+无论你使用的是 OpenAI SDK、Anthropic SDK 还是任何 AI SDK，llm-proxy 都会透明地将你的请求转换为与任何支持的模型供应商兼容的格式。无需重构，无需更换 SDK——只需更改配置即可。
 
 **它解决了什么问题：**
 - 🔒 **供应商锁定** - 从 GPT-4 瞬间切换到 Claude 或 Gemini
@@ -129,6 +129,8 @@
 ### 文档索引 | Documentation Index
 
 - 📑 **[完整文档索引](docs/zh/index.md)** - 所有文档导航和快速查找
+- 🧭 **[后端架构](docs/architecture/backend.md)** - 后端模块、请求链路、Adapter 运行时与排障
+- 🖥️ **[前端架构](docs/architecture/frontend.md)** - 前端页面、API 边界、界面状态与验证
 
 ### DeepWiki
 详细的技术文档、API 参考、架构设计等内容，可以访问 
