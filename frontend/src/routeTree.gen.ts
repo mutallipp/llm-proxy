@@ -34,6 +34,8 @@ import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedDataStoragesIndexRouteImport } from './routes/_authenticated/data-storages/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels/index'
+import { Route as AuthenticatedAdaptersIndexRouteImport } from './routes/_authenticated/adapters/index'
+import { Route as AuthenticatedModelGroupsIndexRouteImport } from './routes/_authenticated/model-groups/index'
 import { Route as AuthenticatedApiKeysIndexRouteImport } from './routes/_authenticated/api-keys/index'
 import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics/index'
 import { Route as OauthOidcIdpCallbackRouteImport } from './routes/oauth/oidc/idp-callback'
@@ -190,6 +192,18 @@ const AuthenticatedChannelsIndexRoute =
     path: '/channels/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdaptersIndexRoute =
+  AuthenticatedAdaptersIndexRouteImport.update({
+    id: '/adapters/',
+    path: '/adapters/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedModelGroupsIndexRoute =
+  AuthenticatedModelGroupsIndexRouteImport.update({
+    id: '/model-groups/',
+    path: '/model-groups/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedApiKeysIndexRoute =
   AuthenticatedApiKeysIndexRouteImport.update({
     id: '/api-keys/',
@@ -339,6 +353,8 @@ export interface FileRoutesByFullPath {
   '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/api-keys/': typeof AuthenticatedApiKeysIndexRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
+  '/adapters/': typeof AuthenticatedAdaptersIndexRoute
+  '/model-groups/': typeof AuthenticatedModelGroupsIndexRoute
   '/chats/': typeof AuthenticatedChatsIndexRoute
   '/data-storages/': typeof AuthenticatedDataStoragesIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
@@ -385,6 +401,8 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/api-keys': typeof AuthenticatedApiKeysIndexRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
+  '/adapters': typeof AuthenticatedAdaptersIndexRoute
+  '/model-groups': typeof AuthenticatedModelGroupsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/data-storages': typeof AuthenticatedDataStoragesIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
@@ -434,6 +452,8 @@ export interface FileRoutesById {
   '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/api-keys/': typeof AuthenticatedApiKeysIndexRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
+  '/_authenticated/adapters/': typeof AuthenticatedAdaptersIndexRoute
+  '/_authenticated/model-groups/': typeof AuthenticatedModelGroupsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/data-storages/': typeof AuthenticatedDataStoragesIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
@@ -483,6 +503,8 @@ export interface FileRouteTypes {
     | '/analytics/'
     | '/api-keys/'
     | '/channels/'
+    | '/adapters/'
+    | '/model-groups/'
     | '/chats/'
     | '/data-storages/'
     | '/help-center/'
@@ -529,6 +551,8 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/api-keys'
     | '/channels'
+    | '/adapters'
+    | '/model-groups'
     | '/chats'
     | '/data-storages'
     | '/help-center'
@@ -577,6 +601,8 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics/'
     | '/_authenticated/api-keys/'
     | '/_authenticated/channels/'
+    | '/_authenticated/adapters/'
+    | '/_authenticated/model-groups/'
     | '/_authenticated/chats/'
     | '/_authenticated/data-storages/'
     | '/_authenticated/help-center/'
@@ -786,6 +812,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/adapters/': {
+      id: '/_authenticated/adapters/'
+      path: '/adapters'
+      fullPath: '/adapters/'
+      preLoaderRoute: typeof AuthenticatedAdaptersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/model-groups/': {
+      id: '/_authenticated/model-groups/'
+      path: '/model-groups'
+      fullPath: '/model-groups/'
+      preLoaderRoute: typeof AuthenticatedModelGroupsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/channels/': {
       id: '/_authenticated/channels/'
       path: '/channels'
@@ -975,6 +1015,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsIndexRoute: typeof AuthenticatedAnalyticsIndexRoute
   AuthenticatedApiKeysIndexRoute: typeof AuthenticatedApiKeysIndexRoute
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
+  AuthenticatedAdaptersIndexRoute: typeof AuthenticatedAdaptersIndexRoute
+  AuthenticatedModelGroupsIndexRoute: typeof AuthenticatedModelGroupsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedDataStoragesIndexRoute: typeof AuthenticatedDataStoragesIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
@@ -1009,6 +1051,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsIndexRoute: AuthenticatedAnalyticsIndexRoute,
   AuthenticatedApiKeysIndexRoute: AuthenticatedApiKeysIndexRoute,
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
+  AuthenticatedAdaptersIndexRoute: AuthenticatedAdaptersIndexRoute,
+  AuthenticatedModelGroupsIndexRoute: AuthenticatedModelGroupsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedDataStoragesIndexRoute: AuthenticatedDataStoragesIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,

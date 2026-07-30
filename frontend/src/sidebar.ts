@@ -83,6 +83,16 @@ export function useSidebarData(): SidebarData {
           icon: IconAi,
         } as NavLink,
         {
+          title: t('sidebar.items.adapters', 'Adapters'),
+          url: '/adapters',
+          icon: IconAi,
+        } as NavLink,
+        {
+          title: t('sidebar.items.modelGroups', 'Model Groups'),
+          url: '/model-groups',
+          icon: IconPackages,
+        } as NavLink,
+        {
           title: t('sidebar.items.models'),
           url: '/models',
           icon: IconRobot,
