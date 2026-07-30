@@ -124,6 +124,9 @@ models:
   ChannelEndpoint:
     model:
       - github.com/looplj/axonhub/internal/objects.ChannelEndpoint
+  AdapterTargetCapabilities:
+    model:
+      - github.com/looplj/axonhub/internal/objects.AdapterTargetCapabilities
   ChannelEndpointInput:
     model:
       - github.com/looplj/axonhub/internal/objects.ChannelEndpoint

@@ -33,6 +33,30 @@ func (f APIKeyProfileTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.APIKeyProfileTemplateMutation", m)
 }
 
+// The AdapterFunc type is an adapter to allow the use of ordinary
+// function as Adapter mutator.
+type AdapterFunc func(context.Context, *ent.AdapterMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AdapterFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AdapterMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AdapterMutation", m)
+}
+
+// The AdapterModelBindingFunc type is an adapter to allow the use of ordinary
+// function as AdapterModelBinding mutator.
+type AdapterModelBindingFunc func(context.Context, *ent.AdapterModelBindingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AdapterModelBindingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AdapterModelBindingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AdapterModelBindingMutation", m)
+}
+
 // The ChannelFunc type is an adapter to allow the use of ordinary
 // function as Channel mutator.
 type ChannelFunc func(context.Context, *ent.ChannelMutation) (ent.Value, error)
@@ -115,6 +139,42 @@ func (f ModelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModelMutation", m)
+}
+
+// The ModelGroupFunc type is an adapter to allow the use of ordinary
+// function as ModelGroup mutator.
+type ModelGroupFunc func(context.Context, *ent.ModelGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModelGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ModelGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModelGroupMutation", m)
+}
+
+// The ModelGroupProtocolFunc type is an adapter to allow the use of ordinary
+// function as ModelGroupProtocol mutator.
+type ModelGroupProtocolFunc func(context.Context, *ent.ModelGroupProtocolMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModelGroupProtocolFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ModelGroupProtocolMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModelGroupProtocolMutation", m)
+}
+
+// The ModelGroupTargetFunc type is an adapter to allow the use of ordinary
+// function as ModelGroupTarget mutator.
+type ModelGroupTargetFunc func(context.Context, *ent.ModelGroupTargetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModelGroupTargetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ModelGroupTargetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModelGroupTargetMutation", m)
 }
 
 // The OIDCIdentityFunc type is an adapter to allow the use of ordinary

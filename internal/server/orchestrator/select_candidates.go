@@ -41,14 +41,17 @@ func selectCandidates(inbound *PersistentInboundTransformer, quotaProvider Provi
 			}
 		}
 
-		// Key-level profile filtering (narrows further within project scope)
-		if profile := inbound.state.APIKey.GetActiveProfile(); profile != nil {
-			if len(profile.ChannelIDs) > 0 {
-				selector = WithSelectedChannelsSelector(selector, profile.ChannelIDs)
-			}
+		// Key-level profile filtering (narrows further within project scope).
+		// Adapter consumer requests may intentionally have no API key.
+		if inbound.state.APIKey != nil {
+			if profile := inbound.state.APIKey.GetActiveProfile(); profile != nil {
+				if len(profile.ChannelIDs) > 0 {
+					selector = WithSelectedChannelsSelector(selector, profile.ChannelIDs)
+				}
 
-			if len(profile.ChannelTags) > 0 {
-				selector = WithChannelTagsFilterSelector(selector, profile.ChannelTags, profile.ChannelTagsMatchMode)
+				if len(profile.ChannelTags) > 0 {
+					selector = WithChannelTagsFilterSelector(selector, profile.ChannelTags, profile.ChannelTagsMatchMode)
+				}
 			}
 		}
 

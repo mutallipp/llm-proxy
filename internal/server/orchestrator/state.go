@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/looplj/axonhub/internal/ent"
+	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/llm"
 	"github.com/looplj/axonhub/llm/httpclient"
@@ -22,6 +23,11 @@ type PersistenceState struct {
 	RetryPolicyProvider RetryPolicyProvider
 	CandidateSelector   CandidateSelector
 	LoadBalancer        *LoadBalancer
+
+	// Adapter 运行时元数据来自当前选中的不可变快照。
+	Adapter       *objects.RuntimeAdapter
+	ModelGroup    *objects.RuntimeModelGroup
+	AdapterTarget *objects.RuntimeModelGroupTarget
 
 	// Request state
 	ModelMapper *ModelMapper

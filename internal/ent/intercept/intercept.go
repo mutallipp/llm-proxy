@@ -8,6 +8,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/looplj/axonhub/internal/ent"
+	"github.com/looplj/axonhub/internal/ent/adapter"
+	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/apikeyprofiletemplate"
 	"github.com/looplj/axonhub/internal/ent/channel"
@@ -17,6 +19,9 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channelprobe"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelgroup"
+	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
+	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
 	"github.com/looplj/axonhub/internal/ent/oidcidentity"
 	"github.com/looplj/axonhub/internal/ent/predicate"
 	"github.com/looplj/axonhub/internal/ent/project"
@@ -143,6 +148,60 @@ func (f TraverseAPIKeyProfileTemplate) Traverse(ctx context.Context, q ent.Query
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.APIKeyProfileTemplateQuery", q)
+}
+
+// The AdapterFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AdapterFunc func(context.Context, *ent.AdapterQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f AdapterFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.AdapterQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.AdapterQuery", q)
+}
+
+// The TraverseAdapter type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAdapter func(context.Context, *ent.AdapterQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAdapter) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAdapter) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AdapterQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.AdapterQuery", q)
+}
+
+// The AdapterModelBindingFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AdapterModelBindingFunc func(context.Context, *ent.AdapterModelBindingQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f AdapterModelBindingFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.AdapterModelBindingQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.AdapterModelBindingQuery", q)
+}
+
+// The TraverseAdapterModelBinding type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAdapterModelBinding func(context.Context, *ent.AdapterModelBindingQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAdapterModelBinding) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAdapterModelBinding) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AdapterModelBindingQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.AdapterModelBindingQuery", q)
 }
 
 // The ChannelFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -332,6 +391,87 @@ func (f TraverseModel) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.ModelQuery", q)
+}
+
+// The ModelGroupFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ModelGroupFunc func(context.Context, *ent.ModelGroupQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f ModelGroupFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.ModelGroupQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupQuery", q)
+}
+
+// The TraverseModelGroup type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseModelGroup func(context.Context, *ent.ModelGroupQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseModelGroup) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseModelGroup) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ModelGroupQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupQuery", q)
+}
+
+// The ModelGroupProtocolFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ModelGroupProtocolFunc func(context.Context, *ent.ModelGroupProtocolQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f ModelGroupProtocolFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.ModelGroupProtocolQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupProtocolQuery", q)
+}
+
+// The TraverseModelGroupProtocol type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseModelGroupProtocol func(context.Context, *ent.ModelGroupProtocolQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseModelGroupProtocol) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseModelGroupProtocol) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ModelGroupProtocolQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupProtocolQuery", q)
+}
+
+// The ModelGroupTargetFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ModelGroupTargetFunc func(context.Context, *ent.ModelGroupTargetQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f ModelGroupTargetFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.ModelGroupTargetQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupTargetQuery", q)
+}
+
+// The TraverseModelGroupTarget type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseModelGroupTarget func(context.Context, *ent.ModelGroupTargetQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseModelGroupTarget) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseModelGroupTarget) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ModelGroupTargetQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupTargetQuery", q)
 }
 
 // The OIDCIdentityFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -746,6 +886,10 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.APIKeyQuery, predicate.APIKey, apikey.OrderOption]{typ: ent.TypeAPIKey, tq: q}, nil
 	case *ent.APIKeyProfileTemplateQuery:
 		return &query[*ent.APIKeyProfileTemplateQuery, predicate.APIKeyProfileTemplate, apikeyprofiletemplate.OrderOption]{typ: ent.TypeAPIKeyProfileTemplate, tq: q}, nil
+	case *ent.AdapterQuery:
+		return &query[*ent.AdapterQuery, predicate.Adapter, adapter.OrderOption]{typ: ent.TypeAdapter, tq: q}, nil
+	case *ent.AdapterModelBindingQuery:
+		return &query[*ent.AdapterModelBindingQuery, predicate.AdapterModelBinding, adaptermodelbinding.OrderOption]{typ: ent.TypeAdapterModelBinding, tq: q}, nil
 	case *ent.ChannelQuery:
 		return &query[*ent.ChannelQuery, predicate.Channel, channel.OrderOption]{typ: ent.TypeChannel, tq: q}, nil
 	case *ent.ChannelModelPriceQuery:
@@ -760,6 +904,12 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.DataStorageQuery, predicate.DataStorage, datastorage.OrderOption]{typ: ent.TypeDataStorage, tq: q}, nil
 	case *ent.ModelQuery:
 		return &query[*ent.ModelQuery, predicate.Model, model.OrderOption]{typ: ent.TypeModel, tq: q}, nil
+	case *ent.ModelGroupQuery:
+		return &query[*ent.ModelGroupQuery, predicate.ModelGroup, modelgroup.OrderOption]{typ: ent.TypeModelGroup, tq: q}, nil
+	case *ent.ModelGroupProtocolQuery:
+		return &query[*ent.ModelGroupProtocolQuery, predicate.ModelGroupProtocol, modelgroupprotocol.OrderOption]{typ: ent.TypeModelGroupProtocol, tq: q}, nil
+	case *ent.ModelGroupTargetQuery:
+		return &query[*ent.ModelGroupTargetQuery, predicate.ModelGroupTarget, modelgrouptarget.OrderOption]{typ: ent.TypeModelGroupTarget, tq: q}, nil
 	case *ent.OIDCIdentityQuery:
 		return &query[*ent.OIDCIdentityQuery, predicate.OIDCIdentity, oidcidentity.OrderOption]{typ: ent.TypeOIDCIdentity, tq: q}, nil
 	case *ent.ProjectQuery:

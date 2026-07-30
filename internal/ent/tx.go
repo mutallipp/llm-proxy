@@ -16,6 +16,10 @@ type Tx struct {
 	APIKey *APIKeyClient
 	// APIKeyProfileTemplate is the client for interacting with the APIKeyProfileTemplate builders.
 	APIKeyProfileTemplate *APIKeyProfileTemplateClient
+	// Adapter is the client for interacting with the Adapter builders.
+	Adapter *AdapterClient
+	// AdapterModelBinding is the client for interacting with the AdapterModelBinding builders.
+	AdapterModelBinding *AdapterModelBindingClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
 	// ChannelModelPrice is the client for interacting with the ChannelModelPrice builders.
@@ -30,6 +34,12 @@ type Tx struct {
 	DataStorage *DataStorageClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
+	// ModelGroup is the client for interacting with the ModelGroup builders.
+	ModelGroup *ModelGroupClient
+	// ModelGroupProtocol is the client for interacting with the ModelGroupProtocol builders.
+	ModelGroupProtocol *ModelGroupProtocolClient
+	// ModelGroupTarget is the client for interacting with the ModelGroupTarget builders.
+	ModelGroupTarget *ModelGroupTargetClient
 	// OIDCIdentity is the client for interacting with the OIDCIdentity builders.
 	OIDCIdentity *OIDCIdentityClient
 	// Project is the client for interacting with the Project builders.
@@ -193,6 +203,8 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.APIKey = NewAPIKeyClient(tx.config)
 	tx.APIKeyProfileTemplate = NewAPIKeyProfileTemplateClient(tx.config)
+	tx.Adapter = NewAdapterClient(tx.config)
+	tx.AdapterModelBinding = NewAdapterModelBindingClient(tx.config)
 	tx.Channel = NewChannelClient(tx.config)
 	tx.ChannelModelPrice = NewChannelModelPriceClient(tx.config)
 	tx.ChannelModelPriceVersion = NewChannelModelPriceVersionClient(tx.config)
@@ -200,6 +212,9 @@ func (tx *Tx) init() {
 	tx.ChannelProbe = NewChannelProbeClient(tx.config)
 	tx.DataStorage = NewDataStorageClient(tx.config)
 	tx.Model = NewModelClient(tx.config)
+	tx.ModelGroup = NewModelGroupClient(tx.config)
+	tx.ModelGroupProtocol = NewModelGroupProtocolClient(tx.config)
+	tx.ModelGroupTarget = NewModelGroupTargetClient(tx.config)
 	tx.OIDCIdentity = NewOIDCIdentityClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)

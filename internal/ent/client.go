@@ -15,6 +15,8 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/looplj/axonhub/internal/ent/adapter"
+	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/apikeyprofiletemplate"
 	"github.com/looplj/axonhub/internal/ent/channel"
@@ -24,6 +26,9 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channelprobe"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelgroup"
+	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
+	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
 	"github.com/looplj/axonhub/internal/ent/oidcidentity"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/prompt"
@@ -50,6 +55,10 @@ type Client struct {
 	APIKey *APIKeyClient
 	// APIKeyProfileTemplate is the client for interacting with the APIKeyProfileTemplate builders.
 	APIKeyProfileTemplate *APIKeyProfileTemplateClient
+	// Adapter is the client for interacting with the Adapter builders.
+	Adapter *AdapterClient
+	// AdapterModelBinding is the client for interacting with the AdapterModelBinding builders.
+	AdapterModelBinding *AdapterModelBindingClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
 	// ChannelModelPrice is the client for interacting with the ChannelModelPrice builders.
@@ -64,6 +73,12 @@ type Client struct {
 	DataStorage *DataStorageClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
+	// ModelGroup is the client for interacting with the ModelGroup builders.
+	ModelGroup *ModelGroupClient
+	// ModelGroupProtocol is the client for interacting with the ModelGroupProtocol builders.
+	ModelGroupProtocol *ModelGroupProtocolClient
+	// ModelGroupTarget is the client for interacting with the ModelGroupTarget builders.
+	ModelGroupTarget *ModelGroupTargetClient
 	// OIDCIdentity is the client for interacting with the OIDCIdentity builders.
 	OIDCIdentity *OIDCIdentityClient
 	// Project is the client for interacting with the Project builders.
@@ -109,6 +124,8 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.APIKey = NewAPIKeyClient(c.config)
 	c.APIKeyProfileTemplate = NewAPIKeyProfileTemplateClient(c.config)
+	c.Adapter = NewAdapterClient(c.config)
+	c.AdapterModelBinding = NewAdapterModelBindingClient(c.config)
 	c.Channel = NewChannelClient(c.config)
 	c.ChannelModelPrice = NewChannelModelPriceClient(c.config)
 	c.ChannelModelPriceVersion = NewChannelModelPriceVersionClient(c.config)
@@ -116,6 +133,9 @@ func (c *Client) init() {
 	c.ChannelProbe = NewChannelProbeClient(c.config)
 	c.DataStorage = NewDataStorageClient(c.config)
 	c.Model = NewModelClient(c.config)
+	c.ModelGroup = NewModelGroupClient(c.config)
+	c.ModelGroupProtocol = NewModelGroupProtocolClient(c.config)
+	c.ModelGroupTarget = NewModelGroupTargetClient(c.config)
 	c.OIDCIdentity = NewOIDCIdentityClient(c.config)
 	c.Project = NewProjectClient(c.config)
 	c.Prompt = NewPromptClient(c.config)
@@ -225,6 +245,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:                   cfg,
 		APIKey:                   NewAPIKeyClient(cfg),
 		APIKeyProfileTemplate:    NewAPIKeyProfileTemplateClient(cfg),
+		Adapter:                  NewAdapterClient(cfg),
+		AdapterModelBinding:      NewAdapterModelBindingClient(cfg),
 		Channel:                  NewChannelClient(cfg),
 		ChannelModelPrice:        NewChannelModelPriceClient(cfg),
 		ChannelModelPriceVersion: NewChannelModelPriceVersionClient(cfg),
@@ -232,6 +254,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ChannelProbe:             NewChannelProbeClient(cfg),
 		DataStorage:              NewDataStorageClient(cfg),
 		Model:                    NewModelClient(cfg),
+		ModelGroup:               NewModelGroupClient(cfg),
+		ModelGroupProtocol:       NewModelGroupProtocolClient(cfg),
+		ModelGroupTarget:         NewModelGroupTargetClient(cfg),
 		OIDCIdentity:             NewOIDCIdentityClient(cfg),
 		Project:                  NewProjectClient(cfg),
 		Prompt:                   NewPromptClient(cfg),
@@ -268,6 +293,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:                   cfg,
 		APIKey:                   NewAPIKeyClient(cfg),
 		APIKeyProfileTemplate:    NewAPIKeyProfileTemplateClient(cfg),
+		Adapter:                  NewAdapterClient(cfg),
+		AdapterModelBinding:      NewAdapterModelBindingClient(cfg),
 		Channel:                  NewChannelClient(cfg),
 		ChannelModelPrice:        NewChannelModelPriceClient(cfg),
 		ChannelModelPriceVersion: NewChannelModelPriceVersionClient(cfg),
@@ -275,6 +302,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ChannelProbe:             NewChannelProbeClient(cfg),
 		DataStorage:              NewDataStorageClient(cfg),
 		Model:                    NewModelClient(cfg),
+		ModelGroup:               NewModelGroupClient(cfg),
+		ModelGroupProtocol:       NewModelGroupProtocolClient(cfg),
+		ModelGroupTarget:         NewModelGroupTargetClient(cfg),
 		OIDCIdentity:             NewOIDCIdentityClient(cfg),
 		Project:                  NewProjectClient(cfg),
 		Prompt:                   NewPromptClient(cfg),
@@ -319,9 +349,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.APIKey, c.APIKeyProfileTemplate, c.Channel, c.ChannelModelPrice,
-		c.ChannelModelPriceVersion, c.ChannelOverrideTemplate, c.ChannelProbe,
-		c.DataStorage, c.Model, c.OIDCIdentity, c.Project, c.Prompt,
+		c.APIKey, c.APIKeyProfileTemplate, c.Adapter, c.AdapterModelBinding, c.Channel,
+		c.ChannelModelPrice, c.ChannelModelPriceVersion, c.ChannelOverrideTemplate,
+		c.ChannelProbe, c.DataStorage, c.Model, c.ModelGroup, c.ModelGroupProtocol,
+		c.ModelGroupTarget, c.OIDCIdentity, c.Project, c.Prompt,
 		c.PromptProtectionRule, c.ProviderQuotaStatus, c.Request, c.RequestExecution,
 		c.Role, c.System, c.Thread, c.Trace, c.UsageLog, c.User, c.UserProject,
 		c.UserRole,
@@ -334,9 +365,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.APIKey, c.APIKeyProfileTemplate, c.Channel, c.ChannelModelPrice,
-		c.ChannelModelPriceVersion, c.ChannelOverrideTemplate, c.ChannelProbe,
-		c.DataStorage, c.Model, c.OIDCIdentity, c.Project, c.Prompt,
+		c.APIKey, c.APIKeyProfileTemplate, c.Adapter, c.AdapterModelBinding, c.Channel,
+		c.ChannelModelPrice, c.ChannelModelPriceVersion, c.ChannelOverrideTemplate,
+		c.ChannelProbe, c.DataStorage, c.Model, c.ModelGroup, c.ModelGroupProtocol,
+		c.ModelGroupTarget, c.OIDCIdentity, c.Project, c.Prompt,
 		c.PromptProtectionRule, c.ProviderQuotaStatus, c.Request, c.RequestExecution,
 		c.Role, c.System, c.Thread, c.Trace, c.UsageLog, c.User, c.UserProject,
 		c.UserRole,
@@ -352,6 +384,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.APIKey.mutate(ctx, m)
 	case *APIKeyProfileTemplateMutation:
 		return c.APIKeyProfileTemplate.mutate(ctx, m)
+	case *AdapterMutation:
+		return c.Adapter.mutate(ctx, m)
+	case *AdapterModelBindingMutation:
+		return c.AdapterModelBinding.mutate(ctx, m)
 	case *ChannelMutation:
 		return c.Channel.mutate(ctx, m)
 	case *ChannelModelPriceMutation:
@@ -366,6 +402,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.DataStorage.mutate(ctx, m)
 	case *ModelMutation:
 		return c.Model.mutate(ctx, m)
+	case *ModelGroupMutation:
+		return c.ModelGroup.mutate(ctx, m)
+	case *ModelGroupProtocolMutation:
+		return c.ModelGroupProtocol.mutate(ctx, m)
+	case *ModelGroupTargetMutation:
+		return c.ModelGroupTarget.mutate(ctx, m)
 	case *OIDCIdentityMutation:
 		return c.OIDCIdentity.mutate(ctx, m)
 	case *ProjectMutation:
@@ -735,6 +777,324 @@ func (c *APIKeyProfileTemplateClient) mutate(ctx context.Context, m *APIKeyProfi
 	}
 }
 
+// AdapterClient is a client for the Adapter schema.
+type AdapterClient struct {
+	config
+}
+
+// NewAdapterClient returns a client for the Adapter from the given config.
+func NewAdapterClient(c config) *AdapterClient {
+	return &AdapterClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `adapter.Hooks(f(g(h())))`.
+func (c *AdapterClient) Use(hooks ...Hook) {
+	c.hooks.Adapter = append(c.hooks.Adapter, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `adapter.Intercept(f(g(h())))`.
+func (c *AdapterClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Adapter = append(c.inters.Adapter, interceptors...)
+}
+
+// Create returns a builder for creating a Adapter entity.
+func (c *AdapterClient) Create() *AdapterCreate {
+	mutation := newAdapterMutation(c.config, OpCreate)
+	return &AdapterCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Adapter entities.
+func (c *AdapterClient) CreateBulk(builders ...*AdapterCreate) *AdapterCreateBulk {
+	return &AdapterCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AdapterClient) MapCreateBulk(slice any, setFunc func(*AdapterCreate, int)) *AdapterCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AdapterCreateBulk{err: fmt.Errorf("calling to AdapterClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AdapterCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AdapterCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Adapter.
+func (c *AdapterClient) Update() *AdapterUpdate {
+	mutation := newAdapterMutation(c.config, OpUpdate)
+	return &AdapterUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AdapterClient) UpdateOne(_m *Adapter) *AdapterUpdateOne {
+	mutation := newAdapterMutation(c.config, OpUpdateOne, withAdapter(_m))
+	return &AdapterUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AdapterClient) UpdateOneID(id int) *AdapterUpdateOne {
+	mutation := newAdapterMutation(c.config, OpUpdateOne, withAdapterID(id))
+	return &AdapterUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Adapter.
+func (c *AdapterClient) Delete() *AdapterDelete {
+	mutation := newAdapterMutation(c.config, OpDelete)
+	return &AdapterDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AdapterClient) DeleteOne(_m *Adapter) *AdapterDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AdapterClient) DeleteOneID(id int) *AdapterDeleteOne {
+	builder := c.Delete().Where(adapter.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AdapterDeleteOne{builder}
+}
+
+// Query returns a query builder for Adapter.
+func (c *AdapterClient) Query() *AdapterQuery {
+	return &AdapterQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAdapter},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Adapter entity by its id.
+func (c *AdapterClient) Get(ctx context.Context, id int) (*Adapter, error) {
+	return c.Query().Where(adapter.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AdapterClient) GetX(ctx context.Context, id int) *Adapter {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryModelBindings queries the model_bindings edge of a Adapter.
+func (c *AdapterClient) QueryModelBindings(_m *Adapter) *AdapterModelBindingQuery {
+	query := (&AdapterModelBindingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(adapter.Table, adapter.FieldID, id),
+			sqlgraph.To(adaptermodelbinding.Table, adaptermodelbinding.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, adapter.ModelBindingsTable, adapter.ModelBindingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AdapterClient) Hooks() []Hook {
+	hooks := c.hooks.Adapter
+	return append(hooks[:len(hooks):len(hooks)], adapter.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *AdapterClient) Interceptors() []Interceptor {
+	inters := c.inters.Adapter
+	return append(inters[:len(inters):len(inters)], adapter.Interceptors[:]...)
+}
+
+func (c *AdapterClient) mutate(ctx context.Context, m *AdapterMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AdapterCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AdapterUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AdapterUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AdapterDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Adapter mutation op: %q", m.Op())
+	}
+}
+
+// AdapterModelBindingClient is a client for the AdapterModelBinding schema.
+type AdapterModelBindingClient struct {
+	config
+}
+
+// NewAdapterModelBindingClient returns a client for the AdapterModelBinding from the given config.
+func NewAdapterModelBindingClient(c config) *AdapterModelBindingClient {
+	return &AdapterModelBindingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `adaptermodelbinding.Hooks(f(g(h())))`.
+func (c *AdapterModelBindingClient) Use(hooks ...Hook) {
+	c.hooks.AdapterModelBinding = append(c.hooks.AdapterModelBinding, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `adaptermodelbinding.Intercept(f(g(h())))`.
+func (c *AdapterModelBindingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AdapterModelBinding = append(c.inters.AdapterModelBinding, interceptors...)
+}
+
+// Create returns a builder for creating a AdapterModelBinding entity.
+func (c *AdapterModelBindingClient) Create() *AdapterModelBindingCreate {
+	mutation := newAdapterModelBindingMutation(c.config, OpCreate)
+	return &AdapterModelBindingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AdapterModelBinding entities.
+func (c *AdapterModelBindingClient) CreateBulk(builders ...*AdapterModelBindingCreate) *AdapterModelBindingCreateBulk {
+	return &AdapterModelBindingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AdapterModelBindingClient) MapCreateBulk(slice any, setFunc func(*AdapterModelBindingCreate, int)) *AdapterModelBindingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AdapterModelBindingCreateBulk{err: fmt.Errorf("calling to AdapterModelBindingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AdapterModelBindingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AdapterModelBindingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AdapterModelBinding.
+func (c *AdapterModelBindingClient) Update() *AdapterModelBindingUpdate {
+	mutation := newAdapterModelBindingMutation(c.config, OpUpdate)
+	return &AdapterModelBindingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AdapterModelBindingClient) UpdateOne(_m *AdapterModelBinding) *AdapterModelBindingUpdateOne {
+	mutation := newAdapterModelBindingMutation(c.config, OpUpdateOne, withAdapterModelBinding(_m))
+	return &AdapterModelBindingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AdapterModelBindingClient) UpdateOneID(id int) *AdapterModelBindingUpdateOne {
+	mutation := newAdapterModelBindingMutation(c.config, OpUpdateOne, withAdapterModelBindingID(id))
+	return &AdapterModelBindingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AdapterModelBinding.
+func (c *AdapterModelBindingClient) Delete() *AdapterModelBindingDelete {
+	mutation := newAdapterModelBindingMutation(c.config, OpDelete)
+	return &AdapterModelBindingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AdapterModelBindingClient) DeleteOne(_m *AdapterModelBinding) *AdapterModelBindingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AdapterModelBindingClient) DeleteOneID(id int) *AdapterModelBindingDeleteOne {
+	builder := c.Delete().Where(adaptermodelbinding.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AdapterModelBindingDeleteOne{builder}
+}
+
+// Query returns a query builder for AdapterModelBinding.
+func (c *AdapterModelBindingClient) Query() *AdapterModelBindingQuery {
+	return &AdapterModelBindingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAdapterModelBinding},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AdapterModelBinding entity by its id.
+func (c *AdapterModelBindingClient) Get(ctx context.Context, id int) (*AdapterModelBinding, error) {
+	return c.Query().Where(adaptermodelbinding.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AdapterModelBindingClient) GetX(ctx context.Context, id int) *AdapterModelBinding {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAdapter queries the adapter edge of a AdapterModelBinding.
+func (c *AdapterModelBindingClient) QueryAdapter(_m *AdapterModelBinding) *AdapterQuery {
+	query := (&AdapterClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(adaptermodelbinding.Table, adaptermodelbinding.FieldID, id),
+			sqlgraph.To(adapter.Table, adapter.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, adaptermodelbinding.AdapterTable, adaptermodelbinding.AdapterColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryModelGroup queries the model_group edge of a AdapterModelBinding.
+func (c *AdapterModelBindingClient) QueryModelGroup(_m *AdapterModelBinding) *ModelGroupQuery {
+	query := (&ModelGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(adaptermodelbinding.Table, adaptermodelbinding.FieldID, id),
+			sqlgraph.To(modelgroup.Table, modelgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, adaptermodelbinding.ModelGroupTable, adaptermodelbinding.ModelGroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AdapterModelBindingClient) Hooks() []Hook {
+	hooks := c.hooks.AdapterModelBinding
+	return append(hooks[:len(hooks):len(hooks)], adaptermodelbinding.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *AdapterModelBindingClient) Interceptors() []Interceptor {
+	inters := c.inters.AdapterModelBinding
+	return append(inters[:len(inters):len(inters)], adaptermodelbinding.Interceptors[:]...)
+}
+
+func (c *AdapterModelBindingClient) mutate(ctx context.Context, m *AdapterModelBindingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AdapterModelBindingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AdapterModelBindingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AdapterModelBindingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AdapterModelBindingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AdapterModelBinding mutation op: %q", m.Op())
+	}
+}
+
 // ChannelClient is a client for the Channel schema.
 type ChannelClient struct {
 	config
@@ -932,6 +1292,22 @@ func (c *ChannelClient) QueryProviderQuotaStatus(_m *Channel) *ProviderQuotaStat
 			sqlgraph.From(channel.Table, channel.FieldID, id),
 			sqlgraph.To(providerquotastatus.Table, providerquotastatus.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, channel.ProviderQuotaStatusTable, channel.ProviderQuotaStatusColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryModelGroupTargets queries the model_group_targets edge of a Channel.
+func (c *ChannelClient) QueryModelGroupTargets(_m *Channel) *ModelGroupTargetQuery {
+	query := (&ModelGroupTargetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(channel.Table, channel.FieldID, id),
+			sqlgraph.To(modelgrouptarget.Table, modelgrouptarget.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, channel.ModelGroupTargetsTable, channel.ModelGroupTargetsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1882,6 +2258,507 @@ func (c *ModelClient) mutate(ctx context.Context, m *ModelMutation) (Value, erro
 		return (&ModelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Model mutation op: %q", m.Op())
+	}
+}
+
+// ModelGroupClient is a client for the ModelGroup schema.
+type ModelGroupClient struct {
+	config
+}
+
+// NewModelGroupClient returns a client for the ModelGroup from the given config.
+func NewModelGroupClient(c config) *ModelGroupClient {
+	return &ModelGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `modelgroup.Hooks(f(g(h())))`.
+func (c *ModelGroupClient) Use(hooks ...Hook) {
+	c.hooks.ModelGroup = append(c.hooks.ModelGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `modelgroup.Intercept(f(g(h())))`.
+func (c *ModelGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ModelGroup = append(c.inters.ModelGroup, interceptors...)
+}
+
+// Create returns a builder for creating a ModelGroup entity.
+func (c *ModelGroupClient) Create() *ModelGroupCreate {
+	mutation := newModelGroupMutation(c.config, OpCreate)
+	return &ModelGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ModelGroup entities.
+func (c *ModelGroupClient) CreateBulk(builders ...*ModelGroupCreate) *ModelGroupCreateBulk {
+	return &ModelGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ModelGroupClient) MapCreateBulk(slice any, setFunc func(*ModelGroupCreate, int)) *ModelGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ModelGroupCreateBulk{err: fmt.Errorf("calling to ModelGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ModelGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ModelGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ModelGroup.
+func (c *ModelGroupClient) Update() *ModelGroupUpdate {
+	mutation := newModelGroupMutation(c.config, OpUpdate)
+	return &ModelGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ModelGroupClient) UpdateOne(_m *ModelGroup) *ModelGroupUpdateOne {
+	mutation := newModelGroupMutation(c.config, OpUpdateOne, withModelGroup(_m))
+	return &ModelGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ModelGroupClient) UpdateOneID(id int) *ModelGroupUpdateOne {
+	mutation := newModelGroupMutation(c.config, OpUpdateOne, withModelGroupID(id))
+	return &ModelGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ModelGroup.
+func (c *ModelGroupClient) Delete() *ModelGroupDelete {
+	mutation := newModelGroupMutation(c.config, OpDelete)
+	return &ModelGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ModelGroupClient) DeleteOne(_m *ModelGroup) *ModelGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ModelGroupClient) DeleteOneID(id int) *ModelGroupDeleteOne {
+	builder := c.Delete().Where(modelgroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ModelGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for ModelGroup.
+func (c *ModelGroupClient) Query() *ModelGroupQuery {
+	return &ModelGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeModelGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ModelGroup entity by its id.
+func (c *ModelGroupClient) Get(ctx context.Context, id int) (*ModelGroup, error) {
+	return c.Query().Where(modelgroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ModelGroupClient) GetX(ctx context.Context, id int) *ModelGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAdapterBindings queries the adapter_bindings edge of a ModelGroup.
+func (c *ModelGroupClient) QueryAdapterBindings(_m *ModelGroup) *AdapterModelBindingQuery {
+	query := (&AdapterModelBindingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(modelgroup.Table, modelgroup.FieldID, id),
+			sqlgraph.To(adaptermodelbinding.Table, adaptermodelbinding.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, modelgroup.AdapterBindingsTable, modelgroup.AdapterBindingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProtocols queries the protocols edge of a ModelGroup.
+func (c *ModelGroupClient) QueryProtocols(_m *ModelGroup) *ModelGroupProtocolQuery {
+	query := (&ModelGroupProtocolClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(modelgroup.Table, modelgroup.FieldID, id),
+			sqlgraph.To(modelgroupprotocol.Table, modelgroupprotocol.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, modelgroup.ProtocolsTable, modelgroup.ProtocolsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ModelGroupClient) Hooks() []Hook {
+	hooks := c.hooks.ModelGroup
+	return append(hooks[:len(hooks):len(hooks)], modelgroup.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ModelGroupClient) Interceptors() []Interceptor {
+	inters := c.inters.ModelGroup
+	return append(inters[:len(inters):len(inters)], modelgroup.Interceptors[:]...)
+}
+
+func (c *ModelGroupClient) mutate(ctx context.Context, m *ModelGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ModelGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ModelGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ModelGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ModelGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ModelGroup mutation op: %q", m.Op())
+	}
+}
+
+// ModelGroupProtocolClient is a client for the ModelGroupProtocol schema.
+type ModelGroupProtocolClient struct {
+	config
+}
+
+// NewModelGroupProtocolClient returns a client for the ModelGroupProtocol from the given config.
+func NewModelGroupProtocolClient(c config) *ModelGroupProtocolClient {
+	return &ModelGroupProtocolClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `modelgroupprotocol.Hooks(f(g(h())))`.
+func (c *ModelGroupProtocolClient) Use(hooks ...Hook) {
+	c.hooks.ModelGroupProtocol = append(c.hooks.ModelGroupProtocol, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `modelgroupprotocol.Intercept(f(g(h())))`.
+func (c *ModelGroupProtocolClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ModelGroupProtocol = append(c.inters.ModelGroupProtocol, interceptors...)
+}
+
+// Create returns a builder for creating a ModelGroupProtocol entity.
+func (c *ModelGroupProtocolClient) Create() *ModelGroupProtocolCreate {
+	mutation := newModelGroupProtocolMutation(c.config, OpCreate)
+	return &ModelGroupProtocolCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ModelGroupProtocol entities.
+func (c *ModelGroupProtocolClient) CreateBulk(builders ...*ModelGroupProtocolCreate) *ModelGroupProtocolCreateBulk {
+	return &ModelGroupProtocolCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ModelGroupProtocolClient) MapCreateBulk(slice any, setFunc func(*ModelGroupProtocolCreate, int)) *ModelGroupProtocolCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ModelGroupProtocolCreateBulk{err: fmt.Errorf("calling to ModelGroupProtocolClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ModelGroupProtocolCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ModelGroupProtocolCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ModelGroupProtocol.
+func (c *ModelGroupProtocolClient) Update() *ModelGroupProtocolUpdate {
+	mutation := newModelGroupProtocolMutation(c.config, OpUpdate)
+	return &ModelGroupProtocolUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ModelGroupProtocolClient) UpdateOne(_m *ModelGroupProtocol) *ModelGroupProtocolUpdateOne {
+	mutation := newModelGroupProtocolMutation(c.config, OpUpdateOne, withModelGroupProtocol(_m))
+	return &ModelGroupProtocolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ModelGroupProtocolClient) UpdateOneID(id int) *ModelGroupProtocolUpdateOne {
+	mutation := newModelGroupProtocolMutation(c.config, OpUpdateOne, withModelGroupProtocolID(id))
+	return &ModelGroupProtocolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ModelGroupProtocol.
+func (c *ModelGroupProtocolClient) Delete() *ModelGroupProtocolDelete {
+	mutation := newModelGroupProtocolMutation(c.config, OpDelete)
+	return &ModelGroupProtocolDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ModelGroupProtocolClient) DeleteOne(_m *ModelGroupProtocol) *ModelGroupProtocolDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ModelGroupProtocolClient) DeleteOneID(id int) *ModelGroupProtocolDeleteOne {
+	builder := c.Delete().Where(modelgroupprotocol.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ModelGroupProtocolDeleteOne{builder}
+}
+
+// Query returns a query builder for ModelGroupProtocol.
+func (c *ModelGroupProtocolClient) Query() *ModelGroupProtocolQuery {
+	return &ModelGroupProtocolQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeModelGroupProtocol},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ModelGroupProtocol entity by its id.
+func (c *ModelGroupProtocolClient) Get(ctx context.Context, id int) (*ModelGroupProtocol, error) {
+	return c.Query().Where(modelgroupprotocol.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ModelGroupProtocolClient) GetX(ctx context.Context, id int) *ModelGroupProtocol {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryModelGroup queries the model_group edge of a ModelGroupProtocol.
+func (c *ModelGroupProtocolClient) QueryModelGroup(_m *ModelGroupProtocol) *ModelGroupQuery {
+	query := (&ModelGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(modelgroupprotocol.Table, modelgroupprotocol.FieldID, id),
+			sqlgraph.To(modelgroup.Table, modelgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, modelgroupprotocol.ModelGroupTable, modelgroupprotocol.ModelGroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTargets queries the targets edge of a ModelGroupProtocol.
+func (c *ModelGroupProtocolClient) QueryTargets(_m *ModelGroupProtocol) *ModelGroupTargetQuery {
+	query := (&ModelGroupTargetClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(modelgroupprotocol.Table, modelgroupprotocol.FieldID, id),
+			sqlgraph.To(modelgrouptarget.Table, modelgrouptarget.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, modelgroupprotocol.TargetsTable, modelgroupprotocol.TargetsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ModelGroupProtocolClient) Hooks() []Hook {
+	hooks := c.hooks.ModelGroupProtocol
+	return append(hooks[:len(hooks):len(hooks)], modelgroupprotocol.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ModelGroupProtocolClient) Interceptors() []Interceptor {
+	inters := c.inters.ModelGroupProtocol
+	return append(inters[:len(inters):len(inters)], modelgroupprotocol.Interceptors[:]...)
+}
+
+func (c *ModelGroupProtocolClient) mutate(ctx context.Context, m *ModelGroupProtocolMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ModelGroupProtocolCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ModelGroupProtocolUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ModelGroupProtocolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ModelGroupProtocolDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ModelGroupProtocol mutation op: %q", m.Op())
+	}
+}
+
+// ModelGroupTargetClient is a client for the ModelGroupTarget schema.
+type ModelGroupTargetClient struct {
+	config
+}
+
+// NewModelGroupTargetClient returns a client for the ModelGroupTarget from the given config.
+func NewModelGroupTargetClient(c config) *ModelGroupTargetClient {
+	return &ModelGroupTargetClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `modelgrouptarget.Hooks(f(g(h())))`.
+func (c *ModelGroupTargetClient) Use(hooks ...Hook) {
+	c.hooks.ModelGroupTarget = append(c.hooks.ModelGroupTarget, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `modelgrouptarget.Intercept(f(g(h())))`.
+func (c *ModelGroupTargetClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ModelGroupTarget = append(c.inters.ModelGroupTarget, interceptors...)
+}
+
+// Create returns a builder for creating a ModelGroupTarget entity.
+func (c *ModelGroupTargetClient) Create() *ModelGroupTargetCreate {
+	mutation := newModelGroupTargetMutation(c.config, OpCreate)
+	return &ModelGroupTargetCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ModelGroupTarget entities.
+func (c *ModelGroupTargetClient) CreateBulk(builders ...*ModelGroupTargetCreate) *ModelGroupTargetCreateBulk {
+	return &ModelGroupTargetCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ModelGroupTargetClient) MapCreateBulk(slice any, setFunc func(*ModelGroupTargetCreate, int)) *ModelGroupTargetCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ModelGroupTargetCreateBulk{err: fmt.Errorf("calling to ModelGroupTargetClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ModelGroupTargetCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ModelGroupTargetCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ModelGroupTarget.
+func (c *ModelGroupTargetClient) Update() *ModelGroupTargetUpdate {
+	mutation := newModelGroupTargetMutation(c.config, OpUpdate)
+	return &ModelGroupTargetUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ModelGroupTargetClient) UpdateOne(_m *ModelGroupTarget) *ModelGroupTargetUpdateOne {
+	mutation := newModelGroupTargetMutation(c.config, OpUpdateOne, withModelGroupTarget(_m))
+	return &ModelGroupTargetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ModelGroupTargetClient) UpdateOneID(id int) *ModelGroupTargetUpdateOne {
+	mutation := newModelGroupTargetMutation(c.config, OpUpdateOne, withModelGroupTargetID(id))
+	return &ModelGroupTargetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ModelGroupTarget.
+func (c *ModelGroupTargetClient) Delete() *ModelGroupTargetDelete {
+	mutation := newModelGroupTargetMutation(c.config, OpDelete)
+	return &ModelGroupTargetDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ModelGroupTargetClient) DeleteOne(_m *ModelGroupTarget) *ModelGroupTargetDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ModelGroupTargetClient) DeleteOneID(id int) *ModelGroupTargetDeleteOne {
+	builder := c.Delete().Where(modelgrouptarget.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ModelGroupTargetDeleteOne{builder}
+}
+
+// Query returns a query builder for ModelGroupTarget.
+func (c *ModelGroupTargetClient) Query() *ModelGroupTargetQuery {
+	return &ModelGroupTargetQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeModelGroupTarget},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ModelGroupTarget entity by its id.
+func (c *ModelGroupTargetClient) Get(ctx context.Context, id int) (*ModelGroupTarget, error) {
+	return c.Query().Where(modelgrouptarget.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ModelGroupTargetClient) GetX(ctx context.Context, id int) *ModelGroupTarget {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryModelGroupProtocol queries the model_group_protocol edge of a ModelGroupTarget.
+func (c *ModelGroupTargetClient) QueryModelGroupProtocol(_m *ModelGroupTarget) *ModelGroupProtocolQuery {
+	query := (&ModelGroupProtocolClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(modelgrouptarget.Table, modelgrouptarget.FieldID, id),
+			sqlgraph.To(modelgroupprotocol.Table, modelgroupprotocol.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, modelgrouptarget.ModelGroupProtocolTable, modelgrouptarget.ModelGroupProtocolColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChannel queries the channel edge of a ModelGroupTarget.
+func (c *ModelGroupTargetClient) QueryChannel(_m *ModelGroupTarget) *ChannelQuery {
+	query := (&ChannelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(modelgrouptarget.Table, modelgrouptarget.FieldID, id),
+			sqlgraph.To(channel.Table, channel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, modelgrouptarget.ChannelTable, modelgrouptarget.ChannelColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ModelGroupTargetClient) Hooks() []Hook {
+	hooks := c.hooks.ModelGroupTarget
+	return append(hooks[:len(hooks):len(hooks)], modelgrouptarget.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ModelGroupTargetClient) Interceptors() []Interceptor {
+	inters := c.inters.ModelGroupTarget
+	return append(inters[:len(inters):len(inters)], modelgrouptarget.Interceptors[:]...)
+}
+
+func (c *ModelGroupTargetClient) mutate(ctx context.Context, m *ModelGroupTargetMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ModelGroupTargetCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ModelGroupTargetUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ModelGroupTargetUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ModelGroupTargetDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ModelGroupTarget mutation op: %q", m.Op())
 	}
 }
 
@@ -4624,16 +5501,18 @@ func (c *UserRoleClient) mutate(ctx context.Context, m *UserRoleMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		APIKey, APIKeyProfileTemplate, Channel, ChannelModelPrice,
-		ChannelModelPriceVersion, ChannelOverrideTemplate, ChannelProbe, DataStorage,
-		Model, OIDCIdentity, Project, Prompt, PromptProtectionRule,
+		APIKey, APIKeyProfileTemplate, Adapter, AdapterModelBinding, Channel,
+		ChannelModelPrice, ChannelModelPriceVersion, ChannelOverrideTemplate,
+		ChannelProbe, DataStorage, Model, ModelGroup, ModelGroupProtocol,
+		ModelGroupTarget, OIDCIdentity, Project, Prompt, PromptProtectionRule,
 		ProviderQuotaStatus, Request, RequestExecution, Role, System, Thread, Trace,
 		UsageLog, User, UserProject, UserRole []ent.Hook
 	}
 	inters struct {
-		APIKey, APIKeyProfileTemplate, Channel, ChannelModelPrice,
-		ChannelModelPriceVersion, ChannelOverrideTemplate, ChannelProbe, DataStorage,
-		Model, OIDCIdentity, Project, Prompt, PromptProtectionRule,
+		APIKey, APIKeyProfileTemplate, Adapter, AdapterModelBinding, Channel,
+		ChannelModelPrice, ChannelModelPriceVersion, ChannelOverrideTemplate,
+		ChannelProbe, DataStorage, Model, ModelGroup, ModelGroupProtocol,
+		ModelGroupTarget, OIDCIdentity, Project, Prompt, PromptProtectionRule,
 		ProviderQuotaStatus, Request, RequestExecution, Role, System, Thread, Trace,
 		UsageLog, User, UserProject, UserRole []ent.Interceptor
 	}

@@ -15,6 +15,7 @@ var Module = fx.Module("biz",
 	fx.Provide(NewWebhookNotifier),
 	fx.Provide(NewAuthService),
 	fx.Provide(NewChannelService),
+	fx.Provide(NewAdapterService),
 	fx.Provide(NewRequestService),
 	fx.Provide(NewUsageLogService),
 	fx.Provide(NewVideoService),
@@ -56,6 +57,14 @@ var Module = fx.Module("biz",
 					cancel()
 				}
 				return nil
+			},
+		})
+	}),
+	fx.Invoke(func(lc fx.Lifecycle, svc *AdapterService) {
+		lc.Append(fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				_, err := svc.Refresh(ctx)
+				return err
 			},
 		})
 	}),

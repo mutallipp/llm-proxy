@@ -93,6 +93,75 @@ var (
 			},
 		},
 	}
+	// AdaptersColumns holds the columns for the "adapters" table.
+	AdaptersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "deleted_at", Type: field.TypeInt, Default: 0},
+		{Name: "name", Type: field.TypeString},
+		{Name: "display_name", Type: field.TypeString, Default: ""},
+		{Name: "inbound_api_format", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"enabled", "disabled", "archived"}, Default: "disabled"},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+	}
+	// AdaptersTable holds the schema information for the "adapters" table.
+	AdaptersTable = &schema.Table{
+		Name:       "adapters",
+		Columns:    AdaptersColumns,
+		PrimaryKey: []*schema.Column{AdaptersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "adapters_by_name",
+				Unique:  true,
+				Columns: []*schema.Column{AdaptersColumns[4], AdaptersColumns[3]},
+			},
+		},
+	}
+	// AdapterModelBindingsColumns holds the columns for the "adapter_model_bindings" table.
+	AdapterModelBindingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "deleted_at", Type: field.TypeInt, Default: 0},
+		{Name: "source_model_id", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+		{Name: "adapter_id", Type: field.TypeInt},
+		{Name: "model_group_id", Type: field.TypeInt},
+	}
+	// AdapterModelBindingsTable holds the schema information for the "adapter_model_bindings" table.
+	AdapterModelBindingsTable = &schema.Table{
+		Name:       "adapter_model_bindings",
+		Columns:    AdapterModelBindingsColumns,
+		PrimaryKey: []*schema.Column{AdapterModelBindingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "adapter_model_bindings_adapters_model_bindings",
+				Columns:    []*schema.Column{AdapterModelBindingsColumns[7]},
+				RefColumns: []*schema.Column{AdaptersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "adapter_model_bindings_model_groups_adapter_bindings",
+				Columns:    []*schema.Column{AdapterModelBindingsColumns[8]},
+				RefColumns: []*schema.Column{ModelGroupsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "adapter_model_bindings_by_adapter_model",
+				Unique:  true,
+				Columns: []*schema.Column{AdapterModelBindingsColumns[7], AdapterModelBindingsColumns[4], AdapterModelBindingsColumns[3]},
+			},
+			{
+				Name:    "adapter_model_bindings_by_model_group",
+				Unique:  false,
+				Columns: []*schema.Column{AdapterModelBindingsColumns[8], AdapterModelBindingsColumns[3]},
+			},
+		},
+	}
 	// ChannelsColumns holds the columns for the "channels" table.
 	ChannelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -315,6 +384,110 @@ var (
 				Name:    "models_by_model_id",
 				Unique:  true,
 				Columns: []*schema.Column{ModelsColumns[5], ModelsColumns[3]},
+			},
+		},
+	}
+	// ModelGroupsColumns holds the columns for the "model_groups" table.
+	ModelGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "deleted_at", Type: field.TypeInt, Default: 0},
+		{Name: "name", Type: field.TypeString},
+		{Name: "display_name", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"enabled", "disabled", "archived"}, Default: "disabled"},
+		{Name: "selection_strategy", Type: field.TypeEnum, Enums: []string{"priority_failover"}, Default: "priority_failover"},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+	}
+	// ModelGroupsTable holds the schema information for the "model_groups" table.
+	ModelGroupsTable = &schema.Table{
+		Name:       "model_groups",
+		Columns:    ModelGroupsColumns,
+		PrimaryKey: []*schema.Column{ModelGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "model_groups_by_name",
+				Unique:  true,
+				Columns: []*schema.Column{ModelGroupsColumns[4], ModelGroupsColumns[3]},
+			},
+		},
+	}
+	// ModelGroupProtocolsColumns holds the columns for the "model_group_protocols" table.
+	ModelGroupProtocolsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "deleted_at", Type: field.TypeInt, Default: 0},
+		{Name: "inbound_api_format", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+		{Name: "model_group_id", Type: field.TypeInt},
+	}
+	// ModelGroupProtocolsTable holds the schema information for the "model_group_protocols" table.
+	ModelGroupProtocolsTable = &schema.Table{
+		Name:       "model_group_protocols",
+		Columns:    ModelGroupProtocolsColumns,
+		PrimaryKey: []*schema.Column{ModelGroupProtocolsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "model_group_protocols_model_groups_protocols",
+				Columns:    []*schema.Column{ModelGroupProtocolsColumns[7]},
+				RefColumns: []*schema.Column{ModelGroupsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "model_group_protocols_by_group_format",
+				Unique:  true,
+				Columns: []*schema.Column{ModelGroupProtocolsColumns[7], ModelGroupProtocolsColumns[4], ModelGroupProtocolsColumns[3]},
+			},
+		},
+	}
+	// ModelGroupTargetsColumns holds the columns for the "model_group_targets" table.
+	ModelGroupTargetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("CURRENT_TIMESTAMP")},
+		{Name: "deleted_at", Type: field.TypeInt, Default: 0},
+		{Name: "target_model_id", Type: field.TypeString},
+		{Name: "outbound_api_format", Type: field.TypeString},
+		{Name: "priority", Type: field.TypeInt, Default: 0},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "capabilities", Type: field.TypeJSON},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+		{Name: "channel_id", Type: field.TypeInt},
+		{Name: "model_group_protocol_id", Type: field.TypeInt},
+	}
+	// ModelGroupTargetsTable holds the schema information for the "model_group_targets" table.
+	ModelGroupTargetsTable = &schema.Table{
+		Name:       "model_group_targets",
+		Columns:    ModelGroupTargetsColumns,
+		PrimaryKey: []*schema.Column{ModelGroupTargetsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "model_group_targets_channels_model_group_targets",
+				Columns:    []*schema.Column{ModelGroupTargetsColumns[10]},
+				RefColumns: []*schema.Column{ChannelsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "model_group_targets_model_group_protocols_targets",
+				Columns:    []*schema.Column{ModelGroupTargetsColumns[11]},
+				RefColumns: []*schema.Column{ModelGroupProtocolsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "model_group_targets_by_protocol_channel_model",
+				Unique:  true,
+				Columns: []*schema.Column{ModelGroupTargetsColumns[11], ModelGroupTargetsColumns[10], ModelGroupTargetsColumns[4], ModelGroupTargetsColumns[5], ModelGroupTargetsColumns[3]},
+			},
+			{
+				Name:    "model_group_targets_by_channel",
+				Unique:  false,
+				Columns: []*schema.Column{ModelGroupTargetsColumns[10], ModelGroupTargetsColumns[3]},
 			},
 		},
 	}
@@ -996,6 +1169,8 @@ var (
 	Tables = []*schema.Table{
 		APIKeysTable,
 		APIKeyProfileTemplatesTable,
+		AdaptersTable,
+		AdapterModelBindingsTable,
 		ChannelsTable,
 		ChannelModelPricesTable,
 		ChannelModelPriceVersionsTable,
@@ -1003,6 +1178,9 @@ var (
 		ChannelProbesTable,
 		DataStoragesTable,
 		ModelsTable,
+		ModelGroupsTable,
+		ModelGroupProtocolsTable,
+		ModelGroupTargetsTable,
 		OidcIdentitiesTable,
 		ProjectsTable,
 		PromptsTable,
@@ -1025,10 +1203,15 @@ func init() {
 	APIKeysTable.ForeignKeys[0].RefTable = ProjectsTable
 	APIKeysTable.ForeignKeys[1].RefTable = UsersTable
 	APIKeyProfileTemplatesTable.ForeignKeys[0].RefTable = ProjectsTable
+	AdapterModelBindingsTable.ForeignKeys[0].RefTable = AdaptersTable
+	AdapterModelBindingsTable.ForeignKeys[1].RefTable = ModelGroupsTable
 	ChannelModelPricesTable.ForeignKeys[0].RefTable = ChannelsTable
 	ChannelModelPriceVersionsTable.ForeignKeys[0].RefTable = ChannelModelPricesTable
 	ChannelOverrideTemplatesTable.ForeignKeys[0].RefTable = UsersTable
 	ChannelProbesTable.ForeignKeys[0].RefTable = ChannelsTable
+	ModelGroupProtocolsTable.ForeignKeys[0].RefTable = ModelGroupsTable
+	ModelGroupTargetsTable.ForeignKeys[0].RefTable = ChannelsTable
+	ModelGroupTargetsTable.ForeignKeys[1].RefTable = ModelGroupProtocolsTable
 	OidcIdentitiesTable.ForeignKeys[0].RefTable = UsersTable
 	PromptsTable.ForeignKeys[0].RefTable = ProjectsTable
 	ProviderQuotaStatusTable.ForeignKeys[0].RefTable = ChannelsTable

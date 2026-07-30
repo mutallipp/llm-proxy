@@ -102,6 +102,13 @@ type ChannelEndpoint {
   transport: String
 }
 
+type AdapterTargetCapabilities {
+  supportsTools: Boolean!
+  supportsStream: Boolean!
+  inputModalities: [String!]!
+  outputModalities: [String!]!
+}
+
 input ChannelEndpointInput {
   apiFormat: String!
   path: String

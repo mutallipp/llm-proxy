@@ -12,6 +12,12 @@ type APIKey func(*sql.Selector)
 // APIKeyProfileTemplate is the predicate function for apikeyprofiletemplate builders.
 type APIKeyProfileTemplate func(*sql.Selector)
 
+// Adapter is the predicate function for adapter builders.
+type Adapter func(*sql.Selector)
+
+// AdapterModelBinding is the predicate function for adaptermodelbinding builders.
+type AdapterModelBinding func(*sql.Selector)
+
 // Channel is the predicate function for channel builders.
 type Channel func(*sql.Selector)
 
@@ -32,6 +38,15 @@ type DataStorage func(*sql.Selector)
 
 // Model is the predicate function for model builders.
 type Model func(*sql.Selector)
+
+// ModelGroup is the predicate function for modelgroup builders.
+type ModelGroup func(*sql.Selector)
+
+// ModelGroupProtocol is the predicate function for modelgroupprotocol builders.
+type ModelGroupProtocol func(*sql.Selector)
+
+// ModelGroupTarget is the predicate function for modelgrouptarget builders.
+type ModelGroupTarget func(*sql.Selector)
 
 // OIDCIdentity is the predicate function for oidcidentity builders.
 type OIDCIdentity func(*sql.Selector)

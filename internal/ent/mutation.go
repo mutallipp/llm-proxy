@@ -11,6 +11,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/looplj/axonhub/internal/ent/adapter"
+	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/apikeyprofiletemplate"
 	"github.com/looplj/axonhub/internal/ent/channel"
@@ -20,6 +22,9 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channelprobe"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelgroup"
+	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
+	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
 	"github.com/looplj/axonhub/internal/ent/oidcidentity"
 	"github.com/looplj/axonhub/internal/ent/predicate"
 	"github.com/looplj/axonhub/internal/ent/project"
@@ -50,6 +55,8 @@ const (
 	// Node types.
 	TypeAPIKey                   = "APIKey"
 	TypeAPIKeyProfileTemplate    = "APIKeyProfileTemplate"
+	TypeAdapter                  = "Adapter"
+	TypeAdapterModelBinding      = "AdapterModelBinding"
 	TypeChannel                  = "Channel"
 	TypeChannelModelPrice        = "ChannelModelPrice"
 	TypeChannelModelPriceVersion = "ChannelModelPriceVersion"
@@ -57,6 +64,9 @@ const (
 	TypeChannelProbe             = "ChannelProbe"
 	TypeDataStorage              = "DataStorage"
 	TypeModel                    = "Model"
+	TypeModelGroup               = "ModelGroup"
+	TypeModelGroupProtocol       = "ModelGroupProtocol"
+	TypeModelGroupTarget         = "ModelGroupTarget"
 	TypeOIDCIdentity             = "OIDCIdentity"
 	TypeProject                  = "Project"
 	TypePrompt                   = "Prompt"
@@ -2090,6 +2100,1723 @@ func (m *APIKeyProfileTemplateMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown APIKeyProfileTemplate edge %s", name)
 }
 
+// AdapterMutation represents an operation that mutates the Adapter nodes in the graph.
+type AdapterMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	created_at            *time.Time
+	updated_at            *time.Time
+	deleted_at            *int
+	adddeleted_at         *int
+	name                  *string
+	display_name          *string
+	inbound_api_format    *string
+	status                *adapter.Status
+	remark                *string
+	clearedFields         map[string]struct{}
+	model_bindings        map[int]struct{}
+	removedmodel_bindings map[int]struct{}
+	clearedmodel_bindings bool
+	done                  bool
+	oldValue              func(context.Context) (*Adapter, error)
+	predicates            []predicate.Adapter
+}
+
+var _ ent.Mutation = (*AdapterMutation)(nil)
+
+// adapterOption allows management of the mutation configuration using functional options.
+type adapterOption func(*AdapterMutation)
+
+// newAdapterMutation creates new mutation for the Adapter entity.
+func newAdapterMutation(c config, op Op, opts ...adapterOption) *AdapterMutation {
+	m := &AdapterMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAdapter,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAdapterID sets the ID field of the mutation.
+func withAdapterID(id int) adapterOption {
+	return func(m *AdapterMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Adapter
+		)
+		m.oldValue = func(ctx context.Context) (*Adapter, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Adapter.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAdapter sets the old Adapter of the mutation.
+func withAdapter(node *Adapter) adapterOption {
+	return func(m *AdapterMutation) {
+		m.oldValue = func(context.Context) (*Adapter, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AdapterMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AdapterMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AdapterMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AdapterMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Adapter.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AdapterMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AdapterMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Adapter entity.
+// If the Adapter object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AdapterMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AdapterMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AdapterMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Adapter entity.
+// If the Adapter object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AdapterMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *AdapterMutation) SetDeletedAt(i int) {
+	m.deleted_at = &i
+	m.adddeleted_at = nil
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *AdapterMutation) DeletedAt() (r int, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the Adapter entity.
+// If the Adapter object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterMutation) OldDeletedAt(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// AddDeletedAt adds i to the "deleted_at" field.
+func (m *AdapterMutation) AddDeletedAt(i int) {
+	if m.adddeleted_at != nil {
+		*m.adddeleted_at += i
+	} else {
+		m.adddeleted_at = &i
+	}
+}
+
+// AddedDeletedAt returns the value that was added to the "deleted_at" field in this mutation.
+func (m *AdapterMutation) AddedDeletedAt() (r int, exists bool) {
+	v := m.adddeleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *AdapterMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	m.adddeleted_at = nil
+}
+
+// SetName sets the "name" field.
+func (m *AdapterMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AdapterMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Adapter entity.
+// If the Adapter object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AdapterMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDisplayName sets the "display_name" field.
+func (m *AdapterMutation) SetDisplayName(s string) {
+	m.display_name = &s
+}
+
+// DisplayName returns the value of the "display_name" field in the mutation.
+func (m *AdapterMutation) DisplayName() (r string, exists bool) {
+	v := m.display_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayName returns the old "display_name" field's value of the Adapter entity.
+// If the Adapter object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterMutation) OldDisplayName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayName: %w", err)
+	}
+	return oldValue.DisplayName, nil
+}
+
+// ResetDisplayName resets all changes to the "display_name" field.
+func (m *AdapterMutation) ResetDisplayName() {
+	m.display_name = nil
+}
+
+// SetInboundAPIFormat sets the "inbound_api_format" field.
+func (m *AdapterMutation) SetInboundAPIFormat(s string) {
+	m.inbound_api_format = &s
+}
+
+// InboundAPIFormat returns the value of the "inbound_api_format" field in the mutation.
+func (m *AdapterMutation) InboundAPIFormat() (r string, exists bool) {
+	v := m.inbound_api_format
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInboundAPIFormat returns the old "inbound_api_format" field's value of the Adapter entity.
+// If the Adapter object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterMutation) OldInboundAPIFormat(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInboundAPIFormat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInboundAPIFormat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInboundAPIFormat: %w", err)
+	}
+	return oldValue.InboundAPIFormat, nil
+}
+
+// ResetInboundAPIFormat resets all changes to the "inbound_api_format" field.
+func (m *AdapterMutation) ResetInboundAPIFormat() {
+	m.inbound_api_format = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AdapterMutation) SetStatus(a adapter.Status) {
+	m.status = &a
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AdapterMutation) Status() (r adapter.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Adapter entity.
+// If the Adapter object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterMutation) OldStatus(ctx context.Context) (v adapter.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AdapterMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *AdapterMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *AdapterMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the Adapter entity.
+// If the Adapter object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterMutation) OldRemark(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *AdapterMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[adapter.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *AdapterMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[adapter.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *AdapterMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, adapter.FieldRemark)
+}
+
+// AddModelBindingIDs adds the "model_bindings" edge to the AdapterModelBinding entity by ids.
+func (m *AdapterMutation) AddModelBindingIDs(ids ...int) {
+	if m.model_bindings == nil {
+		m.model_bindings = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.model_bindings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearModelBindings clears the "model_bindings" edge to the AdapterModelBinding entity.
+func (m *AdapterMutation) ClearModelBindings() {
+	m.clearedmodel_bindings = true
+}
+
+// ModelBindingsCleared reports if the "model_bindings" edge to the AdapterModelBinding entity was cleared.
+func (m *AdapterMutation) ModelBindingsCleared() bool {
+	return m.clearedmodel_bindings
+}
+
+// RemoveModelBindingIDs removes the "model_bindings" edge to the AdapterModelBinding entity by IDs.
+func (m *AdapterMutation) RemoveModelBindingIDs(ids ...int) {
+	if m.removedmodel_bindings == nil {
+		m.removedmodel_bindings = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.model_bindings, ids[i])
+		m.removedmodel_bindings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedModelBindings returns the removed IDs of the "model_bindings" edge to the AdapterModelBinding entity.
+func (m *AdapterMutation) RemovedModelBindingsIDs() (ids []int) {
+	for id := range m.removedmodel_bindings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ModelBindingsIDs returns the "model_bindings" edge IDs in the mutation.
+func (m *AdapterMutation) ModelBindingsIDs() (ids []int) {
+	for id := range m.model_bindings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetModelBindings resets all changes to the "model_bindings" edge.
+func (m *AdapterMutation) ResetModelBindings() {
+	m.model_bindings = nil
+	m.clearedmodel_bindings = false
+	m.removedmodel_bindings = nil
+}
+
+// Where appends a list predicates to the AdapterMutation builder.
+func (m *AdapterMutation) Where(ps ...predicate.Adapter) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AdapterMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AdapterMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Adapter, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AdapterMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AdapterMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Adapter).
+func (m *AdapterMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AdapterMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.created_at != nil {
+		fields = append(fields, adapter.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, adapter.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, adapter.FieldDeletedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, adapter.FieldName)
+	}
+	if m.display_name != nil {
+		fields = append(fields, adapter.FieldDisplayName)
+	}
+	if m.inbound_api_format != nil {
+		fields = append(fields, adapter.FieldInboundAPIFormat)
+	}
+	if m.status != nil {
+		fields = append(fields, adapter.FieldStatus)
+	}
+	if m.remark != nil {
+		fields = append(fields, adapter.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AdapterMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case adapter.FieldCreatedAt:
+		return m.CreatedAt()
+	case adapter.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case adapter.FieldDeletedAt:
+		return m.DeletedAt()
+	case adapter.FieldName:
+		return m.Name()
+	case adapter.FieldDisplayName:
+		return m.DisplayName()
+	case adapter.FieldInboundAPIFormat:
+		return m.InboundAPIFormat()
+	case adapter.FieldStatus:
+		return m.Status()
+	case adapter.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AdapterMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case adapter.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case adapter.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case adapter.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case adapter.FieldName:
+		return m.OldName(ctx)
+	case adapter.FieldDisplayName:
+		return m.OldDisplayName(ctx)
+	case adapter.FieldInboundAPIFormat:
+		return m.OldInboundAPIFormat(ctx)
+	case adapter.FieldStatus:
+		return m.OldStatus(ctx)
+	case adapter.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown Adapter field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AdapterMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case adapter.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case adapter.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case adapter.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case adapter.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case adapter.FieldDisplayName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayName(v)
+		return nil
+	case adapter.FieldInboundAPIFormat:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInboundAPIFormat(v)
+		return nil
+	case adapter.FieldStatus:
+		v, ok := value.(adapter.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case adapter.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Adapter field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AdapterMutation) AddedFields() []string {
+	var fields []string
+	if m.adddeleted_at != nil {
+		fields = append(fields, adapter.FieldDeletedAt)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AdapterMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case adapter.FieldDeletedAt:
+		return m.AddedDeletedAt()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AdapterMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case adapter.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Adapter numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AdapterMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(adapter.FieldRemark) {
+		fields = append(fields, adapter.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AdapterMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AdapterMutation) ClearField(name string) error {
+	switch name {
+	case adapter.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown Adapter nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AdapterMutation) ResetField(name string) error {
+	switch name {
+	case adapter.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case adapter.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case adapter.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case adapter.FieldName:
+		m.ResetName()
+		return nil
+	case adapter.FieldDisplayName:
+		m.ResetDisplayName()
+		return nil
+	case adapter.FieldInboundAPIFormat:
+		m.ResetInboundAPIFormat()
+		return nil
+	case adapter.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case adapter.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown Adapter field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AdapterMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.model_bindings != nil {
+		edges = append(edges, adapter.EdgeModelBindings)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AdapterMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case adapter.EdgeModelBindings:
+		ids := make([]ent.Value, 0, len(m.model_bindings))
+		for id := range m.model_bindings {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AdapterMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedmodel_bindings != nil {
+		edges = append(edges, adapter.EdgeModelBindings)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AdapterMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case adapter.EdgeModelBindings:
+		ids := make([]ent.Value, 0, len(m.removedmodel_bindings))
+		for id := range m.removedmodel_bindings {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AdapterMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedmodel_bindings {
+		edges = append(edges, adapter.EdgeModelBindings)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AdapterMutation) EdgeCleared(name string) bool {
+	switch name {
+	case adapter.EdgeModelBindings:
+		return m.clearedmodel_bindings
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AdapterMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Adapter unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AdapterMutation) ResetEdge(name string) error {
+	switch name {
+	case adapter.EdgeModelBindings:
+		m.ResetModelBindings()
+		return nil
+	}
+	return fmt.Errorf("unknown Adapter edge %s", name)
+}
+
+// AdapterModelBindingMutation represents an operation that mutates the AdapterModelBinding nodes in the graph.
+type AdapterModelBindingMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	created_at         *time.Time
+	updated_at         *time.Time
+	deleted_at         *int
+	adddeleted_at      *int
+	source_model_id    *string
+	enabled            *bool
+	remark             *string
+	clearedFields      map[string]struct{}
+	adapter            *int
+	clearedadapter     bool
+	model_group        *int
+	clearedmodel_group bool
+	done               bool
+	oldValue           func(context.Context) (*AdapterModelBinding, error)
+	predicates         []predicate.AdapterModelBinding
+}
+
+var _ ent.Mutation = (*AdapterModelBindingMutation)(nil)
+
+// adaptermodelbindingOption allows management of the mutation configuration using functional options.
+type adaptermodelbindingOption func(*AdapterModelBindingMutation)
+
+// newAdapterModelBindingMutation creates new mutation for the AdapterModelBinding entity.
+func newAdapterModelBindingMutation(c config, op Op, opts ...adaptermodelbindingOption) *AdapterModelBindingMutation {
+	m := &AdapterModelBindingMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAdapterModelBinding,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAdapterModelBindingID sets the ID field of the mutation.
+func withAdapterModelBindingID(id int) adaptermodelbindingOption {
+	return func(m *AdapterModelBindingMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AdapterModelBinding
+		)
+		m.oldValue = func(ctx context.Context) (*AdapterModelBinding, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AdapterModelBinding.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAdapterModelBinding sets the old AdapterModelBinding of the mutation.
+func withAdapterModelBinding(node *AdapterModelBinding) adaptermodelbindingOption {
+	return func(m *AdapterModelBindingMutation) {
+		m.oldValue = func(context.Context) (*AdapterModelBinding, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AdapterModelBindingMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AdapterModelBindingMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AdapterModelBindingMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AdapterModelBindingMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AdapterModelBinding.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AdapterModelBindingMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AdapterModelBindingMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AdapterModelBinding entity.
+// If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterModelBindingMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AdapterModelBindingMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AdapterModelBindingMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AdapterModelBindingMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AdapterModelBinding entity.
+// If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterModelBindingMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AdapterModelBindingMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *AdapterModelBindingMutation) SetDeletedAt(i int) {
+	m.deleted_at = &i
+	m.adddeleted_at = nil
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *AdapterModelBindingMutation) DeletedAt() (r int, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the AdapterModelBinding entity.
+// If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterModelBindingMutation) OldDeletedAt(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// AddDeletedAt adds i to the "deleted_at" field.
+func (m *AdapterModelBindingMutation) AddDeletedAt(i int) {
+	if m.adddeleted_at != nil {
+		*m.adddeleted_at += i
+	} else {
+		m.adddeleted_at = &i
+	}
+}
+
+// AddedDeletedAt returns the value that was added to the "deleted_at" field in this mutation.
+func (m *AdapterModelBindingMutation) AddedDeletedAt() (r int, exists bool) {
+	v := m.adddeleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *AdapterModelBindingMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	m.adddeleted_at = nil
+}
+
+// SetAdapterID sets the "adapter_id" field.
+func (m *AdapterModelBindingMutation) SetAdapterID(i int) {
+	m.adapter = &i
+}
+
+// AdapterID returns the value of the "adapter_id" field in the mutation.
+func (m *AdapterModelBindingMutation) AdapterID() (r int, exists bool) {
+	v := m.adapter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAdapterID returns the old "adapter_id" field's value of the AdapterModelBinding entity.
+// If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterModelBindingMutation) OldAdapterID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAdapterID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAdapterID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAdapterID: %w", err)
+	}
+	return oldValue.AdapterID, nil
+}
+
+// ResetAdapterID resets all changes to the "adapter_id" field.
+func (m *AdapterModelBindingMutation) ResetAdapterID() {
+	m.adapter = nil
+}
+
+// SetSourceModelID sets the "source_model_id" field.
+func (m *AdapterModelBindingMutation) SetSourceModelID(s string) {
+	m.source_model_id = &s
+}
+
+// SourceModelID returns the value of the "source_model_id" field in the mutation.
+func (m *AdapterModelBindingMutation) SourceModelID() (r string, exists bool) {
+	v := m.source_model_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceModelID returns the old "source_model_id" field's value of the AdapterModelBinding entity.
+// If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterModelBindingMutation) OldSourceModelID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceModelID: %w", err)
+	}
+	return oldValue.SourceModelID, nil
+}
+
+// ResetSourceModelID resets all changes to the "source_model_id" field.
+func (m *AdapterModelBindingMutation) ResetSourceModelID() {
+	m.source_model_id = nil
+}
+
+// SetModelGroupID sets the "model_group_id" field.
+func (m *AdapterModelBindingMutation) SetModelGroupID(i int) {
+	m.model_group = &i
+}
+
+// ModelGroupID returns the value of the "model_group_id" field in the mutation.
+func (m *AdapterModelBindingMutation) ModelGroupID() (r int, exists bool) {
+	v := m.model_group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelGroupID returns the old "model_group_id" field's value of the AdapterModelBinding entity.
+// If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterModelBindingMutation) OldModelGroupID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelGroupID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelGroupID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelGroupID: %w", err)
+	}
+	return oldValue.ModelGroupID, nil
+}
+
+// ResetModelGroupID resets all changes to the "model_group_id" field.
+func (m *AdapterModelBindingMutation) ResetModelGroupID() {
+	m.model_group = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *AdapterModelBindingMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *AdapterModelBindingMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the AdapterModelBinding entity.
+// If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterModelBindingMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *AdapterModelBindingMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *AdapterModelBindingMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *AdapterModelBindingMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the AdapterModelBinding entity.
+// If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdapterModelBindingMutation) OldRemark(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *AdapterModelBindingMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[adaptermodelbinding.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *AdapterModelBindingMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[adaptermodelbinding.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *AdapterModelBindingMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, adaptermodelbinding.FieldRemark)
+}
+
+// ClearAdapter clears the "adapter" edge to the Adapter entity.
+func (m *AdapterModelBindingMutation) ClearAdapter() {
+	m.clearedadapter = true
+	m.clearedFields[adaptermodelbinding.FieldAdapterID] = struct{}{}
+}
+
+// AdapterCleared reports if the "adapter" edge to the Adapter entity was cleared.
+func (m *AdapterModelBindingMutation) AdapterCleared() bool {
+	return m.clearedadapter
+}
+
+// AdapterIDs returns the "adapter" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AdapterID instead. It exists only for internal usage by the builders.
+func (m *AdapterModelBindingMutation) AdapterIDs() (ids []int) {
+	if id := m.adapter; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAdapter resets all changes to the "adapter" edge.
+func (m *AdapterModelBindingMutation) ResetAdapter() {
+	m.adapter = nil
+	m.clearedadapter = false
+}
+
+// ClearModelGroup clears the "model_group" edge to the ModelGroup entity.
+func (m *AdapterModelBindingMutation) ClearModelGroup() {
+	m.clearedmodel_group = true
+	m.clearedFields[adaptermodelbinding.FieldModelGroupID] = struct{}{}
+}
+
+// ModelGroupCleared reports if the "model_group" edge to the ModelGroup entity was cleared.
+func (m *AdapterModelBindingMutation) ModelGroupCleared() bool {
+	return m.clearedmodel_group
+}
+
+// ModelGroupIDs returns the "model_group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ModelGroupID instead. It exists only for internal usage by the builders.
+func (m *AdapterModelBindingMutation) ModelGroupIDs() (ids []int) {
+	if id := m.model_group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetModelGroup resets all changes to the "model_group" edge.
+func (m *AdapterModelBindingMutation) ResetModelGroup() {
+	m.model_group = nil
+	m.clearedmodel_group = false
+}
+
+// Where appends a list predicates to the AdapterModelBindingMutation builder.
+func (m *AdapterModelBindingMutation) Where(ps ...predicate.AdapterModelBinding) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AdapterModelBindingMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AdapterModelBindingMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AdapterModelBinding, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AdapterModelBindingMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AdapterModelBindingMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AdapterModelBinding).
+func (m *AdapterModelBindingMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AdapterModelBindingMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.created_at != nil {
+		fields = append(fields, adaptermodelbinding.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, adaptermodelbinding.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, adaptermodelbinding.FieldDeletedAt)
+	}
+	if m.adapter != nil {
+		fields = append(fields, adaptermodelbinding.FieldAdapterID)
+	}
+	if m.source_model_id != nil {
+		fields = append(fields, adaptermodelbinding.FieldSourceModelID)
+	}
+	if m.model_group != nil {
+		fields = append(fields, adaptermodelbinding.FieldModelGroupID)
+	}
+	if m.enabled != nil {
+		fields = append(fields, adaptermodelbinding.FieldEnabled)
+	}
+	if m.remark != nil {
+		fields = append(fields, adaptermodelbinding.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AdapterModelBindingMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case adaptermodelbinding.FieldCreatedAt:
+		return m.CreatedAt()
+	case adaptermodelbinding.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case adaptermodelbinding.FieldDeletedAt:
+		return m.DeletedAt()
+	case adaptermodelbinding.FieldAdapterID:
+		return m.AdapterID()
+	case adaptermodelbinding.FieldSourceModelID:
+		return m.SourceModelID()
+	case adaptermodelbinding.FieldModelGroupID:
+		return m.ModelGroupID()
+	case adaptermodelbinding.FieldEnabled:
+		return m.Enabled()
+	case adaptermodelbinding.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AdapterModelBindingMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case adaptermodelbinding.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case adaptermodelbinding.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case adaptermodelbinding.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case adaptermodelbinding.FieldAdapterID:
+		return m.OldAdapterID(ctx)
+	case adaptermodelbinding.FieldSourceModelID:
+		return m.OldSourceModelID(ctx)
+	case adaptermodelbinding.FieldModelGroupID:
+		return m.OldModelGroupID(ctx)
+	case adaptermodelbinding.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case adaptermodelbinding.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown AdapterModelBinding field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AdapterModelBindingMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case adaptermodelbinding.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case adaptermodelbinding.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case adaptermodelbinding.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case adaptermodelbinding.FieldAdapterID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAdapterID(v)
+		return nil
+	case adaptermodelbinding.FieldSourceModelID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceModelID(v)
+		return nil
+	case adaptermodelbinding.FieldModelGroupID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelGroupID(v)
+		return nil
+	case adaptermodelbinding.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case adaptermodelbinding.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AdapterModelBinding field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AdapterModelBindingMutation) AddedFields() []string {
+	var fields []string
+	if m.adddeleted_at != nil {
+		fields = append(fields, adaptermodelbinding.FieldDeletedAt)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AdapterModelBindingMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case adaptermodelbinding.FieldDeletedAt:
+		return m.AddedDeletedAt()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AdapterModelBindingMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case adaptermodelbinding.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AdapterModelBinding numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AdapterModelBindingMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(adaptermodelbinding.FieldRemark) {
+		fields = append(fields, adaptermodelbinding.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AdapterModelBindingMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AdapterModelBindingMutation) ClearField(name string) error {
+	switch name {
+	case adaptermodelbinding.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown AdapterModelBinding nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AdapterModelBindingMutation) ResetField(name string) error {
+	switch name {
+	case adaptermodelbinding.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case adaptermodelbinding.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case adaptermodelbinding.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case adaptermodelbinding.FieldAdapterID:
+		m.ResetAdapterID()
+		return nil
+	case adaptermodelbinding.FieldSourceModelID:
+		m.ResetSourceModelID()
+		return nil
+	case adaptermodelbinding.FieldModelGroupID:
+		m.ResetModelGroupID()
+		return nil
+	case adaptermodelbinding.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case adaptermodelbinding.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown AdapterModelBinding field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AdapterModelBindingMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.adapter != nil {
+		edges = append(edges, adaptermodelbinding.EdgeAdapter)
+	}
+	if m.model_group != nil {
+		edges = append(edges, adaptermodelbinding.EdgeModelGroup)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AdapterModelBindingMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case adaptermodelbinding.EdgeAdapter:
+		if id := m.adapter; id != nil {
+			return []ent.Value{*id}
+		}
+	case adaptermodelbinding.EdgeModelGroup:
+		if id := m.model_group; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AdapterModelBindingMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AdapterModelBindingMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AdapterModelBindingMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedadapter {
+		edges = append(edges, adaptermodelbinding.EdgeAdapter)
+	}
+	if m.clearedmodel_group {
+		edges = append(edges, adaptermodelbinding.EdgeModelGroup)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AdapterModelBindingMutation) EdgeCleared(name string) bool {
+	switch name {
+	case adaptermodelbinding.EdgeAdapter:
+		return m.clearedadapter
+	case adaptermodelbinding.EdgeModelGroup:
+		return m.clearedmodel_group
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AdapterModelBindingMutation) ClearEdge(name string) error {
+	switch name {
+	case adaptermodelbinding.EdgeAdapter:
+		m.ClearAdapter()
+		return nil
+	case adaptermodelbinding.EdgeModelGroup:
+		m.ClearModelGroup()
+		return nil
+	}
+	return fmt.Errorf("unknown AdapterModelBinding unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AdapterModelBindingMutation) ResetEdge(name string) error {
+	switch name {
+	case adaptermodelbinding.EdgeAdapter:
+		m.ResetAdapter()
+		return nil
+	case adaptermodelbinding.EdgeModelGroup:
+		m.ResetModelGroup()
+		return nil
+	}
+	return fmt.Errorf("unknown AdapterModelBinding edge %s", name)
+}
+
 // ChannelMutation represents an operation that mutates the Channel nodes in the graph.
 type ChannelMutation struct {
 	config
@@ -2142,6 +3869,9 @@ type ChannelMutation struct {
 	clearedchannel_model_prices  bool
 	provider_quota_status        *int
 	clearedprovider_quota_status bool
+	model_group_targets          map[int]struct{}
+	removedmodel_group_targets   map[int]struct{}
+	clearedmodel_group_targets   bool
 	done                         bool
 	oldValue                     func(context.Context) (*Channel, error)
 	predicates                   []predicate.Channel
@@ -3559,6 +5289,60 @@ func (m *ChannelMutation) ResetProviderQuotaStatus() {
 	m.clearedprovider_quota_status = false
 }
 
+// AddModelGroupTargetIDs adds the "model_group_targets" edge to the ModelGroupTarget entity by ids.
+func (m *ChannelMutation) AddModelGroupTargetIDs(ids ...int) {
+	if m.model_group_targets == nil {
+		m.model_group_targets = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.model_group_targets[ids[i]] = struct{}{}
+	}
+}
+
+// ClearModelGroupTargets clears the "model_group_targets" edge to the ModelGroupTarget entity.
+func (m *ChannelMutation) ClearModelGroupTargets() {
+	m.clearedmodel_group_targets = true
+}
+
+// ModelGroupTargetsCleared reports if the "model_group_targets" edge to the ModelGroupTarget entity was cleared.
+func (m *ChannelMutation) ModelGroupTargetsCleared() bool {
+	return m.clearedmodel_group_targets
+}
+
+// RemoveModelGroupTargetIDs removes the "model_group_targets" edge to the ModelGroupTarget entity by IDs.
+func (m *ChannelMutation) RemoveModelGroupTargetIDs(ids ...int) {
+	if m.removedmodel_group_targets == nil {
+		m.removedmodel_group_targets = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.model_group_targets, ids[i])
+		m.removedmodel_group_targets[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedModelGroupTargets returns the removed IDs of the "model_group_targets" edge to the ModelGroupTarget entity.
+func (m *ChannelMutation) RemovedModelGroupTargetsIDs() (ids []int) {
+	for id := range m.removedmodel_group_targets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ModelGroupTargetsIDs returns the "model_group_targets" edge IDs in the mutation.
+func (m *ChannelMutation) ModelGroupTargetsIDs() (ids []int) {
+	for id := range m.model_group_targets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetModelGroupTargets resets all changes to the "model_group_targets" edge.
+func (m *ChannelMutation) ResetModelGroupTargets() {
+	m.model_group_targets = nil
+	m.clearedmodel_group_targets = false
+	m.removedmodel_group_targets = nil
+}
+
 // Where appends a list predicates to the ChannelMutation builder.
 func (m *ChannelMutation) Where(ps ...predicate.Channel) {
 	m.predicates = append(m.predicates, ps...)
@@ -4122,7 +5906,7 @@ func (m *ChannelMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ChannelMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.requests != nil {
 		edges = append(edges, channel.EdgeRequests)
 	}
@@ -4140,6 +5924,9 @@ func (m *ChannelMutation) AddedEdges() []string {
 	}
 	if m.provider_quota_status != nil {
 		edges = append(edges, channel.EdgeProviderQuotaStatus)
+	}
+	if m.model_group_targets != nil {
+		edges = append(edges, channel.EdgeModelGroupTargets)
 	}
 	return edges
 }
@@ -4182,13 +5969,19 @@ func (m *ChannelMutation) AddedIDs(name string) []ent.Value {
 		if id := m.provider_quota_status; id != nil {
 			return []ent.Value{*id}
 		}
+	case channel.EdgeModelGroupTargets:
+		ids := make([]ent.Value, 0, len(m.model_group_targets))
+		for id := range m.model_group_targets {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ChannelMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedrequests != nil {
 		edges = append(edges, channel.EdgeRequests)
 	}
@@ -4203,6 +5996,9 @@ func (m *ChannelMutation) RemovedEdges() []string {
 	}
 	if m.removedchannel_model_prices != nil {
 		edges = append(edges, channel.EdgeChannelModelPrices)
+	}
+	if m.removedmodel_group_targets != nil {
+		edges = append(edges, channel.EdgeModelGroupTargets)
 	}
 	return edges
 }
@@ -4241,13 +6037,19 @@ func (m *ChannelMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case channel.EdgeModelGroupTargets:
+		ids := make([]ent.Value, 0, len(m.removedmodel_group_targets))
+		for id := range m.removedmodel_group_targets {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ChannelMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedrequests {
 		edges = append(edges, channel.EdgeRequests)
 	}
@@ -4265,6 +6067,9 @@ func (m *ChannelMutation) ClearedEdges() []string {
 	}
 	if m.clearedprovider_quota_status {
 		edges = append(edges, channel.EdgeProviderQuotaStatus)
+	}
+	if m.clearedmodel_group_targets {
+		edges = append(edges, channel.EdgeModelGroupTargets)
 	}
 	return edges
 }
@@ -4285,6 +6090,8 @@ func (m *ChannelMutation) EdgeCleared(name string) bool {
 		return m.clearedchannel_model_prices
 	case channel.EdgeProviderQuotaStatus:
 		return m.clearedprovider_quota_status
+	case channel.EdgeModelGroupTargets:
+		return m.clearedmodel_group_targets
 	}
 	return false
 }
@@ -4321,6 +6128,9 @@ func (m *ChannelMutation) ResetEdge(name string) error {
 		return nil
 	case channel.EdgeProviderQuotaStatus:
 		m.ResetProviderQuotaStatus()
+		return nil
+	case channel.EdgeModelGroupTargets:
+		m.ResetModelGroupTargets()
 		return nil
 	}
 	return fmt.Errorf("unknown Channel edge %s", name)
@@ -9967,6 +11777,2848 @@ func (m *ModelMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ModelMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Model edge %s", name)
+}
+
+// ModelGroupMutation represents an operation that mutates the ModelGroup nodes in the graph.
+type ModelGroupMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *int
+	adddeleted_at           *int
+	name                    *string
+	display_name            *string
+	status                  *modelgroup.Status
+	selection_strategy      *modelgroup.SelectionStrategy
+	remark                  *string
+	clearedFields           map[string]struct{}
+	adapter_bindings        map[int]struct{}
+	removedadapter_bindings map[int]struct{}
+	clearedadapter_bindings bool
+	protocols               map[int]struct{}
+	removedprotocols        map[int]struct{}
+	clearedprotocols        bool
+	done                    bool
+	oldValue                func(context.Context) (*ModelGroup, error)
+	predicates              []predicate.ModelGroup
+}
+
+var _ ent.Mutation = (*ModelGroupMutation)(nil)
+
+// modelgroupOption allows management of the mutation configuration using functional options.
+type modelgroupOption func(*ModelGroupMutation)
+
+// newModelGroupMutation creates new mutation for the ModelGroup entity.
+func newModelGroupMutation(c config, op Op, opts ...modelgroupOption) *ModelGroupMutation {
+	m := &ModelGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeModelGroup,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withModelGroupID sets the ID field of the mutation.
+func withModelGroupID(id int) modelgroupOption {
+	return func(m *ModelGroupMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ModelGroup
+		)
+		m.oldValue = func(ctx context.Context) (*ModelGroup, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ModelGroup.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withModelGroup sets the old ModelGroup of the mutation.
+func withModelGroup(node *ModelGroup) modelgroupOption {
+	return func(m *ModelGroupMutation) {
+		m.oldValue = func(context.Context) (*ModelGroup, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ModelGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ModelGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ModelGroupMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ModelGroupMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ModelGroup.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ModelGroupMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ModelGroupMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ModelGroup entity.
+// If the ModelGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ModelGroupMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ModelGroupMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ModelGroupMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ModelGroup entity.
+// If the ModelGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ModelGroupMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *ModelGroupMutation) SetDeletedAt(i int) {
+	m.deleted_at = &i
+	m.adddeleted_at = nil
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *ModelGroupMutation) DeletedAt() (r int, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the ModelGroup entity.
+// If the ModelGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupMutation) OldDeletedAt(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// AddDeletedAt adds i to the "deleted_at" field.
+func (m *ModelGroupMutation) AddDeletedAt(i int) {
+	if m.adddeleted_at != nil {
+		*m.adddeleted_at += i
+	} else {
+		m.adddeleted_at = &i
+	}
+}
+
+// AddedDeletedAt returns the value that was added to the "deleted_at" field in this mutation.
+func (m *ModelGroupMutation) AddedDeletedAt() (r int, exists bool) {
+	v := m.adddeleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *ModelGroupMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	m.adddeleted_at = nil
+}
+
+// SetName sets the "name" field.
+func (m *ModelGroupMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ModelGroupMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ModelGroup entity.
+// If the ModelGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ModelGroupMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDisplayName sets the "display_name" field.
+func (m *ModelGroupMutation) SetDisplayName(s string) {
+	m.display_name = &s
+}
+
+// DisplayName returns the value of the "display_name" field in the mutation.
+func (m *ModelGroupMutation) DisplayName() (r string, exists bool) {
+	v := m.display_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayName returns the old "display_name" field's value of the ModelGroup entity.
+// If the ModelGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupMutation) OldDisplayName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayName: %w", err)
+	}
+	return oldValue.DisplayName, nil
+}
+
+// ResetDisplayName resets all changes to the "display_name" field.
+func (m *ModelGroupMutation) ResetDisplayName() {
+	m.display_name = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *ModelGroupMutation) SetStatus(value modelgroup.Status) {
+	m.status = &value
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ModelGroupMutation) Status() (r modelgroup.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ModelGroup entity.
+// If the ModelGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupMutation) OldStatus(ctx context.Context) (v modelgroup.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ModelGroupMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetSelectionStrategy sets the "selection_strategy" field.
+func (m *ModelGroupMutation) SetSelectionStrategy(ms modelgroup.SelectionStrategy) {
+	m.selection_strategy = &ms
+}
+
+// SelectionStrategy returns the value of the "selection_strategy" field in the mutation.
+func (m *ModelGroupMutation) SelectionStrategy() (r modelgroup.SelectionStrategy, exists bool) {
+	v := m.selection_strategy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSelectionStrategy returns the old "selection_strategy" field's value of the ModelGroup entity.
+// If the ModelGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupMutation) OldSelectionStrategy(ctx context.Context) (v modelgroup.SelectionStrategy, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSelectionStrategy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSelectionStrategy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSelectionStrategy: %w", err)
+	}
+	return oldValue.SelectionStrategy, nil
+}
+
+// ResetSelectionStrategy resets all changes to the "selection_strategy" field.
+func (m *ModelGroupMutation) ResetSelectionStrategy() {
+	m.selection_strategy = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *ModelGroupMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *ModelGroupMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the ModelGroup entity.
+// If the ModelGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupMutation) OldRemark(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *ModelGroupMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[modelgroup.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *ModelGroupMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[modelgroup.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *ModelGroupMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, modelgroup.FieldRemark)
+}
+
+// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by ids.
+func (m *ModelGroupMutation) AddAdapterBindingIDs(ids ...int) {
+	if m.adapter_bindings == nil {
+		m.adapter_bindings = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.adapter_bindings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAdapterBindings clears the "adapter_bindings" edge to the AdapterModelBinding entity.
+func (m *ModelGroupMutation) ClearAdapterBindings() {
+	m.clearedadapter_bindings = true
+}
+
+// AdapterBindingsCleared reports if the "adapter_bindings" edge to the AdapterModelBinding entity was cleared.
+func (m *ModelGroupMutation) AdapterBindingsCleared() bool {
+	return m.clearedadapter_bindings
+}
+
+// RemoveAdapterBindingIDs removes the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
+func (m *ModelGroupMutation) RemoveAdapterBindingIDs(ids ...int) {
+	if m.removedadapter_bindings == nil {
+		m.removedadapter_bindings = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.adapter_bindings, ids[i])
+		m.removedadapter_bindings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAdapterBindings returns the removed IDs of the "adapter_bindings" edge to the AdapterModelBinding entity.
+func (m *ModelGroupMutation) RemovedAdapterBindingsIDs() (ids []int) {
+	for id := range m.removedadapter_bindings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AdapterBindingsIDs returns the "adapter_bindings" edge IDs in the mutation.
+func (m *ModelGroupMutation) AdapterBindingsIDs() (ids []int) {
+	for id := range m.adapter_bindings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAdapterBindings resets all changes to the "adapter_bindings" edge.
+func (m *ModelGroupMutation) ResetAdapterBindings() {
+	m.adapter_bindings = nil
+	m.clearedadapter_bindings = false
+	m.removedadapter_bindings = nil
+}
+
+// AddProtocolIDs adds the "protocols" edge to the ModelGroupProtocol entity by ids.
+func (m *ModelGroupMutation) AddProtocolIDs(ids ...int) {
+	if m.protocols == nil {
+		m.protocols = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.protocols[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProtocols clears the "protocols" edge to the ModelGroupProtocol entity.
+func (m *ModelGroupMutation) ClearProtocols() {
+	m.clearedprotocols = true
+}
+
+// ProtocolsCleared reports if the "protocols" edge to the ModelGroupProtocol entity was cleared.
+func (m *ModelGroupMutation) ProtocolsCleared() bool {
+	return m.clearedprotocols
+}
+
+// RemoveProtocolIDs removes the "protocols" edge to the ModelGroupProtocol entity by IDs.
+func (m *ModelGroupMutation) RemoveProtocolIDs(ids ...int) {
+	if m.removedprotocols == nil {
+		m.removedprotocols = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.protocols, ids[i])
+		m.removedprotocols[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProtocols returns the removed IDs of the "protocols" edge to the ModelGroupProtocol entity.
+func (m *ModelGroupMutation) RemovedProtocolsIDs() (ids []int) {
+	for id := range m.removedprotocols {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ProtocolsIDs returns the "protocols" edge IDs in the mutation.
+func (m *ModelGroupMutation) ProtocolsIDs() (ids []int) {
+	for id := range m.protocols {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProtocols resets all changes to the "protocols" edge.
+func (m *ModelGroupMutation) ResetProtocols() {
+	m.protocols = nil
+	m.clearedprotocols = false
+	m.removedprotocols = nil
+}
+
+// Where appends a list predicates to the ModelGroupMutation builder.
+func (m *ModelGroupMutation) Where(ps ...predicate.ModelGroup) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ModelGroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ModelGroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ModelGroup, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ModelGroupMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ModelGroupMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ModelGroup).
+func (m *ModelGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ModelGroupMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.created_at != nil {
+		fields = append(fields, modelgroup.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, modelgroup.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, modelgroup.FieldDeletedAt)
+	}
+	if m.name != nil {
+		fields = append(fields, modelgroup.FieldName)
+	}
+	if m.display_name != nil {
+		fields = append(fields, modelgroup.FieldDisplayName)
+	}
+	if m.status != nil {
+		fields = append(fields, modelgroup.FieldStatus)
+	}
+	if m.selection_strategy != nil {
+		fields = append(fields, modelgroup.FieldSelectionStrategy)
+	}
+	if m.remark != nil {
+		fields = append(fields, modelgroup.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ModelGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case modelgroup.FieldCreatedAt:
+		return m.CreatedAt()
+	case modelgroup.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case modelgroup.FieldDeletedAt:
+		return m.DeletedAt()
+	case modelgroup.FieldName:
+		return m.Name()
+	case modelgroup.FieldDisplayName:
+		return m.DisplayName()
+	case modelgroup.FieldStatus:
+		return m.Status()
+	case modelgroup.FieldSelectionStrategy:
+		return m.SelectionStrategy()
+	case modelgroup.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ModelGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case modelgroup.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case modelgroup.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case modelgroup.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case modelgroup.FieldName:
+		return m.OldName(ctx)
+	case modelgroup.FieldDisplayName:
+		return m.OldDisplayName(ctx)
+	case modelgroup.FieldStatus:
+		return m.OldStatus(ctx)
+	case modelgroup.FieldSelectionStrategy:
+		return m.OldSelectionStrategy(ctx)
+	case modelgroup.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown ModelGroup field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModelGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case modelgroup.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case modelgroup.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case modelgroup.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case modelgroup.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case modelgroup.FieldDisplayName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayName(v)
+		return nil
+	case modelgroup.FieldStatus:
+		v, ok := value.(modelgroup.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case modelgroup.FieldSelectionStrategy:
+		v, ok := value.(modelgroup.SelectionStrategy)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSelectionStrategy(v)
+		return nil
+	case modelgroup.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ModelGroupMutation) AddedFields() []string {
+	var fields []string
+	if m.adddeleted_at != nil {
+		fields = append(fields, modelgroup.FieldDeletedAt)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ModelGroupMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case modelgroup.FieldDeletedAt:
+		return m.AddedDeletedAt()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModelGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case modelgroup.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ModelGroupMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(modelgroup.FieldRemark) {
+		fields = append(fields, modelgroup.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ModelGroupMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ModelGroupMutation) ClearField(name string) error {
+	switch name {
+	case modelgroup.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ModelGroupMutation) ResetField(name string) error {
+	switch name {
+	case modelgroup.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case modelgroup.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case modelgroup.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case modelgroup.FieldName:
+		m.ResetName()
+		return nil
+	case modelgroup.FieldDisplayName:
+		m.ResetDisplayName()
+		return nil
+	case modelgroup.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case modelgroup.FieldSelectionStrategy:
+		m.ResetSelectionStrategy()
+		return nil
+	case modelgroup.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ModelGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.adapter_bindings != nil {
+		edges = append(edges, modelgroup.EdgeAdapterBindings)
+	}
+	if m.protocols != nil {
+		edges = append(edges, modelgroup.EdgeProtocols)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ModelGroupMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case modelgroup.EdgeAdapterBindings:
+		ids := make([]ent.Value, 0, len(m.adapter_bindings))
+		for id := range m.adapter_bindings {
+			ids = append(ids, id)
+		}
+		return ids
+	case modelgroup.EdgeProtocols:
+		ids := make([]ent.Value, 0, len(m.protocols))
+		for id := range m.protocols {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ModelGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedadapter_bindings != nil {
+		edges = append(edges, modelgroup.EdgeAdapterBindings)
+	}
+	if m.removedprotocols != nil {
+		edges = append(edges, modelgroup.EdgeProtocols)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ModelGroupMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case modelgroup.EdgeAdapterBindings:
+		ids := make([]ent.Value, 0, len(m.removedadapter_bindings))
+		for id := range m.removedadapter_bindings {
+			ids = append(ids, id)
+		}
+		return ids
+	case modelgroup.EdgeProtocols:
+		ids := make([]ent.Value, 0, len(m.removedprotocols))
+		for id := range m.removedprotocols {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ModelGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedadapter_bindings {
+		edges = append(edges, modelgroup.EdgeAdapterBindings)
+	}
+	if m.clearedprotocols {
+		edges = append(edges, modelgroup.EdgeProtocols)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ModelGroupMutation) EdgeCleared(name string) bool {
+	switch name {
+	case modelgroup.EdgeAdapterBindings:
+		return m.clearedadapter_bindings
+	case modelgroup.EdgeProtocols:
+		return m.clearedprotocols
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ModelGroupMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ModelGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ModelGroupMutation) ResetEdge(name string) error {
+	switch name {
+	case modelgroup.EdgeAdapterBindings:
+		m.ResetAdapterBindings()
+		return nil
+	case modelgroup.EdgeProtocols:
+		m.ResetProtocols()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroup edge %s", name)
+}
+
+// ModelGroupProtocolMutation represents an operation that mutates the ModelGroupProtocol nodes in the graph.
+type ModelGroupProtocolMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	created_at         *time.Time
+	updated_at         *time.Time
+	deleted_at         *int
+	adddeleted_at      *int
+	inbound_api_format *string
+	enabled            *bool
+	remark             *string
+	clearedFields      map[string]struct{}
+	model_group        *int
+	clearedmodel_group bool
+	targets            map[int]struct{}
+	removedtargets     map[int]struct{}
+	clearedtargets     bool
+	done               bool
+	oldValue           func(context.Context) (*ModelGroupProtocol, error)
+	predicates         []predicate.ModelGroupProtocol
+}
+
+var _ ent.Mutation = (*ModelGroupProtocolMutation)(nil)
+
+// modelgroupprotocolOption allows management of the mutation configuration using functional options.
+type modelgroupprotocolOption func(*ModelGroupProtocolMutation)
+
+// newModelGroupProtocolMutation creates new mutation for the ModelGroupProtocol entity.
+func newModelGroupProtocolMutation(c config, op Op, opts ...modelgroupprotocolOption) *ModelGroupProtocolMutation {
+	m := &ModelGroupProtocolMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeModelGroupProtocol,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withModelGroupProtocolID sets the ID field of the mutation.
+func withModelGroupProtocolID(id int) modelgroupprotocolOption {
+	return func(m *ModelGroupProtocolMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ModelGroupProtocol
+		)
+		m.oldValue = func(ctx context.Context) (*ModelGroupProtocol, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ModelGroupProtocol.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withModelGroupProtocol sets the old ModelGroupProtocol of the mutation.
+func withModelGroupProtocol(node *ModelGroupProtocol) modelgroupprotocolOption {
+	return func(m *ModelGroupProtocolMutation) {
+		m.oldValue = func(context.Context) (*ModelGroupProtocol, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ModelGroupProtocolMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ModelGroupProtocolMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ModelGroupProtocolMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ModelGroupProtocolMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ModelGroupProtocol.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ModelGroupProtocolMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ModelGroupProtocolMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ModelGroupProtocol entity.
+// If the ModelGroupProtocol object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupProtocolMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ModelGroupProtocolMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ModelGroupProtocolMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ModelGroupProtocolMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ModelGroupProtocol entity.
+// If the ModelGroupProtocol object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupProtocolMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ModelGroupProtocolMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *ModelGroupProtocolMutation) SetDeletedAt(i int) {
+	m.deleted_at = &i
+	m.adddeleted_at = nil
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *ModelGroupProtocolMutation) DeletedAt() (r int, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the ModelGroupProtocol entity.
+// If the ModelGroupProtocol object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupProtocolMutation) OldDeletedAt(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// AddDeletedAt adds i to the "deleted_at" field.
+func (m *ModelGroupProtocolMutation) AddDeletedAt(i int) {
+	if m.adddeleted_at != nil {
+		*m.adddeleted_at += i
+	} else {
+		m.adddeleted_at = &i
+	}
+}
+
+// AddedDeletedAt returns the value that was added to the "deleted_at" field in this mutation.
+func (m *ModelGroupProtocolMutation) AddedDeletedAt() (r int, exists bool) {
+	v := m.adddeleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *ModelGroupProtocolMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	m.adddeleted_at = nil
+}
+
+// SetModelGroupID sets the "model_group_id" field.
+func (m *ModelGroupProtocolMutation) SetModelGroupID(i int) {
+	m.model_group = &i
+}
+
+// ModelGroupID returns the value of the "model_group_id" field in the mutation.
+func (m *ModelGroupProtocolMutation) ModelGroupID() (r int, exists bool) {
+	v := m.model_group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelGroupID returns the old "model_group_id" field's value of the ModelGroupProtocol entity.
+// If the ModelGroupProtocol object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupProtocolMutation) OldModelGroupID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelGroupID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelGroupID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelGroupID: %w", err)
+	}
+	return oldValue.ModelGroupID, nil
+}
+
+// ResetModelGroupID resets all changes to the "model_group_id" field.
+func (m *ModelGroupProtocolMutation) ResetModelGroupID() {
+	m.model_group = nil
+}
+
+// SetInboundAPIFormat sets the "inbound_api_format" field.
+func (m *ModelGroupProtocolMutation) SetInboundAPIFormat(s string) {
+	m.inbound_api_format = &s
+}
+
+// InboundAPIFormat returns the value of the "inbound_api_format" field in the mutation.
+func (m *ModelGroupProtocolMutation) InboundAPIFormat() (r string, exists bool) {
+	v := m.inbound_api_format
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInboundAPIFormat returns the old "inbound_api_format" field's value of the ModelGroupProtocol entity.
+// If the ModelGroupProtocol object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupProtocolMutation) OldInboundAPIFormat(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInboundAPIFormat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInboundAPIFormat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInboundAPIFormat: %w", err)
+	}
+	return oldValue.InboundAPIFormat, nil
+}
+
+// ResetInboundAPIFormat resets all changes to the "inbound_api_format" field.
+func (m *ModelGroupProtocolMutation) ResetInboundAPIFormat() {
+	m.inbound_api_format = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *ModelGroupProtocolMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *ModelGroupProtocolMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the ModelGroupProtocol entity.
+// If the ModelGroupProtocol object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupProtocolMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *ModelGroupProtocolMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *ModelGroupProtocolMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *ModelGroupProtocolMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the ModelGroupProtocol entity.
+// If the ModelGroupProtocol object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupProtocolMutation) OldRemark(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *ModelGroupProtocolMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[modelgroupprotocol.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *ModelGroupProtocolMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[modelgroupprotocol.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *ModelGroupProtocolMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, modelgroupprotocol.FieldRemark)
+}
+
+// ClearModelGroup clears the "model_group" edge to the ModelGroup entity.
+func (m *ModelGroupProtocolMutation) ClearModelGroup() {
+	m.clearedmodel_group = true
+	m.clearedFields[modelgroupprotocol.FieldModelGroupID] = struct{}{}
+}
+
+// ModelGroupCleared reports if the "model_group" edge to the ModelGroup entity was cleared.
+func (m *ModelGroupProtocolMutation) ModelGroupCleared() bool {
+	return m.clearedmodel_group
+}
+
+// ModelGroupIDs returns the "model_group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ModelGroupID instead. It exists only for internal usage by the builders.
+func (m *ModelGroupProtocolMutation) ModelGroupIDs() (ids []int) {
+	if id := m.model_group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetModelGroup resets all changes to the "model_group" edge.
+func (m *ModelGroupProtocolMutation) ResetModelGroup() {
+	m.model_group = nil
+	m.clearedmodel_group = false
+}
+
+// AddTargetIDs adds the "targets" edge to the ModelGroupTarget entity by ids.
+func (m *ModelGroupProtocolMutation) AddTargetIDs(ids ...int) {
+	if m.targets == nil {
+		m.targets = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.targets[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTargets clears the "targets" edge to the ModelGroupTarget entity.
+func (m *ModelGroupProtocolMutation) ClearTargets() {
+	m.clearedtargets = true
+}
+
+// TargetsCleared reports if the "targets" edge to the ModelGroupTarget entity was cleared.
+func (m *ModelGroupProtocolMutation) TargetsCleared() bool {
+	return m.clearedtargets
+}
+
+// RemoveTargetIDs removes the "targets" edge to the ModelGroupTarget entity by IDs.
+func (m *ModelGroupProtocolMutation) RemoveTargetIDs(ids ...int) {
+	if m.removedtargets == nil {
+		m.removedtargets = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.targets, ids[i])
+		m.removedtargets[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTargets returns the removed IDs of the "targets" edge to the ModelGroupTarget entity.
+func (m *ModelGroupProtocolMutation) RemovedTargetsIDs() (ids []int) {
+	for id := range m.removedtargets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TargetsIDs returns the "targets" edge IDs in the mutation.
+func (m *ModelGroupProtocolMutation) TargetsIDs() (ids []int) {
+	for id := range m.targets {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTargets resets all changes to the "targets" edge.
+func (m *ModelGroupProtocolMutation) ResetTargets() {
+	m.targets = nil
+	m.clearedtargets = false
+	m.removedtargets = nil
+}
+
+// Where appends a list predicates to the ModelGroupProtocolMutation builder.
+func (m *ModelGroupProtocolMutation) Where(ps ...predicate.ModelGroupProtocol) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ModelGroupProtocolMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ModelGroupProtocolMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ModelGroupProtocol, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ModelGroupProtocolMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ModelGroupProtocolMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ModelGroupProtocol).
+func (m *ModelGroupProtocolMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ModelGroupProtocolMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, modelgroupprotocol.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, modelgroupprotocol.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, modelgroupprotocol.FieldDeletedAt)
+	}
+	if m.model_group != nil {
+		fields = append(fields, modelgroupprotocol.FieldModelGroupID)
+	}
+	if m.inbound_api_format != nil {
+		fields = append(fields, modelgroupprotocol.FieldInboundAPIFormat)
+	}
+	if m.enabled != nil {
+		fields = append(fields, modelgroupprotocol.FieldEnabled)
+	}
+	if m.remark != nil {
+		fields = append(fields, modelgroupprotocol.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ModelGroupProtocolMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case modelgroupprotocol.FieldCreatedAt:
+		return m.CreatedAt()
+	case modelgroupprotocol.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case modelgroupprotocol.FieldDeletedAt:
+		return m.DeletedAt()
+	case modelgroupprotocol.FieldModelGroupID:
+		return m.ModelGroupID()
+	case modelgroupprotocol.FieldInboundAPIFormat:
+		return m.InboundAPIFormat()
+	case modelgroupprotocol.FieldEnabled:
+		return m.Enabled()
+	case modelgroupprotocol.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ModelGroupProtocolMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case modelgroupprotocol.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case modelgroupprotocol.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case modelgroupprotocol.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case modelgroupprotocol.FieldModelGroupID:
+		return m.OldModelGroupID(ctx)
+	case modelgroupprotocol.FieldInboundAPIFormat:
+		return m.OldInboundAPIFormat(ctx)
+	case modelgroupprotocol.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case modelgroupprotocol.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown ModelGroupProtocol field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModelGroupProtocolMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case modelgroupprotocol.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case modelgroupprotocol.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case modelgroupprotocol.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case modelgroupprotocol.FieldModelGroupID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelGroupID(v)
+		return nil
+	case modelgroupprotocol.FieldInboundAPIFormat:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInboundAPIFormat(v)
+		return nil
+	case modelgroupprotocol.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case modelgroupprotocol.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupProtocol field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ModelGroupProtocolMutation) AddedFields() []string {
+	var fields []string
+	if m.adddeleted_at != nil {
+		fields = append(fields, modelgroupprotocol.FieldDeletedAt)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ModelGroupProtocolMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case modelgroupprotocol.FieldDeletedAt:
+		return m.AddedDeletedAt()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModelGroupProtocolMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case modelgroupprotocol.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupProtocol numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ModelGroupProtocolMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(modelgroupprotocol.FieldRemark) {
+		fields = append(fields, modelgroupprotocol.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ModelGroupProtocolMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ModelGroupProtocolMutation) ClearField(name string) error {
+	switch name {
+	case modelgroupprotocol.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupProtocol nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ModelGroupProtocolMutation) ResetField(name string) error {
+	switch name {
+	case modelgroupprotocol.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case modelgroupprotocol.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case modelgroupprotocol.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case modelgroupprotocol.FieldModelGroupID:
+		m.ResetModelGroupID()
+		return nil
+	case modelgroupprotocol.FieldInboundAPIFormat:
+		m.ResetInboundAPIFormat()
+		return nil
+	case modelgroupprotocol.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case modelgroupprotocol.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupProtocol field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ModelGroupProtocolMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.model_group != nil {
+		edges = append(edges, modelgroupprotocol.EdgeModelGroup)
+	}
+	if m.targets != nil {
+		edges = append(edges, modelgroupprotocol.EdgeTargets)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ModelGroupProtocolMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case modelgroupprotocol.EdgeModelGroup:
+		if id := m.model_group; id != nil {
+			return []ent.Value{*id}
+		}
+	case modelgroupprotocol.EdgeTargets:
+		ids := make([]ent.Value, 0, len(m.targets))
+		for id := range m.targets {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ModelGroupProtocolMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedtargets != nil {
+		edges = append(edges, modelgroupprotocol.EdgeTargets)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ModelGroupProtocolMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case modelgroupprotocol.EdgeTargets:
+		ids := make([]ent.Value, 0, len(m.removedtargets))
+		for id := range m.removedtargets {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ModelGroupProtocolMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedmodel_group {
+		edges = append(edges, modelgroupprotocol.EdgeModelGroup)
+	}
+	if m.clearedtargets {
+		edges = append(edges, modelgroupprotocol.EdgeTargets)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ModelGroupProtocolMutation) EdgeCleared(name string) bool {
+	switch name {
+	case modelgroupprotocol.EdgeModelGroup:
+		return m.clearedmodel_group
+	case modelgroupprotocol.EdgeTargets:
+		return m.clearedtargets
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ModelGroupProtocolMutation) ClearEdge(name string) error {
+	switch name {
+	case modelgroupprotocol.EdgeModelGroup:
+		m.ClearModelGroup()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupProtocol unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ModelGroupProtocolMutation) ResetEdge(name string) error {
+	switch name {
+	case modelgroupprotocol.EdgeModelGroup:
+		m.ResetModelGroup()
+		return nil
+	case modelgroupprotocol.EdgeTargets:
+		m.ResetTargets()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupProtocol edge %s", name)
+}
+
+// ModelGroupTargetMutation represents an operation that mutates the ModelGroupTarget nodes in the graph.
+type ModelGroupTargetMutation struct {
+	config
+	op                          Op
+	typ                         string
+	id                          *int
+	created_at                  *time.Time
+	updated_at                  *time.Time
+	deleted_at                  *int
+	adddeleted_at               *int
+	target_model_id             *string
+	outbound_api_format         *string
+	priority                    *int
+	addpriority                 *int
+	enabled                     *bool
+	capabilities                *objects.AdapterTargetCapabilities
+	remark                      *string
+	clearedFields               map[string]struct{}
+	model_group_protocol        *int
+	clearedmodel_group_protocol bool
+	channel                     *int
+	clearedchannel              bool
+	done                        bool
+	oldValue                    func(context.Context) (*ModelGroupTarget, error)
+	predicates                  []predicate.ModelGroupTarget
+}
+
+var _ ent.Mutation = (*ModelGroupTargetMutation)(nil)
+
+// modelgrouptargetOption allows management of the mutation configuration using functional options.
+type modelgrouptargetOption func(*ModelGroupTargetMutation)
+
+// newModelGroupTargetMutation creates new mutation for the ModelGroupTarget entity.
+func newModelGroupTargetMutation(c config, op Op, opts ...modelgrouptargetOption) *ModelGroupTargetMutation {
+	m := &ModelGroupTargetMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeModelGroupTarget,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withModelGroupTargetID sets the ID field of the mutation.
+func withModelGroupTargetID(id int) modelgrouptargetOption {
+	return func(m *ModelGroupTargetMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ModelGroupTarget
+		)
+		m.oldValue = func(ctx context.Context) (*ModelGroupTarget, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ModelGroupTarget.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withModelGroupTarget sets the old ModelGroupTarget of the mutation.
+func withModelGroupTarget(node *ModelGroupTarget) modelgrouptargetOption {
+	return func(m *ModelGroupTargetMutation) {
+		m.oldValue = func(context.Context) (*ModelGroupTarget, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ModelGroupTargetMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ModelGroupTargetMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ModelGroupTargetMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ModelGroupTargetMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ModelGroupTarget.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ModelGroupTargetMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ModelGroupTargetMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ModelGroupTargetMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ModelGroupTargetMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ModelGroupTargetMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ModelGroupTargetMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *ModelGroupTargetMutation) SetDeletedAt(i int) {
+	m.deleted_at = &i
+	m.adddeleted_at = nil
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *ModelGroupTargetMutation) DeletedAt() (r int, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldDeletedAt(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// AddDeletedAt adds i to the "deleted_at" field.
+func (m *ModelGroupTargetMutation) AddDeletedAt(i int) {
+	if m.adddeleted_at != nil {
+		*m.adddeleted_at += i
+	} else {
+		m.adddeleted_at = &i
+	}
+}
+
+// AddedDeletedAt returns the value that was added to the "deleted_at" field in this mutation.
+func (m *ModelGroupTargetMutation) AddedDeletedAt() (r int, exists bool) {
+	v := m.adddeleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *ModelGroupTargetMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	m.adddeleted_at = nil
+}
+
+// SetModelGroupProtocolID sets the "model_group_protocol_id" field.
+func (m *ModelGroupTargetMutation) SetModelGroupProtocolID(i int) {
+	m.model_group_protocol = &i
+}
+
+// ModelGroupProtocolID returns the value of the "model_group_protocol_id" field in the mutation.
+func (m *ModelGroupTargetMutation) ModelGroupProtocolID() (r int, exists bool) {
+	v := m.model_group_protocol
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModelGroupProtocolID returns the old "model_group_protocol_id" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldModelGroupProtocolID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModelGroupProtocolID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModelGroupProtocolID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModelGroupProtocolID: %w", err)
+	}
+	return oldValue.ModelGroupProtocolID, nil
+}
+
+// ResetModelGroupProtocolID resets all changes to the "model_group_protocol_id" field.
+func (m *ModelGroupTargetMutation) ResetModelGroupProtocolID() {
+	m.model_group_protocol = nil
+}
+
+// SetChannelID sets the "channel_id" field.
+func (m *ModelGroupTargetMutation) SetChannelID(i int) {
+	m.channel = &i
+}
+
+// ChannelID returns the value of the "channel_id" field in the mutation.
+func (m *ModelGroupTargetMutation) ChannelID() (r int, exists bool) {
+	v := m.channel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChannelID returns the old "channel_id" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldChannelID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChannelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChannelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChannelID: %w", err)
+	}
+	return oldValue.ChannelID, nil
+}
+
+// ResetChannelID resets all changes to the "channel_id" field.
+func (m *ModelGroupTargetMutation) ResetChannelID() {
+	m.channel = nil
+}
+
+// SetTargetModelID sets the "target_model_id" field.
+func (m *ModelGroupTargetMutation) SetTargetModelID(s string) {
+	m.target_model_id = &s
+}
+
+// TargetModelID returns the value of the "target_model_id" field in the mutation.
+func (m *ModelGroupTargetMutation) TargetModelID() (r string, exists bool) {
+	v := m.target_model_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetModelID returns the old "target_model_id" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldTargetModelID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetModelID: %w", err)
+	}
+	return oldValue.TargetModelID, nil
+}
+
+// ResetTargetModelID resets all changes to the "target_model_id" field.
+func (m *ModelGroupTargetMutation) ResetTargetModelID() {
+	m.target_model_id = nil
+}
+
+// SetOutboundAPIFormat sets the "outbound_api_format" field.
+func (m *ModelGroupTargetMutation) SetOutboundAPIFormat(s string) {
+	m.outbound_api_format = &s
+}
+
+// OutboundAPIFormat returns the value of the "outbound_api_format" field in the mutation.
+func (m *ModelGroupTargetMutation) OutboundAPIFormat() (r string, exists bool) {
+	v := m.outbound_api_format
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOutboundAPIFormat returns the old "outbound_api_format" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldOutboundAPIFormat(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOutboundAPIFormat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOutboundAPIFormat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOutboundAPIFormat: %w", err)
+	}
+	return oldValue.OutboundAPIFormat, nil
+}
+
+// ResetOutboundAPIFormat resets all changes to the "outbound_api_format" field.
+func (m *ModelGroupTargetMutation) ResetOutboundAPIFormat() {
+	m.outbound_api_format = nil
+}
+
+// SetPriority sets the "priority" field.
+func (m *ModelGroupTargetMutation) SetPriority(i int) {
+	m.priority = &i
+	m.addpriority = nil
+}
+
+// Priority returns the value of the "priority" field in the mutation.
+func (m *ModelGroupTargetMutation) Priority() (r int, exists bool) {
+	v := m.priority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPriority returns the old "priority" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldPriority(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPriority is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPriority requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPriority: %w", err)
+	}
+	return oldValue.Priority, nil
+}
+
+// AddPriority adds i to the "priority" field.
+func (m *ModelGroupTargetMutation) AddPriority(i int) {
+	if m.addpriority != nil {
+		*m.addpriority += i
+	} else {
+		m.addpriority = &i
+	}
+}
+
+// AddedPriority returns the value that was added to the "priority" field in this mutation.
+func (m *ModelGroupTargetMutation) AddedPriority() (r int, exists bool) {
+	v := m.addpriority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPriority resets all changes to the "priority" field.
+func (m *ModelGroupTargetMutation) ResetPriority() {
+	m.priority = nil
+	m.addpriority = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *ModelGroupTargetMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *ModelGroupTargetMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *ModelGroupTargetMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetCapabilities sets the "capabilities" field.
+func (m *ModelGroupTargetMutation) SetCapabilities(otc objects.AdapterTargetCapabilities) {
+	m.capabilities = &otc
+}
+
+// Capabilities returns the value of the "capabilities" field in the mutation.
+func (m *ModelGroupTargetMutation) Capabilities() (r objects.AdapterTargetCapabilities, exists bool) {
+	v := m.capabilities
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCapabilities returns the old "capabilities" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldCapabilities(ctx context.Context) (v objects.AdapterTargetCapabilities, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCapabilities is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCapabilities requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCapabilities: %w", err)
+	}
+	return oldValue.Capabilities, nil
+}
+
+// ResetCapabilities resets all changes to the "capabilities" field.
+func (m *ModelGroupTargetMutation) ResetCapabilities() {
+	m.capabilities = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *ModelGroupTargetMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *ModelGroupTargetMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the ModelGroupTarget entity.
+// If the ModelGroupTarget object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelGroupTargetMutation) OldRemark(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ClearRemark clears the value of the "remark" field.
+func (m *ModelGroupTargetMutation) ClearRemark() {
+	m.remark = nil
+	m.clearedFields[modelgrouptarget.FieldRemark] = struct{}{}
+}
+
+// RemarkCleared returns if the "remark" field was cleared in this mutation.
+func (m *ModelGroupTargetMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[modelgrouptarget.FieldRemark]
+	return ok
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *ModelGroupTargetMutation) ResetRemark() {
+	m.remark = nil
+	delete(m.clearedFields, modelgrouptarget.FieldRemark)
+}
+
+// ClearModelGroupProtocol clears the "model_group_protocol" edge to the ModelGroupProtocol entity.
+func (m *ModelGroupTargetMutation) ClearModelGroupProtocol() {
+	m.clearedmodel_group_protocol = true
+	m.clearedFields[modelgrouptarget.FieldModelGroupProtocolID] = struct{}{}
+}
+
+// ModelGroupProtocolCleared reports if the "model_group_protocol" edge to the ModelGroupProtocol entity was cleared.
+func (m *ModelGroupTargetMutation) ModelGroupProtocolCleared() bool {
+	return m.clearedmodel_group_protocol
+}
+
+// ModelGroupProtocolIDs returns the "model_group_protocol" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ModelGroupProtocolID instead. It exists only for internal usage by the builders.
+func (m *ModelGroupTargetMutation) ModelGroupProtocolIDs() (ids []int) {
+	if id := m.model_group_protocol; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetModelGroupProtocol resets all changes to the "model_group_protocol" edge.
+func (m *ModelGroupTargetMutation) ResetModelGroupProtocol() {
+	m.model_group_protocol = nil
+	m.clearedmodel_group_protocol = false
+}
+
+// ClearChannel clears the "channel" edge to the Channel entity.
+func (m *ModelGroupTargetMutation) ClearChannel() {
+	m.clearedchannel = true
+	m.clearedFields[modelgrouptarget.FieldChannelID] = struct{}{}
+}
+
+// ChannelCleared reports if the "channel" edge to the Channel entity was cleared.
+func (m *ModelGroupTargetMutation) ChannelCleared() bool {
+	return m.clearedchannel
+}
+
+// ChannelIDs returns the "channel" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ChannelID instead. It exists only for internal usage by the builders.
+func (m *ModelGroupTargetMutation) ChannelIDs() (ids []int) {
+	if id := m.channel; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetChannel resets all changes to the "channel" edge.
+func (m *ModelGroupTargetMutation) ResetChannel() {
+	m.channel = nil
+	m.clearedchannel = false
+}
+
+// Where appends a list predicates to the ModelGroupTargetMutation builder.
+func (m *ModelGroupTargetMutation) Where(ps ...predicate.ModelGroupTarget) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ModelGroupTargetMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ModelGroupTargetMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ModelGroupTarget, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ModelGroupTargetMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ModelGroupTargetMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ModelGroupTarget).
+func (m *ModelGroupTargetMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ModelGroupTargetMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, modelgrouptarget.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, modelgrouptarget.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, modelgrouptarget.FieldDeletedAt)
+	}
+	if m.model_group_protocol != nil {
+		fields = append(fields, modelgrouptarget.FieldModelGroupProtocolID)
+	}
+	if m.channel != nil {
+		fields = append(fields, modelgrouptarget.FieldChannelID)
+	}
+	if m.target_model_id != nil {
+		fields = append(fields, modelgrouptarget.FieldTargetModelID)
+	}
+	if m.outbound_api_format != nil {
+		fields = append(fields, modelgrouptarget.FieldOutboundAPIFormat)
+	}
+	if m.priority != nil {
+		fields = append(fields, modelgrouptarget.FieldPriority)
+	}
+	if m.enabled != nil {
+		fields = append(fields, modelgrouptarget.FieldEnabled)
+	}
+	if m.capabilities != nil {
+		fields = append(fields, modelgrouptarget.FieldCapabilities)
+	}
+	if m.remark != nil {
+		fields = append(fields, modelgrouptarget.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ModelGroupTargetMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case modelgrouptarget.FieldCreatedAt:
+		return m.CreatedAt()
+	case modelgrouptarget.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case modelgrouptarget.FieldDeletedAt:
+		return m.DeletedAt()
+	case modelgrouptarget.FieldModelGroupProtocolID:
+		return m.ModelGroupProtocolID()
+	case modelgrouptarget.FieldChannelID:
+		return m.ChannelID()
+	case modelgrouptarget.FieldTargetModelID:
+		return m.TargetModelID()
+	case modelgrouptarget.FieldOutboundAPIFormat:
+		return m.OutboundAPIFormat()
+	case modelgrouptarget.FieldPriority:
+		return m.Priority()
+	case modelgrouptarget.FieldEnabled:
+		return m.Enabled()
+	case modelgrouptarget.FieldCapabilities:
+		return m.Capabilities()
+	case modelgrouptarget.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ModelGroupTargetMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case modelgrouptarget.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case modelgrouptarget.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case modelgrouptarget.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case modelgrouptarget.FieldModelGroupProtocolID:
+		return m.OldModelGroupProtocolID(ctx)
+	case modelgrouptarget.FieldChannelID:
+		return m.OldChannelID(ctx)
+	case modelgrouptarget.FieldTargetModelID:
+		return m.OldTargetModelID(ctx)
+	case modelgrouptarget.FieldOutboundAPIFormat:
+		return m.OldOutboundAPIFormat(ctx)
+	case modelgrouptarget.FieldPriority:
+		return m.OldPriority(ctx)
+	case modelgrouptarget.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case modelgrouptarget.FieldCapabilities:
+		return m.OldCapabilities(ctx)
+	case modelgrouptarget.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown ModelGroupTarget field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModelGroupTargetMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case modelgrouptarget.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case modelgrouptarget.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case modelgrouptarget.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case modelgrouptarget.FieldModelGroupProtocolID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModelGroupProtocolID(v)
+		return nil
+	case modelgrouptarget.FieldChannelID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChannelID(v)
+		return nil
+	case modelgrouptarget.FieldTargetModelID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetModelID(v)
+		return nil
+	case modelgrouptarget.FieldOutboundAPIFormat:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOutboundAPIFormat(v)
+		return nil
+	case modelgrouptarget.FieldPriority:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPriority(v)
+		return nil
+	case modelgrouptarget.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case modelgrouptarget.FieldCapabilities:
+		v, ok := value.(objects.AdapterTargetCapabilities)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCapabilities(v)
+		return nil
+	case modelgrouptarget.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupTarget field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ModelGroupTargetMutation) AddedFields() []string {
+	var fields []string
+	if m.adddeleted_at != nil {
+		fields = append(fields, modelgrouptarget.FieldDeletedAt)
+	}
+	if m.addpriority != nil {
+		fields = append(fields, modelgrouptarget.FieldPriority)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ModelGroupTargetMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case modelgrouptarget.FieldDeletedAt:
+		return m.AddedDeletedAt()
+	case modelgrouptarget.FieldPriority:
+		return m.AddedPriority()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ModelGroupTargetMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case modelgrouptarget.FieldDeletedAt:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeletedAt(v)
+		return nil
+	case modelgrouptarget.FieldPriority:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPriority(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupTarget numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ModelGroupTargetMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(modelgrouptarget.FieldRemark) {
+		fields = append(fields, modelgrouptarget.FieldRemark)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ModelGroupTargetMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ModelGroupTargetMutation) ClearField(name string) error {
+	switch name {
+	case modelgrouptarget.FieldRemark:
+		m.ClearRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupTarget nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ModelGroupTargetMutation) ResetField(name string) error {
+	switch name {
+	case modelgrouptarget.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case modelgrouptarget.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case modelgrouptarget.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case modelgrouptarget.FieldModelGroupProtocolID:
+		m.ResetModelGroupProtocolID()
+		return nil
+	case modelgrouptarget.FieldChannelID:
+		m.ResetChannelID()
+		return nil
+	case modelgrouptarget.FieldTargetModelID:
+		m.ResetTargetModelID()
+		return nil
+	case modelgrouptarget.FieldOutboundAPIFormat:
+		m.ResetOutboundAPIFormat()
+		return nil
+	case modelgrouptarget.FieldPriority:
+		m.ResetPriority()
+		return nil
+	case modelgrouptarget.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case modelgrouptarget.FieldCapabilities:
+		m.ResetCapabilities()
+		return nil
+	case modelgrouptarget.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupTarget field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ModelGroupTargetMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.model_group_protocol != nil {
+		edges = append(edges, modelgrouptarget.EdgeModelGroupProtocol)
+	}
+	if m.channel != nil {
+		edges = append(edges, modelgrouptarget.EdgeChannel)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ModelGroupTargetMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case modelgrouptarget.EdgeModelGroupProtocol:
+		if id := m.model_group_protocol; id != nil {
+			return []ent.Value{*id}
+		}
+	case modelgrouptarget.EdgeChannel:
+		if id := m.channel; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ModelGroupTargetMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ModelGroupTargetMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ModelGroupTargetMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedmodel_group_protocol {
+		edges = append(edges, modelgrouptarget.EdgeModelGroupProtocol)
+	}
+	if m.clearedchannel {
+		edges = append(edges, modelgrouptarget.EdgeChannel)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ModelGroupTargetMutation) EdgeCleared(name string) bool {
+	switch name {
+	case modelgrouptarget.EdgeModelGroupProtocol:
+		return m.clearedmodel_group_protocol
+	case modelgrouptarget.EdgeChannel:
+		return m.clearedchannel
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ModelGroupTargetMutation) ClearEdge(name string) error {
+	switch name {
+	case modelgrouptarget.EdgeModelGroupProtocol:
+		m.ClearModelGroupProtocol()
+		return nil
+	case modelgrouptarget.EdgeChannel:
+		m.ClearChannel()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupTarget unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ModelGroupTargetMutation) ResetEdge(name string) error {
+	switch name {
+	case modelgrouptarget.EdgeModelGroupProtocol:
+		m.ResetModelGroupProtocol()
+		return nil
+	case modelgrouptarget.EdgeChannel:
+		m.ResetChannel()
+		return nil
+	}
+	return fmt.Errorf("unknown ModelGroupTarget edge %s", name)
 }
 
 // OIDCIdentityMutation represents an operation that mutates the OIDCIdentity nodes in the graph.

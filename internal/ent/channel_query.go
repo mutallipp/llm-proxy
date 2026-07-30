@@ -16,6 +16,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/channelmodelprice"
 	"github.com/looplj/axonhub/internal/ent/channelprobe"
+	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
 	"github.com/looplj/axonhub/internal/ent/predicate"
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/ent/request"
@@ -36,6 +37,7 @@ type ChannelQuery struct {
 	withChannelProbes           *ChannelProbeQuery
 	withChannelModelPrices      *ChannelModelPriceQuery
 	withProviderQuotaStatus     *ProviderQuotaStatusQuery
+	withModelGroupTargets       *ModelGroupTargetQuery
 	loadTotal                   []func(context.Context, []*Channel) error
 	modifiers                   []func(*sql.Selector)
 	withNamedRequests           map[string]*RequestQuery
@@ -43,6 +45,7 @@ type ChannelQuery struct {
 	withNamedUsageLogs          map[string]*UsageLogQuery
 	withNamedChannelProbes      map[string]*ChannelProbeQuery
 	withNamedChannelModelPrices map[string]*ChannelModelPriceQuery
+	withNamedModelGroupTargets  map[string]*ModelGroupTargetQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -204,6 +207,28 @@ func (_q *ChannelQuery) QueryProviderQuotaStatus() *ProviderQuotaStatusQuery {
 			sqlgraph.From(channel.Table, channel.FieldID, selector),
 			sqlgraph.To(providerquotastatus.Table, providerquotastatus.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, channel.ProviderQuotaStatusTable, channel.ProviderQuotaStatusColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryModelGroupTargets chains the current query on the "model_group_targets" edge.
+func (_q *ChannelQuery) QueryModelGroupTargets() *ModelGroupTargetQuery {
+	query := (&ModelGroupTargetClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(channel.Table, channel.FieldID, selector),
+			sqlgraph.To(modelgrouptarget.Table, modelgrouptarget.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, channel.ModelGroupTargetsTable, channel.ModelGroupTargetsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -409,6 +434,7 @@ func (_q *ChannelQuery) Clone() *ChannelQuery {
 		withChannelProbes:       _q.withChannelProbes.Clone(),
 		withChannelModelPrices:  _q.withChannelModelPrices.Clone(),
 		withProviderQuotaStatus: _q.withProviderQuotaStatus.Clone(),
+		withModelGroupTargets:   _q.withModelGroupTargets.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
@@ -479,6 +505,17 @@ func (_q *ChannelQuery) WithProviderQuotaStatus(opts ...func(*ProviderQuotaStatu
 		opt(query)
 	}
 	_q.withProviderQuotaStatus = query
+	return _q
+}
+
+// WithModelGroupTargets tells the query-builder to eager-load the nodes that are connected to
+// the "model_group_targets" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ChannelQuery) WithModelGroupTargets(opts ...func(*ModelGroupTargetQuery)) *ChannelQuery {
+	query := (&ModelGroupTargetClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withModelGroupTargets = query
 	return _q
 }
 
@@ -566,13 +603,14 @@ func (_q *ChannelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Chan
 	var (
 		nodes       = []*Channel{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			_q.withRequests != nil,
 			_q.withExecutions != nil,
 			_q.withUsageLogs != nil,
 			_q.withChannelProbes != nil,
 			_q.withChannelModelPrices != nil,
 			_q.withProviderQuotaStatus != nil,
+			_q.withModelGroupTargets != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -639,6 +677,15 @@ func (_q *ChannelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Chan
 			return nil, err
 		}
 	}
+	if query := _q.withModelGroupTargets; query != nil {
+		if err := _q.loadModelGroupTargets(ctx, query, nodes,
+			func(n *Channel) { n.Edges.ModelGroupTargets = []*ModelGroupTarget{} },
+			func(n *Channel, e *ModelGroupTarget) {
+				n.Edges.ModelGroupTargets = append(n.Edges.ModelGroupTargets, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range _q.withNamedRequests {
 		if err := _q.loadRequests(ctx, query, nodes,
 			func(n *Channel) { n.appendNamedRequests(name) },
@@ -671,6 +718,13 @@ func (_q *ChannelQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Chan
 		if err := _q.loadChannelModelPrices(ctx, query, nodes,
 			func(n *Channel) { n.appendNamedChannelModelPrices(name) },
 			func(n *Channel, e *ChannelModelPrice) { n.appendNamedChannelModelPrices(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedModelGroupTargets {
+		if err := _q.loadModelGroupTargets(ctx, query, nodes,
+			func(n *Channel) { n.appendNamedModelGroupTargets(name) },
+			func(n *Channel, e *ModelGroupTarget) { n.appendNamedModelGroupTargets(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -859,6 +913,36 @@ func (_q *ChannelQuery) loadProviderQuotaStatus(ctx context.Context, query *Prov
 	}
 	return nil
 }
+func (_q *ChannelQuery) loadModelGroupTargets(ctx context.Context, query *ModelGroupTargetQuery, nodes []*Channel, init func(*Channel), assign func(*Channel, *ModelGroupTarget)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Channel)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(modelgrouptarget.FieldChannelID)
+	}
+	query.Where(predicate.ModelGroupTarget(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(channel.ModelGroupTargetsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ChannelID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "channel_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (_q *ChannelQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -1020,6 +1104,20 @@ func (_q *ChannelQuery) WithNamedChannelModelPrices(name string, opts ...func(*C
 		_q.withNamedChannelModelPrices = make(map[string]*ChannelModelPriceQuery)
 	}
 	_q.withNamedChannelModelPrices[name] = query
+	return _q
+}
+
+// WithNamedModelGroupTargets tells the query-builder to eager-load the nodes that are connected to the "model_group_targets"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *ChannelQuery) WithNamedModelGroupTargets(name string, opts ...func(*ModelGroupTargetQuery)) *ChannelQuery {
+	query := (&ModelGroupTargetClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedModelGroupTargets == nil {
+		_q.withNamedModelGroupTargets = make(map[string]*ModelGroupTargetQuery)
+	}
+	_q.withNamedModelGroupTargets[name] = query
 	return _q
 }
 

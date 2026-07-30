@@ -1,0 +1,22 @@
+{
+  "host": "<capture-host>",
+  "connection": "keep-alive",
+  "Accept": "application/json",
+  "User-Agent": "OpenAI/JS 6.26.0",
+  "X-Stainless-Retry-Count": "0",
+  "X-Stainless-Timeout": "300",
+  "X-Stainless-Lang": "js",
+  "X-Stainless-Package-Version": "6.26.0",
+  "X-Stainless-OS": "MacOS",
+  "X-Stainless-Arch": "arm64",
+  "X-Stainless-Runtime": "node",
+  "X-Stainless-Runtime-Version": "v24.5.0",
+  "authorization": "<redacted>",
+  "session_id": "<dynamic>",
+  "x-client-request-id": "<dynamic>",
+  "content-type": "application/json",
+  "accept-language": "*",
+  "sec-fetch-mode": "cors",
+  "accept-encoding": "gzip, deflate",
+  "content-length": "1997"
+}

@@ -1,0 +1,86 @@
+package objects
+
+import "time"
+
+// AdapterTargetCapabilities 描述适配器目标显式声明的能力。
+// 零值表示目标未声明该能力，因此不会被能力过滤视为支持。
+type AdapterTargetCapabilities struct {
+	SupportsTools    bool     `json:"supports_tools"`
+	SupportsStream   bool     `json:"supports_stream"`
+	InputModalities  []string `json:"input_modalities"`
+	OutputModalities []string `json:"output_modalities"`
+}
+
+// RuntimeAdapter 是消费请求使用的不可变适配器运行时配置。
+type RuntimeAdapter struct {
+	ID               int
+	Name             string
+	DisplayName      string
+	InboundAPIFormat string
+	Bindings         map[string]*RuntimeAdapterBinding
+	BindingOrder     []string
+}
+
+// RuntimeAdapterBinding 将消费端逻辑模型绑定到模型组。
+type RuntimeAdapterBinding struct {
+	ID            int
+	SourceModelID string
+	ModelGroup    *RuntimeModelGroup
+	Enabled       bool
+}
+
+// RuntimeModelGroup 是适配器快照中的启用模型组。
+type RuntimeModelGroup struct {
+	ID                int
+	Name              string
+	DisplayName       string
+	SelectionStrategy string
+	Protocols         map[string]*RuntimeModelGroupProtocol
+}
+
+// RuntimeModelGroupProtocol 是按入站协议隔离的目标池。
+type RuntimeModelGroupProtocol struct {
+	ID               int
+	InboundAPIFormat string
+	Targets          []*RuntimeModelGroupTarget
+}
+
+// RuntimeModelGroupTarget 是一个经过静态校验、可以参与请求能力过滤的目标。
+type RuntimeModelGroupTarget struct {
+	ID                int
+	ChannelID         int
+	TargetModelID     string
+	OutboundAPIFormat string
+	Priority          int
+	Capabilities      AdapterTargetCapabilities
+}
+
+// AdapterDiagnostic 描述快照构建时被排除的目标或配置问题。
+type AdapterDiagnostic struct {
+	AdapterName          string
+	SourceModelID        string
+	ModelGroupID         int
+	ModelGroupProtocolID int
+	TargetID             int
+	ChannelID            int
+	TargetModelID        string
+	Reason               string
+}
+
+// AdapterSnapshot 是一次完整的适配器运行时快照。
+// Adapters、map 和切片在发布后只读，刷新通过一次原子替换整体生效。
+type AdapterSnapshot struct {
+	Version                 uint64
+	RefreshedAt             time.Time
+	LastSuccessfulRefreshAt time.Time
+	Adapters                map[string]*RuntimeAdapter
+	Diagnostics             []AdapterDiagnostic
+}
+
+// AdapterRuntimeStatus 描述最近一次刷新结果，失败时不会影响当前快照。
+type AdapterRuntimeStatus struct {
+	SnapshotVersion         uint64
+	RefreshedAt             time.Time
+	LastSuccessfulRefreshAt time.Time
+	LastRefreshError        string
+}

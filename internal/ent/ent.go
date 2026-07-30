@@ -12,6 +12,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/looplj/axonhub/internal/ent/adapter"
+	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/apikeyprofiletemplate"
 	"github.com/looplj/axonhub/internal/ent/channel"
@@ -21,6 +23,9 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channelprobe"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelgroup"
+	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
+	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
 	"github.com/looplj/axonhub/internal/ent/oidcidentity"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/prompt"
@@ -98,6 +103,8 @@ func checkColumn(t, c string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			apikey.Table:                   apikey.ValidColumn,
 			apikeyprofiletemplate.Table:    apikeyprofiletemplate.ValidColumn,
+			adapter.Table:                  adapter.ValidColumn,
+			adaptermodelbinding.Table:      adaptermodelbinding.ValidColumn,
 			channel.Table:                  channel.ValidColumn,
 			channelmodelprice.Table:        channelmodelprice.ValidColumn,
 			channelmodelpriceversion.Table: channelmodelpriceversion.ValidColumn,
@@ -105,6 +112,9 @@ func checkColumn(t, c string) error {
 			channelprobe.Table:             channelprobe.ValidColumn,
 			datastorage.Table:              datastorage.ValidColumn,
 			model.Table:                    model.ValidColumn,
+			modelgroup.Table:               modelgroup.ValidColumn,
+			modelgroupprotocol.Table:       modelgroupprotocol.ValidColumn,
+			modelgrouptarget.Table:         modelgrouptarget.ValidColumn,
 			oidcidentity.Table:             oidcidentity.ValidColumn,
 			project.Table:                  project.ValidColumn,
 			prompt.Table:                   prompt.ValidColumn,

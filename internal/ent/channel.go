@@ -82,9 +82,11 @@ type ChannelEdges struct {
 	ChannelModelPrices []*ChannelModelPrice `json:"channel_model_prices,omitempty"`
 	// ProviderQuotaStatus holds the value of the provider_quota_status edge.
 	ProviderQuotaStatus *ProviderQuotaStatus `json:"provider_quota_status,omitempty"`
+	// ModelGroupTargets holds the value of the model_group_targets edge.
+	ModelGroupTargets []*ModelGroupTarget `json:"model_group_targets,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 	// totalCount holds the count of the edges above.
 	totalCount [6]map[string]int
 
@@ -93,6 +95,7 @@ type ChannelEdges struct {
 	namedUsageLogs          map[string][]*UsageLog
 	namedChannelProbes      map[string][]*ChannelProbe
 	namedChannelModelPrices map[string][]*ChannelModelPrice
+	namedModelGroupTargets  map[string][]*ModelGroupTarget
 }
 
 // RequestsOrErr returns the Requests value or an error if the edge
@@ -149,6 +152,15 @@ func (e ChannelEdges) ProviderQuotaStatusOrErr() (*ProviderQuotaStatus, error) {
 		return nil, &NotFoundError{label: providerquotastatus.Label}
 	}
 	return nil, &NotLoadedError{edge: "provider_quota_status"}
+}
+
+// ModelGroupTargetsOrErr returns the ModelGroupTargets value or an error if the edge
+// was not loaded in eager-loading.
+func (e ChannelEdges) ModelGroupTargetsOrErr() ([]*ModelGroupTarget, error) {
+	if e.loadedTypes[6] {
+		return e.ModelGroupTargets, nil
+	}
+	return nil, &NotLoadedError{edge: "model_group_targets"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -374,6 +386,11 @@ func (_m *Channel) QueryProviderQuotaStatus() *ProviderQuotaStatusQuery {
 	return NewChannelClient(_m.config).QueryProviderQuotaStatus(_m)
 }
 
+// QueryModelGroupTargets queries the "model_group_targets" edge of the Channel entity.
+func (_m *Channel) QueryModelGroupTargets() *ModelGroupTargetQuery {
+	return NewChannelClient(_m.config).QueryModelGroupTargets(_m)
+}
+
 // Update returns a builder for updating this Channel.
 // Note that you need to call Channel.Unwrap() before calling this method if this Channel
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -582,6 +599,30 @@ func (_m *Channel) appendNamedChannelModelPrices(name string, edges ...*ChannelM
 		_m.Edges.namedChannelModelPrices[name] = []*ChannelModelPrice{}
 	} else {
 		_m.Edges.namedChannelModelPrices[name] = append(_m.Edges.namedChannelModelPrices[name], edges...)
+	}
+}
+
+// NamedModelGroupTargets returns the ModelGroupTargets named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *Channel) NamedModelGroupTargets(name string) ([]*ModelGroupTarget, error) {
+	if _m.Edges.namedModelGroupTargets == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedModelGroupTargets[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *Channel) appendNamedModelGroupTargets(name string, edges ...*ModelGroupTarget) {
+	if _m.Edges.namedModelGroupTargets == nil {
+		_m.Edges.namedModelGroupTargets = make(map[string][]*ModelGroupTarget)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedModelGroupTargets[name] = []*ModelGroupTarget{}
+	} else {
+		_m.Edges.namedModelGroupTargets[name] = append(_m.Edges.namedModelGroupTargets[name], edges...)
 	}
 }
 

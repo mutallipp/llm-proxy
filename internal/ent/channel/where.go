@@ -948,6 +948,29 @@ func HasProviderQuotaStatusWith(preds ...predicate.ProviderQuotaStatus) predicat
 	})
 }
 
+// HasModelGroupTargets applies the HasEdge predicate on the "model_group_targets" edge.
+func HasModelGroupTargets() predicate.Channel {
+	return predicate.Channel(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ModelGroupTargetsTable, ModelGroupTargetsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasModelGroupTargetsWith applies the HasEdge predicate on the "model_group_targets" edge with a given conditions (other predicates).
+func HasModelGroupTargetsWith(preds ...predicate.ModelGroupTarget) predicate.Channel {
+	return predicate.Channel(func(s *sql.Selector) {
+		step := newModelGroupTargetsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Channel) predicate.Channel {
 	return predicate.Channel(sql.AndPredicates(predicates...))

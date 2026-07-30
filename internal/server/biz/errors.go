@@ -12,6 +12,7 @@ var (
 	ErrInvalidAPIKey          = errors.New("invalid api key")
 	ErrInvalidPassword        = errors.New("invalid password")
 	ErrInvalidModel           = transformer.ErrInvalidModel
+	ErrAdapterNotFound        = errors.New("adapter not found")
 	ErrInternal               = errors.New("server internal error, please try again later")
 	ErrAPIKeyOwnerRequired    = errors.New("owner api key is required")
 	ErrServiceAccountRequired = errors.New("service account api key required")

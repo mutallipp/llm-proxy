@@ -1024,3 +1024,56 @@ type usageLogResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
 type userProjectResolver struct{ *Resolver }
 type userRoleResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *adapterResolver) ID(ctx context.Context, obj *ent.Adapter) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+func (r *adapterModelBindingResolver) ID(ctx context.Context, obj *ent.AdapterModelBinding) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+func (r *adapterModelBindingResolver) AdapterID(ctx context.Context, obj *ent.AdapterModelBinding) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: AdapterID - adapterID"))
+}
+func (r *adapterModelBindingResolver) ModelGroupID(ctx context.Context, obj *ent.AdapterModelBinding) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ModelGroupID - modelGroupID"))
+}
+func (r *modelGroupResolver) ID(ctx context.Context, obj *ent.ModelGroup) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+func (r *modelGroupProtocolResolver) ID(ctx context.Context, obj *ent.ModelGroupProtocol) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+func (r *modelGroupProtocolResolver) ModelGroupID(ctx context.Context, obj *ent.ModelGroupProtocol) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ModelGroupID - modelGroupID"))
+}
+func (r *modelGroupTargetResolver) ID(ctx context.Context, obj *ent.ModelGroupTarget) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+func (r *modelGroupTargetResolver) ModelGroupProtocolID(ctx context.Context, obj *ent.ModelGroupTarget) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ModelGroupProtocolID - modelGroupProtocolID"))
+}
+func (r *modelGroupTargetResolver) ChannelID(ctx context.Context, obj *ent.ModelGroupTarget) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ChannelID - channelID"))
+}
+func (r *Resolver) Adapter() AdapterResolver { return &adapterResolver{r} }
+func (r *Resolver) AdapterModelBinding() AdapterModelBindingResolver {
+	return &adapterModelBindingResolver{r}
+}
+func (r *Resolver) ModelGroup() ModelGroupResolver { return &modelGroupResolver{r} }
+func (r *Resolver) ModelGroupProtocol() ModelGroupProtocolResolver {
+	return &modelGroupProtocolResolver{r}
+}
+func (r *Resolver) ModelGroupTarget() ModelGroupTargetResolver { return &modelGroupTargetResolver{r} }
+type adapterResolver struct{ *Resolver }
+type adapterModelBindingResolver struct{ *Resolver }
+type modelGroupResolver struct{ *Resolver }
+type modelGroupProtocolResolver struct{ *Resolver }
+type modelGroupTargetResolver struct{ *Resolver }
+*/

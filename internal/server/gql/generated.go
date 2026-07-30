@@ -218,6 +218,13 @@ type ComplexityRoot struct {
 		TopModels       func(childComplexity int) int
 	}
 
+	AdapterTargetCapabilities struct {
+		InputModalities  func(childComplexity int) int
+		OutputModalities func(childComplexity int) int
+		SupportsStream   func(childComplexity int) int
+		SupportsTools    func(childComplexity int) int
+	}
+
 	AnalyticsDailyStat struct {
 		CachedInputTokens   func(childComplexity int) int
 		Cost                func(childComplexity int) int
@@ -2910,6 +2917,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.APIKeyTokenUsageStats.TopModels(childComplexity), true
+
+	case "AdapterTargetCapabilities.inputModalities":
+		if e.complexity.AdapterTargetCapabilities.InputModalities == nil {
+			break
+		}
+
+		return e.complexity.AdapterTargetCapabilities.InputModalities(childComplexity), true
+	case "AdapterTargetCapabilities.outputModalities":
+		if e.complexity.AdapterTargetCapabilities.OutputModalities == nil {
+			break
+		}
+
+		return e.complexity.AdapterTargetCapabilities.OutputModalities(childComplexity), true
+	case "AdapterTargetCapabilities.supportsStream":
+		if e.complexity.AdapterTargetCapabilities.SupportsStream == nil {
+			break
+		}
+
+		return e.complexity.AdapterTargetCapabilities.SupportsStream(childComplexity), true
+	case "AdapterTargetCapabilities.supportsTools":
+		if e.complexity.AdapterTargetCapabilities.SupportsTools == nil {
+			break
+		}
+
+		return e.complexity.AdapterTargetCapabilities.SupportsTools(childComplexity), true
 
 	case "AnalyticsDailyStat.cachedInputTokens":
 		if e.complexity.AnalyticsDailyStat.CachedInputTokens == nil {
@@ -17259,6 +17291,122 @@ func (ec *executionContext) fieldContext_APIKeyTokenUsageStats_topModels(_ conte
 				return ec.fieldContext_ModelTokenUsageStats_reasoningTokens(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModelTokenUsageStats", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AdapterTargetCapabilities_supportsTools(ctx context.Context, field graphql.CollectedField, obj *objects.AdapterTargetCapabilities) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AdapterTargetCapabilities_supportsTools,
+		func(ctx context.Context) (any, error) {
+			return obj.SupportsTools, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AdapterTargetCapabilities_supportsTools(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AdapterTargetCapabilities",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AdapterTargetCapabilities_supportsStream(ctx context.Context, field graphql.CollectedField, obj *objects.AdapterTargetCapabilities) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AdapterTargetCapabilities_supportsStream,
+		func(ctx context.Context) (any, error) {
+			return obj.SupportsStream, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AdapterTargetCapabilities_supportsStream(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AdapterTargetCapabilities",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AdapterTargetCapabilities_inputModalities(ctx context.Context, field graphql.CollectedField, obj *objects.AdapterTargetCapabilities) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AdapterTargetCapabilities_inputModalities,
+		func(ctx context.Context) (any, error) {
+			return obj.InputModalities, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AdapterTargetCapabilities_inputModalities(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AdapterTargetCapabilities",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AdapterTargetCapabilities_outputModalities(ctx context.Context, field graphql.CollectedField, obj *objects.AdapterTargetCapabilities) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AdapterTargetCapabilities_outputModalities,
+		func(ctx context.Context) (any, error) {
+			return obj.OutputModalities, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AdapterTargetCapabilities_outputModalities(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AdapterTargetCapabilities",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -88984,6 +89132,60 @@ func (ec *executionContext) _APIKeyTokenUsageStats(ctx context.Context, sel ast.
 			}
 		case "topModels":
 			out.Values[i] = ec._APIKeyTokenUsageStats_topModels(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var adapterTargetCapabilitiesImplementors = []string{"AdapterTargetCapabilities"}
+
+func (ec *executionContext) _AdapterTargetCapabilities(ctx context.Context, sel ast.SelectionSet, obj *objects.AdapterTargetCapabilities) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, adapterTargetCapabilitiesImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AdapterTargetCapabilities")
+		case "supportsTools":
+			out.Values[i] = ec._AdapterTargetCapabilities_supportsTools(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "supportsStream":
+			out.Values[i] = ec._AdapterTargetCapabilities_supportsStream(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "inputModalities":
+			out.Values[i] = ec._AdapterTargetCapabilities_inputModalities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "outputModalities":
+			out.Values[i] = ec._AdapterTargetCapabilities_outputModalities(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

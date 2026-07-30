@@ -6,6 +6,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/looplj/axonhub/internal/ent/adapter"
+	"github.com/looplj/axonhub/internal/ent/adaptermodelbinding"
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/apikeyprofiletemplate"
 	"github.com/looplj/axonhub/internal/ent/channel"
@@ -14,6 +16,9 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channeloverridetemplate"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelgroup"
+	"github.com/looplj/axonhub/internal/ent/modelgroupprotocol"
+	"github.com/looplj/axonhub/internal/ent/modelgrouptarget"
 	"github.com/looplj/axonhub/internal/ent/oidcidentity"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/prompt"
@@ -134,6 +139,64 @@ func init() {
 	apikeyprofiletemplateDescProfile := apikeyprofiletemplateFields[3].Descriptor()
 	// apikeyprofiletemplate.DefaultProfile holds the default value on creation for the profile field.
 	apikeyprofiletemplate.DefaultProfile = apikeyprofiletemplateDescProfile.Default.(*objects.APIKeyProfile)
+	adapterMixin := schema.Adapter{}.Mixin()
+	adapterMixinHooks1 := adapterMixin[1].Hooks()
+	adapter.Hooks[0] = adapterMixinHooks1[0]
+	adapterMixinInters1 := adapterMixin[1].Interceptors()
+	adapter.Interceptors[0] = adapterMixinInters1[0]
+	adapterMixinFields0 := adapterMixin[0].Fields()
+	_ = adapterMixinFields0
+	adapterMixinFields1 := adapterMixin[1].Fields()
+	_ = adapterMixinFields1
+	adapterFields := schema.Adapter{}.Fields()
+	_ = adapterFields
+	// adapterDescCreatedAt is the schema descriptor for created_at field.
+	adapterDescCreatedAt := adapterMixinFields0[0].Descriptor()
+	// adapter.DefaultCreatedAt holds the default value on creation for the created_at field.
+	adapter.DefaultCreatedAt = adapterDescCreatedAt.Default.(func() time.Time)
+	// adapterDescUpdatedAt is the schema descriptor for updated_at field.
+	adapterDescUpdatedAt := adapterMixinFields0[1].Descriptor()
+	// adapter.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	adapter.DefaultUpdatedAt = adapterDescUpdatedAt.Default.(func() time.Time)
+	// adapter.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	adapter.UpdateDefaultUpdatedAt = adapterDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// adapterDescDeletedAt is the schema descriptor for deleted_at field.
+	adapterDescDeletedAt := adapterMixinFields1[0].Descriptor()
+	// adapter.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	adapter.DefaultDeletedAt = adapterDescDeletedAt.Default.(int)
+	// adapterDescDisplayName is the schema descriptor for display_name field.
+	adapterDescDisplayName := adapterFields[1].Descriptor()
+	// adapter.DefaultDisplayName holds the default value on creation for the display_name field.
+	adapter.DefaultDisplayName = adapterDescDisplayName.Default.(string)
+	adaptermodelbindingMixin := schema.AdapterModelBinding{}.Mixin()
+	adaptermodelbindingMixinHooks1 := adaptermodelbindingMixin[1].Hooks()
+	adaptermodelbinding.Hooks[0] = adaptermodelbindingMixinHooks1[0]
+	adaptermodelbindingMixinInters1 := adaptermodelbindingMixin[1].Interceptors()
+	adaptermodelbinding.Interceptors[0] = adaptermodelbindingMixinInters1[0]
+	adaptermodelbindingMixinFields0 := adaptermodelbindingMixin[0].Fields()
+	_ = adaptermodelbindingMixinFields0
+	adaptermodelbindingMixinFields1 := adaptermodelbindingMixin[1].Fields()
+	_ = adaptermodelbindingMixinFields1
+	adaptermodelbindingFields := schema.AdapterModelBinding{}.Fields()
+	_ = adaptermodelbindingFields
+	// adaptermodelbindingDescCreatedAt is the schema descriptor for created_at field.
+	adaptermodelbindingDescCreatedAt := adaptermodelbindingMixinFields0[0].Descriptor()
+	// adaptermodelbinding.DefaultCreatedAt holds the default value on creation for the created_at field.
+	adaptermodelbinding.DefaultCreatedAt = adaptermodelbindingDescCreatedAt.Default.(func() time.Time)
+	// adaptermodelbindingDescUpdatedAt is the schema descriptor for updated_at field.
+	adaptermodelbindingDescUpdatedAt := adaptermodelbindingMixinFields0[1].Descriptor()
+	// adaptermodelbinding.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	adaptermodelbinding.DefaultUpdatedAt = adaptermodelbindingDescUpdatedAt.Default.(func() time.Time)
+	// adaptermodelbinding.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	adaptermodelbinding.UpdateDefaultUpdatedAt = adaptermodelbindingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// adaptermodelbindingDescDeletedAt is the schema descriptor for deleted_at field.
+	adaptermodelbindingDescDeletedAt := adaptermodelbindingMixinFields1[0].Descriptor()
+	// adaptermodelbinding.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	adaptermodelbinding.DefaultDeletedAt = adaptermodelbindingDescDeletedAt.Default.(int)
+	// adaptermodelbindingDescEnabled is the schema descriptor for enabled field.
+	adaptermodelbindingDescEnabled := adaptermodelbindingFields[3].Descriptor()
+	// adaptermodelbinding.DefaultEnabled holds the default value on creation for the enabled field.
+	adaptermodelbinding.DefaultEnabled = adaptermodelbindingDescEnabled.Default.(bool)
 	channelMixin := schema.Channel{}.Mixin()
 	channel.Policy = privacy.NewPolicies(schema.Channel{})
 	channel.Hooks[0] = func(next ent.Mutator) ent.Mutator {
@@ -393,6 +456,101 @@ func init() {
 	modelDescDeletedAt := modelMixinFields1[0].Descriptor()
 	// model.DefaultDeletedAt holds the default value on creation for the deleted_at field.
 	model.DefaultDeletedAt = modelDescDeletedAt.Default.(int)
+	modelgroupMixin := schema.ModelGroup{}.Mixin()
+	modelgroupMixinHooks1 := modelgroupMixin[1].Hooks()
+	modelgroup.Hooks[0] = modelgroupMixinHooks1[0]
+	modelgroupMixinInters1 := modelgroupMixin[1].Interceptors()
+	modelgroup.Interceptors[0] = modelgroupMixinInters1[0]
+	modelgroupMixinFields0 := modelgroupMixin[0].Fields()
+	_ = modelgroupMixinFields0
+	modelgroupMixinFields1 := modelgroupMixin[1].Fields()
+	_ = modelgroupMixinFields1
+	modelgroupFields := schema.ModelGroup{}.Fields()
+	_ = modelgroupFields
+	// modelgroupDescCreatedAt is the schema descriptor for created_at field.
+	modelgroupDescCreatedAt := modelgroupMixinFields0[0].Descriptor()
+	// modelgroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	modelgroup.DefaultCreatedAt = modelgroupDescCreatedAt.Default.(func() time.Time)
+	// modelgroupDescUpdatedAt is the schema descriptor for updated_at field.
+	modelgroupDescUpdatedAt := modelgroupMixinFields0[1].Descriptor()
+	// modelgroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	modelgroup.DefaultUpdatedAt = modelgroupDescUpdatedAt.Default.(func() time.Time)
+	// modelgroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	modelgroup.UpdateDefaultUpdatedAt = modelgroupDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// modelgroupDescDeletedAt is the schema descriptor for deleted_at field.
+	modelgroupDescDeletedAt := modelgroupMixinFields1[0].Descriptor()
+	// modelgroup.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	modelgroup.DefaultDeletedAt = modelgroupDescDeletedAt.Default.(int)
+	// modelgroupDescDisplayName is the schema descriptor for display_name field.
+	modelgroupDescDisplayName := modelgroupFields[1].Descriptor()
+	// modelgroup.DefaultDisplayName holds the default value on creation for the display_name field.
+	modelgroup.DefaultDisplayName = modelgroupDescDisplayName.Default.(string)
+	modelgroupprotocolMixin := schema.ModelGroupProtocol{}.Mixin()
+	modelgroupprotocolMixinHooks1 := modelgroupprotocolMixin[1].Hooks()
+	modelgroupprotocol.Hooks[0] = modelgroupprotocolMixinHooks1[0]
+	modelgroupprotocolMixinInters1 := modelgroupprotocolMixin[1].Interceptors()
+	modelgroupprotocol.Interceptors[0] = modelgroupprotocolMixinInters1[0]
+	modelgroupprotocolMixinFields0 := modelgroupprotocolMixin[0].Fields()
+	_ = modelgroupprotocolMixinFields0
+	modelgroupprotocolMixinFields1 := modelgroupprotocolMixin[1].Fields()
+	_ = modelgroupprotocolMixinFields1
+	modelgroupprotocolFields := schema.ModelGroupProtocol{}.Fields()
+	_ = modelgroupprotocolFields
+	// modelgroupprotocolDescCreatedAt is the schema descriptor for created_at field.
+	modelgroupprotocolDescCreatedAt := modelgroupprotocolMixinFields0[0].Descriptor()
+	// modelgroupprotocol.DefaultCreatedAt holds the default value on creation for the created_at field.
+	modelgroupprotocol.DefaultCreatedAt = modelgroupprotocolDescCreatedAt.Default.(func() time.Time)
+	// modelgroupprotocolDescUpdatedAt is the schema descriptor for updated_at field.
+	modelgroupprotocolDescUpdatedAt := modelgroupprotocolMixinFields0[1].Descriptor()
+	// modelgroupprotocol.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	modelgroupprotocol.DefaultUpdatedAt = modelgroupprotocolDescUpdatedAt.Default.(func() time.Time)
+	// modelgroupprotocol.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	modelgroupprotocol.UpdateDefaultUpdatedAt = modelgroupprotocolDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// modelgroupprotocolDescDeletedAt is the schema descriptor for deleted_at field.
+	modelgroupprotocolDescDeletedAt := modelgroupprotocolMixinFields1[0].Descriptor()
+	// modelgroupprotocol.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	modelgroupprotocol.DefaultDeletedAt = modelgroupprotocolDescDeletedAt.Default.(int)
+	// modelgroupprotocolDescEnabled is the schema descriptor for enabled field.
+	modelgroupprotocolDescEnabled := modelgroupprotocolFields[2].Descriptor()
+	// modelgroupprotocol.DefaultEnabled holds the default value on creation for the enabled field.
+	modelgroupprotocol.DefaultEnabled = modelgroupprotocolDescEnabled.Default.(bool)
+	modelgrouptargetMixin := schema.ModelGroupTarget{}.Mixin()
+	modelgrouptargetMixinHooks1 := modelgrouptargetMixin[1].Hooks()
+	modelgrouptarget.Hooks[0] = modelgrouptargetMixinHooks1[0]
+	modelgrouptargetMixinInters1 := modelgrouptargetMixin[1].Interceptors()
+	modelgrouptarget.Interceptors[0] = modelgrouptargetMixinInters1[0]
+	modelgrouptargetMixinFields0 := modelgrouptargetMixin[0].Fields()
+	_ = modelgrouptargetMixinFields0
+	modelgrouptargetMixinFields1 := modelgrouptargetMixin[1].Fields()
+	_ = modelgrouptargetMixinFields1
+	modelgrouptargetFields := schema.ModelGroupTarget{}.Fields()
+	_ = modelgrouptargetFields
+	// modelgrouptargetDescCreatedAt is the schema descriptor for created_at field.
+	modelgrouptargetDescCreatedAt := modelgrouptargetMixinFields0[0].Descriptor()
+	// modelgrouptarget.DefaultCreatedAt holds the default value on creation for the created_at field.
+	modelgrouptarget.DefaultCreatedAt = modelgrouptargetDescCreatedAt.Default.(func() time.Time)
+	// modelgrouptargetDescUpdatedAt is the schema descriptor for updated_at field.
+	modelgrouptargetDescUpdatedAt := modelgrouptargetMixinFields0[1].Descriptor()
+	// modelgrouptarget.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	modelgrouptarget.DefaultUpdatedAt = modelgrouptargetDescUpdatedAt.Default.(func() time.Time)
+	// modelgrouptarget.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	modelgrouptarget.UpdateDefaultUpdatedAt = modelgrouptargetDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// modelgrouptargetDescDeletedAt is the schema descriptor for deleted_at field.
+	modelgrouptargetDescDeletedAt := modelgrouptargetMixinFields1[0].Descriptor()
+	// modelgrouptarget.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	modelgrouptarget.DefaultDeletedAt = modelgrouptargetDescDeletedAt.Default.(int)
+	// modelgrouptargetDescPriority is the schema descriptor for priority field.
+	modelgrouptargetDescPriority := modelgrouptargetFields[4].Descriptor()
+	// modelgrouptarget.DefaultPriority holds the default value on creation for the priority field.
+	modelgrouptarget.DefaultPriority = modelgrouptargetDescPriority.Default.(int)
+	// modelgrouptargetDescEnabled is the schema descriptor for enabled field.
+	modelgrouptargetDescEnabled := modelgrouptargetFields[5].Descriptor()
+	// modelgrouptarget.DefaultEnabled holds the default value on creation for the enabled field.
+	modelgrouptarget.DefaultEnabled = modelgrouptargetDescEnabled.Default.(bool)
+	// modelgrouptargetDescCapabilities is the schema descriptor for capabilities field.
+	modelgrouptargetDescCapabilities := modelgrouptargetFields[6].Descriptor()
+	// modelgrouptarget.DefaultCapabilities holds the default value on creation for the capabilities field.
+	modelgrouptarget.DefaultCapabilities = modelgrouptargetDescCapabilities.Default.(objects.AdapterTargetCapabilities)
 	oidcidentityMixin := schema.OIDCIdentity{}.Mixin()
 	oidcidentity.Policy = privacy.NewPolicies(schema.OIDCIdentity{})
 	oidcidentity.Hooks[0] = func(next ent.Mutator) ent.Mutator {

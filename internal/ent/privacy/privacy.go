@@ -159,6 +159,54 @@ func (f APIKeyProfileTemplateMutationRuleFunc) EvalMutation(ctx context.Context,
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.APIKeyProfileTemplateMutation", m)
 }
 
+// The AdapterQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type AdapterQueryRuleFunc func(context.Context, *ent.AdapterQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f AdapterQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AdapterQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.AdapterQuery", q)
+}
+
+// The AdapterMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type AdapterMutationRuleFunc func(context.Context, *ent.AdapterMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f AdapterMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.AdapterMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.AdapterMutation", m)
+}
+
+// The AdapterModelBindingQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type AdapterModelBindingQueryRuleFunc func(context.Context, *ent.AdapterModelBindingQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f AdapterModelBindingQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AdapterModelBindingQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.AdapterModelBindingQuery", q)
+}
+
+// The AdapterModelBindingMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type AdapterModelBindingMutationRuleFunc func(context.Context, *ent.AdapterModelBindingMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f AdapterModelBindingMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.AdapterModelBindingMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.AdapterModelBindingMutation", m)
+}
+
 // The ChannelQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type ChannelQueryRuleFunc func(context.Context, *ent.ChannelQuery) error
@@ -325,6 +373,78 @@ func (f ModelMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation)
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ModelMutation", m)
+}
+
+// The ModelGroupQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ModelGroupQueryRuleFunc func(context.Context, *ent.ModelGroupQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ModelGroupQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ModelGroupQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ModelGroupQuery", q)
+}
+
+// The ModelGroupMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ModelGroupMutationRuleFunc func(context.Context, *ent.ModelGroupMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ModelGroupMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.ModelGroupMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ModelGroupMutation", m)
+}
+
+// The ModelGroupProtocolQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ModelGroupProtocolQueryRuleFunc func(context.Context, *ent.ModelGroupProtocolQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ModelGroupProtocolQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ModelGroupProtocolQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ModelGroupProtocolQuery", q)
+}
+
+// The ModelGroupProtocolMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ModelGroupProtocolMutationRuleFunc func(context.Context, *ent.ModelGroupProtocolMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ModelGroupProtocolMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.ModelGroupProtocolMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ModelGroupProtocolMutation", m)
+}
+
+// The ModelGroupTargetQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ModelGroupTargetQueryRuleFunc func(context.Context, *ent.ModelGroupTargetQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ModelGroupTargetQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ModelGroupTargetQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ModelGroupTargetQuery", q)
+}
+
+// The ModelGroupTargetMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ModelGroupTargetMutationRuleFunc func(context.Context, *ent.ModelGroupTargetMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ModelGroupTargetMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.ModelGroupTargetMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ModelGroupTargetMutation", m)
 }
 
 // The OIDCIdentityQueryRuleFunc type is an adapter to allow the use of ordinary
@@ -726,6 +846,10 @@ func queryFilter(q ent.Query) (Filter, error) {
 		return q.Filter(), nil
 	case *ent.APIKeyProfileTemplateQuery:
 		return q.Filter(), nil
+	case *ent.AdapterQuery:
+		return q.Filter(), nil
+	case *ent.AdapterModelBindingQuery:
+		return q.Filter(), nil
 	case *ent.ChannelQuery:
 		return q.Filter(), nil
 	case *ent.ChannelModelPriceQuery:
@@ -739,6 +863,12 @@ func queryFilter(q ent.Query) (Filter, error) {
 	case *ent.DataStorageQuery:
 		return q.Filter(), nil
 	case *ent.ModelQuery:
+		return q.Filter(), nil
+	case *ent.ModelGroupQuery:
+		return q.Filter(), nil
+	case *ent.ModelGroupProtocolQuery:
+		return q.Filter(), nil
+	case *ent.ModelGroupTargetQuery:
 		return q.Filter(), nil
 	case *ent.OIDCIdentityQuery:
 		return q.Filter(), nil
@@ -781,6 +911,10 @@ func mutationFilter(m ent.Mutation) (Filter, error) {
 		return m.Filter(), nil
 	case *ent.APIKeyProfileTemplateMutation:
 		return m.Filter(), nil
+	case *ent.AdapterMutation:
+		return m.Filter(), nil
+	case *ent.AdapterModelBindingMutation:
+		return m.Filter(), nil
 	case *ent.ChannelMutation:
 		return m.Filter(), nil
 	case *ent.ChannelModelPriceMutation:
@@ -794,6 +928,12 @@ func mutationFilter(m ent.Mutation) (Filter, error) {
 	case *ent.DataStorageMutation:
 		return m.Filter(), nil
 	case *ent.ModelMutation:
+		return m.Filter(), nil
+	case *ent.ModelGroupMutation:
+		return m.Filter(), nil
+	case *ent.ModelGroupProtocolMutation:
+		return m.Filter(), nil
+	case *ent.ModelGroupTargetMutation:
 		return m.Filter(), nil
 	case *ent.OIDCIdentityMutation:
 		return m.Filter(), nil

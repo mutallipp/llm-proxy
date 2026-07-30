@@ -21,6 +21,7 @@ type Handlers struct {
 	Graphql        *gql.GraphqlHandler
 	OpenAPIGraphql *openapi.GraphqlHandler
 	OpenAI         *api.OpenAIHandlers
+	Adapter        *api.AdapterHandlers
 	Doubao         *api.DoubaoHandlers
 	Anthropic      *api.AnthropicHandlers
 	Gemini         *api.GeminiHandlers
@@ -36,15 +37,17 @@ type Handlers struct {
 	RequestContent *api.RequestContentHandlers
 	OIDC           *api.OIDCHandlers
 	RequestPreview *api.RequestPreviewHandlers
+	Gateway        *api.GatewayHandlers
 }
 
 type Services struct {
 	fx.In
 
-	TraceService  *biz.TraceService
-	ThreadService *biz.ThreadService
-	AuthService   *biz.AuthService
-	SystemService *biz.SystemService
+	TraceService   *biz.TraceService
+	ThreadService  *biz.ThreadService
+	AuthService    *biz.AuthService
+	SystemService  *biz.SystemService
+	AdapterService *biz.AdapterService
 }
 
 func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services Services, ipAccessControl *middleware.IPAccessControlConfig) {
@@ -140,6 +143,17 @@ func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services
 			middleware.WithTimeout(server.Config.RequestTimeout),
 			handlers.RequestPreview.PreviewRequest,
 		)
+
+		// Gateway 适配器配置管理路由
+		gatewayGroup := adminGroup.Group("/gateway")
+		{
+			gatewayGroup.GET("/adapters", handlers.Gateway.ListAdapters)
+			gatewayGroup.PUT("/adapters/:name", handlers.Gateway.UpdateAdapter)
+			gatewayGroup.GET("/model-groups", handlers.Gateway.ListModelGroups)
+			gatewayGroup.PUT("/model-groups/:name", handlers.Gateway.UpdateModelGroup)
+			gatewayGroup.GET("/runtime", handlers.Gateway.GetRuntimeStatus)
+			gatewayGroup.POST("/refresh", handlers.Gateway.RefreshGateway)
+		}
 	}
 
 	openAPIGroup := server.Group(
@@ -167,6 +181,25 @@ func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services
 		middleware.WithThread(server.Config.Trace, services.ThreadService),
 		middleware.WithTrace(server.Config.Trace, services.TraceService),
 	)
+
+	{
+		adapterGroup := server.Group(
+			"/:adapter/v1",
+			middleware.WithTimeout(server.Config.LLMRequestTimeout),
+			middleware.WithIPBlocklist(services.SystemService),
+			middleware.WithAdapterConsumerInterceptor(),
+			middleware.WithAdapterRoute(services.AdapterService),
+			middleware.WithAdapterNoAuthPersistence(services.AuthService),
+			middleware.WithSource(request.SourceAPI),
+			middleware.WithThread(server.Config.Trace, services.ThreadService),
+			middleware.WithTrace(server.Config.Trace, services.TraceService),
+		)
+		adapterGroup.POST("/chat/completions", handlers.Adapter.ChatCompletions)
+		adapterGroup.POST("/responses", handlers.Adapter.Responses)
+		adapterGroup.POST("/messages", handlers.Adapter.Messages)
+		adapterGroup.GET("/models", handlers.Adapter.ListModels)
+		adapterGroup.GET("/models/:model", handlers.Adapter.RetrieveModel)
+	}
 
 	{
 		openaiGroup := apiGroup.Group("/v1")

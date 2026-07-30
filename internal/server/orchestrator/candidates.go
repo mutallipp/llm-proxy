@@ -96,6 +96,14 @@ func (s *DefaultSelector) Select(ctx context.Context, req *llm.Request) ([]*Chan
 	candidates, err := s.selectModelCandidates(ctx, req)
 	if err != nil {
 		if ent.IsNotFound(err) {
+			// 适配器请求必须由 AdapterCandidateSelector 决定目标，不能降级到全渠道搜索。
+			if _, ok := contexts.GetRuntimeAdapter(ctx); ok {
+				return nil, fmt.Errorf("%w: adapter model %q was not resolved", biz.ErrInvalidModel, req.Model)
+			}
+			if _, ok := contexts.GetAdapterName(ctx); ok {
+				return nil, fmt.Errorf("%w: adapter model %q was not resolved", biz.ErrInvalidModel, req.Model)
+			}
+
 			// Check if fallback to legacy channel selection is allowed
 			settings := s.SystemService.ModelSettingsOrDefault(ctx)
 			if settings.FallbackToChannelsOnModelNotFound {

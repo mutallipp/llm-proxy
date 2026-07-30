@@ -125,6 +125,25 @@ func GetChannelAPIKey(ctx context.Context) (string, bool) {
 	return "", false
 }
 
+// WithAdapterConsumerAPIKey 保存适配器消费端携带的 API Key。
+// 该值仅用于请求上下文传递，不参与当前一期的认证、持久化或渠道请求。
+func WithAdapterConsumerAPIKey(ctx context.Context, apiKey string) context.Context {
+	container := getContainer(ctx)
+	container.AdapterConsumerAPIKey = &apiKey
+
+	return withContainer(ctx, container)
+}
+
+// GetAdapterConsumerAPIKey retrieves the adapter consumer API key from the context.
+func GetAdapterConsumerAPIKey(ctx context.Context) (string, bool) {
+	container := getContainer(ctx)
+	if container.AdapterConsumerAPIKey != nil {
+		return *container.AdapterConsumerAPIKey, true
+	}
+
+	return "", false
+}
+
 // WithProjectID stores the project ID in the context.
 func WithProjectID(ctx context.Context, projectID int) context.Context {
 	container := getContainer(ctx)
