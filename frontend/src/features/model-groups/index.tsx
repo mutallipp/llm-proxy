@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Header } from '@/components/layout/header';
@@ -22,6 +24,7 @@ import {
   type ModelGroupProtocol,
   type ModelGroupTargetInput,
   type ModelGroupUpdateInput,
+  type TargetCapabilities,
   useDeleteModelGroup,
   useModelGroups,
   useRefreshGateway,
@@ -29,13 +32,27 @@ import {
 } from '@/lib/adapterApi';
 
 // 空目标的 capabilities 默认值
-const EMPTY_CAPABILITIES = {
+const EMPTY_CAPABILITIES: TargetCapabilities = {
   supports_tools: true,
   supports_stream: true,
-  stream_policy: 'unlimited' as const,
+  stream_policy: 'unlimited',
+  supports_reasoning: false,
+  context_length: 0,
+  max_output_tokens: 0,
   input_modalities: ['text'],
   output_modalities: ['text'],
 };
+
+const MODALITIES = ['text', 'image', 'video', 'audio'] as const;
+
+function normalizeCapabilities(capabilities?: Partial<TargetCapabilities>): TargetCapabilities {
+  return {
+    ...EMPTY_CAPABILITIES,
+    ...capabilities,
+    input_modalities: capabilities?.input_modalities ?? EMPTY_CAPABILITIES.input_modalities,
+    output_modalities: capabilities?.output_modalities ?? EMPTY_CAPABILITIES.output_modalities,
+  };
+}
 
 // 新建模型组时的初始值
 const EMPTY_GROUP: ModelGroupUpdateInput = {
@@ -51,7 +68,7 @@ type NewTargetDraft = {
   target_model_id: string;
   outbound_api_format: string;
   enabled: boolean;
-  stream_policy: string;
+  capabilities: TargetCapabilities;
 };
 
 // 对 targets 列表重新按下标赋 priority（从 1 开始）
@@ -87,6 +104,106 @@ function getChannelAvailableFormats(
   ].map((e) => e.apiFormat).filter(Boolean);
   if (fromEndpoints.length === 0) return [...API_FORMATS];
   return [...new Set(fromEndpoints)];
+}
+
+interface TargetCapabilitiesEditorProps {
+  capabilities?: Partial<TargetCapabilities>;
+  onChange: (capabilities: TargetCapabilities) => void;
+}
+
+function TargetCapabilitiesEditor({ capabilities, onChange }: TargetCapabilitiesEditorProps) {
+  const value = normalizeCapabilities(capabilities);
+
+  const toggleModality = (field: 'input_modalities' | 'output_modalities', modality: string) => {
+    const modalities = value[field].includes(modality)
+      ? value[field].filter((item) => item !== modality)
+      : [...value[field], modality];
+    onChange({ ...value, [field]: modalities });
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button type='button' size='sm' variant='outline'>
+          能力配置
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align='end' className='w-[340px] space-y-4'>
+        <div>
+          <p className='font-medium'>目标能力</p>
+          <p className='text-muted-foreground text-xs'>0 表示未声明，不会限制路由。</p>
+        </div>
+        <div className='grid grid-cols-2 gap-3'>
+          <div className='space-y-1'>
+            <Label htmlFor='context-length'>上下文 Token</Label>
+            <Input
+              id='context-length'
+              type='number'
+              min={0}
+              value={value.context_length || ''}
+              onChange={(event) => onChange({ ...value, context_length: Number(event.target.value) || 0 })}
+              placeholder='未声明'
+            />
+          </div>
+          <div className='space-y-1'>
+            <Label htmlFor='max-output-tokens'>最大输出 Token</Label>
+            <Input
+              id='max-output-tokens'
+              type='number'
+              min={0}
+              value={value.max_output_tokens || ''}
+              onChange={(event) => onChange({ ...value, max_output_tokens: Number(event.target.value) || 0 })}
+              placeholder='未声明'
+            />
+          </div>
+        </div>
+        <div className='grid grid-cols-2 gap-3'>
+          <label className='flex items-center gap-2 text-sm'>
+            <Checkbox
+              checked={value.supports_tools}
+              onCheckedChange={(checked) => onChange({ ...value, supports_tools: checked === true })}
+            />
+            支持工具调用
+          </label>
+          <label className='flex items-center gap-2 text-sm'>
+            <Checkbox
+              checked={value.supports_reasoning}
+              onCheckedChange={(checked) => onChange({ ...value, supports_reasoning: checked === true })}
+            />
+            支持推理
+          </label>
+        </div>
+        <div className='space-y-2'>
+          <Label>输入模态</Label>
+          <div className='grid grid-cols-2 gap-2'>
+            {MODALITIES.map((modality) => (
+              <label key={`input-${modality}`} className='flex items-center gap-2 text-sm'>
+                <Checkbox
+                  checked={value.input_modalities.includes(modality)}
+                  onCheckedChange={() => toggleModality('input_modalities', modality)}
+                />
+                {modality}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className='space-y-2'>
+          <Label>输出模态</Label>
+          <div className='grid grid-cols-2 gap-2'>
+            {MODALITIES.map((modality) => (
+              <label key={`output-${modality}`} className='flex items-center gap-2 text-sm'>
+                <Checkbox
+                  checked={value.output_modalities.includes(modality)}
+                  onCheckedChange={() => toggleModality('output_modalities', modality)}
+                />
+                {modality}
+              </label>
+            ))}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 // ===================== ModelGroupTarget 渠道测试按钮 =====================
@@ -187,7 +304,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
     target_model_id: '',
     outbound_api_format: API_FORMATS[0],
     enabled: true,
-    stream_policy: 'unlimited',
+    capabilities: normalizeCapabilities(),
   });
 
   // 弹窗打开时重置所有状态
@@ -212,7 +329,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                 priority: target.priority,
                 enabled: target.enabled,
                 remark: target.remark,
-                capabilities: { ...target.capabilities },
+                capabilities: normalizeCapabilities(target.capabilities),
               })),
             })),
           }
@@ -274,7 +391,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
               outbound_api_format: target.outbound_api_format,
               priority: p.targets.length + 1,
               enabled: target.enabled,
-              capabilities: { ...EMPTY_CAPABILITIES, stream_policy: target.stream_policy || 'unlimited' },
+              capabilities: normalizeCapabilities(target.capabilities),
             },
           ],
         };
@@ -283,7 +400,10 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
     // 重置该协议的新目标草稿（保留已选渠道）
     setNewTargets((current) => ({
       ...current,
-      [protocolIndex]: { ...makeTargetDraft(), channel_id: target.channel_id },
+      [protocolIndex]: {
+        ...makeTargetDraft(),
+        channel_id: target.channel_id,
+      },
     }));
   };
 
@@ -545,8 +665,12 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                     })()}
                     {/* 流式响应策略 */}
                     <Select
-                      value={targetDraft.stream_policy || 'unlimited'}
-                      onValueChange={(value) => updateNewTarget(protocolIndex, { stream_policy: value })}
+                      value={targetDraft.capabilities.stream_policy || 'unlimited'}
+                      onValueChange={(value) =>
+                        updateNewTarget(protocolIndex, {
+                          capabilities: { ...targetDraft.capabilities, stream_policy: value },
+                        })
+                      }
                     >
                       <SelectTrigger className='w-full min-w-0'>
                         <SelectValue />
@@ -570,11 +694,15 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                         <SelectItem value='disabled'>禁用</SelectItem>
                       </SelectContent>
                     </Select>
-                    <div className='col-span-2 flex justify-end'>
+                    <div className='col-span-2 flex justify-end gap-2'>
+                      <TargetCapabilitiesEditor
+                        capabilities={targetDraft.capabilities}
+                        onChange={(capabilities) => updateNewTarget(protocolIndex, { capabilities })}
+                      />
                       <Button
                         type='button'
                         variant='outline'
-                        className='w-full'
+                        className='flex-1'
                         onClick={() => addTarget(protocolIndex)}
                       >
                         <IconPlus className='mr-1 h-4 w-4' />
@@ -592,6 +720,7 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                     {protocol.targets.map((target, targetIndex) => {
                       // 该渠道的可用出站协议列表
                       const availableFormats = getChannelAvailableFormats(target.channel_id, channels);
+                      const targetCapabilities = normalizeCapabilities(target.capabilities);
                       // 若当前保存的 outbound_api_format 不在可用列表中，显示警告
                       const isFormatMismatch = availableFormats.length > 0 &&
                         !availableFormats.includes(target.outbound_api_format);
@@ -652,10 +781,10 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                         </div>
                         {/* 流式响应策略（可编辑） */}
                         <Select
-                          value={target.capabilities?.stream_policy || 'unlimited'}
+                          value={targetCapabilities.stream_policy || 'unlimited'}
                           onValueChange={(value) =>
                             updateTarget(protocolIndex, targetIndex, {
-                              capabilities: { ...target.capabilities, stream_policy: value },
+                              capabilities: { ...targetCapabilities, stream_policy: value },
                             })
                           }
                         >
@@ -695,6 +824,10 @@ function GroupDialog({ group, open, onOpenChange }: GroupDialogProps) {
                         </Select>
                         {/* 操作按钮 */}
                         <div className='flex justify-end gap-1'>
+                          <TargetCapabilitiesEditor
+                            capabilities={targetCapabilities}
+                            onChange={(capabilities) => updateTarget(protocolIndex, targetIndex, { capabilities })}
+                          />
                           {/* 渠道目标测试（仅验证直连，非完整 Adapter 链路） */}
                           <TargetTestButton
                             channelId={target.channel_id}

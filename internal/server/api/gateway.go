@@ -210,12 +210,15 @@ type TargetDTO struct {
 
 // TargetCapabilitiesDTO 目标能力数据传输对象.
 type TargetCapabilitiesDTO struct {
-	SupportsTools    bool     `json:"supports_tools"`
-	SupportsStream   bool     `json:"supports_stream"`
+	SupportsTools  bool `json:"supports_tools"`
+	SupportsStream bool `json:"supports_stream"`
 	// StreamPolicy 目标级流式响应策略："unlimited"、"require"、"forbid"。空字符串按旧数据兼容处理。
-	StreamPolicy     string   `json:"stream_policy,omitempty"`
-	InputModalities  []string `json:"input_modalities"`
-	OutputModalities []string `json:"output_modalities"`
+	StreamPolicy      string   `json:"stream_policy,omitempty"`
+	SupportsReasoning bool     `json:"supports_reasoning"`
+	ContextLength     int      `json:"context_length,omitempty"`
+	MaxOutputTokens   int      `json:"max_output_tokens,omitempty"`
+	InputModalities   []string `json:"input_modalities"`
+	OutputModalities  []string `json:"output_modalities"`
 }
 
 // ListModelGroups 返回所有模型组配置（包含协议和目标信息）.
@@ -244,11 +247,14 @@ func (h *GatewayHandlers) ListModelGroups(c *gin.Context) {
 					Enabled:           target.Enabled,
 					Remark:            target.Remark,
 					Capabilities: TargetCapabilitiesDTO{
-						SupportsTools:    target.Capabilities.SupportsTools,
-						SupportsStream:   target.Capabilities.SupportsStream,
-						StreamPolicy:     target.Capabilities.StreamPolicy,
-						InputModalities:  target.Capabilities.InputModalities,
-						OutputModalities: target.Capabilities.OutputModalities,
+						SupportsTools:     target.Capabilities.SupportsTools,
+						SupportsStream:    target.Capabilities.SupportsStream,
+						StreamPolicy:      target.Capabilities.StreamPolicy,
+						SupportsReasoning: target.Capabilities.SupportsReasoning,
+						ContextLength:     target.Capabilities.ContextLength,
+						MaxOutputTokens:   target.Capabilities.MaxOutputTokens,
+						InputModalities:   target.Capabilities.InputModalities,
+						OutputModalities:  target.Capabilities.OutputModalities,
 					},
 				})
 			}
@@ -351,7 +357,15 @@ func (h *GatewayHandlers) UpdateModelGroup(c *gin.Context) {
 				JSONError(c, http.StatusBadRequest, errors.New("target outbound_api_format is required"))
 				return
 			}
-			// 校验 stream_policy 必须为合法枚举値
+			if target.Capabilities.ContextLength < 0 {
+				JSONError(c, http.StatusBadRequest, errors.New("target context_length must be non-negative"))
+				return
+			}
+			if target.Capabilities.MaxOutputTokens < 0 {
+				JSONError(c, http.StatusBadRequest, errors.New("target max_output_tokens must be non-negative"))
+				return
+			}
+			// 校验 stream_policy 必须为合法枚举值
 			sp := target.Capabilities.StreamPolicy
 			if sp != "" && sp != "unlimited" && sp != "require" && sp != "forbid" {
 				JSONError(c, http.StatusBadRequest, errors.New("invalid stream_policy: must be unlimited, require, or forbid"))
@@ -463,11 +477,14 @@ func convertProtocolInputs(inputs []ProtocolInput) []biz.ProtocolInput {
 				Enabled:           target.Enabled,
 				Remark:            &targetRemark,
 				Capabilities: biz.AdapterTargetCapabilitiesInput{
-					SupportsTools:    target.Capabilities.SupportsTools,
-					SupportsStream:   target.Capabilities.SupportsStream,
-					StreamPolicy:     target.Capabilities.StreamPolicy,
-					InputModalities:  target.Capabilities.InputModalities,
-					OutputModalities: target.Capabilities.OutputModalities,
+					SupportsTools:     target.Capabilities.SupportsTools,
+					SupportsStream:    target.Capabilities.SupportsStream,
+					StreamPolicy:      target.Capabilities.StreamPolicy,
+					SupportsReasoning: target.Capabilities.SupportsReasoning,
+					ContextLength:     target.Capabilities.ContextLength,
+					MaxOutputTokens:   target.Capabilities.MaxOutputTokens,
+					InputModalities:   target.Capabilities.InputModalities,
+					OutputModalities:  target.Capabilities.OutputModalities,
 				},
 			})
 		}

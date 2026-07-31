@@ -38,6 +38,11 @@ export interface TargetCapabilities {
   supports_stream: boolean;
   /** 目标级流式策略：unlimited（跟随下游）| require（强制流式）| forbid（禁止流式）。缺省按 unlimited 处理。 */
   stream_policy?: StreamPolicy | string;
+  supports_reasoning: boolean;
+  /** 0 表示未声明上下文窗口。 */
+  context_length?: number;
+  /** 0 表示未声明最大输出 Token。 */
+  max_output_tokens?: number;
   input_modalities: string[];
   output_modalities: string[];
 }

@@ -388,11 +388,14 @@ func hasEndpoint(endpoints []objects.ChannelEndpoint, apiFormat string) bool {
 
 func cloneTargetCapabilities(capabilities objects.AdapterTargetCapabilities) objects.AdapterTargetCapabilities {
 	return objects.AdapterTargetCapabilities{
-		SupportsTools:    capabilities.SupportsTools,
-		SupportsStream:   capabilities.SupportsStream,
-		StreamPolicy:     capabilities.StreamPolicy,
-		InputModalities:  append([]string(nil), capabilities.InputModalities...),
-		OutputModalities: append([]string(nil), capabilities.OutputModalities...),
+		SupportsTools:     capabilities.SupportsTools,
+		SupportsStream:    capabilities.SupportsStream,
+		StreamPolicy:      capabilities.StreamPolicy,
+		SupportsReasoning: capabilities.SupportsReasoning,
+		ContextLength:     capabilities.ContextLength,
+		MaxOutputTokens:   capabilities.MaxOutputTokens,
+		InputModalities:   append([]string(nil), capabilities.InputModalities...),
+		OutputModalities:  append([]string(nil), capabilities.OutputModalities...),
 	}
 }
 
@@ -512,12 +515,15 @@ type TargetInput struct {
 
 // AdapterTargetCapabilitiesInput 目标能力输入
 type AdapterTargetCapabilitiesInput struct {
-	SupportsTools    bool
-	SupportsStream   bool
+	SupportsTools  bool
+	SupportsStream bool
 	// StreamPolicy 目标级流式策略："unlimited" | "require" | "forbid" | ""
-	StreamPolicy     string
-	InputModalities  []string
-	OutputModalities []string
+	StreamPolicy      string
+	SupportsReasoning bool
+	ContextLength     int
+	MaxOutputTokens   int
+	InputModalities   []string
+	OutputModalities  []string
 }
 
 var (
@@ -884,11 +890,14 @@ func (svc *AdapterService) UpdateModelGroup(ctx context.Context, name string, pa
 						targetRemark = *target.Remark
 					}
 					capabilities := objects.AdapterTargetCapabilities{
-						SupportsTools:    target.Capabilities.SupportsTools,
-						SupportsStream:   target.Capabilities.SupportsStream,
-						StreamPolicy:     target.Capabilities.StreamPolicy,
-						InputModalities:  target.Capabilities.InputModalities,
-						OutputModalities: target.Capabilities.OutputModalities,
+						SupportsTools:     target.Capabilities.SupportsTools,
+						SupportsStream:    target.Capabilities.SupportsStream,
+						StreamPolicy:      target.Capabilities.StreamPolicy,
+						SupportsReasoning: target.Capabilities.SupportsReasoning,
+						ContextLength:     target.Capabilities.ContextLength,
+						MaxOutputTokens:   target.Capabilities.MaxOutputTokens,
+						InputModalities:   target.Capabilities.InputModalities,
+						OutputModalities:  target.Capabilities.OutputModalities,
 					}
 					_, err := db.ModelGroupTarget.Create().
 						SetModelGroupProtocolID(p.ID).
