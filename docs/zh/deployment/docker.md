@@ -10,51 +10,46 @@
 
 ```bash
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 ```
 
 ### 2. 配置环境
 
-复制示例配置文件：
+Compose 会自动读取项目根目录的 `.env` 文件。先复制示例并填写真实数据库配置：
 
 ```bash
-cp config.example.yml config.yml
+cp .env.example .env
+# 编辑 .env，至少填写 AXONHUB_DB_DSN
 ```
 
-编辑 `config.yml` 以进行设置：
+`.env` 只保留在本机，不要提交到 Git。`docker-compose.yml` 会通过 `AXONHUB_*` 环境变量注入数据库、鉴权和代理配置。
 
-```yaml
-# config.yml
-server:
-  port: 8090
-  name: "AxonHub"
-
-db:
-  dialect: "sqlite3"
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
-
-log:
-  level: "info"
-  encoding: "json"
-```
-
-### 3. 启动服务
+### 3. 构建并启动服务
 
 ```bash
-docker-compose up -d
+docker compose up -d --build --force-recreate
 ```
+
+首次启动或代码更新后必须带 `--build`，否则可能继续使用旧的 `llm-proxy:latest` 镜像。Dockerfile 会自动构建前端并将 Adapter、ModelGroup 等最新页面嵌入后端。
 
 ### 4. 验证部署
 
 检查服务状态：
 
 ```bash
-docker-compose ps
+docker compose ps
+curl http://localhost:8090/health
+```
+
+查看日志：
+
+```bash
+docker compose logs -f llm-proxy
 ```
 
 访问应用：
 - Web 界面：http://localhost:8090
-- 默认管理员：admin@example.com / admin123
+- 首次访问按初始化向导创建管理员账号（密码至少 6 位）。
 
 ## Docker Compose 配置
 

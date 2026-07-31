@@ -17,25 +17,44 @@ This guide will help you get started with AxonHub quickly. In just a few minutes
 1. **Clone the repository**
    ```bash
    git clone https://github.com/mutallipp/llm-proxy.git
-   cd axonhub
+   cd llm-proxy
    ```
 
 2. **Configure environment variables**
    ```bash
-   cp config.example.yml config.yml
-   # Edit config.yml with your preferred settings
+   cp .env.example .env
+   # Edit .env and set AXONHUB_DB_DSN and other local settings
    ```
 
-3. **Start services**
+3. **Build and start services**
    ```bash
-   docker-compose up -d
+   docker compose up -d --build --force-recreate
+   docker compose ps
    ```
+
+   Use `--build` on the first start and after code changes. Docker builds the latest frontend and embeds it into the backend.
 
 4. **Access the application**
    - Web interface: http://localhost:8090
-   - Default credentials: admin@example.com / admin123
+   - Create the administrator account through the first-run setup wizard
 
-### Method 2: Binary Download
+### Method 2: Local Development
+
+When starting without Docker, build the frontend before running the Go backend:
+
+```bash
+cd llm-proxy
+cp .env.example .env
+# Edit .env, then export it because Go does not load .env automatically
+set -a && source .env && set +a
+cd frontend && pnpm install --frozen-lockfile && cd ..
+make build
+./axonhub
+```
+
+Do not run only `go run ./cmd/axonhub`; a fresh clone does not contain generated frontend dist files.
+
+### Method 3: Binary Download
 
 1. **Download the latest release**
    - Visit [GitHub Releases](https://github.com/mutallipp/llm-proxy/releases)
@@ -374,7 +393,7 @@ log:
 ### Common Issues
 
 **Cannot connect to AxonHub**
-- Check if the service is running: `docker-compose ps`
+- Check if the service is running: `docker compose ps`
 - Verify port 8090 is available
 - Check firewall settings
 

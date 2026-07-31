@@ -375,18 +375,21 @@ AXONHUB_LOG_LEVEL=info
 ```bash
 # 克隆项目
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 
-# 设置环境变量
-export AXONHUB_DB_DIALECT="tidb"
-export AXONHUB_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
+# Compose 自动读取同目录 .env
+cp .env.example .env
+# 编辑 .env，填写 AXONHUB_DB_DIALECT 和 AXONHUB_DB_DSN
 
-# 启动服务
-docker-compose up -d
+# 首次启动或代码更新后，必须重新构建镜像
+docker compose up -d --build --force-recreate
 
 # 查看状态
-docker-compose ps
+docker compose ps
+curl http://localhost:8090/health
 ```
+
+Dockerfile 会自动构建前端并将最新 Adapter、ModelGroup 页面嵌入后端。
 
 #### Helm Kubernetes 部署 | Helm Kubernetes Deployment
 
@@ -395,7 +398,7 @@ docker-compose ps
 ```bash
 # Quick installation
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 helm install axonhub ./deploy/helm
 
 # Production deployment
@@ -425,7 +428,7 @@ kubectl port-forward svc/axonhub 8090:8090
 ```bash
 # 克隆项目
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 
 # 设置环境变量
 export AXONHUB_DB_DIALECT="tidb"

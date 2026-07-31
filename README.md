@@ -387,17 +387,17 @@ For detailed configuration instructions, please refer to [configuration document
 ```bash
 # Clone project
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 
 # Set environment variables
 export AXONHUB_DB_DIALECT="tidb"
 export AXONHUB_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
 
 # Start services
-docker-compose up -d
+docker compose up -d --build --force-recreate
 
 # Check status
-docker-compose ps
+docker compose ps
 ```
 
 #### Helm Kubernetes Deployment
@@ -407,7 +407,7 @@ Deploy AxonHub on Kubernetes using the official Helm chart:
 ```bash
 # Quick installation
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 helm install axonhub ./deploy/helm
 
 # Production deployment

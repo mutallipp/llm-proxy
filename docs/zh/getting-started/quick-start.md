@@ -17,25 +17,44 @@
 1. **克隆仓库**
    ```bash
    git clone https://github.com/mutallipp/llm-proxy.git
-   cd axonhub
+   cd llm-proxy
    ```
 
 2. **配置环境变量**
    ```bash
-   cp config.example.yml config.yml
-   # 使用您喜欢的编辑器编辑 config.yml
+   cp .env.example .env
+   # 编辑 .env，填写 AXONHUB_DB_DSN 等配置
    ```
 
-3. **启动服务**
+3. **构建并启动服务**
    ```bash
-   docker-compose up -d
+   docker compose up -d --build --force-recreate
+   docker compose ps
    ```
+
+   首次启动或代码更新后必须使用 `--build`，Docker 会同时构建最新前端并嵌入后端。
 
 4. **访问应用程序**
    - Web 界面：http://localhost:8090
-   - 默认凭据：admin@example.com / admin123
+   - 首次访问按初始化向导创建管理员账号（密码至少 6 位）
 
-### 方法 2：二进制下载
+### 方法 2：本地开发启动
+
+如果不使用 Docker，不能只执行 `go run ./cmd/axonhub`，因为前端页面需要先构建并嵌入后端：
+
+```bash
+cd llm-proxy
+cp .env.example .env
+# 编辑 .env 后导入环境变量
+set -a && source .env && set +a
+cd frontend && pnpm install --frozen-lockfile && cd ..
+make build
+./axonhub
+```
+
+访问：http://localhost:8090。
+
+### 方法 3：二进制下载
 
 1. **下载最新版本**
    - 访问 [GitHub Releases](https://github.com/mutallipp/llm-proxy/releases)
@@ -374,7 +393,7 @@ log:
 ### 常见问题
 
 **无法连接到 AxonHub**
-- 检查服务是否正在运行：`docker-compose ps`
+- 检查服务是否正在运行：`docker compose ps`
 - 验证端口 8090 是否可用
 - 检查防火墙设置
 

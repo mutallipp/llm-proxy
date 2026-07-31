@@ -57,34 +57,51 @@ This architecture ensures:
 
 ```bash
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 ```
 
-### Start Backend
+### Configure the Local Environment
 
 ```bash
-# Option 1: Build and run directly
-make build-backend
-./axonhub
-
-# Option 2: Use air for hot reload (recommended for development)
-go install github.com/air-verse/air@latest
-air
+cp .env.example .env
+# Edit .env with the database and proxy settings
 ```
+
+The Go process does not load `.env` automatically. Before starting it directly, export the variables into the current shell:
+
+```bash
+set -a
+source .env
+set +a
+```
+
+### Start Backend with the Latest Frontend
+
+The backend embeds the frontend files from `internal/server/static/dist` at compile time. After a fresh clone or any frontend change, build the frontend before starting the backend:
+
+```bash
+cd frontend
+pnpm install --frozen-lockfile
+cd ..
+make build
+./axonhub
+```
+
+Do not run only `go run ./cmd/axonhub`: the repository does not commit the generated frontend dist, so the latest Adapter and ModelGroup pages may not be available.
 
 The backend server will start at `http://localhost:8090`.
 
-### Start Frontend
+### Frontend Development Mode
 
 In a new terminal window:
 
 ```bash
 cd frontend
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The frontend development server will start at `http://localhost:5173`.
+The frontend development server will start at `http://localhost:5173`. To verify the embedded production UI, use `make build` first.
 
 ## Building the Project
 

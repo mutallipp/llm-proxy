@@ -10,51 +10,37 @@ This guide covers deploying AxonHub using Docker and Docker Compose. Docker prov
 
 ```bash
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 ```
 
 ### 2. Configure Environment
 
-Copy the example configuration file:
+Compose automatically loads `.env` from the project root:
 
 ```bash
-cp config.example.yml config.yml
+cp .env.example .env
+# Edit .env and set AXONHUB_DB_DSN and other local settings
 ```
 
-Edit `config.yml` with your settings:
+Keep `.env` local; it is ignored by Git. The Compose file injects database, authentication, and proxy settings through `AXONHUB_*` variables.
 
-```yaml
-# config.yml
-server:
-  port: 8090
-  name: "AxonHub"
-
-db:
-  dialect: "sqlite3"
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
-
-log:
-  level: "info"
-  encoding: "json"
-```
-
-### 3. Start Services
+### 3. Build and Start Services
 
 ```bash
-docker-compose up -d
+docker compose up -d --build --force-recreate
 ```
+
+Use `--build` on the first start and after code changes. The Dockerfile builds the frontend and embeds the latest Adapter and ModelGroup pages into the backend.
 
 ### 4. Verify Deployment
 
-Check service status:
-
 ```bash
-docker-compose ps
+docker compose ps
+curl http://localhost:8090/health
+docker compose logs -f llm-proxy
 ```
 
-Access the application:
-- Web interface: http://localhost:8090
-- Default admin: admin@example.com / admin123
+Access the application at http://localhost:8090 and create the administrator account through the first-run setup wizard.
 
 ## Docker Compose Configuration
 

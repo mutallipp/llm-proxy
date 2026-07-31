@@ -57,34 +57,51 @@ AxonHub 实现了一个双向数据转换管道，确保客户端与 AI 提供�
 
 ```bash
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 ```
 
-### 启动后端
+### 配置本地环境
 
 ```bash
-# 方式 1：直接构建并运行
-make build-backend
-./axonhub
-
-# 方式 2：使用 air 热重载（推荐）
-go install github.com/air-verse/air@latest
-air
+cp .env.example .env
+# 编辑 .env，填写数据库连接和代理配置
 ```
 
-后端服务默认启动在 `http://localhost:8090`。
+Go 程序不会自动读取 `.env`。直接启动后端前，需要将变量导入当前 shell：
 
-### 启动前端
+```bash
+set -a
+source .env
+set +a
+```
 
-在新的终端窗口中：
+### 启动后端（包含最新前端页面）
+
+后端会在编译时嵌入 `internal/server/static/dist` 中的前端产物。首次启动或修改前端后，必须先构建前端：
 
 ```bash
 cd frontend
-pnpm install
+pnpm install --frozen-lockfile
+cd ..
+make build
+./axonhub
+```
+
+不要只执行 `go run ./cmd/axonhub`：新 clone 的仓库不提交前端 dist，直接运行可能看不到最新的 Adapter、ModelGroup 等页面。
+
+后端服务默认启动在 `http://localhost:8090`。
+
+### 前端开发模式
+
+如果只调试前端页面，在新的终端窗口中执行：
+
+```bash
+cd frontend
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-前端开发服务器默认启动在 `http://localhost:5173`。
+前端开发服务器默认启动在 `http://localhost:5173`。需要验证后端嵌入页面时，仍应使用上面的 `make build` 流程。
 
 ## 项目构建
 
