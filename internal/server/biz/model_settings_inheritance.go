@@ -24,10 +24,13 @@ func normalizeSystemModelSettings(settings *SystemModelSettings) {
 		}
 
 		developer.Developer = strings.TrimSpace(developer.Developer)
-		if developer.Associations == nil {
-			developer.Associations = []*objects.ModelAssociation{}
+		if developer.ProtocolPools == nil {
+			developer.ProtocolPools = map[string][]*objects.ModelAssociation{}
 		}
-		normalizeDeveloperAssociations(developer.Associations)
+		for protocol, associations := range developer.ProtocolPools {
+			normalizeDeveloperAssociations(associations)
+			developer.ProtocolPools[protocol] = associations
+		}
 	}
 }
 
@@ -52,8 +55,13 @@ func validateSystemModelSettings(settings *SystemModelSettings) error {
 		}
 		seenDevelopers[developer] = struct{}{}
 
-		if err := validateDeveloperAssociations(developerSettings.Associations); err != nil {
-			return fmt.Errorf("invalid developer settings for %q: %w", developer, err)
+		for protocol, associations := range developerSettings.ProtocolPools {
+			if _, ok := objects.SupportedInboundAPIFormats[protocol]; !ok {
+				return fmt.Errorf("invalid developer settings for %q: unsupported protocol pool %q", developer, protocol)
+			}
+			if err := validateDeveloperAssociations(protocol, associations); err != nil {
+				return fmt.Errorf("invalid developer settings for %q: %w", developer, err)
+			}
 		}
 	}
 
@@ -79,7 +87,7 @@ func normalizeDeveloperAssociations(associations []*objects.ModelAssociation) {
 	}
 }
 
-func validateDeveloperAssociations(associations []*objects.ModelAssociation) error {
+func validateDeveloperAssociations(protocol string, associations []*objects.ModelAssociation) error {
 	for _, assoc := range associations {
 		if assoc == nil {
 			continue
@@ -99,14 +107,10 @@ func validateDeveloperAssociations(associations []*objects.ModelAssociation) err
 		}
 	}
 
-	if err := validateModelSettings(&objects.ModelSettings{Associations: associations}); err != nil {
-		return err
-	}
-
-	return nil
+	return (&objects.ModelSettings{ProtocolPools: map[string][]*objects.ModelAssociation{protocol: associations}}).ValidateProtocolPools()
 }
 
-func developerAssociationsForDeveloper(settings *SystemModelSettings, developer string) []*objects.ModelAssociation {
+func developerProtocolPoolsForDeveloper(settings *SystemModelSettings, developer string) map[string][]*objects.ModelAssociation {
 	if settings == nil || developer == "" {
 		return nil
 	}
@@ -116,33 +120,36 @@ func developerAssociationsForDeveloper(settings *SystemModelSettings, developer 
 			continue
 		}
 
-		return developerSettings.Associations
+		return developerSettings.ProtocolPools
 	}
 
 	return nil
 }
 
-// EffectiveModelAssociations returns the associations that should actually be
+// EffectiveModelProtocolPools returns the associations that should actually be
 // used for one model. A matching developer setting is inherited by default;
 // model settings add extra rules on top of it unless inheritance is explicitly
 // disabled on the model.
-func EffectiveModelAssociations(systemSettings *SystemModelSettings, model *ent.Model) []*objects.ModelAssociation {
+func EffectiveModelProtocolPools(systemSettings *SystemModelSettings, model *ent.Model) map[string][]*objects.ModelAssociation {
 	if model == nil {
 		return nil
 	}
-
-	var modelAssociations []*objects.ModelAssociation
-	if model.Settings != nil {
-		modelAssociations = model.Settings.Associations
-		if model.Settings.DisableDeveloperSettingsInheritance {
-			return mergeInheritedModelAssociations(nil, modelAssociations)
+	pools := map[string][]*objects.ModelAssociation{}
+	if model.Settings != nil && model.Settings.ProtocolPools != nil {
+		for protocol, associations := range model.Settings.ProtocolPools {
+			pools[protocol] = append([]*objects.ModelAssociation(nil), associations...)
 		}
 	}
-
-	return mergeInheritedModelAssociations(
-		inheritDeveloperAssociationsForModel(developerAssociationsForDeveloper(systemSettings, model.Developer), model.ModelID),
-		modelAssociations,
-	)
+	if model.Settings != nil && model.Settings.DisableDeveloperSettingsInheritance {
+		return pools
+	}
+	for protocol, developerAssociations := range developerProtocolPoolsForDeveloper(systemSettings, model.Developer) {
+		inherited := inheritDeveloperAssociationsForModel(developerAssociations, model.ModelID)
+		if len(inherited) > 0 {
+			pools[protocol] = mergeInheritedModelAssociations(inherited, pools[protocol])
+		}
+	}
+	return pools
 }
 
 func inheritDeveloperAssociationsForModel(developerAssociations []*objects.ModelAssociation, modelID string) []*objects.ModelAssociation {
