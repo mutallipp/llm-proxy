@@ -64,6 +64,11 @@ func NewEntClient(cfg Config) *ent.Client {
 	client := ent.NewClient(opts...)
 
 	if !cfg.DisableAutoMigration {
+		// U2 需要在 Ent 删除 legacy 列之前完成 adapter binding 的物理回填。
+		if err := datamigrate.PrepareV1_0_0_Beta7(client, context.Background()); err != nil {
+			panic(err)
+		}
+
 		err = client.Schema.Create(
 			context.Background(),
 			migrate.WithGlobalUniqueID(false),
