@@ -134,14 +134,6 @@ export function ModelsTable({
   }, [table, data, sorting]);
 
   const allGroupsCollapsed = groupedRows.size > 0 && collapsedGroups.size === groupedRows.size;
-  const developerRuleCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    modelSettings?.developerSettings?.forEach((settings) => {
-      counts.set(settings.developer, settings.associations?.length || 0);
-    });
-    return counts;
-  }, [modelSettings?.developerSettings]);
-
   const toggleGroup = useCallback((developer: string) => {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
@@ -271,32 +263,6 @@ export function ModelsTable({
                           <Badge variant='secondary' className='text-xs'>
                             {rows.length}
                           </Badge>
-                          {canWrite ? (
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              className='ml-auto h-7 px-2 text-xs'
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setCurrentDeveloper(developer);
-                                setOpen('developerAssociation');
-                              }}
-                            >
-                              <IconLink className='mr-1 h-3.5 w-3.5' />
-                              {t('models.actions.manageDeveloperAssociation')}
-                              <Badge variant='secondary' className='ml-1 h-5 min-w-5 justify-center px-1 text-[10px]'>
-                                {developerRuleCount}
-                              </Badge>
-                            </Button>
-                          ) : (
-                            <div className='text-muted-foreground ml-auto flex items-center gap-1.5 text-xs'>
-                              <IconLink className='h-3.5 w-3.5' />
-                              {t('models.actions.manageDeveloperAssociation')}
-                              <Badge variant='secondary' className='h-5 min-w-5 justify-center px-1 text-[10px]'>
-                                {developerRuleCount}
-                              </Badge>
-                            </div>
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>
