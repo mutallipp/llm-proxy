@@ -40,6 +40,7 @@ product_contract_source: ce-brainstorm
 - **KTD-004（session-settled）**：候选按 priority 优先，保留现有 enabled、健康感知故障转移，不默认轮询。
 - **KTD-005（session-settled）**：数据库配置是业务权威，运行时快照是请求读取权威；快照刷新需原子替换。
 - **KTD-006（session-settled，替换原建议）**：复用 `ModelSettings.Associations` JSON 与既有 matcher；规范结构为顶层 `protocolPools` map，key 为 `inbound_api_format`（如 `openai/responses`），value 为目标数组/既有 association 字段。旧 settings 若仍是未分池数组，读取时视为 legacy pool 仅用于兼容读取，写入时一次性规范化并带 settings schema version；不得新增表或平行实体。
+- **KTD-007（session-settled，user-directed，方案 A）**：本次彻底退役 ModelGroup 的产品、REST/API、UI、路由和运行时依赖，但保留旧 ModelGroup 数据表、旧 Ent schema、生成代码及可读数据作为迁移来源与回滚保险；本次不执行 DDL DROP、旧 schema/生成代码删除，物理清理由后续独立任务完成。
 
 ### ModelSettings 协议池兼容结构
 
@@ -52,10 +53,10 @@ product_contract_source: ce-brainstorm
 - `AdapterModelBinding` 只保存 `adapter_id`、`source_model_id`（实现层可映射为 `model_id`）及 binding 的来源/默认标识；同一 Adapter 内 `source_model_id` 必须唯一。
 - 多个不同 `inbound_api_format` 的 Adapter 可以绑定同一 Model；binding 不含 channel、physical model、outbound 字段，多目标 priority 只存在 Model 的协议池中。
 
-### Ent 与 endpoint 执行顺序
+### Ent、endpoint 与阶段边界
 
-- 先保留 `internal/ent/schema/model_group.go`、`model_group_protocol.go`、`model_group_target.go` 及生成目录 `internal/ent/modelgroup/`、`modelgroupprotocol/`、`modelgrouptarget/`，确保迁移可读旧数据；先新增/修改 `internal/ent/schema/model.go`、`adapter_model_binding.go`，并更新对应生成 Ent 目录；由 `datamigrate/migrator.go` 与新增版本迁移文件提交确定性逐 Model 迁移和验证；只有全部前置验收通过，IU-06 才删除旧 schema、生成目录并提交删除版本迁移。
-- 服务端唯一 endpoint 权威是 `internal/server/orchestrator/select_endpoints.go` 的协议解析/`endpoints` 与 `defaultEndpoints` 合并规则，以及 `internal/server/orchestrator/adapter_selector.go` 的候选校验。显式 `endpoints` 优先；显式字段缺失时使用 `defaultEndpoints`，二者都缺失视为不支持。Model API 保存、迁移写入和运行时选择必须调用这两处同一规则：只有合并结果明确包含协议池 key 才允许目标；历史不支持目标只警告/报告，不自动改协议。
+- 代码发布阶段先保留 `internal/ent/schema/model_group.go`、`model_group_protocol.go`、`model_group_target.go` 及生成目录 `internal/ent/modelgroup/`、`modelgroupprotocol/`、`modelgrouptarget/`，确保迁移可读旧数据；新增/修改 Model 与 binding schema/生成代码。数据迁移阶段由 `internal/ent/migrate/datamigrate/migrator.go` 执行确定性逐 Model 事务，完成后才切换运行时快照；验证阶段检查 API/UI/真实 Adapter，失败按回滚阶段恢复代码版本、事务、Model settings、bindings 和旧快照，旧表始终保留。方案 A 本次不删除旧 schema、生成代码，不提交 DROP migration。
+- 共享 endpoint protocol resolver/validator 的实际落点为新增 `internal/server/orchestrator/protocol_endpoint_validator.go` 及测试；它复用 `select_endpoints.go` 的协议解析和 `adapter_selector.go` 的候选语义。显式 `endpoints` 优先，只有显式字段缺失时 fallback `defaultEndpoints`；两者都不含协议则拒绝写入/候选。Model API 保存、ModelGroup→Model 迁移、运行时 selector 均调用该 validator，UI 只消费 API 返回的候选，不自行判定。
 
 ## Planning Contract
 
@@ -104,7 +105,7 @@ flowchart TD
 - ModelGroup → Model 协议池及 Adapter binding 的确定性迁移、冲突报告、回滚。
 - AdapterModelBinding 的 `model_id` 契约、快照、selector、priority/failover。
 - `/models` 协议池配置、Channel endpoint 能力过滤、共享 Model 绑定。
-- ModelGroup 的 REST/GraphQL/schema/UI/routes/运行时依赖下线和旧表最终删除。
+- ModelGroup 的 REST/GraphQL/UI/routes/运行时依赖下线；旧 schema、生成代码和旧表保留，物理删除延期。
 - 后端、前端、浏览器及真实 Adapter 链路验证。
 
 ### Out of scope
@@ -182,13 +183,13 @@ flowchart TD
 - **场景**：happy：新增 openai/responses 池并选择 `cider-openai`；edge：渠道能力变化、空池、禁用 target、同 Model 多绑定、旧目标不在 endpoint 列表；error：提交不支持 endpoint 或 outbound/跨协议字段；integration：浏览器创建、保存、刷新后配置一致且旧目标只显示警告。
 - **验证**：`frontend/src/features/models/model-pool-form.test.tsx`、`frontend/tests/models-model-pool.spec.ts` 覆盖过滤、警告、保存和共享 Model；API contract 证明只接受池内目标，浏览器验收证明旧 ModelGroup route 不可达。
 
-### IU-06：ModelGroup 概念与旧表下线
+### IU-06：ModelGroup 产品/运行时退役（方案 A）
 
-- **文件 ownership**：IU-06 是下线 owner，独占 `internal/server/api/gateway.go`、`internal/server/biz/adapter.go` 中 ModelGroup 删除段、`frontend/src/routes/_authenticated/model-groups/`、`frontend/src/features/model-groups/`、`internal/ent/modelgroup/`、`internal/ent/modelgroupprotocol/`、`internal/ent/modelgrouptarget/` 及 `datamigrate/migrator.go` 中的删除版本迁移；IU-02 先交接旧数据 owner 后 IU-06 才可删除，IU-03/IU-05 对 gateway.go、adapter.go 只读。
+- **文件 ownership**：IU-06 是产品/运行时退役 owner，独占 `internal/server/api/gateway.go`、`internal/server/biz/adapter.go` 中 ModelGroup 删除段、`frontend/src/routes/_authenticated/model-groups/`、`frontend/src/features/model-groups/`；`internal/ent/schema/model_group*.go`、`internal/ent/modelgroup/`、`modelgroupprotocol/`、`modelgrouptarget/` 和 `internal/ent/migrate/datamigrate/migrator.go` 不由 IU-06 删除或修改，旧数据 owner IU-02 交接后仅保留读取。
 - **现有模式**：按现有 endpoint、resolver、route 注册和 Ent schema 删除流程下线。
-- **实现要点**：迁移验证后移除 ModelGroup REST/GraphQL/DTO/UI/routes、旧查询和缓存 key；删除 ModelGroupProtocol/Target 领域引用及旧表；不得保留双写或 fallback。
-- **场景**：happy：全局搜索无生产引用且旧表删除成功；edge：历史数据已迁移、空旧表；error：仍有未迁移记录时阻止删表；integration：启动后的 API 路由不暴露 ModelGroup，Adapter 仍可用。
-- **验证**：`internal/server/api/gateway_model_group_removal_test.go`、`internal/server/biz/model_group_removal_test.go` 加上 schema migration review；源码依赖扫描证明无生产引用，API 404/不注册验证，未迁移记录时删表被阻止。
+- **实现要点**：代码发布阶段移除 ModelGroup REST/GraphQL/DTO/UI/routes、新配置入口、旧查询和缓存 key；不得保留双写或旧运行时 fallback。旧 schema、生成目录和旧表保留可读，物理清理由后续独立任务处理。
+- **场景**：happy：全局搜索无产品/运行时引用且旧表仍可读；edge：历史数据已迁移、旧表为空；error：迁移未完成时阻止运行时切换；integration：启动后的 API 路由不暴露 ModelGroup，Adapter 仍可用。
+- **验证**：`internal/server/api/gateway_model_group_removal_test.go`、`internal/server/biz/model_group_removal_test.go` 加上 schema 保留性 review；源码依赖扫描证明无产品/运行时引用，API 404/不注册验证，确认旧 schema/生成代码/旧表仍可读且无 DROP migration。
 
 ### IU-07：全链路验收与回滚证明
 
@@ -196,7 +197,7 @@ flowchart TD
 - **现有模式**：沿用项目既有后端测试、前端浏览器验收、Adapter 集成测试和快照验证方式。
 - **实现要点**：覆盖协议隔离、共享 Model、优先级故障转移、endpoint 过滤、迁移报告、旧表删除前后回滚；不将无关功能纳入验收。
 - **场景**：happy：openai 与 anthropic Adapter 分别命中各自同协议池；edge：同 Model 多 Adapter、目标健康变化、旧目标警告；error：协议冲突、空池、回滚触发、删表失败；integration：真实 Adapter 请求证明 inbound protocol 选择同协议 pool 且 Channel 使用该协议 endpoint。
-- **验证**：`internal/server/integration/model_centric_adapter_test.go`、`frontend/tests/model-centric-adapter.spec.ts` 和迁移 fixture 产出请求日志、候选顺序、报告、回滚快照、route 结果；证据齐全后才允许删除旧表。
+- **验证**：`internal/server/integration/model_centric_adapter_test.go`、`frontend/tests/model-centric-adapter.spec.ts` 和迁移 fixture 产出请求日志、候选顺序、报告、回滚快照、route 结果；证据齐全后才允许切换新运行时；旧表在本次始终保留。
 
 ## Verification Contract
 
@@ -206,7 +207,7 @@ flowchart TD
 - **VC-004 协议契约**：协议池决定出站协议；目标没有 `outboundApiFormat`；无跨协议转换。
 - **VC-005 选择契约**：priority/enabled/健康故障转移行为保持并有测试证据。
 - **VC-006 UI/API 契约**：Channel 按 endpoints/defaultEndpoints 过滤；Model 可被不同协议 Adapter 共享。
-- **VC-007 下线契约**：ModelGroup API/UI/routes/运行时引用移除，旧表仅在验证后删除。
+- **VC-007 下线契约**：ModelGroup API/UI/routes/运行时引用移除；旧 schema、生成代码和旧表保持可读，本次无 DDL DROP，物理删除由后续任务验收。
 
 ## Definition of Done
 
@@ -215,7 +216,7 @@ flowchart TD
 - ModelSettings/既有 matcher 承载协议池，未新增 Association 表或平行 Model。
 - Adapter 不绑定 Channel，且目标配置不含 outboundApiFormat。
 - openai/anthropic Adapter 只命中各自协议池，priority/failover、UI endpoint 过滤和真实链路通过。
-- ModelGroup API/UI/运行时依赖清除，迁移验证后旧表删除；失败路径可回滚。
+- ModelGroup API/UI/运行时依赖清除；旧 schema、生成代码和旧表始终保留且可读，本次不提交 DROP migration；代码、迁移事务、Model settings、bindings 和运行时快照均有可验证回滚路径。
 - 文档、测试和验收记录覆盖后端、前端、浏览器及真实 Adapter 链路。
 
 ## Deferred to Follow-Up Work
