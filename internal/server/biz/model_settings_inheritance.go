@@ -126,22 +126,24 @@ func developerAssociationsForDeveloper(settings *SystemModelSettings, developer 
 // used for one model. A matching developer setting is inherited by default;
 // model settings add extra rules on top of it unless inheritance is explicitly
 // disabled on the model.
-func EffectiveModelAssociations(systemSettings *SystemModelSettings, model *ent.Model) []*objects.ModelAssociation {
+func EffectiveModelProtocolPools(systemSettings *SystemModelSettings, model *ent.Model) map[string][]*objects.ModelAssociation {
 	if model == nil {
 		return nil
 	}
-
-	var modelAssociations []*objects.ModelAssociation
-	if model.Settings != nil {
-		if model.Settings.DisableDeveloperSettingsInheritance {
-			return mergeInheritedModelAssociations(nil, modelAssociations)
+	pools := map[string][]*objects.ModelAssociation{}
+	if model.Settings != nil && model.Settings.ProtocolPools != nil {
+		for protocol, associations := range model.Settings.ProtocolPools {
+			pools[protocol] = append([]*objects.ModelAssociation(nil), associations...)
 		}
 	}
-
-	return mergeInheritedModelAssociations(
-		inheritDeveloperAssociationsForModel(developerAssociationsForDeveloper(systemSettings, model.Developer), model.ModelID),
-		modelAssociations,
-	)
+	if model.Settings != nil && model.Settings.DisableDeveloperSettingsInheritance {
+		return pools
+	}
+	inherited := inheritDeveloperAssociationsForModel(developerAssociationsForDeveloper(systemSettings, model.Developer), model.ModelID)
+	if len(inherited) > 0 {
+		pools["openai"] = mergeInheritedModelAssociations(inherited, pools["openai"])
+	}
+	return pools
 }
 
 func inheritDeveloperAssociationsForModel(developerAssociations []*objects.ModelAssociation, modelID string) []*objects.ModelAssociation {

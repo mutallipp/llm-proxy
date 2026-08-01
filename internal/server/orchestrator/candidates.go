@@ -163,7 +163,12 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 
 	systemSettings := s.SystemService.ModelSettingsOrDefault(ctx)
 	developerAssociationCount, modelAssociationCount, developerInheritanceDisabled := effectiveAssociationSourceCounts(systemSettings, model)
-	associations := biz.EffectiveModelAssociations(systemSettings, model)
+	protocol := req.APIFormat
+	if protocol == "" {
+		return nil, fmt.Errorf("protocol-required: request API format is missing")
+	}
+	protocolPools := biz.EffectiveModelProtocolPools(systemSettings, model)
+	associations := protocolPools[protocol]
 	if log.DebugEnabled(ctx) {
 		log.Debug(ctx, "computed effective model associations",
 			log.String("model", model.ModelID),
@@ -190,7 +195,7 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 		)
 	}
 
-	resolvedCandidates, err := s.resolveAssociations(ctx, model, associations)
+	resolvedCandidates, err := s.resolveAssociations(ctx, model, protocol, associations)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve associations: %w", err)
 	}
@@ -225,6 +230,7 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 func (s *DefaultSelector) resolveAssociations(
 	ctx context.Context,
 	model *ent.Model,
+	protocol string,
 	associations []*objects.ModelAssociation,
 ) ([]*resolvedAssociationCandidate, error) {
 	// Read version before channels to avoid storing an older channel snapshot with
@@ -245,7 +251,7 @@ func (s *DefaultSelector) resolveAssociations(
 	}
 
 	// Use model ID as cache key
-	modelID := model.ModelID
+	modelID := model.ModelID + ":" + protocol
 	associationSignature := modelAssociationSignature(associations)
 	channelCount := len(channels)
 	latestChannelUpdateTime := s.getLatestChannelUpdateTime(channels)
@@ -504,7 +510,9 @@ func effectiveAssociationSourceCounts(systemSettings *biz.SystemModelSettings, m
 	}
 
 	if m.Settings != nil {
-		modelCount = len(m.Settings.Associations)
+		for _, pool := range m.Settings.ProtocolPools {
+			modelCount += len(pool)
+		}
 		developerInheritanceDisabled = m.Settings.DisableDeveloperSettingsInheritance
 	}
 
