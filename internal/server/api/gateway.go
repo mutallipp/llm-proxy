@@ -182,14 +182,13 @@ type ProtocolDTO struct {
 
 // TargetDTO 目标数据传输对象.
 type TargetDTO struct {
-	ID                int                   `json:"id"`
-	ChannelID         int                   `json:"channel_id"`
-	TargetModelID     string                `json:"target_model_id"`
-	OutboundAPIFormat string                `json:"outbound_api_format"`
-	Priority          int                   `json:"priority"`
-	Enabled           bool                  `json:"enabled"`
-	Remark            *string               `json:"remark,omitempty"`
-	Capabilities      TargetCapabilitiesDTO `json:"capabilities"`
+	ID            int                   `json:"id"`
+	ChannelID     int                   `json:"channel_id"`
+	TargetModelID string                `json:"target_model_id"`
+	Priority      int                   `json:"priority"`
+	Enabled       bool                  `json:"enabled"`
+	Remark        *string               `json:"remark,omitempty"`
+	Capabilities  TargetCapabilitiesDTO `json:"capabilities"`
 }
 
 // TargetCapabilitiesDTO 目标能力数据传输对象.
@@ -213,13 +212,12 @@ type ProtocolInput struct {
 
 // TargetInput 目标输入.
 type TargetInput struct {
-	ChannelID         int                   `json:"channel_id" binding:"required"`
-	TargetModelID     string                `json:"target_model_id" binding:"required"`
-	OutboundAPIFormat string                `json:"outbound_api_format" binding:"required"`
-	Priority          int                   `json:"priority"`
-	Enabled           bool                  `json:"enabled"`
-	Remark            *string               `json:"remark,omitempty"`
-	Capabilities      TargetCapabilitiesDTO `json:"capabilities"`
+	ChannelID     int                   `json:"channel_id" binding:"required"`
+	TargetModelID string                `json:"target_model_id" binding:"required"`
+	Priority      int                   `json:"priority"`
+	Enabled       bool                  `json:"enabled"`
+	Remark        *string               `json:"remark,omitempty"`
+	Capabilities  TargetCapabilitiesDTO `json:"capabilities"`
 }
 
 // GetRuntimeStatus 返回当前适配器运行时状态.
@@ -285,12 +283,11 @@ func convertProtocolInputs(inputs []ProtocolInput) []biz.ProtocolInput {
 				targetRemark = *target.Remark
 			}
 			targets = append(targets, biz.TargetInput{
-				ChannelID:         target.ChannelID,
-				TargetModelID:     target.TargetModelID,
-				OutboundAPIFormat: target.OutboundAPIFormat,
-				Priority:          target.Priority,
-				Enabled:           target.Enabled,
-				Remark:            &targetRemark,
+				ChannelID:     target.ChannelID,
+				TargetModelID: target.TargetModelID,
+				Priority:      target.Priority,
+				Enabled:       target.Enabled,
+				Remark:        &targetRemark,
 				Capabilities: biz.AdapterTargetCapabilitiesInput{
 					SupportsTools:    target.Capabilities.SupportsTools,
 					SupportsStream:   target.Capabilities.SupportsStream,
