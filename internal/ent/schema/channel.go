@@ -188,10 +188,6 @@ func (Channel) Edges() []ent.Edge {
 				entgql.Directives(forceResolver()),
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
 			),
-		edge.To("model_group_targets", ModelGroupTarget.Type).
-			Annotations(
-				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
-			),
 	}
 }
 

@@ -151,9 +151,6 @@ func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services
 			gatewayGroup.PUT("/adapters/:name", handlers.Gateway.UpdateAdapter)
 			gatewayGroup.POST("/adapters/:name/rename", handlers.Gateway.RenameAdapter)
 			gatewayGroup.DELETE("/adapters/:name", handlers.Gateway.DeleteAdapter)
-			gatewayGroup.GET("/model-groups", handlers.Gateway.ListModelGroups)
-			gatewayGroup.PUT("/model-groups/:name", handlers.Gateway.UpdateModelGroup)
-			gatewayGroup.DELETE("/model-groups/:name", handlers.Gateway.DeleteModelGroup)
 			gatewayGroup.GET("/runtime", handlers.Gateway.GetRuntimeStatus)
 			gatewayGroup.POST("/refresh", handlers.Gateway.RefreshGateway)
 		}

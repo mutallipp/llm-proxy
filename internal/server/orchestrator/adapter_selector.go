@@ -103,51 +103,6 @@ func targetSupportsAssociation(association *objects.ModelAssociation, req *llm.R
 	return true
 }
 
-func targetSupportsRequest(target *objects.RuntimeModelGroupTarget, req *llm.Request) bool {
-	capabilities := target.Capabilities
-	switch objects.CapabilityPolicy(capabilities.StreamPolicy) {
-	case objects.CapabilityPolicyForbid:
-		// 目标级禁止流式：下游明确要求流式时过滤
-		if req.Stream != nil && *req.Stream {
-			return false
-		}
-	case objects.CapabilityPolicyRequire, objects.CapabilityPolicyUnlimited:
-		// 目标级强制流式或跟随下游：不依据 supports_stream bool 过滤
-	default:
-		// 旧数据（stream_policy 为空）：沿用 supports_stream bool 兼容逻辑
-		if req.Stream != nil && *req.Stream && !capabilities.SupportsStream {
-			return false
-		}
-	}
-	if len(req.Tools) > 0 && !capabilities.SupportsTools {
-		return false
-	}
-
-	features := detectRequestContentFeatures(req)
-	if features.hasImage && !hasModality(capabilities.InputModalities, "image") {
-		return false
-	}
-	if features.hasVideo && !hasModality(capabilities.InputModalities, "video") {
-		return false
-	}
-	if features.hasAudio && !hasModality(capabilities.InputModalities, "audio") {
-		return false
-	}
-
-	switch req.RequestType {
-	case llm.RequestTypeImage:
-		return hasModality(capabilities.OutputModalities, "image")
-	case llm.RequestTypeVideo:
-		return hasModality(capabilities.OutputModalities, "video")
-	case llm.RequestTypeSpeech:
-		return hasModality(capabilities.OutputModalities, "audio")
-	case llm.RequestTypeTranscription, llm.RequestTypeTranslation:
-		return hasModality(capabilities.InputModalities, "audio")
-	default:
-		return true
-	}
-}
-
 func hasModality(modalities []string, expected string) bool {
 	for _, modality := range modalities {
 		if strings.EqualFold(modality, expected) {

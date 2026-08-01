@@ -15,7 +15,6 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/ent/channel"
 	"github.com/mutallipp/llm-proxy/internal/ent/channelmodelprice"
 	"github.com/mutallipp/llm-proxy/internal/ent/channelprobe"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
 	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 	"github.com/mutallipp/llm-proxy/internal/ent/providerquotastatus"
 	"github.com/mutallipp/llm-proxy/internal/ent/request"
@@ -460,21 +459,6 @@ func (_u *ChannelUpdate) SetProviderQuotaStatus(v *ProviderQuotaStatus) *Channel
 	return _u.SetProviderQuotaStatusID(v.ID)
 }
 
-// AddModelGroupTargetIDs adds the "model_group_targets" edge to the ModelGroupTarget entity by IDs.
-func (_u *ChannelUpdate) AddModelGroupTargetIDs(ids ...int) *ChannelUpdate {
-	_u.mutation.AddModelGroupTargetIDs(ids...)
-	return _u
-}
-
-// AddModelGroupTargets adds the "model_group_targets" edges to the ModelGroupTarget entity.
-func (_u *ChannelUpdate) AddModelGroupTargets(v ...*ModelGroupTarget) *ChannelUpdate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddModelGroupTargetIDs(ids...)
-}
-
 // Mutation returns the ChannelMutation object of the builder.
 func (_u *ChannelUpdate) Mutation() *ChannelMutation {
 	return _u.mutation
@@ -589,27 +573,6 @@ func (_u *ChannelUpdate) RemoveChannelModelPrices(v ...*ChannelModelPrice) *Chan
 func (_u *ChannelUpdate) ClearProviderQuotaStatus() *ChannelUpdate {
 	_u.mutation.ClearProviderQuotaStatus()
 	return _u
-}
-
-// ClearModelGroupTargets clears all "model_group_targets" edges to the ModelGroupTarget entity.
-func (_u *ChannelUpdate) ClearModelGroupTargets() *ChannelUpdate {
-	_u.mutation.ClearModelGroupTargets()
-	return _u
-}
-
-// RemoveModelGroupTargetIDs removes the "model_group_targets" edge to ModelGroupTarget entities by IDs.
-func (_u *ChannelUpdate) RemoveModelGroupTargetIDs(ids ...int) *ChannelUpdate {
-	_u.mutation.RemoveModelGroupTargetIDs(ids...)
-	return _u
-}
-
-// RemoveModelGroupTargets removes "model_group_targets" edges to ModelGroupTarget entities.
-func (_u *ChannelUpdate) RemoveModelGroupTargets(v ...*ModelGroupTarget) *ChannelUpdate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveModelGroupTargetIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1062,51 +1025,6 @@ func (_u *ChannelUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.ModelGroupTargetsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   channel.ModelGroupTargetsTable,
-			Columns: []string{channel.ModelGroupTargetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(modelgrouptarget.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedModelGroupTargetsIDs(); len(nodes) > 0 && !_u.mutation.ModelGroupTargetsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   channel.ModelGroupTargetsTable,
-			Columns: []string{channel.ModelGroupTargetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(modelgrouptarget.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ModelGroupTargetsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   channel.ModelGroupTargetsTable,
-			Columns: []string{channel.ModelGroupTargetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(modelgrouptarget.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	_spec.AddModifiers(_u.modifiers...)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -1551,21 +1469,6 @@ func (_u *ChannelUpdateOne) SetProviderQuotaStatus(v *ProviderQuotaStatus) *Chan
 	return _u.SetProviderQuotaStatusID(v.ID)
 }
 
-// AddModelGroupTargetIDs adds the "model_group_targets" edge to the ModelGroupTarget entity by IDs.
-func (_u *ChannelUpdateOne) AddModelGroupTargetIDs(ids ...int) *ChannelUpdateOne {
-	_u.mutation.AddModelGroupTargetIDs(ids...)
-	return _u
-}
-
-// AddModelGroupTargets adds the "model_group_targets" edges to the ModelGroupTarget entity.
-func (_u *ChannelUpdateOne) AddModelGroupTargets(v ...*ModelGroupTarget) *ChannelUpdateOne {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddModelGroupTargetIDs(ids...)
-}
-
 // Mutation returns the ChannelMutation object of the builder.
 func (_u *ChannelUpdateOne) Mutation() *ChannelMutation {
 	return _u.mutation
@@ -1680,27 +1583,6 @@ func (_u *ChannelUpdateOne) RemoveChannelModelPrices(v ...*ChannelModelPrice) *C
 func (_u *ChannelUpdateOne) ClearProviderQuotaStatus() *ChannelUpdateOne {
 	_u.mutation.ClearProviderQuotaStatus()
 	return _u
-}
-
-// ClearModelGroupTargets clears all "model_group_targets" edges to the ModelGroupTarget entity.
-func (_u *ChannelUpdateOne) ClearModelGroupTargets() *ChannelUpdateOne {
-	_u.mutation.ClearModelGroupTargets()
-	return _u
-}
-
-// RemoveModelGroupTargetIDs removes the "model_group_targets" edge to ModelGroupTarget entities by IDs.
-func (_u *ChannelUpdateOne) RemoveModelGroupTargetIDs(ids ...int) *ChannelUpdateOne {
-	_u.mutation.RemoveModelGroupTargetIDs(ids...)
-	return _u
-}
-
-// RemoveModelGroupTargets removes "model_group_targets" edges to ModelGroupTarget entities.
-func (_u *ChannelUpdateOne) RemoveModelGroupTargets(v ...*ModelGroupTarget) *ChannelUpdateOne {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveModelGroupTargetIDs(ids...)
 }
 
 // Where appends a list predicates to the ChannelUpdate builder.
@@ -2176,51 +2058,6 @@ func (_u *ChannelUpdateOne) sqlSave(ctx context.Context) (_node *Channel, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(providerquotastatus.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.ModelGroupTargetsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   channel.ModelGroupTargetsTable,
-			Columns: []string{channel.ModelGroupTargetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(modelgrouptarget.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedModelGroupTargetsIDs(); len(nodes) > 0 && !_u.mutation.ModelGroupTargetsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   channel.ModelGroupTargetsTable,
-			Columns: []string{channel.ModelGroupTargetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(modelgrouptarget.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ModelGroupTargetsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   channel.ModelGroupTargetsTable,
-			Columns: []string{channel.ModelGroupTargetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(modelgrouptarget.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

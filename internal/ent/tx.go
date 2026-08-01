@@ -34,12 +34,6 @@ type Tx struct {
 	DataStorage *DataStorageClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
-	// ModelGroup is the client for interacting with the ModelGroup builders.
-	ModelGroup *ModelGroupClient
-	// ModelGroupProtocol is the client for interacting with the ModelGroupProtocol builders.
-	ModelGroupProtocol *ModelGroupProtocolClient
-	// ModelGroupTarget is the client for interacting with the ModelGroupTarget builders.
-	ModelGroupTarget *ModelGroupTargetClient
 	// OIDCIdentity is the client for interacting with the OIDCIdentity builders.
 	OIDCIdentity *OIDCIdentityClient
 	// Project is the client for interacting with the Project builders.
@@ -212,9 +206,6 @@ func (tx *Tx) init() {
 	tx.ChannelProbe = NewChannelProbeClient(tx.config)
 	tx.DataStorage = NewDataStorageClient(tx.config)
 	tx.Model = NewModelClient(tx.config)
-	tx.ModelGroup = NewModelGroupClient(tx.config)
-	tx.ModelGroupProtocol = NewModelGroupProtocolClient(tx.config)
-	tx.ModelGroupTarget = NewModelGroupTargetClient(tx.config)
 	tx.OIDCIdentity = NewOIDCIdentityClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
