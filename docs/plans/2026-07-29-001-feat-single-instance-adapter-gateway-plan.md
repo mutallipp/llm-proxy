@@ -202,6 +202,10 @@ flowchart TD
 - **场景**：happy：openai 与 anthropic Adapter 分别命中各自同协议池；edge：同 Model 多 Adapter、目标健康变化、旧目标警告；error：协议冲突、空池、回滚触发、删表失败；integration：真实 Adapter 请求证明 inbound protocol 选择同协议 pool 且 Channel 使用该协议 endpoint。
 - **验证**：`internal/server/integration/model_centric_adapter_test.go`、`frontend/tests/model-centric-adapter.spec.ts` 和迁移 fixture 产出请求日志、候选顺序、报告、回滚快照、route 结果；证据齐全后才允许启动新运行时并执行旧表删除。
 
+## 一刀切发布 Gate 与失败边界
+
+同一部署 gate 按以下顺序执行：发布迁移入口在数据库事务内一次性读取旧 ModelGroup 数据，写入 Model 的 `protocolPools`/`ModelSettings.Associations` 与 Adapter `model_id` bindings，并完成一致性校验；校验通过后执行旧表/约束/索引及旧 Ent schema/生成引用的删除，再启动新运行时。旧数据读取仅存在于发布迁移入口，运行时和新 API 不读取旧表。若项目迁移工具不能把 DDL 纳入同一事务，则 DDL 删除必须紧随数据事务并作为同一部署 gate；任一步骤失败均 atomic abort、发布失败、不启动新运行时，不提供旧链路恢复。
+
 ## Verification Contract
 
 - **VC-001 数据契约**：Model `settings` 能保存并读回多个协议池；无 Association 表、无平行 Model。
