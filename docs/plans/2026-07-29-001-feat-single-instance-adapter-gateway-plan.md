@@ -12,16 +12,16 @@ product_contract_source: ce-brainstorm
 
 ## Goal Capsule
 
-- **目标**：将 AxonHub 收敛为单实例、单用户、按客户端适配器接入的 AI 模型网关。消费层只使用稳定的逻辑模型 ID，后台通过模型组切换真实渠道和目标模型。
+- **目标**：将 AxonHub 收敛为单实例、单用户、按客户端适配器接入的 AI 模型网关。消费层只使用稳定的 Model ID/别名，Model 统一定义能力、价格和渠道目标，Adapter 只负责入口协议。
 - **当前边界**：本计划覆盖 Pi、Claude Code、Codex 三类适配器，保留 AxonHub 的渠道、协议转换、健康检查、重试和故障转移能力；不覆盖企业多租户能力。
-- **产品权威**：适配器选择模型组，模型组选择目标，不允许消费端依赖具体渠道或 `targetModelId`。
+- **产品权威**：Model 是唯一模型中心；ModelCard 定义统一对外能力，ModelSettings.Associations 定义渠道物理模型和优先级；消费端不依赖具体渠道或 `targetModelId`。
 - **开放阻塞**：实现阶段仍需以实际客户端协议样例确认 Pi、Claude Code、Codex 的入站字段、流式事件和错误语义；这不改变当前的产品边界。
 
 ## Product Contract
 
 ### Summary
 
-AxonHub 将从带登录和多租户的平台收敛为单实例适配器网关。每个适配器可以使用不同的入站协议，但统一暴露逻辑模型；逻辑模型通过可热加载的模型组路由到多个真实渠道目标，并按优先级自动故障转移。
+AxonHub 将从带登录和多租户的平台收敛为单实例适配器网关。每个适配器可以使用不同的入站协议，但统一暴露 Model ID；Model 通过已有的渠道关联配置路由到多个真实物理模型，并按优先级自动故障转移。
 
 ### MVP Boundary
 
@@ -30,8 +30,10 @@ AxonHub 将从带登录和多租户的平台收敛为单实例适配器网关。
 - 保留 User、Project、APIKey、Role、OIDC 等旧 Ent schema，先从 Adapter 消费请求链路解除依赖。
 - 所有 Adapter 使用统一 `AdapterConsumerInterceptor`；消费层可携带自己的 API Key，但一期不校验、不落库、不转发、不强制存在。
 - 不实现 global consumer API Key、Adapter 级 API Key、消费 token 和新的管理 token；管理接口复用当前管理鉴权或本机访问约束。
-- 优先完成动态 Adapter 路由、固定入站协议、逻辑模型绑定、ModelGroupProtocol、目标优先级故障转移和热刷新。
-- 暂不新增管理 UI，先提供现有管理入口或最小 REST 管理 API；不为兼容性以外的能力重写现有 Channel 编排链路。
+- 优先完成动态 Adapter 路由、固定入站协议、Model 绑定、ModelCard 能力与统一价格、已有渠道关联的优先级故障转移和热刷新。
+- ModelGroup 不再作为新的配置中心；已有 ModelGroup 配置纳入迁移计划，迁移完成后下线重复 API、页面和路由链路。
+- 暂不新增独立 Alias/Variant 层；不同能力的对外别名使用独立 Model 记录。
+- 暂不为兼容性以外的能力重写现有 Channel 编排链路。
 
 ### Problem Frame
 
@@ -41,13 +43,14 @@ AxonHub 将从带登录和多租户的平台收敛为单实例适配器网关。
 
 - **Adapter 是公开入口实例，不是固定客户端类型**：（session-settled: user-approved — Adapter 名称就是消费层 URL 路径）。创建 Adapter=`pi-anthropic` 后，消费入口就是 `/pi-anthropic/v1/`；`pi`、`cc`、`codex` 只是命名或配置模板，不是写死的路由。
 - **每个 Adapter 只绑定一个入站协议**：（session-settled: user-approved — 同一个客户端可以创建多个 Adapter，例如 Pi 分别创建 `pi-anthropic` 和 `pi-openai`，但单个入口的协议必须固定）。
-- **Adapter 绑定 ModelGroup**：（session-settled: user-approved — 选择适配器到模型组而非适配器到具体模型，因为多个适配器应能复用同一组目标，消费端不应感知渠道）。
-- **ModelGroup 可以支持多个入站协议**：（session-settled: user-approved — 同一逻辑模型组可以同时服务 Anthropic、OpenAI Chat 或 OpenAI Responses 入口；Adapter 绑定时只显示支持自身入站协议的模型组）。
-- **ModelGroupTarget 显式绑定出站协议**：（session-settled: user-approved — 渠道可能同时有 Anthropic 和 OpenAI endpoint，且模型集合不同，所以目标必须选择具体 outbound APIFormat，不能完全依赖请求时自动挑 endpoint）。
-- **ModelGroup 由多个 ModelGroupProtocol 组成，每个协议配置拥有自己的 ModelGroupTarget 目标池**：（session-settled: user-approved — 同一逻辑模型组可以服务多个入站协议，但不同协议可以使用不同渠道目标）。每个目标由渠道、真实 `targetModelId` 和出站 APIFormat 组成。
-- **模型组默认采用优先级故障转移**：（session-settled: user-approved — 选择稳定的首选目标加健康感知的备用目标，而不是默认轮询，因为同名上游模型可能存在协议、能力、延迟和成本差异）。
-- **业务配置继续持久化在数据库**：（session-settled: user-approved — 选择数据库作为 Adapter、ModelGroup、目标绑定和渠道配置的持久化来源，因为 AxonHub 的渠道和模型配置已经以 Ent/SQLite 为主）。YAML 只承担服务启动和基础设施配置，不作为业务模型映射的主存储。
-- **一期消费入口默认不校验 API Key**：（session-settled: user-approved — 所有 Adapter 共用一个拦截器，读取消费层传入的 API Key 但一期不校验、不落库、不转发到上游；后续再增加全局和 Adapter 级 API Key 校验）。
+- **Model 是唯一模型中心**：（session-settled: user-directed — 选择现有 Model 而非新增 ModelGroup 作为能力、价格、别名和渠道关联的中心，因为 ModelCard 与 ModelSettings.Associations 已经表达这些业务语义，继续维护 ModelGroup 会造成重复模型层）。
+- **每个对外别名就是独立 Model**：（session-settled: user-directed — 选择独立 Model 记录而非 Alias/Variant 子层，因为不同上下文、能力或渠道目标需要独立 ModelCard 和关联配置）。例如 `gpt-5.6-luna` 与 `gpt-5.6-luna-1m` 是两个 Model。
+- **ModelCard 是统一对外能力契约**：（session-settled: user-directed — 同一个 Model 的 context、output limit、模态、工具/推理能力和对外价格必须一致；能力不一致的渠道不能被塞进同一个 Model）。
+- **ModelSettings.Associations 负责物理目标和优先级**：（session-settled: user-approved — 复用已有 Model 关联能力配置多个 Channel、物理模型和 priority，避免 Adapter 再维护一套目标池）。
+- **价格分为对外价格和渠道实际价格**：（session-settled: user-directed — Model 保存统一对外价格，渠道价格仅用于内部成本/计费；价格差异不自动拆分 Model）。
+- **业务配置继续持久化在数据库**：（session-settled: user-approved — 选择数据库作为 Adapter、Model、ModelCard、ModelSettings.Associations 和 Channel 配置的持久化来源；YAML 只承担服务启动和基础设施配置）。
+- **ModelGroup 进入迁移下线范围**：（session-settled: user-directed — 选择停止扩展并迁移下线 ModelGroup 配置链路，因为它与现有 Model/Associations 重复）。
+- **一期消费入口默认不校验 API Key**：（session-settled: user-approved — 所有 Adapter 共用一个拦截器，读取消费层传入的 API Key 但一期不校验、不落库、不转发到上游）。
 - **保留简化管理能力**：（session-settled: user-approved — 保留单实例后台配置入口；一期复用当前管理鉴权或限制管理接口只允许本机访问，不为消费入口新增认证改造）。
 
 ### Existing Context
@@ -56,8 +59,9 @@ AxonHub 将从带登录和多租户的平台收敛为单实例适配器网关。
 - `internal/ent/schema/channel.go` 已持久化渠道类型、凭证、支持模型、渠道级设置和出站端点。
 - `internal/objects/channel.go` 中的 `ChannelSettings.ModelMappings` 和 `internal/server/biz/channel_llm.go` 的 `GetModelEntries` 已支持单渠道模型别名到实际模型的转换，但它不表达可跨适配器复用的模型目标池。
 - `internal/ent/schema/api_key.go` 和 `internal/server/orchestrator/model_mapper.go` 已支持 API Key Profile 级模型映射；该能力依赖 API Key、项目和用户上下文，不作为新的 ModelGroup 语义继续扩展。
-- `internal/ent/schema/model.go` 的 `group` 字段是模型目录分类字段；`ModelSettings.Associations` 是渠道匹配规则，当前都不等价于可复用的模型组。
-- `ChannelService` 已有启用渠道缓存和刷新机制，渠道运行时对象会预计算模型入口和出站转换器；新模型组配置需要拥有同等明确的更新生效边界。
+- `internal/ent/schema/model.go` 已有全局唯一 `model_id`、`model_card` 和 `settings`；`internal/objects/model.go` 的 `ModelCard` 已包含上下文、输出限制、模态、推理、工具和成本字段，`ModelSettings.Associations` 已包含渠道模型、渠道 ID 和 priority。
+- `ChannelService` 已有启用渠道缓存和刷新机制，渠道运行时对象会预计算模型入口和出站转换器；Model 关联配置需要复用同等明确的更新生效边界。
+- 当前 Adapter MVP 新增的 ModelGroup 链路与上述 Model/Associations 存在职责重叠，后续以迁移和下线为处理方式，不再新增能力字段。
 
 ### Requirements
 
@@ -67,26 +71,26 @@ AxonHub 将从带登录和多租户的平台收敛为单实例适配器网关。
 - **R2**：每个 Adapter 必须声明唯一的入站协议和启用状态；所有 Adapter 路由统一经过消费拦截器。拦截器一期只提取消费层传入的 API Key，不校验、不落库、不转发；入站协议转换后的请求必须进入同一套模型组路由和渠道编排流程。
 - **R3**：Adapter 暴露的模型列表和请求校验必须只呈现该 Adapter 允许使用的逻辑模型 ID，不得把渠道真实模型 ID 作为消费端的必需配置。
 
-#### 逻辑模型组
+#### 逻辑模型与物理渠道
 
-- **R4**：系统必须提供可复用的 ModelGroup，作为 Adapter 与真实渠道目标之间的稳定边界。
-- **R5**：Adapter 必须通过 `sourceModelId → ModelGroup` 绑定逻辑模型；同一 ModelGroup 可以被多个 Adapter 复用，不同 Adapter 也可以把同名 `sourceModelId` 绑定到不同 ModelGroup。
-- **R6**：ModelGroupTarget 必须同时表达所属渠道、`targetModelId` 和明确的 outbound APIFormat，并支持启用状态、优先级以及用于判断目标可替代性的能力信息。
-- **R7**：ModelGroup 可以声明多个支持的入站 APIFormat；Adapter 只能绑定一个入站 APIFormat，并且只能选择声明支持该协议的 ModelGroup。协议、工具调用、流式输出、上下文或模态能力不兼容的目标必须能够被隔离到不同协议配置或不同模型组。
+- **R4**：系统必须以现有 Model 作为唯一逻辑模型中心；`model_id` 是消费端使用的稳定模型 ID，也是别名的唯一标识。
+- **R5**：Model 必须保存统一的 ModelCard 能力契约，包括上下文限制、最大输出、输入输出模态、工具/推理能力和统一对外价格；同一个 Model 不得同时代表能力不同的物理目标。
+- **R6**：Model 的渠道关联必须表达 Channel、真实物理模型 ID、优先级、启用状态和请求条件；一个 Model 可以关联多个渠道并按 priority 故障转移。
+- **R7**：能力不同的模型必须使用独立 Model ID，例如 `gpt-5.6-luna` 与 `gpt-5.6-luna-1m`；不新增独立 Alias/Variant 层，不通过多个目标能力交集生成新的对外契约。
 
 #### 路由与故障转移
 
-- **R8**：ModelGroup 默认必须按照目标优先级选择首选目标，并在目标发生可重试失败、超时、限流或熔断时切换到下一个可用目标。
-- **R9**：目标健康状态、熔断状态和失败统计必须属于运行时状态，不得改变模型组的持久化语义；恢复后的目标应能重新参与选择。
-- **R10**：模型组切换目标后，响应对消费端必须继续使用请求中的逻辑模型 ID；消费端不得依赖实际目标模型名。
-- **R11**：渠道已有的出站协议转换、请求覆盖、流式转换和错误转换能力必须继续适用于模型组目标；ModelGroup 不得绕过 Channel 的出站适配能力。
+- **R8**：Adapter 必须直接绑定允许暴露的 Model ID；Adapter 不得要求消费端传入 Channel 或物理模型 ID。
+- **R9**：Model 的渠道关联默认必须按照 priority 选择首选目标，并在目标发生可重试失败、超时、限流或熔断时切换到下一个可用目标。
+- **R10**：Model 切换渠道目标后，响应对消费端必须继续使用请求中的逻辑 Model ID；消费端不得依赖实际目标模型名。
+- **R11**：渠道已有的出站协议转换、请求覆盖、流式转换和错误转换能力必须继续适用于 Model 的渠道关联；Model 中心路由不得绕过 Channel 的出站适配能力。
 
 #### 数据持久化与配置生效
 
-- **R12**：Adapter、AdapterModelBinding、ModelGroup、ModelGroupProtocol、ModelGroupTarget 和 Channel 的业务配置必须持久化在数据库，并在服务重启后恢复。
-- **R13**：管理端修改模型组目标、目标优先级、绑定关系或适配器协议后，运行时必须能够刷新相关缓存并让后续请求使用新配置，不要求消费端或 Agent 重启。
-- **R14**：配置刷新必须保持一致性：单次变更不得产生部分 Adapter 绑定、部分目标列表或旧新配置混用的可观察状态。
-- **R15**：配置更新失败时，系统必须保留上一次可用的运行时配置，并向管理端返回可定位的错误；不得静默切换到空模型组。
+- **R12**：Adapter、Model、ModelCard、ModelSettings.Associations 和 Channel 的业务配置必须持久化在数据库，并在服务重启后恢复；现有 ModelGroup 数据在迁移完成前保留为兼容数据，但不再作为新配置来源。
+- **R13**：管理端修改 ModelCard、Model 渠道关联、目标优先级、Adapter 绑定或适配器协议后，运行时必须能够刷新相关缓存并让后续请求使用新配置，不要求消费端或 Agent 重启。
+- **R14**：配置刷新必须保持一致性：单次变更不得产生部分 Adapter 绑定、部分 Model 关联或旧新配置混用的可观察状态。
+- **R15**：配置更新失败时，系统必须保留上一次可用的运行时配置，并向管理端返回可定位的错误；不得静默切换到空 Model。
 
 #### 单实例边界与鉴权
 
@@ -97,15 +101,15 @@ AxonHub 将从带登录和多租户的平台收敛为单实例适配器网关。
 
 #### 简化管理能力
 
-- **R20**：管理端必须能够维护 Adapter、逻辑模型、ModelGroup、ModelGroupProtocol、ModelGroupTarget、优先级、启用状态和渠道绑定。
-- **R21**：管理端必须能够展示一个逻辑模型当前绑定的目标顺序、目标健康状态和最近一次切换原因，帮助使用者确认模型是否已切换。
+- **R20**：管理端必须能够维护 Adapter、Model 的 ModelCard、统一对外价格、渠道物理模型关联、优先级和启用状态。
+- **R21**：管理端必须能够展示一个 Model 当前绑定的渠道目标顺序、目标健康状态和最近一次切换原因，帮助使用者确认模型是否已切换。
 - **R22**：管理端必须提供显式配置刷新或等价的自动刷新反馈，使使用者可以确认数据库配置已经进入运行时。
 - **R23**：管理端不再提供用户、租户、项目、角色、OIDC 登录、个人 API Key 和企业权限管理功能。
 
 #### 兼容与可观测性
 
-- **R24**：每次请求的日志和追踪信息必须同时记录 Adapter、逻辑模型 ID、ModelGroup、实际渠道和 `targetModelId`，但响应和消费端可见模型必须保持逻辑模型 ID。
-- **R25**：请求失败时，错误信息必须区分入站协议错误、模型组无可用目标、目标渠道失败和配置刷新失败，便于判断是客户端、路由还是上游问题。
+- **R24**：每次请求的日志和追踪信息必须同时记录 Adapter、Model ID、实际渠道和 `targetModelId`，但响应和消费端可见模型必须保持 Model ID。
+- **R25**：请求失败时，错误信息必须区分入站协议错误、Model 无可用渠道目标、目标渠道失败和配置刷新失败，便于判断是客户端、路由还是上游问题。
 - **R26**：Pi、Claude Code、Codex 的首批适配器必须分别具备代表性请求、流式请求、工具调用和错误场景的兼容性验收样例；具体字段以实际客户端协议为准。
 
 ### Core Flow
@@ -118,18 +122,18 @@ flowchart TD
     B --> C[按 adapter name/slug 查 Adapter]
     C --> D[校验唯一入站 APIFormat]
     D --> E[入站协议转换]
-    E --> F[sourceModelId]
-    F --> G[AdapterModelBinding]
-    G --> H[校验 ModelGroup 支持该入站 APIFormat]
-    H --> I[按优先级与健康状态选择 Target]
-    I --> J[ModelGroupTarget: Channel + targetModelId + outbound APIFormat]
+    E --> F[Model ID / alias]
+    F --> G[Adapter 绑定 Model]
+    G --> H[读取 ModelCard 与 ModelSettings.Associations]
+    H --> I[按 priority 与健康状态选择渠道目标]
+    I --> J[Channel + physical model ID + outbound APIFormat]
     J --> K[选择 Channel 对应 endpoint]
     K --> L[出站协议转换]
     L --> M[上游渠道]
     M --> N[响应恢复为逻辑模型 ID]
 ```
 
-ModelGroup 可以同时声明多个入站 APIFormat。ModelGroupTarget 必须明确选择 Channel 的一个 outbound APIFormat，因为同一个 Channel 可以同时提供 Anthropic、OpenAI Chat 或 OpenAI Responses endpoint，且不同 endpoint 的模型集合可能不同。
+Adapter 仍然只声明一个入站 APIFormat；Model 本身不再复制一套 ModelGroupProtocol。渠道关联继续复用现有 Channel endpoint 选择和请求格式条件。如果某个能力或协议组合不能共用同一个 Model，则创建独立 Model ID/别名，而不是在路由时动态聚合。
 
 ### Out of Scope
 
@@ -137,17 +141,19 @@ ModelGroup 可以同时声明多个入站 APIFormat。ModelGroupTarget 必须明
 - 用户级 API Key 生命周期、用户级配额和按租户计费策略。
 - 让消费端直接选择或依赖 `targetModelId`。
 - 默认对不同能力或不同协议目标进行无条件轮询。
+- 通过多个目标的能力交集自动生成 ModelCard；ModelCard 由 Model 配置统一维护。
+- 继续扩展 ModelGroup 作为新的模型配置中心；ModelGroup 迁移完成后的公开 API、页面和配置链路属于下线路径。
 - 重写 AxonHub 已有的渠道凭证、出站协议转换、流式处理、重试、熔断和请求记录能力。
 - 在没有真实客户端协议样例前，臆造 Pi、Claude Code 或 Codex 的特殊字段和完整兼容语义。
 
 ### Acceptance Signals
 
 - Pi、Claude Code、Codex 可以分别通过各自 Adapter 路径发起请求，并使用各自声明的入站协议。
-- 消费端只需要配置 `opus`、`fast` 等逻辑模型 ID；后台修改 ModelGroup 目标后，后续请求无需修改客户端配置即可切换。
-- 首选目标不可用时，请求可以按照优先级切换备用目标；成功响应中的模型仍是消费端请求的逻辑模型 ID。
-- 数据库中的 Adapter、ModelGroup 和目标绑定在服务重启后仍然有效；配置刷新不会短暂暴露空路由或部分旧配置。
+- 消费端只需要配置 `opus`、`fast` 或 `gpt-5.6-luna-1m` 等 Model ID；后台修改 Model 的渠道关联后，后续请求无需修改客户端配置即可切换。
+- 首选渠道目标不可用时，请求可以按照 Model 关联的 priority 切换备用目标；成功响应中的模型仍是消费端请求的 Model ID。
+- Model 的 ModelCard、渠道关联和 Adapter 绑定在服务重启后仍然有效；配置刷新不会短暂暴露空 Model 或部分旧配置。
 - 未登录、无用户、无项目和无租户上下文的消费请求可以正常工作；错误的消费令牌不能访问管理接口。
-- 管理端可以完成模型组目标切换，并能看到当前生效目标、健康状态和配置刷新结果。
+- 管理端可以完成 Model 渠道目标切换，并能看到当前生效目标、健康状态和配置刷新结果。
 
 ## Implementation Contract
 
@@ -155,9 +161,10 @@ ModelGroup 可以同时声明多个入站 APIFormat。ModelGroupTarget 必须明
 
 ### Implementation Principles
 
-1. **数据库是业务配置唯一来源**：Adapter、AdapterModelBinding、ModelGroup、ModelGroupProtocol、ModelGroupTarget 以及 Channel 均从 Ent 数据库读取；YAML/env 一期只保存服务基础设施配置，不新增消费 API Key 配置。
+1. **数据库是业务配置唯一来源**：Adapter、Model、ModelCard、ModelSettings.Associations 以及 Channel 均从 Ent 数据库读取；YAML/env 一期只保存服务基础设施配置，不新增消费 API Key 配置。
 2. **运行时配置采用完整快照原子替换**：每次管理变更提交事务后重新构建完整路由快照；新快照未通过校验时继续使用旧快照，禁止发布半成品配置。
-3. **适配器只改变入站协议和逻辑模型解析**：渠道凭证、出站 endpoint、协议转换、重试、熔断、限流和用量记录继续复用 AxonHub 现有链路。
+3. **适配器只改变入站协议和 Model 解析**：渠道凭证、出站 endpoint、协议转换、重试、熔断、限流和用量记录继续复用 AxonHub 现有链路。
+4. **ModelCard 是能力与对外价格的单一来源**：同一个 Model 的上下文、输出限制、模态、工具/推理能力和对外价格统一配置；渠道实际成本单独读取 ChannelModelPrice，不反向改写 ModelCard。
 4. **逻辑模型贯穿消费侧**：请求、响应、流式事件和模型列表使用 `sourceModelId`；只有结构化日志、运行时健康信息和请求执行记录使用 `targetModelId`。
 5. **兼容性不靠猜测**：Pi、Claude Code、Codex 的真实请求、SSE、工具调用和错误样例在实现前落盘；没有样例的字段不进入适配器契约。
 6. **保留旧数据表作为迁移兼容层**：第一阶段不物理删除 User、Project、APIKey、Role、OIDC 等 Ent schema，先从公网请求链路和默认后台入口解除依赖；后续确认迁移完成后再删除表和代码。
@@ -173,13 +180,13 @@ ModelGroup 可以同时声明多个入站 APIFormat。ModelGroupTarget 必须明
   -> 校验 Adapter 只有一个 inbound APIFormat
   -> 适配器协议 handler（OpenAI Chat / OpenAI Responses / Anthropic Messages）
   -> 现有 inbound transformer
-  -> AdapterCandidateSelector(sourceModelId)
-  -> AdapterModelBinding(sourceModelId -> ModelGroup)
-  -> 解析 ModelGroupProtocol(inbound APIFormat) 及其目标池
-  -> ModelGroupTarget(priority, channel, targetModelId, outbound APIFormat)
+  -> AdapterCandidateSelector(modelID)
+  -> Adapter 允许的 Model 绑定
+  -> 读取 ModelCard 与 ModelSettings.Associations
+  -> 按 association priority、请求条件和健康状态选择 Channel + physical model ID
   -> 校验 Channel 已配置对应 outbound endpoint
   -> 现有 channel outbound transformer + retry/circuit-breaker/rate-limit
-  -> 逻辑模型响应恢复与适配器协议响应
+  -> 逻辑 Model ID 响应恢复与适配器协议响应
 ```
 
 `/{adapter}` 使用单个动态路由入口，由运行时 registry 校验数据库中的 Adapter；不为每条数据库配置重新注册 Gin 路由，因此修改 Adapter、绑定或模型组后不需要重启 HTTP server。Adapter 的 name/slug 就是公开 URL 路径，例如 `pi-anthropic` 对应 `/pi-anthropic/v1/`。同一个客户端可以创建多个 Adapter，但每个 Adapter 只能绑定一个入站 APIFormat。
@@ -198,97 +205,78 @@ Adapter 的 inbound APIFormat 决定允许的操作和协议错误格式。请�
 
 ### Data Model
 
-新增五个 Ent schema。它们不复用 `Model.group`、`ModelSettings.Associations` 或 API Key Profile 映射，因为那些模型分别表达目录分类、渠道匹配规则和用户级映射。
+本方案复用现有 Model 作为模型中心，不新增 ModelGroup、ModelGroupProtocol 或 ModelGroupTarget 作为第二套模型配置体系。
 
 #### Adapter
 
-- `name/slug`：唯一 URL path segment，同时就是公开消费入口名称，例如 `pi-anthropic`、`pi-openai`；只允许小写字母、数字、`-`、`_`。
-- `display_name`：后台展示名称。
-- `inbound_api_format`：唯一入站协议，例如 `openai_chat`、`openai_responses`、`anthropic_messages`；一个 Adapter 只能有一个值。
-- `status`：`enabled`、`disabled`、`archived`。
-- `remark`：管理备注。
-- 使用 `TimeMixin` 和软删除；对 `(name, deleted_at)` 建唯一索引。
-- 关系：`Adapter -> AdapterModelBinding` 一对多。
+- `name/slug`：唯一 URL path segment，同时就是公开消费入口名称，例如 `pi-anthropic`、`pi-openai`。
+- `display_name`、`inbound_api_format`、`status`、`remark` 保持当前 Adapter MVP 语义。
+- 一个 Adapter 只能声明一个入站协议。
+- Adapter 只维护允许暴露的 Model ID，不维护渠道目标池。
 
-#### AdapterModelBinding
+#### Model
 
-- `adapter_id`：所属 Adapter。
-- `source_model_id`：消费端看到的逻辑模型 ID，例如 `fast`、`opus`。
-- `model_group_id`：目标模型组；禁止直接存 `channel_id` 或 `target_model_id`。
-- `enabled`：是否对该 Adapter 暴露。
-- `remark`：管理备注。
-- 对 `(adapter_id, source_model_id, deleted_at)` 建唯一索引。
-- 绑定必须指向启用的 ModelGroup；同一 ModelGroup 可以被多个 Adapter 复用。
+- 复用 `internal/ent/schema/model.go` 的全局唯一 `model_id` 作为对外逻辑模型 ID 和别名。
+- `model_card` 是该 Model 的统一能力契约，包含 `Limit.Context`、`Limit.Output`、`Modalities`、`Vision`、`ToolCall`、`Reasoning` 和统一对外 `Cost`。
+- 不同能力版本必须建立独立 Model，例如 `gpt-5.6-luna` 与 `gpt-5.6-luna-1m`；不新增 Alias 或 ModelVariant 表。
+- `model.settings` 保存该 Model 的渠道关联、物理模型 ID、priority、启用状态和请求条件。
+- 旧 Model 目录、ModelCard 和 ModelSettings.Associations 在迁移后成为 Adapter 路由的正式配置来源。
 
-#### ModelGroup
+#### ModelSettings.Associations
 
-- `name`：唯一内部名称，例如 `fast-default`。
-- `display_name`、`remark`。
-- `status`：`enabled`、`disabled`、`archived`。
-- `selection_strategy`：首版只实现 `priority_failover`，为后续扩展保留枚举。
-- 使用 `TimeMixin` 和软删除；对 `(name, deleted_at)` 建唯一索引。
-- 关系：`ModelGroup -> AdapterModelBinding`、`ModelGroup -> ModelGroupProtocol`。
-- ModelGroup 不是单协议对象；同一个组可以通过多个 ModelGroupProtocol 声明支持多个入站协议。
+- `channelModel` 关联表达 `channel_id + physical_model_id`；它是发送给渠道的真实模型目标。
+- `priority` 数值越小越优先；相同 priority 继续复用现有 LoadBalancer 和健康状态处理。
+- `when` 条件继续支持 prompt token、stream、request format、图片/视频/文档/音频和请求头等已有字段。
+- 一个 Model 可以关联多个 Channel 和多个物理模型；只有能力符合该 ModelCard 的渠道目标才允许被配置到同一个 Model。
+- Model 不复制 Channel 凭证；Channel 禁用或目标 endpoint 不可用时，目标由现有候选筛选和健康机制排除。
 
-#### ModelGroupProtocol
+#### ChannelModelPrice
 
-- `model_group_id`：所属模型组。
-- `inbound_api_format`：该模型组协议配置允许被哪些 Adapter 入站协议使用，例如 `anthropic_messages`、`openai_responses`。
-- `enabled`、`remark`。
-- 该记录是一个协议级路由配置，拥有自己的 ModelGroupTarget 目标池；这样同一个 ModelGroup 可以让 Anthropic Adapter 使用 Kiro Anthropic 目标，让 OpenAI Adapter 使用 OpenAI Responses 目标，而不需要复制整个 ModelGroup。
-- 对 `(model_group_id, inbound_api_format, deleted_at)` 建唯一索引。
-- Adapter 绑定模型组时，只展示存在对应启用记录的 ModelGroup。
+- 复用现有 `ChannelModelPrice` 保存各渠道物理模型的实际成本价格和 reference ID。
+- ModelCard 的 `Cost` 保存统一对外价格；渠道实际价格只用于内部成本、用量和计费，不自动覆盖 ModelCard。
 
-#### ModelGroupTarget
+#### 迁移兼容
 
-- `model_group_protocol_id`：所属 ModelGroupProtocol；因此目标池天然按入站协议隔离。
-- `channel_id`：实际渠道。
-- `target_model_id`：发送给渠道的真实模型 ID，例如 `gpt-5.6`。
-- `outbound_api_format`：明确选择该 Channel 的一个出站 endpoint APIFormat；例如 `anthropic_messages` 或 `openai_responses`。
-- `priority`：整数，数值越小优先级越高；相同优先级按 Ent ID 稳定排序。
-- `enabled`：是否参与选择。
-- `capabilities`：JSON，首版包含 `supports_tools`、`supports_stream`、`input_modalities`、`output_modalities`；缺省值表示沿用 Channel 能力探测结果。
-- `remark`：管理备注。
-- 对 `(model_group_protocol_id, channel_id, target_model_id, outbound_api_format, deleted_at)` 建唯一索引。
-- 目标不复制 Channel 凭证；删除或禁用 Channel、或 Channel 不再提供对应 outbound APIFormat 后，目标在快照构建时自动变为不可用并在后台报告原因。
+- 当前 AdapterModelBinding 的 `model_group_id` 不再作为长期模型关联；迁移目标是绑定现有 `Model.model_id`。
+- 当前 ModelGroup、ModelGroupProtocol、ModelGroupTarget 数据先保留，迁移工具将其转换为 Model 的 ModelCard 和 ModelSettings.Associations。
+- 迁移完成并验收后，停止 ModelGroup API、页面和运行时读取；物理表清理由单独迁移任务负责，不与首轮路由切换混合。
 
-建议新增 `internal/objects/adapter.go` 定义能力 JSON 和运行时 DTO；协议和状态优先使用 Ent enum，避免在管理 API 中散落字符串常量。
-
+建议保留 `internal/objects/adapter.go` 只承载 Adapter 运行时快照和诊断 DTO；Model 能力继续使用现有 `objects.ModelCard`，避免形成第二套能力字段。
 ### Runtime Snapshot and Refresh
 
 新增 `internal/server/biz/adapter.go`（或拆成 `adapter.go`、`model_group.go`）实现 `AdapterService`：
 
-- `Refresh(ctx) (RefreshResult, error)`：查询所有 Adapter、绑定、ModelGroup、ModelGroupProtocol、目标和启用 Channel，构建完整 `AdapterSnapshot`。
+- `Refresh(ctx) (RefreshResult, error)`：查询所有 Adapter、允许的 Model、ModelCard、ModelSettings.Associations 和启用 Channel，构建完整 `AdapterSnapshot`。
 - `Resolve(ctx, adapterName) (*RuntimeAdapter, error)`：只读访问当前快照，不在请求路径查询数据库。
-- `ListModels(ctx, adapterName)`：返回该 Adapter 已启用且绑定有效的 `source_model_id` 去重列表，按绑定定义稳定排序。
-- `ReplaceAdapterConfig`、`ReplaceModelGroupTargets`、`ReplaceBindings`：分别在 `RunInTransaction` 中完成完整资源替换，提交成功后调用 `Refresh`。
+- `ListModels(ctx, adapterName)`：返回该 Adapter 已启用且存在有效 Model 的 `model_id` 去重列表，按绑定定义稳定排序。
+- `ReplaceAdapterConfig`、`ReplaceModelAssociations`、`ReplaceModelBindings`：分别在 `RunInTransaction` 中完成完整资源替换，提交成功后调用 `Refresh`。
 - 使用 `atomic.Value` 或读写锁保存不可变快照；刷新时先在局部对象中完成所有校验，最后一次性 swap。
 - 使用刷新互斥锁避免并发管理请求按旧写入顺序覆盖新快照；刷新失败只返回错误并保留旧快照。
 - 记录单调递增 `snapshot_version`、`refreshed_at`、失败原因和最近一次成功刷新时间，供 `/admin/gateway/runtime` 展示。
 - 服务启动时执行一次 Refresh；数据库配置无效时启动失败并明确打印 Adapter、绑定、目标和 Channel 的定位信息。启动后管理变更失败不得清空已生效快照。
 
-目标能力校验顺序：Adapter inbound APIFormat -> ModelGroupProtocol 声明 -> 入站请求能力 -> Channel 可用状态 -> ModelGroupTarget.outbound_api_format 对应的 Channel endpoint -> outbound 能力 -> target capabilities。校验失败的目标不进入可用候选，但必须在管理端的诊断结果中保留原因。
+目标校验顺序：Adapter inbound APIFormat -> Model 存在且启用 -> ModelCard 对外能力契约 -> ModelSettings.Associations 请求条件 -> Channel 可用状态 -> Channel endpoint 和 outbound 能力。ModelCard 不通过多个目标动态聚合；能力不一致的目标必须归入其他 Model ID/别名，校验失败的关联保留可定位诊断。
 
 ### Candidate Selection Integration
 
 新增 `internal/server/orchestrator/adapter_selector.go`，实现现有 `CandidateSelector` 接口：
 
 1. 从 request context 读取 `RuntimeAdapter`；缺失时返回内部配置错误，不回退到全渠道搜索。
-2. 使用 `llm.Request.Model` 作为 `sourceModelId` 查找 AdapterModelBinding，并校验 ModelGroup 存在启用的同入站 APIFormat 的 ModelGroupProtocol。
-3. 只读取该 ModelGroupProtocol 自己的目标池，按 ModelGroupTarget 的 `priority ASC, id ASC` 构造 `ChannelModelsCandidate`；每个目标生成一个 `ChannelModelEntry{RequestModel: sourceModelId, ActualModel: targetModelId}`，并携带目标明确指定的 `outbound_api_format`。
-4. 根据当前请求的 inbound APIFormat、目标 outbound APIFormat、stream、tools、图片/音频/视频能力过滤不兼容目标。
+2. 使用 `llm.Request.Model` 作为 Model ID 查找 Adapter 允许的 Model，并读取 ModelCard 与 ModelSettings.Associations。
+3. 复用现有模型候选解析，把每条有效 association 转换为 `ChannelModelEntry{RequestModel: modelID, ActualModel: physicalModelID}`，保留 association priority 和请求条件。
+4. 根据当前请求的入站格式、stream、tools、图片/音频/视频能力过滤不兼容关联；ModelCard 是统一契约，不在运行时取多个目标交集。
 5. 让现有 `WithStreamPolicySelector`、quota selector、trace/thread selector、circuit-breaker 和 retry 链继续包裹该 selector；不修改 Channel outbound 选择逻辑。
-6. 目标排序使用不同 priority 分组，保证优先目标始终排在备用目标之前；现有 LoadBalancer 只在同优先级目标内部工作。
-7. 目标的实际健康状态复用现有 `ModelCircuitBreaker` 的 `(channelID, targetModelId)` 键，并由 AdapterService 维护面向管理端的最近失败/切换原因缓存。健康缓存是运行时状态，不写回 ModelGroupTarget 的持久化配置。
+6. 目标排序继续复用现有 association priority 和 LoadBalancer，保证优先目标始终排在备用目标之前。
+7. 健康状态继续使用现有 `(channelID, physicalModelID)` 粒度，并由 Model/Adapter 运行时诊断暴露最近失败和切换原因；健康状态不写回 ModelCard。
 
 需要同步修改：
 
-- `internal/server/orchestrator/state.go`：补充 Adapter/ModelGroup 运行时元数据。
+- `internal/server/orchestrator/state.go`：补充 Adapter/Model 运行时元数据。
 - `internal/server/orchestrator/select_candidates.go`：所有 `APIKey.GetActiveProfile()` 访问必须先判断 APIKey 是否为空；适配器请求不得执行项目/API Key Profile 的渠道过滤。
 - `internal/server/orchestrator/model_mapper.go`：无 APIKey 时也必须保存 `OriginalModel`，并在响应和流式响应中将实际模型恢复为消费端请求的逻辑模型。
 - `internal/server/orchestrator/orchestrator.go`：从 context 读取 Adapter 元数据并补充结构化日志字段；保留 `apiKey == nil` 的合法请求路径。
-- `internal/server/orchestrator/request_execution.go`：日志中同时输出 adapter、source model、model group、channel、target model 和 fallback reason；不把消费令牌写入日志。
-- `internal/server/orchestrator/model_access.go`：适配器请求只做“模型非空”和 Adapter binding 校验，不读取 API Key Profile。
+- `internal/server/orchestrator/request_execution.go`：日志中同时输出 adapter、model ID、channel、physical model、association priority 和 fallback reason；不把消费令牌写入日志。
+- `internal/server/orchestrator/model_access.go`：适配器请求只做“模型非空”和 Adapter 允许的 Model 校验，不读取 API Key Profile。
 
 ### Protocol Handler Reuse
 
@@ -327,7 +315,7 @@ Adapter 的 inbound APIFormat 决定允许的操作和协议错误格式。请�
 - 一期不新增 consumer token、admin token 或 APIKey 表绑定逻辑；管理接口复用当前项目管理鉴权，或在部署层限制为本机访问。
 - 后续再增加 `consumer_auth.enabled`、全局 API Key 和 Adapter 级 API Key 校验；校验策略不进入一期 MVP。
 
-一期只修改 `legacy_api_enabled` 等路由开关，不新增 token 配置。模型组业务配置必须通过数据库管理 API 或现有管理入口刷新。
+一期只修改 `legacy_api_enabled` 等路由开关，不新增 token 配置。Model、ModelCard 和 Model 关联配置必须通过数据库管理 API 或现有 Model 管理入口刷新。
 
 ### Single-Instance Cut Boundary
 
@@ -336,7 +324,7 @@ Adapter 的 inbound APIFormat 决定允许的操作和协议错误格式。请�
 - 消费路由不调用 `AuthService.AuthenticateAPIKey`、`AuthenticateJWTToken`，不建立 APIKey、User、Project context。
 - `/admin/gateway/*` 一期复用当前项目管理鉴权或本机访问约束；健康检查仍不需要消费 API Key。
 - 删除/隐藏默认登录页、`/admin/auth/signin`、`/oauth/*`、用户/租户/项目/RBAC/API Key 管理菜单和对应前端调用。
-- 保留 Channel 管理、Adapter 管理、ModelGroup 管理、目标健康和刷新状态；渠道凭证仍由 Channel 管理能力维护。
+- 保留 Channel 管理、Adapter 管理、Model 管理、Model 关联目标健康和刷新状态；渠道凭证仍由 Channel 管理能力维护。
 - 旧 GraphQL resolver 和后台服务可以暂时保留为迁移兼容代码，但不能通过消费 token 访问，也不能重新成为 Adapter 路由的依赖。
 - 迁移完成后再单独做 schema 清理任务，删除遗留表前先提供数据导出和回滚方案；本特性不把物理删表混入第一轮路由改造。
 
@@ -346,25 +334,25 @@ Adapter 的 inbound APIFormat 决定允许的操作和协议错误格式。请�
 
 - `GET /adapters`：返回 Adapter、protocol、状态、绑定逻辑模型和快照版本。
 - `PUT /adapters/:name`：整体替换 Adapter 基础配置和绑定列表；绑定校验失败时整笔回滚。
-- `GET /model-groups`：返回模型组及每个目标的 priority、Channel、targetModelId、启用状态和诊断状态。
-- `PUT /model-groups/:name`：整体替换模型组目标列表；支持在一次请求内调整目标、优先级、targetModelId 和能力声明。
-- `GET /runtime`：返回 snapshot version、刷新时间、当前生效 Adapter、逻辑模型、目标顺序、目标健康和最近切换原因。
+- `GET /models`：返回 Model、ModelCard、统一对外价格、渠道关联、priority、启用状态和诊断状态。
+- `PUT /models/:model_id`：整体替换 ModelCard、统一对外价格和 ModelSettings.Associations；能力不一致的目标不得挂到同一个 Model。
+- `GET /runtime`：返回 snapshot version、刷新时间、当前生效 Adapter、Model ID、渠道目标顺序、目标健康和最近切换原因。
 - `POST /refresh`：显式从数据库重建快照；成功返回新版本，失败返回诊断且旧版本继续服务。
 
 管理 API 的写请求使用 `RunInTransaction`，服务层执行以下约束：
 
-- Adapter 名称和 source model ID 不得为空；名称必须符合 path 规则。
-- 一个 Adapter 下同一 source model 只能有一个 enabled binding。
-- enabled binding 必须指向 enabled ModelGroup；ModelGroup 至少有一个 enabled target。
-- enabled target 必须引用 enabled Channel；targetModelId 必须非空。
-- priority 采用低值优先，更新整个目标列表时禁止产生重复有效目标。
+- Adapter 名称和 Model ID 不得为空；Adapter 名称必须符合 path 规则。
+- 一个 Adapter 下同一 Model ID 只能有一个 enabled binding；binding 必须指向 enabled Model。
+- ModelCard 的能力和统一对外价格必须完整可解析；能力不同的别名必须使用独立 Model ID。
+- Model association 必须引用 enabled Channel；physical model ID 必须非空。
+- priority 采用低值优先，更新整个 Model 关联列表时禁止产生重复有效目标。
 - 修改已被请求使用的配置不影响正在执行的 request；只影响 snapshot swap 之后的新请求。
 - 数据库提交成功但快照刷新失败时，接口返回 500/409 诊断，旧快照继续服务，并提供下一次 `POST /refresh` 的入口；不得返回“刷新成功”。
 
 错误响应统一分为：
 
 - `invalid_adapter_request`：路径、JSON、协议或能力不符合 Adapter 契约。
-- `model_group_unavailable`：逻辑模型没有有效 binding 或没有可用目标。
+- `model_unavailable`：Model 没有有效 Adapter binding 或没有可用渠道目标。
 - `channel_unavailable`：目标 Channel 被禁用、删除或 outbound 初始化失败。
 - `upstream_error`：目标渠道请求失败；由现有 retry/error transformer 继续处理。
 - `gateway_config_error`：管理配置或快照刷新失败。
@@ -374,12 +362,10 @@ Adapter 的 inbound APIFormat 决定允许的操作和协议错误格式。请�
 ### 新增文件
 
 - `internal/ent/schema/adapter.go`
-- `internal/ent/schema/adapter_model_binding.go`
-- `internal/ent/schema/model_group.go`
-- `internal/ent/schema/model_group_protocol.go`
-- `internal/ent/schema/model_group_target.go`
+- `internal/ent/schema/adapter_model_binding.go`（迁移期允许保留，长期改为 Model 绑定）
 - `internal/objects/adapter.go`
-- `internal/server/biz/adapter.go`（快照、CRUD、刷新、健康诊断）
+- `internal/server/biz/adapter.go`（Adapter 快照、Model 绑定迁移、刷新、健康诊断）
+- `internal/server/biz/model.go`（复用 ModelCard 与 ModelSettings.Associations 的管理和快照适配）
 - `internal/server/orchestrator/adapter_selector.go`
 - `internal/server/api/adapter.go`
 - `internal/server/api/gateway_admin.go`
@@ -399,10 +385,12 @@ Adapter 的 inbound APIFormat 决定允许的操作和协议错误格式。请�
 - `internal/server/config.go`、`conf/conf.go`、`config.example.yml`：legacy 开关和一期拦截器基础配置；不新增消费 token 配置。
 - `internal/server/biz/fx_module.go`、`internal/server/api/fx_module.go`：注册 AdapterService、Adapter handlers 和生命周期 Refresh。
 - `internal/server/biz/channel.go`：增加按 enabled channel ID 读取运行时 Channel 的只读索引，供 selector 构造候选。
-- `internal/server/orchestrator/state.go`、`orchestrator.go`、`select_candidates.go`、`model_mapper.go`、`model_access.go`、`request_execution.go`：接入 Adapter 元数据、nil APIKey 路径、逻辑模型恢复和结构化观测。
+- `internal/server/orchestrator/state.go`、`orchestrator.go`、`select_candidates.go`、`model_mapper.go`、`model_access.go`、`request_execution.go`：接入 Adapter/Model 元数据、nil APIKey 路径、逻辑模型恢复和结构化观测。
+- `internal/ent/schema/model.go`、`internal/objects/model.go`、`internal/ent/schema/channel_model_price.go`：补齐 ModelCard/统一对外价格与渠道实际价格的契约和查询边界。
 - `internal/server/gql/*`：仅在迁移期保留渠道和系统管理所需字段；移除用户/项目/RBAC/API Key/OIDC 的公开操作及前端调用，不直接编辑生成的 `ent.graphql`。
-- `frontend/src/*`：删除登录和租户/项目状态依赖；一期可继续复用现有后台管理鉴权；新增 Adapter/ModelGroup/target 管理页面或先提供等价 REST 管理入口。
+- `frontend/src/*`：删除登录和租户/项目状态依赖；一期可继续复用现有后台管理鉴权；复用 Model 管理页面维护 ModelCard、统一价格、渠道关联和 priority，新增 Adapter 管理页面或先提供等价 REST 管理入口。
 - `internal/ent/*`、`internal/server/gql/generated.go` 等生成文件：只通过 `make generate` 更新，不手工编辑。
+- 迁移脚本/工具：读取现有 ModelGroup 配置并转换为 ModelCard 与 ModelSettings.Associations；具体路径在实现阶段依据当前数据迁移工具约定确定。
 
 ### 不应修改的成熟链路
 
@@ -415,62 +403,67 @@ Adapter 的 inbound APIFormat 决定允许的操作和协议错误格式。请�
 
 ### Phase 0：协议样例和入口契约
 
-1. 已从本机实际 Pi、Claude Code、Codex 客户端采集最小请求、流式标志、工具定义和关键入站 headers；捕获过程只访问 loopback 临时 HTTP 服务。
-2. 已将敏感 token、真实 prompt、账号信息、动态会话/请求/安装 ID 脱敏后保存到 `internal/server/api/testdata/adapter/`，并在 README 中记录样例来源和边界。
-3. 已确认 `pi -> openai_responses`、`cc -> anthropic_messages`、`codex -> openai_responses`；Pi 和 Codex 虽共用 Responses 请求体，仍必须使用独立 Adapter 路径和独立客户端 headers。
-4. 待补充真实上游成功 SSE、工具调用回合和错误响应，再冻结完整协议矩阵：入站 headers、model 字段、stream 事件、tool call 事件、错误 body、模型列表要求、trace header。
+1. 保留并补齐 Pi、Claude Code、Codex 的真实请求、SSE、工具调用和错误 fixture。
+2. 在协议契约未冻结前，不扩展客户端专属字段，不声称完整兼容。
 
-**当前状态**：请求侧 fixture 已完成；响应侧 fixture 未完成，Phase 0 尚未通过实施门禁。
+**完成信号**：请求侧和响应侧边界可由脱敏 fixture 重放，错误和流式模型恢复规则明确。
 
-### Phase 1：Ent 数据模型和管理服务骨架
+### Phase 1：Model 中心的数据契约
 
-1. 新增四个 schema、objects DTO、索引和边关系。
-2. 通过 `make generate` 生成 Ent client 和必要 GraphQL 代码；不写手工迁移 SQL。
-3. 实现 AdapterService 的查询、字段校验、完整快照构建和原子刷新。
-4. 增加 ChannelService 的 enabled channel ID 索引，处理 channel cache swap 时同步更新。
-5. 加入 FX provider 和启动 Refresh hook。
+1. 确认现有 ModelCard 的能力、统一对外价格和 ModelSettings.Associations 的渠道关联语义。
+2. 为 Model 管理补齐上下文、输出 Token、模态、工具/推理能力、统一价格和关联 priority 的读写契约。
+3. 保持一个 Model ID 对应一套统一能力；能力不同的模型使用独立 Model ID。
+4. 复用 ChannelModelPrice 作为渠道实际成本来源，不把渠道成本覆盖到 ModelCard。
+5. 为旧 ModelGroup 配置设计可回滚的数据转换，确保迁移前后目标、priority 和协议边界可追踪。
 
-**完成信号**：内存 Ent 测试可以创建 Adapter -> Binding -> Group -> Target -> Channel，并验证非法引用不会替换旧快照。
+**完成信号**：可以配置 `gpt-5.6-luna` 与 `gpt-5.6-luna-1m` 两个独立 Model，并分别保存能力、价格和渠道关联。
 
-### Phase 2：适配器候选选择和逻辑模型闭环
+### Phase 2：Adapter 直接绑定 Model
 
-1. 实现 AdapterCandidateSelector，把逻辑模型映射为候选的 `RequestModel`，把 targetModelId 写入 `ActualModel`。
-2. 接入现有能力过滤、quota、health、retry、circuit-breaker 和 failover。
-3. 修复无 APIKey 时 `OriginalModel`、响应模型和流式模型字段恢复。
-4. 让请求执行日志同时记录 Adapter、source model、group、channel、target model。
-5. 为 OpenAI Chat、Anthropic Messages、OpenAI Responses 分别创建带 Adapter selector 的 handler 副本。
+1. 将 Adapter 的允许模型绑定从 `model_group_id` 调整为现有 `Model.model_id`。
+2. Adapter 模型列表只返回 enabled 且存在有效配置的 Model ID。
+3. 保留 Adapter 的入站协议边界，不让 Adapter 保存物理渠道或目标模型配置。
+4. 迁移期同时读取旧 ModelGroup 配置并提供诊断，禁止新写入继续创建 ModelGroup 目标。
 
-**完成信号**：不走 HTTP 的 orchestrator 测试可以证明 `fast -> gpt-5.6`，首选失败后按 priority 选择备用目标，消费端响应模型仍为 `fast`。
+**完成信号**：同一个 Model 可以被多个 Adapter 复用；不同别名可以绑定不同 Adapter；消费端只看到 Model ID。
 
-### Phase 3：消费路由和统一拦截器
+### Phase 3：复用 Model Associations 完成路由闭环
 
-1. 实现统一 `AdapterConsumerInterceptor`，提取 Authorization、x-api-key 和 Anthropic api-key 头；一期默认放行，不调用用户/APIKey/JWT 认证链。
-2. 注册动态 `/{adapter}/v1` 路由，按 Adapter protocol 分发操作。
-3. 加入 Adapter model list，只返回逻辑模型。
-4. 默认关闭旧 `/v1` 和 `/anthropic/v1` 公网入口；保留显式 legacy 开关用于迁移。
-5. 保持 `/health` 免消费 API Key，并补充 unknown adapter、缺少 API Key 仍放行、明文不进入日志/上游的用例。
+1. AdapterCandidateSelector 根据 Model ID 读取 ModelCard 和 ModelSettings.Associations。
+2. 复用现有 ChannelModelEntry、association priority、请求条件、健康检查、quota、retry、circuit-breaker 和 failover。
+3. 将 association 的 physical model ID 写入 `ActualModel`，将 Model ID保留在 `RequestModel` 和响应。
+4. 不引入目标能力交集；能力契约以 ModelCard 为准，目标不符合时在配置校验或迁移诊断中暴露。
+5. 补齐无 APIKey 时的模型访问、响应模型恢复和结构化日志。
 
-**完成信号**：多个 Adapter 路径可以被不同协议客户端调用，客户端无需知道渠道和 targetModelId；消费层 API Key 一期不校验。
+**完成信号**：`gpt-5.6-luna` 先走 Kiro，Kiro 失败后按 Model association priority 切换备用渠道，消费端仍收到 `gpt-5.6-luna`。
 
-### Phase 4：管理 API 和热刷新
+### Phase 4：消费路由和管理入口收敛
 
-1. 实现 Adapter、Binding、ModelGroup、Target 的整体替换 API。
-2. 每次成功提交后刷新完整 snapshot；暴露 version、诊断、健康和最近 fallback reason。
-3. 添加管理端显式 refresh；刷新失败保留旧配置并返回可定位错误。
-4. 保留现有 Channel 管理能力作为凭证/渠道维护入口，移除其用户/租户选择语义。
-5. 若项目需要 UI，再在此阶段接入最小 Adapter/ModelGroup 管理页面；否则以 REST 管理 API 和 curl 示例作为第一版后台。
+1. 保留动态 `/{adapter}/v1` 路由和统一消费拦截器。
+2. Adapter `/models` 返回 Adapter 允许的 Model ID 及对应 ModelCard 元数据。
+3. 管理 API 从 ModelGroup CRUD 切换为 Model、ModelCard、统一价格和 Model associations CRUD。
+4. 管理端复用现有 Model 页面维护能力和渠道关联；Adapter 页面只维护 Adapter 协议与 Model 绑定。
+5. 配置提交后原子刷新 Model/Adapter 快照，失败时继续使用旧快照。
 
-**完成信号**：后台把 `fast` 的首选目标从 `gpt-5.6` 改为另一个 targetModelId 后，下一次请求立即使用新目标，客户端配置和 Agent 进程均不变。
+**完成信号**：后台修改 Model 的优先渠道或能力配置后，后续请求和 `/models` 返回立即使用新配置，无需重启客户端。
 
-### Phase 5：登录、多租户和旧入口裁剪
+### Phase 5：ModelGroup 数据迁移和重复链路下线
 
-1. 移除或隐藏前端登录、JWT refresh、OIDC、项目切换、用户级 API Key 和 RBAC 菜单/调用；一期允许保留内部兼容代码。
-2. 消费入口只保留 Adapter 路由；管理入口继续使用当前项目管理鉴权或本机访问约束。
-3. 删除不再暴露的 GraphQL 操作和 resolver 依赖；保留内部遗留 Ent schema 直到完成数据迁移。
-4. 更新 README、配置示例和部署文档，明确一期消费 API Key 不校验，以及后续全局/Adapter 级校验的预留方向。
-5. 单独记录旧数据表清理作为后续迁移任务，不在此阶段执行 drop table。
+1. 将已有 ModelGroup、Protocol、Target 和 Adapter binding 转换为 Model、ModelCard 和 ModelSettings.Associations。
+2. 对无法一对一转换的能力、协议或目标输出明确迁移诊断，不静默合并。
+3. 迁移验收通过后，停止 ModelGroup API、管理页面和运行时快照读取。
+4. 保留旧表和回滚开关，先隐藏入口，再单独执行物理表清理。
 
-**完成信号**：新部署不需要创建用户、项目或 API Key 即可配置渠道、模型组和 Adapter，并能完成一次真实上游请求。
+**完成信号**：新部署和迁移部署都只以 Model 为模型中心，ModelGroup 不再参与新请求路由。
+
+### Phase 6：单实例裁剪、真实验收和文档
+
+1. 继续解除消费链路对 User、Project、APIKey、Role、OIDC 的依赖；保持一期消费 API Key 不校验。
+2. 完成三类客户端的非流式、流式、工具调用、错误、模型列表和目标故障转移验收。
+3. 更新 README、部署文档、Model/Adapter 管理说明和迁移回滚说明。
+4. 暂不执行旧 Ent 表 drop，另建数据清理计划。
+
+**完成信号**：新部署无需创建用户、项目或 API Key 即可配置 Model、Channel、Adapter，并完成真实上游请求。
 
 ## Verification Matrix
 
@@ -478,25 +471,29 @@ Adapter 的 inbound APIFormat 决定允许的操作和协议错误格式。请�
 
 1. `git diff --check`：计划和代码无空白错误。
 2. Ent schema/GraphQL 变更后执行 `make generate`，确认生成文件只来自生成器。
-3. `internal/server/biz/adapter_test.go`：事务回滚、唯一约束、快照原子替换、刷新失败保留旧版本。
-4. `internal/server/orchestrator/adapter_selector_test.go`：Adapter 单入站协议、ModelGroup 多入站协议过滤、target outbound APIFormat、逻辑模型绑定、优先级、能力过滤、健康目标、无可用目标错误。
+3. `internal/server/biz/model_test.go`、`internal/server/biz/adapter_test.go`：ModelCard/Associations 读写、统一能力契约、Model ID 别名、迁移回滚、快照原子替换和刷新失败保留旧版本。
+4. `internal/server/orchestrator/adapter_selector_test.go`：Adapter 直接绑定 Model、Model associations priority、请求条件、physical model 注入、健康目标、无可用渠道错误和逻辑 Model ID 恢复。
 5. `internal/server/middleware/adapter_consumer_test.go`：Authorization、x-api-key、Anthropic api-key 提取；无 API Key 默认放行；明文不进入日志和上游请求。
-6. `internal/server/api/adapter_test.go`：各 Adapter 协议 fixture 的非流式、流式、工具调用、错误和模型列表。
-7. `integration_test/adapter/*`：通过真实 HTTP server 验证请求进入 Channel、失败转移、响应模型恢复和热刷新。
-8. 前端类型检查和浏览器验收仅在 UI 被纳入实现范围后执行。
+6. `internal/server/api/adapter_test.go`：各 Adapter 协议 fixture 的非流式、流式、工具调用、错误和包含 ModelCard 元数据的模型列表。
+7. `integration_test/adapter/*`：通过真实 HTTP server 验证请求进入 Channel、priority 故障转移、响应模型恢复、Model 配置热刷新和 ModelGroup 迁移后的兼容性。
+8. 前端类型检查和浏览器验收仅在 Model/Adapter 管理 UI 被纳入实现阶段后执行。
 
 ## Risks, Rollback, and Open Gates
 
 - **真实协议不一致**：Phase 0 失败时不实现猜测字段；先补 fixture 或把对应 Adapter 标记 disabled。
 - **旧 APIKey/Project 隐式依赖**：若测试暴露 Request、Prompt、DataStorage 或 GraphQL 仍要求 project anchor，先建立内部 compatibility anchor，不把它传入消费语义，再逐项拆依赖。
 - **刷新竞态**：任何运行时对象都不能原地修改；使用“构建完整对象 -> 校验 -> 原子 swap”避免请求看到半配置。
-- **目标健康粒度不足**：优先复用现有 `(channelID, targetModelId)` 熔断状态；若实际链路只能得到 channel 级健康，必须在管理端明确显示粒度，不能声称是 target 级健康。
-- **回滚**：`legacy_api_enabled=true` 可在迁移期恢复旧入口；Adapter 快照保留上一版本，管理 API 刷新失败自动继续使用旧版本；数据库写入通过事务回滚。
+- **目标健康粒度不足**：优先复用现有 `(channelID, physicalModelID)` 熔断状态；若实际链路只能得到 channel 级健康，必须在管理端明确显示粒度，不能声称是目标级健康。
+- **ModelGroup 迁移不完整**：任何无法一对一转换为 ModelCard/ModelSettings.Associations 的配置都必须阻断该条迁移并报告原因，不能静默合并能力或优先级。
+- **ModelCard 与渠道实际能力不一致**：ModelCard 是用户声明的统一契约；渠道目标不应被自动聚合到同一 Model，能力不同必须通过独立 Model ID 解决。
+- **回滚**：`legacy_api_enabled=true` 可在迁移期恢复旧入口；Adapter/Model 快照保留上一版本，管理 API 刷新失败自动继续使用旧版本；数据库写入通过事务回滚。
 - **未决门禁**：Pi/Claude Code/Codex 的真实协议 fixture、是否保留现有前端 UI、后续全局/Adapter 级消费 API Key 的启用和优先级策略。MVP 明确不校验消费 API Key。
 
 ## Plan Review State
 
-- 已基于当前 AxonHub 路由、Ent schema、ChannelService、orchestrator、认证中间件和数据库自动迁移入口完成文件级拆解。
+- 原 MVP 计划的 ModelGroup 中心架构已按用户确认改为 Model 中心架构；Product Contract changed: R4-R15、R20-R25 的模型中心、能力契约、价格和迁移边界已同步调整。
+- 已确认三个产品决策：Model 是唯一模型中心；不同能力的别名是独立 Model；ModelCard 统一对外价格，渠道价格用于内部成本/计费。
+- 已基于当前 AxonHub 的 ModelCard、ModelSettings.Associations、ChannelService、orchestrator、Adapter 路由和数据库自动迁移入口完成整体方向修订。
+- 当前 `ModelGroup` 能力配置提交属于迁移前的临时实现，不再继续扩展；迁移完成后下线其 API、页面和运行时读取。
 - 已完成真实客户端请求侧 fixture 采集和脱敏，文件位于 `internal/server/api/testdata/adapter/`；该目录 README 明确记录了尚未采集的响应侧边界。
-- 未执行构建、测试或服务重启，符合当前仓库规则和本次阶段边界。
-- 进入实现前仍必须补齐真实上游成功 SSE、工具调用回合和错误响应；在此之前只能实现数据模型、快照和协议无关的路由骨架，不能声称 Pi/Claude Code/Codex 完整兼容。
+- 本次只更新计划，没有运行构建、测试或服务重启；进入实现前仍必须补齐真实上游成功 SSE、工具调用回合和错误响应。
