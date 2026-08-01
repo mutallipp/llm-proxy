@@ -41,31 +41,19 @@ type ModelGroup struct {
 
 // ModelGroupEdges holds the relations/edges for other nodes in the graph.
 type ModelGroupEdges struct {
-	// AdapterBindings holds the value of the adapter_bindings edge.
-	AdapterBindings []*AdapterModelBinding `json:"adapter_bindings,omitempty"`
 	// Protocols holds the value of the protocols edge.
 	Protocols []*ModelGroupProtocol `json:"protocols,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 
-	namedAdapterBindings map[string][]*AdapterModelBinding
-	namedProtocols       map[string][]*ModelGroupProtocol
-}
-
-// AdapterBindingsOrErr returns the AdapterBindings value or an error if the edge
-// was not loaded in eager-loading.
-func (e ModelGroupEdges) AdapterBindingsOrErr() ([]*AdapterModelBinding, error) {
-	if e.loadedTypes[0] {
-		return e.AdapterBindings, nil
-	}
-	return nil, &NotLoadedError{edge: "adapter_bindings"}
+	namedProtocols map[string][]*ModelGroupProtocol
 }
 
 // ProtocolsOrErr returns the Protocols value or an error if the edge
 // was not loaded in eager-loading.
 func (e ModelGroupEdges) ProtocolsOrErr() ([]*ModelGroupProtocol, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.Protocols, nil
 	}
 	return nil, &NotLoadedError{edge: "protocols"}
@@ -165,11 +153,6 @@ func (_m *ModelGroup) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryAdapterBindings queries the "adapter_bindings" edge of the ModelGroup entity.
-func (_m *ModelGroup) QueryAdapterBindings() *AdapterModelBindingQuery {
-	return NewModelGroupClient(_m.config).QueryAdapterBindings(_m)
-}
-
 // QueryProtocols queries the "protocols" edge of the ModelGroup entity.
 func (_m *ModelGroup) QueryProtocols() *ModelGroupProtocolQuery {
 	return NewModelGroupClient(_m.config).QueryProtocols(_m)
@@ -225,30 +208,6 @@ func (_m *ModelGroup) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// NamedAdapterBindings returns the AdapterBindings named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (_m *ModelGroup) NamedAdapterBindings(name string) ([]*AdapterModelBinding, error) {
-	if _m.Edges.namedAdapterBindings == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := _m.Edges.namedAdapterBindings[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (_m *ModelGroup) appendNamedAdapterBindings(name string, edges ...*AdapterModelBinding) {
-	if _m.Edges.namedAdapterBindings == nil {
-		_m.Edges.namedAdapterBindings = make(map[string][]*AdapterModelBinding)
-	}
-	if len(edges) == 0 {
-		_m.Edges.namedAdapterBindings[name] = []*AdapterModelBinding{}
-	} else {
-		_m.Edges.namedAdapterBindings[name] = append(_m.Edges.namedAdapterBindings[name], edges...)
-	}
 }
 
 // NamedProtocols returns the Protocols named value or an error if the edge was not

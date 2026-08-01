@@ -34,19 +34,10 @@ const (
 	FieldSelectionStrategy = "selection_strategy"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
-	// EdgeAdapterBindings holds the string denoting the adapter_bindings edge name in mutations.
-	EdgeAdapterBindings = "adapter_bindings"
 	// EdgeProtocols holds the string denoting the protocols edge name in mutations.
 	EdgeProtocols = "protocols"
 	// Table holds the table name of the modelgroup in the database.
 	Table = "model_groups"
-	// AdapterBindingsTable is the table that holds the adapter_bindings relation/edge.
-	AdapterBindingsTable = "adapter_model_bindings"
-	// AdapterBindingsInverseTable is the table name for the AdapterModelBinding entity.
-	// It exists in this package in order to avoid circular dependency with the "adaptermodelbinding" package.
-	AdapterBindingsInverseTable = "adapter_model_bindings"
-	// AdapterBindingsColumn is the table column denoting the adapter_bindings relation/edge.
-	AdapterBindingsColumn = "model_group_adapter_bindings"
 	// ProtocolsTable is the table that holds the protocols relation/edge.
 	ProtocolsTable = "model_group_protocols"
 	// ProtocolsInverseTable is the table name for the ModelGroupProtocol entity.
@@ -199,20 +190,6 @@ func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemark, opts...).ToFunc()
 }
 
-// ByAdapterBindingsCount orders the results by adapter_bindings count.
-func ByAdapterBindingsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAdapterBindingsStep(), opts...)
-	}
-}
-
-// ByAdapterBindings orders the results by adapter_bindings terms.
-func ByAdapterBindings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAdapterBindingsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByProtocolsCount orders the results by protocols count.
 func ByProtocolsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -225,13 +202,6 @@ func ByProtocols(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newProtocolsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
-}
-func newAdapterBindingsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AdapterBindingsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AdapterBindingsTable, AdapterBindingsColumn),
-	)
 }
 func newProtocolsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

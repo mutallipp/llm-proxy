@@ -37,9 +37,8 @@ type AdapterModelBinding struct {
 	Remark *string `json:"remark,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AdapterModelBindingQuery when eager-loading is set.
-	Edges                        AdapterModelBindingEdges `json:"edges"`
-	model_group_adapter_bindings *int
-	selectValues                 sql.SelectValues
+	Edges        AdapterModelBindingEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // AdapterModelBindingEdges holds the relations/edges for other nodes in the graph.
@@ -90,8 +89,6 @@ func (*AdapterModelBinding) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case adaptermodelbinding.FieldCreatedAt, adaptermodelbinding.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case adaptermodelbinding.ForeignKeys[0]: // model_group_adapter_bindings
-			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -161,13 +158,6 @@ func (_m *AdapterModelBinding) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				_m.Remark = new(string)
 				*_m.Remark = value.String
-			}
-		case adaptermodelbinding.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field model_group_adapter_bindings", value)
-			} else if value.Valid {
-				_m.model_group_adapter_bindings = new(int)
-				*_m.model_group_adapter_bindings = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])

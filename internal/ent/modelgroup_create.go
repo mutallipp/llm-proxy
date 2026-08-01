@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
 	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
 	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
 )
@@ -126,21 +125,6 @@ func (_c *ModelGroupCreate) SetNillableRemark(v *string) *ModelGroupCreate {
 		_c.SetRemark(*v)
 	}
 	return _c
-}
-
-// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
-func (_c *ModelGroupCreate) AddAdapterBindingIDs(ids ...int) *ModelGroupCreate {
-	_c.mutation.AddAdapterBindingIDs(ids...)
-	return _c
-}
-
-// AddAdapterBindings adds the "adapter_bindings" edges to the AdapterModelBinding entity.
-func (_c *ModelGroupCreate) AddAdapterBindings(v ...*AdapterModelBinding) *ModelGroupCreate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddAdapterBindingIDs(ids...)
 }
 
 // AddProtocolIDs adds the "protocols" edge to the ModelGroupProtocol entity by IDs.
@@ -313,22 +297,6 @@ func (_c *ModelGroupCreate) createSpec() (*ModelGroup, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(modelgroup.FieldRemark, field.TypeString, value)
 		_node.Remark = &value
-	}
-	if nodes := _c.mutation.AdapterBindingsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.ProtocolsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

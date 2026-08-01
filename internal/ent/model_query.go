@@ -439,7 +439,6 @@ func (_q *ModelQuery) loadAdapterBindings(ctx context.Context, query *AdapterMod
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
 	if len(query.ctx.Fields) > 0 {
 		query.ctx.AppendFieldOnce(adaptermodelbinding.FieldModelID)
 	}

@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
 	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
 	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
 	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
@@ -21,16 +20,14 @@ import (
 // ModelGroupQuery is the builder for querying ModelGroup entities.
 type ModelGroupQuery struct {
 	config
-	ctx                      *QueryContext
-	order                    []modelgroup.OrderOption
-	inters                   []Interceptor
-	predicates               []predicate.ModelGroup
-	withAdapterBindings      *AdapterModelBindingQuery
-	withProtocols            *ModelGroupProtocolQuery
-	loadTotal                []func(context.Context, []*ModelGroup) error
-	modifiers                []func(*sql.Selector)
-	withNamedAdapterBindings map[string]*AdapterModelBindingQuery
-	withNamedProtocols       map[string]*ModelGroupProtocolQuery
+	ctx                *QueryContext
+	order              []modelgroup.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.ModelGroup
+	withProtocols      *ModelGroupProtocolQuery
+	loadTotal          []func(context.Context, []*ModelGroup) error
+	modifiers          []func(*sql.Selector)
+	withNamedProtocols map[string]*ModelGroupProtocolQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -65,28 +62,6 @@ func (_q *ModelGroupQuery) Unique(unique bool) *ModelGroupQuery {
 func (_q *ModelGroupQuery) Order(o ...modelgroup.OrderOption) *ModelGroupQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryAdapterBindings chains the current query on the "adapter_bindings" edge.
-func (_q *ModelGroupQuery) QueryAdapterBindings() *AdapterModelBindingQuery {
-	query := (&AdapterModelBindingClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(modelgroup.Table, modelgroup.FieldID, selector),
-			sqlgraph.To(adaptermodelbinding.Table, adaptermodelbinding.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, modelgroup.AdapterBindingsTable, modelgroup.AdapterBindingsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryProtocols chains the current query on the "protocols" edge.
@@ -298,29 +273,17 @@ func (_q *ModelGroupQuery) Clone() *ModelGroupQuery {
 		return nil
 	}
 	return &ModelGroupQuery{
-		config:              _q.config,
-		ctx:                 _q.ctx.Clone(),
-		order:               append([]modelgroup.OrderOption{}, _q.order...),
-		inters:              append([]Interceptor{}, _q.inters...),
-		predicates:          append([]predicate.ModelGroup{}, _q.predicates...),
-		withAdapterBindings: _q.withAdapterBindings.Clone(),
-		withProtocols:       _q.withProtocols.Clone(),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]modelgroup.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.ModelGroup{}, _q.predicates...),
+		withProtocols: _q.withProtocols.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
 		modifiers: append([]func(*sql.Selector){}, _q.modifiers...),
 	}
-}
-
-// WithAdapterBindings tells the query-builder to eager-load the nodes that are connected to
-// the "adapter_bindings" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *ModelGroupQuery) WithAdapterBindings(opts ...func(*AdapterModelBindingQuery)) *ModelGroupQuery {
-	query := (&AdapterModelBindingClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withAdapterBindings = query
-	return _q
 }
 
 // WithProtocols tells the query-builder to eager-load the nodes that are connected to
@@ -412,8 +375,7 @@ func (_q *ModelGroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*M
 	var (
 		nodes       = []*ModelGroup{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withAdapterBindings != nil,
+		loadedTypes = [1]bool{
 			_q.withProtocols != nil,
 		}
 	)
@@ -438,26 +400,10 @@ func (_q *ModelGroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*M
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withAdapterBindings; query != nil {
-		if err := _q.loadAdapterBindings(ctx, query, nodes,
-			func(n *ModelGroup) { n.Edges.AdapterBindings = []*AdapterModelBinding{} },
-			func(n *ModelGroup, e *AdapterModelBinding) {
-				n.Edges.AdapterBindings = append(n.Edges.AdapterBindings, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
 	if query := _q.withProtocols; query != nil {
 		if err := _q.loadProtocols(ctx, query, nodes,
 			func(n *ModelGroup) { n.Edges.Protocols = []*ModelGroupProtocol{} },
 			func(n *ModelGroup, e *ModelGroupProtocol) { n.Edges.Protocols = append(n.Edges.Protocols, e) }); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range _q.withNamedAdapterBindings {
-		if err := _q.loadAdapterBindings(ctx, query, nodes,
-			func(n *ModelGroup) { n.appendNamedAdapterBindings(name) },
-			func(n *ModelGroup, e *AdapterModelBinding) { n.appendNamedAdapterBindings(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -476,37 +422,6 @@ func (_q *ModelGroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*M
 	return nodes, nil
 }
 
-func (_q *ModelGroupQuery) loadAdapterBindings(ctx context.Context, query *AdapterModelBindingQuery, nodes []*ModelGroup, init func(*ModelGroup), assign func(*ModelGroup, *AdapterModelBinding)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*ModelGroup)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.withFKs = true
-	query.Where(predicate.AdapterModelBinding(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(modelgroup.AdapterBindingsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.model_group_adapter_bindings
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "model_group_adapter_bindings" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "model_group_adapter_bindings" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (_q *ModelGroupQuery) loadProtocols(ctx context.Context, query *ModelGroupProtocolQuery, nodes []*ModelGroup, init func(*ModelGroup), assign func(*ModelGroup, *ModelGroupProtocol)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*ModelGroup)
@@ -629,20 +544,6 @@ func (_q *ModelGroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 func (_q *ModelGroupQuery) Modify(modifiers ...func(s *sql.Selector)) *ModelGroupSelect {
 	_q.modifiers = append(_q.modifiers, modifiers...)
 	return _q.Select()
-}
-
-// WithNamedAdapterBindings tells the query-builder to eager-load the nodes that are connected to the "adapter_bindings"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (_q *ModelGroupQuery) WithNamedAdapterBindings(name string, opts ...func(*AdapterModelBindingQuery)) *ModelGroupQuery {
-	query := (&AdapterModelBindingClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if _q.withNamedAdapterBindings == nil {
-		_q.withNamedAdapterBindings = make(map[string]*AdapterModelBindingQuery)
-	}
-	_q.withNamedAdapterBindings[name] = query
-	return _q
 }
 
 // WithNamedProtocols tells the query-builder to eager-load the nodes that are connected to the "protocols"

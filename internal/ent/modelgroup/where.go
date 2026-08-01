@@ -450,29 +450,6 @@ func RemarkContainsFold(v string) predicate.ModelGroup {
 	return predicate.ModelGroup(sql.FieldContainsFold(FieldRemark, v))
 }
 
-// HasAdapterBindings applies the HasEdge predicate on the "adapter_bindings" edge.
-func HasAdapterBindings() predicate.ModelGroup {
-	return predicate.ModelGroup(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AdapterBindingsTable, AdapterBindingsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAdapterBindingsWith applies the HasEdge predicate on the "adapter_bindings" edge with a given conditions (other predicates).
-func HasAdapterBindingsWith(preds ...predicate.AdapterModelBinding) predicate.ModelGroup {
-	return predicate.ModelGroup(func(s *sql.Selector) {
-		step := newAdapterBindingsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasProtocols applies the HasEdge predicate on the "protocols" edge.
 func HasProtocols() predicate.ModelGroup {
 	return predicate.ModelGroup(func(s *sql.Selector) {
