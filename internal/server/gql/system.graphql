@@ -197,7 +197,6 @@ input UpdateSecuritySettingsInput {
 }
 
 type SystemModelSettings {
-  fallbackToChannelsOnModelNotFound: Boolean!
   queryAllChannelModels: Boolean!
   defaultModelAPIIncludeAll: Boolean!
   autoReasoningEffort: Boolean!
@@ -206,7 +205,6 @@ type SystemModelSettings {
 }
 
 input UpdateSystemModelSettingsInput {
-  fallbackToChannelsOnModelNotFound: Boolean
   queryAllChannelModels: Boolean
   defaultModelAPIIncludeAll: Boolean
   autoReasoningEffort: Boolean

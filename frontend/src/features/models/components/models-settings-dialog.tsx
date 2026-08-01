@@ -19,7 +19,6 @@ export function ModelSettingsDialog() {
 
   const isOpen = open === 'settings';
 
-  const [fallbackEnabled, setFallbackEnabled] = React.useState(false);
   const [queryAllChannelModels, setQueryAllChannelModels] = React.useState(false);
   const [defaultModelAPIIncludeAll, setDefaultModelAPIIncludeAll] = React.useState(false);
   const [autoReasoningEffort, setAutoReasoningEffort] = React.useState(false);
@@ -27,7 +26,6 @@ export function ModelSettingsDialog() {
 
   React.useEffect(() => {
     if (settings) {
-      setFallbackEnabled(settings.fallbackToChannelsOnModelNotFound);
       setQueryAllChannelModels(settings.queryAllChannelModels);
       setDefaultModelAPIIncludeAll(settings.defaultModelAPIIncludeAll);
       setAutoReasoningEffort(settings.autoReasoningEffort);
@@ -37,7 +35,6 @@ export function ModelSettingsDialog() {
 
   const handleSave = useCallback(async () => {
     const input: UpdateModelSettingsInput = {
-      fallbackToChannelsOnModelNotFound: fallbackEnabled,
       queryAllChannelModels: queryAllChannelModels,
       defaultModelAPIIncludeAll: defaultModelAPIIncludeAll,
       autoReasoningEffort: autoReasoningEffort,
@@ -46,7 +43,7 @@ export function ModelSettingsDialog() {
     };
     await updateModelSettings.mutateAsync(input);
     setOpen(null);
-  }, [updateModelSettings, fallbackEnabled, queryAllChannelModels, defaultModelAPIIncludeAll, autoReasoningEffort, modelBlacklistRegex, settings?.developerSettings, setOpen]);
+  }, [updateModelSettings, queryAllChannelModels, defaultModelAPIIncludeAll, autoReasoningEffort, modelBlacklistRegex, settings?.developerSettings, setOpen]);
 
   const handleClose = useCallback(() => {
     setOpen(null);
@@ -69,27 +66,6 @@ export function ModelSettingsDialog() {
           </div>
         ) : (
           <div className='min-h-0 flex-1 space-y-4 overflow-y-auto pr-1'>
-            <Card>
-              <CardHeader className='pb-0'>
-                <CardTitle className='flex items-center gap-2 text-sm sm:text-base'>
-                  <RefreshCcw className='text-muted-foreground h-4 w-4' />
-                  {t('models.dialogs.settings.fallbackToChannels.label')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='pt-1'>
-                <div className='flex items-center justify-between'>
-                  <p className='text-muted-foreground pr-4 text-sm'>{t('models.dialogs.settings.fallbackToChannels.description')}</p>
-                  <Switch
-                    id='fallback-enabled'
-                    checked={fallbackEnabled}
-                    onCheckedChange={setFallbackEnabled}
-                    disabled={updateModelSettings.isPending}
-                    className='scale-100 sm:scale-75'
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader className='pb-0'>
                 <CardTitle className='flex items-center gap-2 text-sm sm:text-base'>
