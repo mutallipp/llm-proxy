@@ -46,7 +46,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "adaptermodelbinding" package.
 	AdapterBindingsInverseTable = "adapter_model_bindings"
 	// AdapterBindingsColumn is the table column denoting the adapter_bindings relation/edge.
-	AdapterBindingsColumn = "model_group_id"
+	AdapterBindingsColumn = "model_group_adapter_bindings"
 	// ProtocolsTable is the table that holds the protocols relation/edge.
 	ProtocolsTable = "model_group_protocols"
 	// ProtocolsInverseTable is the table name for the ModelGroupProtocol entity.

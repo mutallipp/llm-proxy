@@ -125,7 +125,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			adaptermodelbinding.FieldDeletedAt:     {Type: field.TypeInt, Column: adaptermodelbinding.FieldDeletedAt},
 			adaptermodelbinding.FieldAdapterID:     {Type: field.TypeInt, Column: adaptermodelbinding.FieldAdapterID},
 			adaptermodelbinding.FieldSourceModelID: {Type: field.TypeString, Column: adaptermodelbinding.FieldSourceModelID},
-			adaptermodelbinding.FieldModelGroupID:  {Type: field.TypeInt, Column: adaptermodelbinding.FieldModelGroupID},
+			adaptermodelbinding.FieldModelID:       {Type: field.TypeInt, Column: adaptermodelbinding.FieldModelID},
 			adaptermodelbinding.FieldEnabled:       {Type: field.TypeBool, Column: adaptermodelbinding.FieldEnabled},
 			adaptermodelbinding.FieldRemark:        {Type: field.TypeString, Column: adaptermodelbinding.FieldRemark},
 		},
@@ -792,16 +792,16 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"Adapter",
 	)
 	graph.MustAddE(
-		"model_group",
+		"model",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   adaptermodelbinding.ModelGroupTable,
-			Columns: []string{adaptermodelbinding.ModelGroupColumn},
+			Table:   adaptermodelbinding.ModelTable,
+			Columns: []string{adaptermodelbinding.ModelColumn},
 			Bidi:    false,
 		},
 		"AdapterModelBinding",
-		"ModelGroup",
+		"Model",
 	)
 	graph.MustAddE(
 		"requests",
@@ -970,6 +970,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"DataStorage",
 		"RequestExecution",
+	)
+	graph.MustAddE(
+		"adapter_bindings",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
+			Bidi:    false,
+		},
+		"Model",
+		"AdapterModelBinding",
 	)
 	graph.MustAddE(
 		"adapter_bindings",
@@ -1982,9 +1994,9 @@ func (f *AdapterModelBindingFilter) WhereSourceModelID(p entql.StringP) {
 	f.Where(p.Field(adaptermodelbinding.FieldSourceModelID))
 }
 
-// WhereModelGroupID applies the entql int predicate on the model_group_id field.
-func (f *AdapterModelBindingFilter) WhereModelGroupID(p entql.IntP) {
-	f.Where(p.Field(adaptermodelbinding.FieldModelGroupID))
+// WhereModelID applies the entql int predicate on the model_id field.
+func (f *AdapterModelBindingFilter) WhereModelID(p entql.IntP) {
+	f.Where(p.Field(adaptermodelbinding.FieldModelID))
 }
 
 // WhereEnabled applies the entql bool predicate on the enabled field.
@@ -2011,14 +2023,14 @@ func (f *AdapterModelBindingFilter) WhereHasAdapterWith(preds ...predicate.Adapt
 	})))
 }
 
-// WhereHasModelGroup applies a predicate to check if query has an edge model_group.
-func (f *AdapterModelBindingFilter) WhereHasModelGroup() {
-	f.Where(entql.HasEdge("model_group"))
+// WhereHasModel applies a predicate to check if query has an edge model.
+func (f *AdapterModelBindingFilter) WhereHasModel() {
+	f.Where(entql.HasEdge("model"))
 }
 
-// WhereHasModelGroupWith applies a predicate to check if query has an edge model_group with a given conditions (other predicates).
-func (f *AdapterModelBindingFilter) WhereHasModelGroupWith(preds ...predicate.ModelGroup) {
-	f.Where(entql.HasEdgeWith("model_group", sqlgraph.WrapFunc(func(s *sql.Selector) {
+// WhereHasModelWith applies a predicate to check if query has an edge model with a given conditions (other predicates).
+func (f *AdapterModelBindingFilter) WhereHasModelWith(preds ...predicate.Model) {
+	f.Where(entql.HasEdgeWith("model", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}
@@ -2879,6 +2891,20 @@ func (f *ModelFilter) WhereStatus(p entql.StringP) {
 // WhereRemark applies the entql string predicate on the remark field.
 func (f *ModelFilter) WhereRemark(p entql.StringP) {
 	f.Where(p.Field(model.FieldRemark))
+}
+
+// WhereHasAdapterBindings applies a predicate to check if query has an edge adapter_bindings.
+func (f *ModelFilter) WhereHasAdapterBindings() {
+	f.Where(entql.HasEdge("adapter_bindings"))
+}
+
+// WhereHasAdapterBindingsWith applies a predicate to check if query has an edge adapter_bindings with a given conditions (other predicates).
+func (f *ModelFilter) WhereHasAdapterBindingsWith(preds ...predicate.AdapterModelBinding) {
+	f.Where(entql.HasEdgeWith("adapter_bindings", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
 }
 
 // addPredicate implements the predicateAdder interface.

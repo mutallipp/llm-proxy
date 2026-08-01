@@ -2958,24 +2958,24 @@ func (m *AdapterMutation) ResetEdge(name string) error {
 // AdapterModelBindingMutation represents an operation that mutates the AdapterModelBinding nodes in the graph.
 type AdapterModelBindingMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int
-	created_at         *time.Time
-	updated_at         *time.Time
-	deleted_at         *int
-	adddeleted_at      *int
-	source_model_id    *string
-	enabled            *bool
-	remark             *string
-	clearedFields      map[string]struct{}
-	adapter            *int
-	clearedadapter     bool
-	model_group        *int
-	clearedmodel_group bool
-	done               bool
-	oldValue           func(context.Context) (*AdapterModelBinding, error)
-	predicates         []predicate.AdapterModelBinding
+	op              Op
+	typ             string
+	id              *int
+	created_at      *time.Time
+	updated_at      *time.Time
+	deleted_at      *int
+	adddeleted_at   *int
+	source_model_id *string
+	enabled         *bool
+	remark          *string
+	clearedFields   map[string]struct{}
+	adapter         *int
+	clearedadapter  bool
+	model           *int
+	clearedmodel    bool
+	done            bool
+	oldValue        func(context.Context) (*AdapterModelBinding, error)
+	predicates      []predicate.AdapterModelBinding
 }
 
 var _ ent.Mutation = (*AdapterModelBindingMutation)(nil)
@@ -3276,40 +3276,40 @@ func (m *AdapterModelBindingMutation) ResetSourceModelID() {
 	m.source_model_id = nil
 }
 
-// SetModelGroupID sets the "model_group_id" field.
-func (m *AdapterModelBindingMutation) SetModelGroupID(i int) {
-	m.model_group = &i
+// SetModelID sets the "model_id" field.
+func (m *AdapterModelBindingMutation) SetModelID(i int) {
+	m.model = &i
 }
 
-// ModelGroupID returns the value of the "model_group_id" field in the mutation.
-func (m *AdapterModelBindingMutation) ModelGroupID() (r int, exists bool) {
-	v := m.model_group
+// ModelID returns the value of the "model_id" field in the mutation.
+func (m *AdapterModelBindingMutation) ModelID() (r int, exists bool) {
+	v := m.model
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldModelGroupID returns the old "model_group_id" field's value of the AdapterModelBinding entity.
+// OldModelID returns the old "model_id" field's value of the AdapterModelBinding entity.
 // If the AdapterModelBinding object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AdapterModelBindingMutation) OldModelGroupID(ctx context.Context) (v int, err error) {
+func (m *AdapterModelBindingMutation) OldModelID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldModelGroupID is only allowed on UpdateOne operations")
+		return v, errors.New("OldModelID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldModelGroupID requires an ID field in the mutation")
+		return v, errors.New("OldModelID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldModelGroupID: %w", err)
+		return v, fmt.Errorf("querying old value for OldModelID: %w", err)
 	}
-	return oldValue.ModelGroupID, nil
+	return oldValue.ModelID, nil
 }
 
-// ResetModelGroupID resets all changes to the "model_group_id" field.
-func (m *AdapterModelBindingMutation) ResetModelGroupID() {
-	m.model_group = nil
+// ResetModelID resets all changes to the "model_id" field.
+func (m *AdapterModelBindingMutation) ResetModelID() {
+	m.model = nil
 }
 
 // SetEnabled sets the "enabled" field.
@@ -3424,31 +3424,31 @@ func (m *AdapterModelBindingMutation) ResetAdapter() {
 	m.clearedadapter = false
 }
 
-// ClearModelGroup clears the "model_group" edge to the ModelGroup entity.
-func (m *AdapterModelBindingMutation) ClearModelGroup() {
-	m.clearedmodel_group = true
-	m.clearedFields[adaptermodelbinding.FieldModelGroupID] = struct{}{}
+// ClearModel clears the "model" edge to the Model entity.
+func (m *AdapterModelBindingMutation) ClearModel() {
+	m.clearedmodel = true
+	m.clearedFields[adaptermodelbinding.FieldModelID] = struct{}{}
 }
 
-// ModelGroupCleared reports if the "model_group" edge to the ModelGroup entity was cleared.
-func (m *AdapterModelBindingMutation) ModelGroupCleared() bool {
-	return m.clearedmodel_group
+// ModelCleared reports if the "model" edge to the Model entity was cleared.
+func (m *AdapterModelBindingMutation) ModelCleared() bool {
+	return m.clearedmodel
 }
 
-// ModelGroupIDs returns the "model_group" edge IDs in the mutation.
+// ModelIDs returns the "model" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ModelGroupID instead. It exists only for internal usage by the builders.
-func (m *AdapterModelBindingMutation) ModelGroupIDs() (ids []int) {
-	if id := m.model_group; id != nil {
+// ModelID instead. It exists only for internal usage by the builders.
+func (m *AdapterModelBindingMutation) ModelIDs() (ids []int) {
+	if id := m.model; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetModelGroup resets all changes to the "model_group" edge.
-func (m *AdapterModelBindingMutation) ResetModelGroup() {
-	m.model_group = nil
-	m.clearedmodel_group = false
+// ResetModel resets all changes to the "model" edge.
+func (m *AdapterModelBindingMutation) ResetModel() {
+	m.model = nil
+	m.clearedmodel = false
 }
 
 // Where appends a list predicates to the AdapterModelBindingMutation builder.
@@ -3501,8 +3501,8 @@ func (m *AdapterModelBindingMutation) Fields() []string {
 	if m.source_model_id != nil {
 		fields = append(fields, adaptermodelbinding.FieldSourceModelID)
 	}
-	if m.model_group != nil {
-		fields = append(fields, adaptermodelbinding.FieldModelGroupID)
+	if m.model != nil {
+		fields = append(fields, adaptermodelbinding.FieldModelID)
 	}
 	if m.enabled != nil {
 		fields = append(fields, adaptermodelbinding.FieldEnabled)
@@ -3528,8 +3528,8 @@ func (m *AdapterModelBindingMutation) Field(name string) (ent.Value, bool) {
 		return m.AdapterID()
 	case adaptermodelbinding.FieldSourceModelID:
 		return m.SourceModelID()
-	case adaptermodelbinding.FieldModelGroupID:
-		return m.ModelGroupID()
+	case adaptermodelbinding.FieldModelID:
+		return m.ModelID()
 	case adaptermodelbinding.FieldEnabled:
 		return m.Enabled()
 	case adaptermodelbinding.FieldRemark:
@@ -3553,8 +3553,8 @@ func (m *AdapterModelBindingMutation) OldField(ctx context.Context, name string)
 		return m.OldAdapterID(ctx)
 	case adaptermodelbinding.FieldSourceModelID:
 		return m.OldSourceModelID(ctx)
-	case adaptermodelbinding.FieldModelGroupID:
-		return m.OldModelGroupID(ctx)
+	case adaptermodelbinding.FieldModelID:
+		return m.OldModelID(ctx)
 	case adaptermodelbinding.FieldEnabled:
 		return m.OldEnabled(ctx)
 	case adaptermodelbinding.FieldRemark:
@@ -3603,12 +3603,12 @@ func (m *AdapterModelBindingMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetSourceModelID(v)
 		return nil
-	case adaptermodelbinding.FieldModelGroupID:
+	case adaptermodelbinding.FieldModelID:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetModelGroupID(v)
+		m.SetModelID(v)
 		return nil
 	case adaptermodelbinding.FieldEnabled:
 		v, ok := value.(bool)
@@ -3712,8 +3712,8 @@ func (m *AdapterModelBindingMutation) ResetField(name string) error {
 	case adaptermodelbinding.FieldSourceModelID:
 		m.ResetSourceModelID()
 		return nil
-	case adaptermodelbinding.FieldModelGroupID:
-		m.ResetModelGroupID()
+	case adaptermodelbinding.FieldModelID:
+		m.ResetModelID()
 		return nil
 	case adaptermodelbinding.FieldEnabled:
 		m.ResetEnabled()
@@ -3731,8 +3731,8 @@ func (m *AdapterModelBindingMutation) AddedEdges() []string {
 	if m.adapter != nil {
 		edges = append(edges, adaptermodelbinding.EdgeAdapter)
 	}
-	if m.model_group != nil {
-		edges = append(edges, adaptermodelbinding.EdgeModelGroup)
+	if m.model != nil {
+		edges = append(edges, adaptermodelbinding.EdgeModel)
 	}
 	return edges
 }
@@ -3745,8 +3745,8 @@ func (m *AdapterModelBindingMutation) AddedIDs(name string) []ent.Value {
 		if id := m.adapter; id != nil {
 			return []ent.Value{*id}
 		}
-	case adaptermodelbinding.EdgeModelGroup:
-		if id := m.model_group; id != nil {
+	case adaptermodelbinding.EdgeModel:
+		if id := m.model; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -3771,8 +3771,8 @@ func (m *AdapterModelBindingMutation) ClearedEdges() []string {
 	if m.clearedadapter {
 		edges = append(edges, adaptermodelbinding.EdgeAdapter)
 	}
-	if m.clearedmodel_group {
-		edges = append(edges, adaptermodelbinding.EdgeModelGroup)
+	if m.clearedmodel {
+		edges = append(edges, adaptermodelbinding.EdgeModel)
 	}
 	return edges
 }
@@ -3783,8 +3783,8 @@ func (m *AdapterModelBindingMutation) EdgeCleared(name string) bool {
 	switch name {
 	case adaptermodelbinding.EdgeAdapter:
 		return m.clearedadapter
-	case adaptermodelbinding.EdgeModelGroup:
-		return m.clearedmodel_group
+	case adaptermodelbinding.EdgeModel:
+		return m.clearedmodel
 	}
 	return false
 }
@@ -3796,8 +3796,8 @@ func (m *AdapterModelBindingMutation) ClearEdge(name string) error {
 	case adaptermodelbinding.EdgeAdapter:
 		m.ClearAdapter()
 		return nil
-	case adaptermodelbinding.EdgeModelGroup:
-		m.ClearModelGroup()
+	case adaptermodelbinding.EdgeModel:
+		m.ClearModel()
 		return nil
 	}
 	return fmt.Errorf("unknown AdapterModelBinding unique edge %s", name)
@@ -3810,8 +3810,8 @@ func (m *AdapterModelBindingMutation) ResetEdge(name string) error {
 	case adaptermodelbinding.EdgeAdapter:
 		m.ResetAdapter()
 		return nil
-	case adaptermodelbinding.EdgeModelGroup:
-		m.ResetModelGroup()
+	case adaptermodelbinding.EdgeModel:
+		m.ResetModel()
 		return nil
 	}
 	return fmt.Errorf("unknown AdapterModelBinding edge %s", name)
@@ -10750,27 +10750,30 @@ func (m *DataStorageMutation) ResetEdge(name string) error {
 // ModelMutation represents an operation that mutates the Model nodes in the graph.
 type ModelMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	created_at    *time.Time
-	updated_at    *time.Time
-	deleted_at    *int
-	adddeleted_at *int
-	developer     *string
-	model_id      *string
-	_type         *model.Type
-	name          *string
-	icon          *string
-	group         *string
-	model_card    **objects.ModelCard
-	settings      **objects.ModelSettings
-	status        *model.Status
-	remark        *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Model, error)
-	predicates    []predicate.Model
+	op                      Op
+	typ                     string
+	id                      *int
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *int
+	adddeleted_at           *int
+	developer               *string
+	model_id                *string
+	_type                   *model.Type
+	name                    *string
+	icon                    *string
+	group                   *string
+	model_card              **objects.ModelCard
+	settings                **objects.ModelSettings
+	status                  *model.Status
+	remark                  *string
+	clearedFields           map[string]struct{}
+	adapter_bindings        map[int]struct{}
+	removedadapter_bindings map[int]struct{}
+	clearedadapter_bindings bool
+	done                    bool
+	oldValue                func(context.Context) (*Model, error)
+	predicates              []predicate.Model
 }
 
 var _ ent.Mutation = (*ModelMutation)(nil)
@@ -11372,6 +11375,60 @@ func (m *ModelMutation) ResetRemark() {
 	delete(m.clearedFields, model.FieldRemark)
 }
 
+// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by ids.
+func (m *ModelMutation) AddAdapterBindingIDs(ids ...int) {
+	if m.adapter_bindings == nil {
+		m.adapter_bindings = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.adapter_bindings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAdapterBindings clears the "adapter_bindings" edge to the AdapterModelBinding entity.
+func (m *ModelMutation) ClearAdapterBindings() {
+	m.clearedadapter_bindings = true
+}
+
+// AdapterBindingsCleared reports if the "adapter_bindings" edge to the AdapterModelBinding entity was cleared.
+func (m *ModelMutation) AdapterBindingsCleared() bool {
+	return m.clearedadapter_bindings
+}
+
+// RemoveAdapterBindingIDs removes the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
+func (m *ModelMutation) RemoveAdapterBindingIDs(ids ...int) {
+	if m.removedadapter_bindings == nil {
+		m.removedadapter_bindings = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.adapter_bindings, ids[i])
+		m.removedadapter_bindings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAdapterBindings returns the removed IDs of the "adapter_bindings" edge to the AdapterModelBinding entity.
+func (m *ModelMutation) RemovedAdapterBindingsIDs() (ids []int) {
+	for id := range m.removedadapter_bindings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AdapterBindingsIDs returns the "adapter_bindings" edge IDs in the mutation.
+func (m *ModelMutation) AdapterBindingsIDs() (ids []int) {
+	for id := range m.adapter_bindings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAdapterBindings resets all changes to the "adapter_bindings" edge.
+func (m *ModelMutation) ResetAdapterBindings() {
+	m.adapter_bindings = nil
+	m.clearedadapter_bindings = false
+	m.removedadapter_bindings = nil
+}
+
 // Where appends a list predicates to the ModelMutation builder.
 func (m *ModelMutation) Where(ps ...predicate.Model) {
 	m.predicates = append(m.predicates, ps...)
@@ -11733,49 +11790,85 @@ func (m *ModelMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ModelMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.adapter_bindings != nil {
+		edges = append(edges, model.EdgeAdapterBindings)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ModelMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case model.EdgeAdapterBindings:
+		ids := make([]ent.Value, 0, len(m.adapter_bindings))
+		for id := range m.adapter_bindings {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ModelMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedadapter_bindings != nil {
+		edges = append(edges, model.EdgeAdapterBindings)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ModelMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case model.EdgeAdapterBindings:
+		ids := make([]ent.Value, 0, len(m.removedadapter_bindings))
+		for id := range m.removedadapter_bindings {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ModelMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedadapter_bindings {
+		edges = append(edges, model.EdgeAdapterBindings)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ModelMutation) EdgeCleared(name string) bool {
+	switch name {
+	case model.EdgeAdapterBindings:
+		return m.clearedadapter_bindings
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ModelMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Model unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ModelMutation) ResetEdge(name string) error {
+	switch name {
+	case model.EdgeAdapterBindings:
+		m.ResetAdapterBindings()
+		return nil
+	}
 	return fmt.Errorf("unknown Model edge %s", name)
 }
 

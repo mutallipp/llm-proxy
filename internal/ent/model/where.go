@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 )
 
@@ -657,6 +658,29 @@ func RemarkEqualFold(v string) predicate.Model {
 // RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
 func RemarkContainsFold(v string) predicate.Model {
 	return predicate.Model(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// HasAdapterBindings applies the HasEdge predicate on the "adapter_bindings" edge.
+func HasAdapterBindings() predicate.Model {
+	return predicate.Model(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AdapterBindingsTable, AdapterBindingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAdapterBindingsWith applies the HasEdge predicate on the "adapter_bindings" edge with a given conditions (other predicates).
+func HasAdapterBindingsWith(preds ...predicate.AdapterModelBinding) predicate.Model {
+	return predicate.Model(func(s *sql.Selector) {
+		step := newAdapterBindingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

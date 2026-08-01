@@ -1052,15 +1052,15 @@ func (c *AdapterModelBindingClient) QueryAdapter(_m *AdapterModelBinding) *Adapt
 	return query
 }
 
-// QueryModelGroup queries the model_group edge of a AdapterModelBinding.
-func (c *AdapterModelBindingClient) QueryModelGroup(_m *AdapterModelBinding) *ModelGroupQuery {
-	query := (&ModelGroupClient{config: c.config}).Query()
+// QueryModel queries the model edge of a AdapterModelBinding.
+func (c *AdapterModelBindingClient) QueryModel(_m *AdapterModelBinding) *ModelQuery {
+	query := (&ModelClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(adaptermodelbinding.Table, adaptermodelbinding.FieldID, id),
-			sqlgraph.To(modelgroup.Table, modelgroup.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, adaptermodelbinding.ModelGroupTable, adaptermodelbinding.ModelGroupColumn),
+			sqlgraph.To(model.Table, model.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, adaptermodelbinding.ModelTable, adaptermodelbinding.ModelColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -2232,6 +2232,22 @@ func (c *ModelClient) GetX(ctx context.Context, id int) *Model {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryAdapterBindings queries the adapter_bindings edge of a Model.
+func (c *ModelClient) QueryAdapterBindings(_m *Model) *AdapterModelBindingQuery {
+	query := (&AdapterModelBindingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(model.Table, model.FieldID, id),
+			sqlgraph.To(adaptermodelbinding.Table, adaptermodelbinding.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, model.AdapterBindingsTable, model.AdapterBindingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
