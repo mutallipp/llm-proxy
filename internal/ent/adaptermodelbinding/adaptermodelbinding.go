@@ -25,16 +25,16 @@ const (
 	FieldAdapterID = "adapter_id"
 	// FieldSourceModelID holds the string denoting the source_model_id field in the database.
 	FieldSourceModelID = "source_model_id"
-	// FieldModelGroupID holds the string denoting the model_group_id field in the database.
-	FieldModelGroupID = "model_group_id"
+	// FieldModelID holds the string denoting the model_id field in the database.
+	FieldModelID = "model_id"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
 	// EdgeAdapter holds the string denoting the adapter edge name in mutations.
 	EdgeAdapter = "adapter"
-	// EdgeModelGroup holds the string denoting the model_group edge name in mutations.
-	EdgeModelGroup = "model_group"
+	// EdgeModel holds the string denoting the model edge name in mutations.
+	EdgeModel = "model"
 	// Table holds the table name of the adaptermodelbinding in the database.
 	Table = "adapter_model_bindings"
 	// AdapterTable is the table that holds the adapter relation/edge.
@@ -44,13 +44,13 @@ const (
 	AdapterInverseTable = "adapters"
 	// AdapterColumn is the table column denoting the adapter relation/edge.
 	AdapterColumn = "adapter_id"
-	// ModelGroupTable is the table that holds the model_group relation/edge.
-	ModelGroupTable = "adapter_model_bindings"
-	// ModelGroupInverseTable is the table name for the ModelGroup entity.
-	// It exists in this package in order to avoid circular dependency with the "modelgroup" package.
-	ModelGroupInverseTable = "model_groups"
-	// ModelGroupColumn is the table column denoting the model_group relation/edge.
-	ModelGroupColumn = "model_group_id"
+	// ModelTable is the table that holds the model relation/edge.
+	ModelTable = "adapter_model_bindings"
+	// ModelInverseTable is the table name for the Model entity.
+	// It exists in this package in order to avoid circular dependency with the "model" package.
+	ModelInverseTable = "models"
+	// ModelColumn is the table column denoting the model relation/edge.
+	ModelColumn = "model_id"
 )
 
 // Columns holds all SQL columns for adaptermodelbinding fields.
@@ -61,15 +61,26 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldAdapterID,
 	FieldSourceModelID,
-	FieldModelGroupID,
+	FieldModelID,
 	FieldEnabled,
 	FieldRemark,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "adapter_model_bindings"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"model_group_adapter_bindings",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -129,9 +140,9 @@ func BySourceModelID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSourceModelID, opts...).ToFunc()
 }
 
-// ByModelGroupID orders the results by the model_group_id field.
-func ByModelGroupID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldModelGroupID, opts...).ToFunc()
+// ByModelID orders the results by the model_id field.
+func ByModelID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldModelID, opts...).ToFunc()
 }
 
 // ByEnabled orders the results by the enabled field.
@@ -151,10 +162,10 @@ func ByAdapterField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByModelGroupField orders the results by model_group field.
-func ByModelGroupField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByModelField orders the results by model field.
+func ByModelField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newModelGroupStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newModelStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newAdapterStep() *sqlgraph.Step {
@@ -164,10 +175,10 @@ func newAdapterStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2O, true, AdapterTable, AdapterColumn),
 	)
 }
-func newModelGroupStep() *sqlgraph.Step {
+func newModelStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ModelGroupInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ModelGroupTable, ModelGroupColumn),
+		sqlgraph.To(ModelInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ModelTable, ModelColumn),
 	)
 }
