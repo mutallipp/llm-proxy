@@ -43,38 +43,26 @@ func (s *AdapterCandidateSelector) Select(ctx context.Context, req *llm.Request)
 	if !ok || binding == nil || !binding.Enabled {
 		return nil, fmt.Errorf("%w: model %q is not bound to adapter %q", biz.ErrInvalidModel, req.Model, adapterConfig.Name)
 	}
-	if binding.ModelGroup == nil {
-		return nil, fmt.Errorf("%w: adapter %q model %q has no model group", biz.ErrInternal, adapterConfig.Name, req.Model)
+	if binding.Model == nil || binding.Model.Settings == nil {
+		return nil, fmt.Errorf("%w: adapter %q model %q is missing binding model", biz.ErrInternal, adapterConfig.Name, req.Model)
 	}
 
-	protocol := binding.ModelGroup.Protocols[adapterConfig.InboundAPIFormat]
-	if protocol == nil || protocol.InboundAPIFormat != string(req.APIFormat) {
-		return nil, fmt.Errorf("%w: model group %q does not support inbound api format %q", biz.ErrInvalidModel, binding.ModelGroup.Name, req.APIFormat)
+	protocol := string(req.APIFormat)
+	associations, ok := binding.Model.Settings.ProtocolPools[protocol]
+	if !ok {
+		return nil, fmt.Errorf("%w: model %q has no protocol pool for %q", biz.ErrInvalidModel, req.Model, protocol)
 	}
 
-	candidates := make([]*ChannelModelsCandidate, 0, len(protocol.Targets))
-	for _, target := range protocol.Targets {
-		if target == nil || strings.TrimSpace(target.TargetModelID) == "" || strings.TrimSpace(target.OutboundAPIFormat) == "" || !targetSupportsRequest(target, req) {
+	candidates := make([]*ChannelModelsCandidate, 0, len(associations))
+	for _, association := range associations {
+		if association == nil || association.Disabled || association.Type != "channel_model" || association.ChannelModel == nil || strings.TrimSpace(association.ChannelModel.ModelID) == "" || !targetSupportsAssociation(association, req) {
 			continue
 		}
-
-		// 每次选择都重新从 ChannelService 读取启用渠道，避免渠道热更新后继续使用失效实例。
-		channel := s.ChannelService.GetEnabledChannel(target.ChannelID)
-		if channel == nil || !hasOutboundEndpoint(channel, target.OutboundAPIFormat) {
+		channel := s.ChannelService.GetEnabledChannel(association.ChannelModel.ChannelID)
+		if channel == nil || !hasOutboundEndpoint(channel, protocol) {
 			continue
 		}
-
-		candidates = append(candidates, &ChannelModelsCandidate{
-			Channel:  channel,
-			Priority: target.Priority,
-			Models: []biz.ChannelModelEntry{{
-				RequestModel: req.Model,
-				ActualModel:  target.TargetModelID,
-				Source:       "adapter",
-			}},
-			APIFormat:    target.OutboundAPIFormat,
-			StreamPolicy: objects.CapabilityPolicy(target.Capabilities.StreamPolicy),
-		})
+		candidates = append(candidates, &ChannelModelsCandidate{Channel: channel, Priority: association.Priority, Models: []biz.ChannelModelEntry{{RequestModel: req.Model, ActualModel: association.ChannelModel.ModelID, Source: "adapter"}}, APIFormat: protocol})
 	}
 
 	if len(candidates) == 0 {
@@ -108,6 +96,11 @@ func hasOutboundEndpoint(channel *biz.Channel, outboundAPIFormat string) bool {
 	}
 
 	return false
+}
+
+func targetSupportsAssociation(association *objects.ModelAssociation, req *llm.Request) bool {
+	// ModelAssociation 当前没有目标能力声明，不能伪造能力或回退旧模型组。
+	return true
 }
 
 func targetSupportsRequest(target *objects.RuntimeModelGroupTarget, req *llm.Request) bool {

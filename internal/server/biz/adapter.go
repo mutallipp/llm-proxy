@@ -14,9 +14,7 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/ent"
 	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
 	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
+	"github.com/mutallipp/llm-proxy/internal/ent/model"
 	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
@@ -162,220 +160,53 @@ func (svc *AdapterService) RuntimeStatus() objects.AdapterRuntimeStatus {
 
 func (svc *AdapterService) loadSnapshot(ctx context.Context) (*objects.AdapterSnapshot, []objects.AdapterDiagnostic, error) {
 	db := svc.entFromContext(ctx)
-
-	adapters, err := db.Adapter.Query().
-		Where(adapter.StatusEQ(adapter.StatusEnabled)).
-		Order(ent.Asc(adapter.FieldID)).
-		All(ctx)
+	adapters, err := db.Adapter.Query().Where(adapter.StatusEQ(adapter.StatusEnabled)).Order(ent.Asc(adapter.FieldID)).All(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to load enabled adapters: %w", err)
 	}
-
-	bindings, err := db.AdapterModelBinding.Query().
-		Where(adaptermodelbinding.EnabledEQ(true)).
-		Order(ent.Asc(adaptermodelbinding.FieldID)).
-		All(ctx)
+	bindings, err := db.AdapterModelBinding.Query().Where(adaptermodelbinding.EnabledEQ(true)).WithModel().Order(ent.Asc(adaptermodelbinding.FieldID)).All(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to load enabled adapter bindings: %w", err)
 	}
-
-	groups, err := db.ModelGroup.Query().
-		Where(modelgroup.StatusEQ(modelgroup.StatusEnabled)).
-		Order(ent.Asc(modelgroup.FieldID)).
-		All(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to load enabled model groups: %w", err)
-	}
-
-	protocols, err := db.ModelGroupProtocol.Query().
-		Where(modelgroupprotocol.EnabledEQ(true)).
-		Order(ent.Asc(modelgroupprotocol.FieldID)).
-		All(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to load enabled model group protocols: %w", err)
-	}
-
-	targets, err := db.ModelGroupTarget.Query().
-		Where(modelgrouptarget.EnabledEQ(true)).
-		Order(ent.Asc(modelgrouptarget.FieldPriority), ent.Asc(modelgrouptarget.FieldID)).
-		All(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to load enabled model group targets: %w", err)
-	}
-
-	enabledChannels := make(map[int]*Channel)
-	for _, channel := range svc.ChannelService.GetEnabledChannels() {
-		if channel != nil {
-			enabledChannels[channel.ID] = channel
+	runtime := make(map[string]*objects.RuntimeAdapter, len(adapters))
+	byID := make(map[int]*objects.RuntimeAdapter)
+	for _, a := range adapters {
+		if strings.TrimSpace(a.Name) == "" {
+			return nil, nil, fmt.Errorf("enabled adapter %d has empty name", a.ID)
 		}
+		if a.InboundAPIFormat == "" {
+			return nil, nil, fmt.Errorf("adapter %q has empty inbound api format", a.Name)
+		}
+		if _, ok := runtime[a.Name]; ok {
+			return nil, nil, fmt.Errorf("duplicate enabled adapter name %q", a.Name)
+		}
+		r := &objects.RuntimeAdapter{ID: a.ID, Name: a.Name, DisplayName: a.DisplayName, InboundAPIFormat: a.InboundAPIFormat, Bindings: map[string]*objects.RuntimeAdapterBinding{}}
+		runtime[a.Name] = r
+		byID[a.ID] = r
 	}
-
-	runtimeAdapters := make(map[string]*objects.RuntimeAdapter, len(adapters))
-	adapterEntities := make(map[int]*ent.Adapter, len(adapters))
-	for _, adapterEntity := range adapters {
-		if strings.TrimSpace(adapterEntity.Name) == "" {
-			return nil, nil, fmt.Errorf("enabled adapter %d has empty name", adapterEntity.ID)
-		}
-		if strings.TrimSpace(adapterEntity.InboundAPIFormat) == "" {
-			return nil, nil, fmt.Errorf("adapter %q has empty inbound api format", adapterEntity.Name)
-		}
-		if _, exists := runtimeAdapters[adapterEntity.Name]; exists {
-			return nil, nil, fmt.Errorf("duplicate enabled adapter name %q", adapterEntity.Name)
-		}
-
-		runtimeAdapters[adapterEntity.Name] = &objects.RuntimeAdapter{
-			ID:               adapterEntity.ID,
-			Name:             adapterEntity.Name,
-			DisplayName:      adapterEntity.DisplayName,
-			InboundAPIFormat: adapterEntity.InboundAPIFormat,
-			Bindings:         make(map[string]*objects.RuntimeAdapterBinding),
-		}
-		adapterEntities[adapterEntity.ID] = adapterEntity
-	}
-
-	groupEntities := make(map[int]*ent.ModelGroup, len(groups))
-	for _, group := range groups {
-		if strings.TrimSpace(group.Name) == "" {
-			return nil, nil, fmt.Errorf("enabled model group %d has empty name", group.ID)
-		}
-		groupEntities[group.ID] = group
-	}
-
-	protocolEntities := make(map[int]*ent.ModelGroupProtocol, len(protocols))
-	protocolsByGroup := make(map[int]map[string]*ent.ModelGroupProtocol)
-	for _, protocol := range protocols {
-		if _, ok := groupEntities[protocol.ModelGroupID]; !ok {
-			// 所属 ModelGroup 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
+	for _, b := range bindings {
+		r := byID[b.AdapterID]
+		if r == nil {
 			continue
 		}
-		if strings.TrimSpace(protocol.InboundAPIFormat) == "" {
-			return nil, nil, fmt.Errorf("model group protocol %d has empty inbound api format", protocol.ID)
+		m := b.Edges.Model
+		if m == nil {
+			return nil, nil, fmt.Errorf("adapter %q binding %d model does not exist", r.Name, b.ID)
 		}
-
-		byFormat := protocolsByGroup[protocol.ModelGroupID]
-		if byFormat == nil {
-			byFormat = make(map[string]*ent.ModelGroupProtocol)
-			protocolsByGroup[protocol.ModelGroupID] = byFormat
+		if m.Status != model.StatusEnabled || m.DeletedAt != 0 {
+			return nil, nil, fmt.Errorf("adapter %q binding model %q is disabled or deleted", r.Name, b.SourceModelID)
 		}
-		if _, exists := byFormat[protocol.InboundAPIFormat]; exists {
-			return nil, nil, fmt.Errorf("duplicate enabled protocol %q for model group %d", protocol.InboundAPIFormat, protocol.ModelGroupID)
+		if m.Settings == nil {
+			return nil, nil, fmt.Errorf("adapter %q model %q has no settings", r.Name, b.SourceModelID)
 		}
-
-		byFormat[protocol.InboundAPIFormat] = protocol
-		protocolEntities[protocol.ID] = protocol
+		if _, ok := r.Bindings[b.SourceModelID]; ok {
+			return nil, nil, fmt.Errorf("duplicate binding source model %q", b.SourceModelID)
+		}
+		r.Bindings[b.SourceModelID] = &objects.RuntimeAdapterBinding{ID: b.ID, SourceModelID: b.SourceModelID, Enabled: b.Enabled, Model: &objects.RuntimeModel{ID: m.ID, ModelID: m.ModelID, Name: m.Name, Settings: m.Settings}}
+		r.BindingOrder = append(r.BindingOrder, b.SourceModelID)
 	}
-
-	targetsByProtocol := make(map[int][]*objects.RuntimeModelGroupTarget)
-	diagnostics := make([]objects.AdapterDiagnostic, 0)
-	for _, target := range targets {
-		protocol, ok := protocolEntities[target.ModelGroupProtocolID]
-		if !ok {
-			// 所属 Protocol 或其父 ModelGroup 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
-			continue
-		}
-
-		diagnostic := objects.AdapterDiagnostic{
-			ModelGroupID:         protocol.ModelGroupID,
-			ModelGroupProtocolID: protocol.ID,
-			TargetID:             target.ID,
-			ChannelID:            target.ChannelID,
-			TargetModelID:        target.TargetModelID,
-		}
-		if strings.TrimSpace(target.TargetModelID) == "" {
-			diagnostic.Reason = "target model id is empty"
-			diagnostics = append(diagnostics, diagnostic)
-			continue
-		}
-		if strings.TrimSpace(target.OutboundAPIFormat) == "" {
-			diagnostic.Reason = "outbound api format is empty"
-			diagnostics = append(diagnostics, diagnostic)
-			continue
-		}
-
-		channel := enabledChannels[target.ChannelID]
-		if channel == nil {
-			diagnostic.Reason = "channel is not enabled or does not exist"
-			diagnostics = append(diagnostics, diagnostic)
-			continue
-		}
-		if !hasEndpoint(channel.ResolveEndpoints(), target.OutboundAPIFormat) {
-			diagnostic.Reason = "channel does not expose the configured outbound api format"
-			diagnostics = append(diagnostics, diagnostic)
-			continue
-		}
-
-		targetsByProtocol[target.ModelGroupProtocolID] = append(targetsByProtocol[target.ModelGroupProtocolID], &objects.RuntimeModelGroupTarget{
-			ID:                target.ID,
-			ChannelID:         target.ChannelID,
-			TargetModelID:     target.TargetModelID,
-			OutboundAPIFormat: target.OutboundAPIFormat,
-			Priority:          target.Priority,
-			Capabilities:      cloneTargetCapabilities(target.Capabilities),
-		})
-	}
-
-	runtimeGroups := make(map[int]*objects.RuntimeModelGroup, len(groups))
-	for _, group := range groups {
-		runtimeGroup := &objects.RuntimeModelGroup{
-			ID:                group.ID,
-			Name:              group.Name,
-			DisplayName:       group.DisplayName,
-			SelectionStrategy: group.SelectionStrategy.String(),
-			Protocols:         make(map[string]*objects.RuntimeModelGroupProtocol),
-		}
-		for inboundAPIFormat, protocol := range protocolsByGroup[group.ID] {
-			runtimeGroup.Protocols[inboundAPIFormat] = &objects.RuntimeModelGroupProtocol{
-				ID:               protocol.ID,
-				InboundAPIFormat: inboundAPIFormat,
-				Targets:          cloneRuntimeTargets(targetsByProtocol[protocol.ID]),
-			}
-		}
-		runtimeGroups[group.ID] = runtimeGroup
-	}
-
-	for _, binding := range bindings {
-		if strings.TrimSpace(binding.SourceModelID) == "" {
-			return nil, nil, fmt.Errorf("enabled adapter binding %d has empty source model id", binding.ID)
-		}
-
-		adapterEntity, ok := adapterEntities[binding.AdapterID]
-		if !ok {
-			// 所属 Adapter 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
-			continue
-		}
-		group, ok := groupEntities[binding.ModelID]
-		if !ok {
-			// 所属 ModelGroup 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
-			continue
-		}
-		runtimeAdapter := runtimeAdapters[adapterEntity.Name]
-		runtimeGroup := runtimeGroups[group.ID]
-		if runtimeGroup.Protocols[adapterEntity.InboundAPIFormat] == nil {
-			return nil, nil, fmt.Errorf("binding %d has no enabled protocol %q in model group %d", binding.ID, adapterEntity.InboundAPIFormat, group.ID)
-		}
-		if _, exists := runtimeAdapter.Bindings[binding.SourceModelID]; exists {
-			return nil, nil, fmt.Errorf("duplicate enabled binding for adapter %q and source model %q", adapterEntity.Name, binding.SourceModelID)
-		}
-
-		runtimeAdapter.Bindings[binding.SourceModelID] = &objects.RuntimeAdapterBinding{
-			ID:            binding.ID,
-			SourceModelID: binding.SourceModelID,
-			ModelGroup:    runtimeGroup,
-			Enabled:       binding.Enabled,
-		}
-		runtimeAdapter.BindingOrder = append(runtimeAdapter.BindingOrder, binding.SourceModelID)
-
-		for index := range diagnostics {
-			if diagnostics[index].ModelGroupProtocolID == runtimeGroup.Protocols[adapterEntity.InboundAPIFormat].ID {
-				diagnostics[index].AdapterName = adapterEntity.Name
-				diagnostics[index].SourceModelID = binding.SourceModelID
-			}
-		}
-	}
-
-	return &objects.AdapterSnapshot{Adapters: runtimeAdapters}, diagnostics, nil
+	return &objects.AdapterSnapshot{Adapters: runtime}, nil, nil
 }
-
 func hasEndpoint(endpoints []objects.ChannelEndpoint, apiFormat string) bool {
 	for _, endpoint := range endpoints {
 		if endpoint.APIFormat == apiFormat {
