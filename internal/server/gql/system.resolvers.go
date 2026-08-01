@@ -20,6 +20,15 @@ import (
 	"github.com/samber/lo"
 )
 
+// ProtocolPools is the resolver for the protocolPools field.
+func (r *developerModelSettingsResolver) ProtocolPools(ctx context.Context, obj *biz.DeveloperModelSettings) ([]*ModelProtocolPool, error) {
+	pools := make([]*ModelProtocolPool, 0, len(obj.ProtocolPools))
+	for format, associations := range obj.ProtocolPools {
+		pools = append(pools, &ModelProtocolPool{Format: format, Associations: associations})
+	}
+	return pools, nil
+}
+
 // UpdateBrandSettings is the resolver for the updateBrandSettings field.
 func (r *mutationResolver) UpdateBrandSettings(ctx context.Context, input UpdateBrandSettingsInput) (bool, error) {
 	if input.BrandName != nil {
@@ -592,3 +601,25 @@ func (r *queryResolver) GetCacheDiagnostics(ctx context.Context, input *GetCache
 		Targets:  normalizeDiagnosticsTargets(targets),
 	}, nil
 }
+
+// ProtocolPools is the resolver for the protocolPools field.
+func (r *developerModelSettingsInputResolver) ProtocolPools(ctx context.Context, obj *biz.DeveloperModelSettings, data []*ModelProtocolPoolInput) error {
+	obj.ProtocolPools = make(map[string][]*objects.ModelAssociation, len(data))
+	for _, pool := range data {
+		obj.ProtocolPools[pool.Format] = pool.Associations
+	}
+	return nil
+}
+
+// DeveloperModelSettings returns DeveloperModelSettingsResolver implementation.
+func (r *Resolver) DeveloperModelSettings() DeveloperModelSettingsResolver {
+	return &developerModelSettingsResolver{r}
+}
+
+// DeveloperModelSettingsInput returns DeveloperModelSettingsInputResolver implementation.
+func (r *Resolver) DeveloperModelSettingsInput() DeveloperModelSettingsInputResolver {
+	return &developerModelSettingsInputResolver{r}
+}
+
+type developerModelSettingsResolver struct{ *Resolver }
+type developerModelSettingsInputResolver struct{ *Resolver }

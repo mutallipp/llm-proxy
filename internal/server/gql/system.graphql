@@ -216,12 +216,12 @@ input UpdateSystemModelSettingsInput {
 
 type DeveloperModelSettings {
   developer: String!
-  associations: [ModelAssociation!]!
+  protocolPools: [ModelProtocolPool!]!
 }
 
 input DeveloperModelSettingsInput {
   developer: String!
-  associations: [ModelAssociationInput!]!
+  protocolPools: [ModelProtocolPoolInput!]
 }
 
 input UpdateDefaultDataStorageInput {
