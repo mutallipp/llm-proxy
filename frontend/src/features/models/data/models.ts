@@ -54,7 +54,9 @@ const MODELS_QUERY = `
           }
           settings {
             disableDeveloperSettingsInheritance
-            associations {
+            protocolPools {
+              format
+              associations {
               type
               priority
               disabled
@@ -114,6 +116,12 @@ const MODELS_QUERY = `
                 channelTags
                 pattern
               }
+            }
+            associations {
+              type
+              priority
+              disabled
+              channelModel { channelId modelId }
             }
           }
           status
