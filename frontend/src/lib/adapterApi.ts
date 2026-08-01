@@ -158,17 +158,6 @@ export function useDeleteAdapter() {
 }
 
 
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ name }: { name: string }) =>
-      apiRequest(`/admin/gateway/model-groups/${encodeURIComponent(name)}`, {
-        method: 'DELETE',
-        requireAuth: true,
-      }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gateway-model-groups'] }),
-  });
-}
-
 // ===================== Adapter 绑定测试 =====================
 
 export interface AdapterTestResult {
