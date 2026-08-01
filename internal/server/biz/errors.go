@@ -15,7 +15,6 @@ var (
 	ErrAdapterNotFound        = errors.New("adapter not found")
 	ErrAdapterAlreadyExists   = errors.New("adapter name already exists")
 	ErrAdapterInvalidName     = errors.New("invalid adapter name")
-	ErrModelGroupInUse        = errors.New("model group is still referenced by active bindings")
 	ErrInternal               = errors.New("server internal error, please try again later")
 	ErrAPIKeyOwnerRequired    = errors.New("owner api key is required")
 	ErrServiceAccountRequired = errors.New("service account api key required")

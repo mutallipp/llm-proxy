@@ -21,19 +21,6 @@ import (
 // RuntimeAdapter 等类型别名让业务层调用方不需要依赖 DTO 的具体存放位置。
 type RuntimeAdapter = objects.RuntimeAdapter
 type RuntimeAdapterBinding = objects.RuntimeAdapterBinding
-type RuntimeModelGroup = objects.RuntimeModelGroup
-type RuntimeModelGroupProtocol = objects.RuntimeModelGroupProtocol
-type RuntimeModelGroupTarget = objects.RuntimeModelGroupTarget
-type AdapterSnapshot = objects.AdapterSnapshot
-type AdapterDiagnostic = objects.AdapterDiagnostic
-type AdapterRuntimeStatus = objects.AdapterRuntimeStatus
-
-// AdapterRefreshResult 描述一次刷新是否发布了新的完整快照。
-type AdapterRefreshResult struct {
-	SnapshotVersion uint64
-	RefreshedAt     time.Time
-	Diagnostics     []objects.AdapterDiagnostic
-}
 
 type AdapterServiceParams struct {
 	fx.In
@@ -219,30 +206,12 @@ func hasEndpoint(endpoints []objects.ChannelEndpoint, apiFormat string) bool {
 
 func cloneTargetCapabilities(capabilities objects.AdapterTargetCapabilities) objects.AdapterTargetCapabilities {
 	return objects.AdapterTargetCapabilities{
-		SupportsTools:     capabilities.SupportsTools,
-		SupportsStream:    capabilities.SupportsStream,
-		StreamPolicy:      capabilities.StreamPolicy,
-		SupportsReasoning: capabilities.SupportsReasoning,
-		ContextLength:     capabilities.ContextLength,
-		MaxOutputTokens:   capabilities.MaxOutputTokens,
-		InputModalities:   append([]string(nil), capabilities.InputModalities...),
-		OutputModalities:  append([]string(nil), capabilities.OutputModalities...),
+		SupportsTools:    capabilities.SupportsTools,
+		SupportsStream:   capabilities.SupportsStream,
+		StreamPolicy:     capabilities.StreamPolicy,
+		InputModalities:  append([]string(nil), capabilities.InputModalities...),
+		OutputModalities: append([]string(nil), capabilities.OutputModalities...),
 	}
-}
-
-func cloneRuntimeTargets(targets []*objects.RuntimeModelGroupTarget) []*objects.RuntimeModelGroupTarget {
-	cloned := make([]*objects.RuntimeModelGroupTarget, 0, len(targets))
-	for _, target := range targets {
-		if target == nil {
-			continue
-		}
-
-		copyTarget := *target
-		copyTarget.Capabilities = cloneTargetCapabilities(target.Capabilities)
-		cloned = append(cloned, &copyTarget)
-	}
-
-	return cloned
 }
 
 // --- 适配器配置管理 API 的业务方法 ---
@@ -265,17 +234,6 @@ type BindingInfo struct {
 	ModelID       int
 	Enabled       bool
 	Remark        *string
-}
-
-// ModelGroupInfo 模型组信息（含协议和目标）
-type ModelGroupInfo struct {
-	ID                int
-	Name              string
-	DisplayName       string
-	Status            string
-	SelectionStrategy string
-	Remark            *string
-	Protocols         []ProtocolInfo
 }
 
 // ProtocolInfo 协议信息
@@ -316,15 +274,6 @@ type BindingInput struct {
 	Remark        *string
 }
 
-// UpdateModelGroupParams 更新模型组参数
-type UpdateModelGroupParams struct {
-	DisplayName       string
-	Status            string
-	SelectionStrategy string
-	Remark            *string
-	Protocols         []ProtocolInput
-}
-
 // ProtocolInput 协议输入
 type ProtocolInput struct {
 	InboundAPIFormat string
@@ -349,17 +298,13 @@ type AdapterTargetCapabilitiesInput struct {
 	SupportsTools  bool
 	SupportsStream bool
 	// StreamPolicy 目标级流式策略："unlimited" | "require" | "forbid" | ""
-	StreamPolicy      string
-	SupportsReasoning bool
-	ContextLength     int
-	MaxOutputTokens   int
-	InputModalities   []string
-	OutputModalities  []string
+	StreamPolicy     string
+	InputModalities  []string
+	OutputModalities []string
 }
 
 var (
-	ErrModelGroupNotFound = fmt.Errorf("model group not found")
-	ErrProtocolNotFound   = fmt.Errorf("protocol not found")
+	ErrProtocolNotFound = fmt.Errorf("protocol not found")
 )
 
 // ListAdapters 返回所有适配器及其绑定信息（软删除的不返回）
@@ -535,275 +480,6 @@ func (svc *AdapterService) UpdateAdapter(ctx context.Context, name string, param
 			Status:           a.Status.String(),
 			Remark:           a.Remark,
 			Bindings:         bindingInfos,
-		}
-
-		return nil
-	})
-
-	return result, err
-}
-
-// ListModelGroups 返回所有模型组及其协议和目标信息
-func (svc *AdapterService) ListModelGroups(ctx context.Context) ([]ModelGroupInfo, error) {
-	db := svc.entFromContext(ctx)
-
-	groups, err := db.ModelGroup.Query().
-		Where(modelgroup.DeletedAtEQ(0)).
-		Order(ent.Asc(modelgroup.FieldID)).
-		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query model groups: %w", err)
-	}
-
-	result := make([]ModelGroupInfo, 0, len(groups))
-	for _, g := range groups {
-		protocols, err := db.ModelGroupProtocol.Query().
-			Where(modelgroupprotocol.ModelGroupID(g.ID)).
-			Order(ent.Asc(modelgroupprotocol.FieldID)).
-			All(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query protocols for model group %d: %w", g.ID, err)
-		}
-
-		protocolInfos := make([]ProtocolInfo, 0, len(protocols))
-		for _, p := range protocols {
-			targets, err := db.ModelGroupTarget.Query().
-				Where(modelgrouptarget.ModelGroupProtocolID(p.ID)).
-				Order(ent.Asc(modelgrouptarget.FieldPriority), ent.Asc(modelgrouptarget.FieldID)).
-				All(ctx)
-			if err != nil {
-				return nil, fmt.Errorf("failed to query targets for protocol %d: %w", p.ID, err)
-			}
-
-			targetInfos := make([]TargetInfo, 0, len(targets))
-			for _, t := range targets {
-				targetInfos = append(targetInfos, TargetInfo{
-					ID:                t.ID,
-					ChannelID:         t.ChannelID,
-					TargetModelID:     t.TargetModelID,
-					OutboundAPIFormat: t.OutboundAPIFormat,
-					Priority:          t.Priority,
-					Enabled:           t.Enabled,
-					Remark:            t.Remark,
-					Capabilities:      t.Capabilities,
-				})
-			}
-
-			protocolInfos = append(protocolInfos, ProtocolInfo{
-				ID:               p.ID,
-				InboundAPIFormat: p.InboundAPIFormat,
-				Enabled:          p.Enabled,
-				Remark:           p.Remark,
-				Targets:          targetInfos,
-			})
-		}
-
-		result = append(result, ModelGroupInfo{
-			ID:                g.ID,
-			Name:              g.Name,
-			DisplayName:       g.DisplayName,
-			Status:            g.Status.String(),
-			SelectionStrategy: g.SelectionStrategy.String(),
-			Remark:            g.Remark,
-			Protocols:         protocolInfos,
-		})
-	}
-
-	return result, nil
-}
-
-// UpdateModelGroup 更新模型组配置，包含可选的整体协议/目标替换（事务操作）
-func (svc *AdapterService) UpdateModelGroup(ctx context.Context, name string, params *UpdateModelGroupParams) (*ModelGroupInfo, error) {
-	if params == nil {
-		return nil, fmt.Errorf("params is required")
-	}
-
-	var result *ModelGroupInfo
-	err := svc.RunInTransaction(ctx, func(txCtx context.Context) error {
-		db := svc.entFromContext(txCtx)
-
-		// 查找模型组，不存在则创建（upsert）
-		g, err := db.ModelGroup.Query().
-			Where(modelgroup.Name(name), modelgroup.DeletedAtEQ(0)).
-			Only(txCtx)
-		if err != nil {
-			if !ent.IsNotFound(err) {
-				return fmt.Errorf("failed to query model group: %w", err)
-			}
-			// 创建新模型组
-			create := db.ModelGroup.Create().SetName(name)
-			if params.DisplayName != "" {
-				create = create.SetDisplayName(params.DisplayName)
-			}
-			if params.Status != "" {
-				create = create.SetStatus(modelgroup.Status(params.Status))
-			}
-			if params.SelectionStrategy != "" {
-				create = create.SetSelectionStrategy(modelgroup.SelectionStrategy(params.SelectionStrategy))
-			}
-			if params.Remark != nil {
-				create = create.SetRemark(*params.Remark)
-			}
-			g, err = create.Save(txCtx)
-			if err != nil {
-				return fmt.Errorf("failed to create model group: %w", err)
-			}
-		} else {
-			// 更新模型组字段
-			update := db.ModelGroup.UpdateOne(g)
-			if params.DisplayName != "" {
-				update = update.SetDisplayName(params.DisplayName)
-			}
-			if params.Status != "" {
-				update = update.SetStatus(modelgroup.Status(params.Status))
-			}
-			if params.SelectionStrategy != "" {
-				update = update.SetSelectionStrategy(modelgroup.SelectionStrategy(params.SelectionStrategy))
-			}
-			if params.Remark != nil {
-				update = update.SetRemark(*params.Remark)
-			}
-			_, err = update.Save(txCtx)
-			if err != nil {
-				return fmt.Errorf("failed to update model group: %w", err)
-			}
-		}
-
-		// 如果传入了 protocols，整体替换
-		if len(params.Protocols) > 0 {
-			// 软删除现有协议
-			existingProtocols, err := db.ModelGroupProtocol.Query().
-				Where(modelgroupprotocol.ModelGroupID(g.ID)).
-				All(txCtx)
-			if err != nil {
-				return fmt.Errorf("failed to query existing protocols: %w", err)
-			}
-			for _, ep := range existingProtocols {
-				// 软删除协议下的所有目标
-				existingTargets, err := db.ModelGroupTarget.Query().
-					Where(modelgrouptarget.ModelGroupProtocolID(ep.ID)).
-					All(txCtx)
-				if err != nil {
-					return fmt.Errorf("failed to query targets for protocol: %w", err)
-				}
-				for _, et := range existingTargets {
-					_, err := db.ModelGroupTarget.UpdateOne(et).SetDeletedAt(int(time.Now().Unix())).Save(txCtx)
-					if err != nil {
-						return fmt.Errorf("failed to soft delete target: %w", err)
-					}
-				}
-				_, err = db.ModelGroupProtocol.UpdateOne(ep).SetDeletedAt(int(time.Now().Unix())).Save(txCtx)
-				if err != nil {
-					return fmt.Errorf("failed to soft delete protocol: %w", err)
-				}
-			}
-
-			// 创建新协议和目标
-			for _, protocol := range params.Protocols {
-				remark := ""
-				if protocol.Remark != nil {
-					remark = *protocol.Remark
-				}
-				p, err := db.ModelGroupProtocol.Create().
-					SetModelGroupID(g.ID).
-					SetInboundAPIFormat(protocol.InboundAPIFormat).
-					SetEnabled(protocol.Enabled).
-					SetRemark(remark).
-					Save(txCtx)
-				if err != nil {
-					return fmt.Errorf("failed to create protocol: %w", err)
-				}
-
-				// 创建目标
-				for _, target := range protocol.Targets {
-					targetRemark := ""
-					if target.Remark != nil {
-						targetRemark = *target.Remark
-					}
-					capabilities := objects.AdapterTargetCapabilities{
-						SupportsTools:     target.Capabilities.SupportsTools,
-						SupportsStream:    target.Capabilities.SupportsStream,
-						StreamPolicy:      target.Capabilities.StreamPolicy,
-						SupportsReasoning: target.Capabilities.SupportsReasoning,
-						ContextLength:     target.Capabilities.ContextLength,
-						MaxOutputTokens:   target.Capabilities.MaxOutputTokens,
-						InputModalities:   target.Capabilities.InputModalities,
-						OutputModalities:  target.Capabilities.OutputModalities,
-					}
-					_, err := db.ModelGroupTarget.Create().
-						SetModelGroupProtocolID(p.ID).
-						SetChannelID(target.ChannelID).
-						SetTargetModelID(target.TargetModelID).
-						SetOutboundAPIFormat(target.OutboundAPIFormat).
-						SetPriority(target.Priority).
-						SetEnabled(target.Enabled).
-						SetRemark(targetRemark).
-						SetCapabilities(capabilities).
-						Save(txCtx)
-					if err != nil {
-						return fmt.Errorf("failed to create target: %w", err)
-					}
-				}
-			}
-		}
-
-		// 查询更新后的模型组信息
-		g, err = db.ModelGroup.Query().
-			Where(modelgroup.ID(g.ID)).
-			Only(txCtx)
-		if err != nil {
-			return fmt.Errorf("failed to query updated model group: %w", err)
-		}
-
-		protocols, err := db.ModelGroupProtocol.Query().
-			Where(modelgroupprotocol.ModelGroupID(g.ID)).
-			Order(ent.Asc(modelgroupprotocol.FieldID)).
-			All(txCtx)
-		if err != nil {
-			return fmt.Errorf("failed to query protocols: %w", err)
-		}
-
-		protocolInfos := make([]ProtocolInfo, 0, len(protocols))
-		for _, p := range protocols {
-			targets, err := db.ModelGroupTarget.Query().
-				Where(modelgrouptarget.ModelGroupProtocolID(p.ID)).
-				Order(ent.Asc(modelgrouptarget.FieldPriority), ent.Asc(modelgrouptarget.FieldID)).
-				All(txCtx)
-			if err != nil {
-				return fmt.Errorf("failed to query targets: %w", err)
-			}
-
-			targetInfos := make([]TargetInfo, 0, len(targets))
-			for _, t := range targets {
-				targetInfos = append(targetInfos, TargetInfo{
-					ID:                t.ID,
-					ChannelID:         t.ChannelID,
-					TargetModelID:     t.TargetModelID,
-					OutboundAPIFormat: t.OutboundAPIFormat,
-					Priority:          t.Priority,
-					Enabled:           t.Enabled,
-					Remark:            t.Remark,
-					Capabilities:      t.Capabilities,
-				})
-			}
-
-			protocolInfos = append(protocolInfos, ProtocolInfo{
-				ID:               p.ID,
-				InboundAPIFormat: p.InboundAPIFormat,
-				Enabled:          p.Enabled,
-				Remark:           p.Remark,
-				Targets:          targetInfos,
-			})
-		}
-
-		result = &ModelGroupInfo{
-			ID:                g.ID,
-			Name:              g.Name,
-			DisplayName:       g.DisplayName,
-			Status:            g.Status.String(),
-			SelectionStrategy: g.SelectionStrategy.String(),
-			Remark:            g.Remark,
-			Protocols:         protocolInfos,
 		}
 
 		return nil
@@ -1010,72 +686,6 @@ func (svc *AdapterService) DeleteAdapter(ctx context.Context, name string) error
 		// 软删除适配器
 		if _, err := db.Adapter.UpdateOne(a).SetDeletedAt(now).Save(txCtx); err != nil {
 			return fmt.Errorf("failed to soft-delete adapter: %w", err)
-		}
-
-		return nil
-	})
-}
-
-// DeleteModelGroup 安全软删除模型组（含协议和目标）。
-// 若仍有活跃 AdapterModelBinding 引用该组，则返回 ErrModelGroupInUse（409）。
-// 模型组不存在时返回 ErrModelGroupNotFound（404）。
-func (svc *AdapterService) DeleteModelGroup(ctx context.Context, name string) error {
-	return svc.RunInTransaction(ctx, func(txCtx context.Context) error {
-		db := svc.entFromContext(txCtx)
-
-		// 查找模型组（不存在则 404）
-		g, err := db.ModelGroup.Query().
-			Where(modelgroup.Name(name), modelgroup.DeletedAtEQ(0)).
-			Only(txCtx)
-		if err != nil {
-			if ent.IsNotFound(err) {
-				return fmt.Errorf("%w: %q", ErrModelGroupNotFound, name)
-			}
-			return fmt.Errorf("failed to query model group: %w", err)
-		}
-
-		// 检查是否被活跃绑定引用（引用 → 409）
-		refCount, err := db.AdapterModelBinding.Query().
-			Where(adaptermodelbinding.ModelID(g.ID), adaptermodelbinding.DeletedAtEQ(0)).
-			Count(txCtx)
-		if err != nil {
-			return fmt.Errorf("failed to check active bindings: %w", err)
-		}
-		if refCount > 0 {
-			return fmt.Errorf("%w: %d active binding(s) still reference model group %q — remove them first", ErrModelGroupInUse, refCount, name)
-		}
-
-		now := int(time.Now().Unix())
-
-		// 加载该组的所有协议（含已软删除的，避免遗漏；仅对活跃协议做级联）
-		protocols, err := db.ModelGroupProtocol.Query().
-			Where(modelgroupprotocol.ModelGroupID(g.ID), modelgroupprotocol.DeletedAtEQ(0)).
-			All(txCtx)
-		if err != nil {
-			return fmt.Errorf("failed to query protocols: %w", err)
-		}
-		for _, p := range protocols {
-			// 软删除协议下的所有活跃目标
-			targets, err := db.ModelGroupTarget.Query().
-				Where(modelgrouptarget.ModelGroupProtocolID(p.ID), modelgrouptarget.DeletedAtEQ(0)).
-				All(txCtx)
-			if err != nil {
-				return fmt.Errorf("failed to query targets for protocol %d: %w", p.ID, err)
-			}
-			for _, t := range targets {
-				if _, err := db.ModelGroupTarget.UpdateOne(t).SetDeletedAt(now).Save(txCtx); err != nil {
-					return fmt.Errorf("failed to soft-delete target %d: %w", t.ID, err)
-				}
-			}
-			// 软删除协议
-			if _, err := db.ModelGroupProtocol.UpdateOne(p).SetDeletedAt(now).Save(txCtx); err != nil {
-				return fmt.Errorf("failed to soft-delete protocol %d: %w", p.ID, err)
-			}
-		}
-
-		// 软删除模型组
-		if _, err := db.ModelGroup.UpdateOne(g).SetDeletedAt(now).Save(txCtx); err != nil {
-			return fmt.Errorf("failed to soft-delete model group: %w", err)
 		}
 
 		return nil

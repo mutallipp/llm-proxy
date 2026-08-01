@@ -14,7 +14,6 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/ent/channel"
 	"github.com/mutallipp/llm-proxy/internal/ent/channelmodelprice"
 	"github.com/mutallipp/llm-proxy/internal/ent/channelprobe"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
 	"github.com/mutallipp/llm-proxy/internal/ent/providerquotastatus"
 	"github.com/mutallipp/llm-proxy/internal/ent/request"
 	"github.com/mutallipp/llm-proxy/internal/ent/requestexecution"
@@ -336,21 +335,6 @@ func (_c *ChannelCreate) SetNillableProviderQuotaStatusID(id *int) *ChannelCreat
 // SetProviderQuotaStatus sets the "provider_quota_status" edge to the ProviderQuotaStatus entity.
 func (_c *ChannelCreate) SetProviderQuotaStatus(v *ProviderQuotaStatus) *ChannelCreate {
 	return _c.SetProviderQuotaStatusID(v.ID)
-}
-
-// AddModelGroupTargetIDs adds the "model_group_targets" edge to the ModelGroupTarget entity by IDs.
-func (_c *ChannelCreate) AddModelGroupTargetIDs(ids ...int) *ChannelCreate {
-	_c.mutation.AddModelGroupTargetIDs(ids...)
-	return _c
-}
-
-// AddModelGroupTargets adds the "model_group_targets" edges to the ModelGroupTarget entity.
-func (_c *ChannelCreate) AddModelGroupTargets(v ...*ModelGroupTarget) *ChannelCreate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddModelGroupTargetIDs(ids...)
 }
 
 // Mutation returns the ChannelMutation object of the builder.
@@ -690,22 +674,6 @@ func (_c *ChannelCreate) createSpec() (*Channel, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(providerquotastatus.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.ModelGroupTargetsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   channel.ModelGroupTargetsTable,
-			Columns: []string{channel.ModelGroupTargetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(modelgrouptarget.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

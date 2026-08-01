@@ -43,42 +43,14 @@ type RuntimeModel struct {
 	Settings *ModelSettings
 }
 
-// RuntimeModelGroup 是适配器快照中的启用模型组。
-type RuntimeModelGroup struct {
-	ID                int
-	Name              string
-	DisplayName       string
-	SelectionStrategy string
-	Protocols         map[string]*RuntimeModelGroupProtocol
-}
-
-// RuntimeModelGroupProtocol 是按入站协议隔离的目标池。
-type RuntimeModelGroupProtocol struct {
-	ID               int
-	InboundAPIFormat string
-	Targets          []*RuntimeModelGroupTarget
-}
-
-// RuntimeModelGroupTarget 是一个经过静态校验、可以参与请求能力过滤的目标。
-type RuntimeModelGroupTarget struct {
-	ID                int
-	ChannelID         int
-	TargetModelID     string
-	OutboundAPIFormat string
-	Priority          int
-	Capabilities      AdapterTargetCapabilities
-}
-
 // AdapterDiagnostic 描述快照构建时被排除的目标或配置问题。
 type AdapterDiagnostic struct {
-	AdapterName          string
-	SourceModelID        string
-	ModelGroupID         int
-	ModelGroupProtocolID int
-	TargetID             int
-	ChannelID            int
-	TargetModelID        string
-	Reason               string
+	AdapterName   string
+	SourceModelID string
+	TargetID      int
+	ChannelID     int
+	TargetModelID string
+	Reason        string
 }
 
 // AdapterSnapshot 是一次完整的适配器运行时快照。

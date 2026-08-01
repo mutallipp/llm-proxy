@@ -19,9 +19,6 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/ent/channelprobe"
 	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
 	"github.com/mutallipp/llm-proxy/internal/ent/model"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
 	"github.com/mutallipp/llm-proxy/internal/ent/oidcidentity"
 	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 	"github.com/mutallipp/llm-proxy/internal/ent/project"
@@ -391,87 +388,6 @@ func (f TraverseModel) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.ModelQuery", q)
-}
-
-// The ModelGroupFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ModelGroupFunc func(context.Context, *ent.ModelGroupQuery) (ent.Value, error)
-
-// Query calls f(ctx, q).
-func (f ModelGroupFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
-	if q, ok := q.(*ent.ModelGroupQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupQuery", q)
-}
-
-// The TraverseModelGroup type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseModelGroup func(context.Context, *ent.ModelGroupQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseModelGroup) Intercept(next ent.Querier) ent.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseModelGroup) Traverse(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.ModelGroupQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupQuery", q)
-}
-
-// The ModelGroupProtocolFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ModelGroupProtocolFunc func(context.Context, *ent.ModelGroupProtocolQuery) (ent.Value, error)
-
-// Query calls f(ctx, q).
-func (f ModelGroupProtocolFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
-	if q, ok := q.(*ent.ModelGroupProtocolQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupProtocolQuery", q)
-}
-
-// The TraverseModelGroupProtocol type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseModelGroupProtocol func(context.Context, *ent.ModelGroupProtocolQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseModelGroupProtocol) Intercept(next ent.Querier) ent.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseModelGroupProtocol) Traverse(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.ModelGroupProtocolQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupProtocolQuery", q)
-}
-
-// The ModelGroupTargetFunc type is an adapter to allow the use of ordinary function as a Querier.
-type ModelGroupTargetFunc func(context.Context, *ent.ModelGroupTargetQuery) (ent.Value, error)
-
-// Query calls f(ctx, q).
-func (f ModelGroupTargetFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
-	if q, ok := q.(*ent.ModelGroupTargetQuery); ok {
-		return f(ctx, q)
-	}
-	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupTargetQuery", q)
-}
-
-// The TraverseModelGroupTarget type is an adapter to allow the use of ordinary function as Traverser.
-type TraverseModelGroupTarget func(context.Context, *ent.ModelGroupTargetQuery) error
-
-// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
-func (f TraverseModelGroupTarget) Intercept(next ent.Querier) ent.Querier {
-	return next
-}
-
-// Traverse calls f(ctx, q).
-func (f TraverseModelGroupTarget) Traverse(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.ModelGroupTargetQuery); ok {
-		return f(ctx, q)
-	}
-	return fmt.Errorf("unexpected query type %T. expect *ent.ModelGroupTargetQuery", q)
 }
 
 // The OIDCIdentityFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -904,12 +820,6 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.DataStorageQuery, predicate.DataStorage, datastorage.OrderOption]{typ: ent.TypeDataStorage, tq: q}, nil
 	case *ent.ModelQuery:
 		return &query[*ent.ModelQuery, predicate.Model, model.OrderOption]{typ: ent.TypeModel, tq: q}, nil
-	case *ent.ModelGroupQuery:
-		return &query[*ent.ModelGroupQuery, predicate.ModelGroup, modelgroup.OrderOption]{typ: ent.TypeModelGroup, tq: q}, nil
-	case *ent.ModelGroupProtocolQuery:
-		return &query[*ent.ModelGroupProtocolQuery, predicate.ModelGroupProtocol, modelgroupprotocol.OrderOption]{typ: ent.TypeModelGroupProtocol, tq: q}, nil
-	case *ent.ModelGroupTargetQuery:
-		return &query[*ent.ModelGroupTargetQuery, predicate.ModelGroupTarget, modelgrouptarget.OrderOption]{typ: ent.TypeModelGroupTarget, tq: q}, nil
 	case *ent.OIDCIdentityQuery:
 		return &query[*ent.OIDCIdentityQuery, predicate.OIDCIdentity, oidcidentity.OrderOption]{typ: ent.TypeOIDCIdentity, tq: q}, nil
 	case *ent.ProjectQuery:

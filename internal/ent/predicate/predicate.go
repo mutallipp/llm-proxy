@@ -39,15 +39,6 @@ type DataStorage func(*sql.Selector)
 // Model is the predicate function for model builders.
 type Model func(*sql.Selector)
 
-// ModelGroup is the predicate function for modelgroup builders.
-type ModelGroup func(*sql.Selector)
-
-// ModelGroupProtocol is the predicate function for modelgroupprotocol builders.
-type ModelGroupProtocol func(*sql.Selector)
-
-// ModelGroupTarget is the predicate function for modelgrouptarget builders.
-type ModelGroupTarget func(*sql.Selector)
-
 // OIDCIdentity is the predicate function for oidcidentity builders.
 type OIDCIdentity func(*sql.Selector)
 

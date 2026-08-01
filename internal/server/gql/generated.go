@@ -68564,7 +68564,7 @@ func (ec *executionContext) unmarshalInputCreateModelInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"developer", "modelID", "type", "name", "icon", "group", "modelCard", "settings", "remark"}
+	fieldsInOrder := [...]string{"developer", "modelID", "type", "name", "icon", "group", "modelCard", "settings", "remark", "adapterBindingIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -68634,6 +68634,17 @@ func (ec *executionContext) unmarshalInputCreateModelInput(ctx context.Context, 
 				return it, err
 			}
 			it.Remark = data
+		case "adapterBindingIDs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adapterBindingIDs"))
+			data, err := ec.unmarshalOID2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUIDᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			converted, err := objects.ConvertGUIDPtrsToInts(data)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			it.AdapterBindingIDs = converted
 		}
 	}
 
@@ -82877,7 +82888,7 @@ func (ec *executionContext) unmarshalInputUpdateModelInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"developer", "modelID", "type", "name", "icon", "group", "modelCard", "settings", "status", "remark", "clearRemark"}
+	fieldsInOrder := [...]string{"developer", "modelID", "type", "name", "icon", "group", "modelCard", "settings", "status", "remark", "clearRemark", "addAdapterBindingIDs", "removeAdapterBindingIDs", "clearAdapterBindings"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -82961,6 +82972,35 @@ func (ec *executionContext) unmarshalInputUpdateModelInput(ctx context.Context, 
 				return it, err
 			}
 			it.ClearRemark = data
+		case "addAdapterBindingIDs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addAdapterBindingIDs"))
+			data, err := ec.unmarshalOID2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUIDᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			converted, err := objects.ConvertGUIDPtrsToInts(data)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			it.AddAdapterBindingIDs = converted
+		case "removeAdapterBindingIDs":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeAdapterBindingIDs"))
+			data, err := ec.unmarshalOID2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUIDᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			converted, err := objects.ConvertGUIDPtrsToInts(data)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			it.RemoveAdapterBindingIDs = converted
+		case "clearAdapterBindings":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearAdapterBindings"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearAdapterBindings = data
 		}
 	}
 

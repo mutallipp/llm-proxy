@@ -73,8 +73,6 @@ const (
 	EdgeChannelModelPrices = "channel_model_prices"
 	// EdgeProviderQuotaStatus holds the string denoting the provider_quota_status edge name in mutations.
 	EdgeProviderQuotaStatus = "provider_quota_status"
-	// EdgeModelGroupTargets holds the string denoting the model_group_targets edge name in mutations.
-	EdgeModelGroupTargets = "model_group_targets"
 	// Table holds the table name of the channel in the database.
 	Table = "channels"
 	// RequestsTable is the table that holds the requests relation/edge.
@@ -119,13 +117,6 @@ const (
 	ProviderQuotaStatusInverseTable = "provider_quota_status"
 	// ProviderQuotaStatusColumn is the table column denoting the provider_quota_status relation/edge.
 	ProviderQuotaStatusColumn = "channel_id"
-	// ModelGroupTargetsTable is the table that holds the model_group_targets relation/edge.
-	ModelGroupTargetsTable = "model_group_targets"
-	// ModelGroupTargetsInverseTable is the table name for the ModelGroupTarget entity.
-	// It exists in this package in order to avoid circular dependency with the "modelgrouptarget" package.
-	ModelGroupTargetsInverseTable = "model_group_targets"
-	// ModelGroupTargetsColumn is the table column denoting the model_group_targets relation/edge.
-	ModelGroupTargetsColumn = "channel_id"
 )
 
 // Columns holds all SQL columns for channel fields.
@@ -458,20 +449,6 @@ func ByProviderQuotaStatusField(field string, opts ...sql.OrderTermOption) Order
 		sqlgraph.OrderByNeighborTerms(s, newProviderQuotaStatusStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByModelGroupTargetsCount orders the results by model_group_targets count.
-func ByModelGroupTargetsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newModelGroupTargetsStep(), opts...)
-	}
-}
-
-// ByModelGroupTargets orders the results by model_group_targets terms.
-func ByModelGroupTargets(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newModelGroupTargetsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
 func newRequestsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -512,13 +489,6 @@ func newProviderQuotaStatusStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProviderQuotaStatusInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, ProviderQuotaStatusTable, ProviderQuotaStatusColumn),
-	)
-}
-func newModelGroupTargetsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ModelGroupTargetsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ModelGroupTargetsTable, ModelGroupTargetsColumn),
 	)
 }
 

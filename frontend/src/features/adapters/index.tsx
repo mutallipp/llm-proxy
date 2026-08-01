@@ -21,7 +21,6 @@ import {
   testAdapterBinding,
   useAdapters,
   useDeleteAdapter,
-  useModelGroups,
   useRefreshGateway,
   useRenameAdapter,
   useUpsertAdapter,
@@ -153,8 +152,7 @@ interface AdapterTestDialogProps {
 }
 
 function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogProps) {
-  const { data: modelGroupData } = useModelGroups();
-  const modelGroups = modelGroupData?.model_groups ?? [];
+  const models: never[] = [];
 
   // 只展示已启用的绑定项
   const enabledBindings = adapter?.bindings.filter((b) => b.enabled) ?? [];
@@ -182,9 +180,9 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
   };
 
   // 获取模型组显示名称
-  const getGroupName = (modelGroupId: number) => {
-    const g = modelGroups.find((mg) => mg.id === modelGroupId);
-    return g?.display_name || g?.name || `模型组 #${modelGroupId}`;
+  const getGroupName = (modelId: number) => {
+    const g = models.find((mg) => mg.id === modelId);
+    return g?.display_name || g?.name || `模型组 #${modelId}`;
   };
 
   // 当前绑定的 curl 预览
@@ -253,7 +251,7 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
                 <SelectContent>
                   {enabledBindings.map((binding, i) => (
                     <SelectItem key={`${binding.source_model_id}-${i}`} value={String(i)}>
-                      {binding.source_model_id} · {getGroupName(binding.model_group_id)}
+                      {binding.source_model_id} · {getGroupName(binding.model_id)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -352,13 +350,12 @@ interface AdapterDialogProps {
 
 function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
   const { t } = useTranslation();
-  const { data: modelGroupData } = useModelGroups();
   const upsert = useUpsertAdapter();
-  const modelGroups = modelGroupData?.model_groups ?? [];
+  const models: never[] = [];
   const [name, setName] = useState('');
   const [draft, setDraft] = useState<AdapterUpdateInput>(EMPTY_ADAPTER);
   const [sourceModelId, setSourceModelId] = useState('');
-  const [modelGroupId, setModelGroupId] = useState('');
+  const [modelId, setModelId] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -370,9 +367,9 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
               inbound_api_format: adapter.inbound_api_format,
               status: adapter.status,
               remark: adapter.remark,
-              bindings: adapter.bindings.map(({ source_model_id, model_group_id, enabled, remark }) => ({
+              bindings: adapter.bindings.map(({ source_model_id, model_id, enabled, remark }) => ({
                 source_model_id,
-                model_group_id,
+                model_id,
                 enabled,
                 remark,
               })),
@@ -380,18 +377,18 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
           : { ...EMPTY_ADAPTER, bindings: [] }
       );
       setSourceModelId('');
-      setModelGroupId(modelGroups[0] ? String(modelGroups[0].id) : '');
+      setModelId(models[0] ? String(models[0].id) : '');
     }
-  }, [adapter, modelGroups, open]);
+  }, [adapter, models, open]);
 
   useEffect(() => {
-    if (open && !modelGroupId && modelGroups[0]) {
-      setModelGroupId(String(modelGroups[0].id));
+    if (open && !modelId && models[0]) {
+      setModelId(String(models[0].id));
     }
-  }, [modelGroupId, modelGroups, open]);
+  }, [modelId, models, open]);
 
   const addBinding = () => {
-    const groupId = Number(modelGroupId);
+    const groupId = Number(modelId);
     if (!sourceModelId.trim() || !groupId) {
       toast.error('请输入源模型并选择模型组');
       return;
@@ -402,7 +399,7 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
     }
     setDraft((cur) => ({
       ...cur,
-      bindings: [...cur.bindings, { source_model_id: sourceModelId.trim(), model_group_id: groupId, enabled: true }],
+      bindings: [...cur.bindings, { source_model_id: sourceModelId.trim(), model_id: groupId, enabled: true }],
     }));
     setSourceModelId('');
   };
@@ -489,10 +486,10 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
               onChange={(e) => setSourceModelId(e.target.value)}
               placeholder='源模型 ID，例如 claude-3-7'
             />
-            <Select value={modelGroupId} onValueChange={setModelGroupId}>
+            <Select value={modelId} onValueChange={setModelId}>
               <SelectTrigger><SelectValue placeholder='选择模型组' /></SelectTrigger>
               <SelectContent>
-                {modelGroups.map((g) => (
+                {models.map((g) => (
                   <SelectItem key={g.id} value={String(g.id)}>{g.display_name || g.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -506,7 +503,7 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
               <p className='text-muted-foreground p-4 text-sm'>暂无绑定</p>
             )}
             {draft.bindings.map((binding, index) => {
-              const group = modelGroups.find((g) => g.id === binding.model_group_id);
+              const group = models.find((g) => g.id === binding.model_id);
               return (
                 <div
                   key={`${binding.source_model_id}-${index}`}
@@ -514,7 +511,7 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
                 >
                   <span className='font-mono'>{binding.source_model_id}</span>
                   <span className='text-muted-foreground flex-1'>
-                    {group?.display_name || group?.name || `模型组 #${binding.model_group_id}`}
+                    {group?.display_name || group?.name || `模型组 #${binding.model_id}`}
                   </span>
                   <Badge variant={binding.enabled ? 'default' : 'secondary'}>
                     {binding.enabled ? '启用' : '禁用'}
@@ -623,7 +620,6 @@ function RenameAdapterDialog({ adapter, open, onOpenChange }: RenameDialogProps)
 export default function AdaptersManagement() {
   const { t } = useTranslation();
   const { data, isLoading, isError, refetch } = useAdapters();
-  const { data: modelGroupData } = useModelGroups();
   const refresh = useRefreshGateway();
   const upsert = useUpsertAdapter();
   const deleteAdapter = useDeleteAdapter();
@@ -645,7 +641,7 @@ export default function AdaptersManagement() {
   const [isTestOpen, setIsTestOpen] = useState(false);
 
   const adapters = data?.adapters ?? [];
-  const modelGroups = modelGroupData?.model_groups ?? [];
+  const models: never[] = [];
 
   const openCreate = () => {
     setEditing(null);
@@ -668,8 +664,8 @@ export default function AdaptersManagement() {
       inbound_api_format: adapter.inbound_api_format,
       status: adapter.status === 'enabled' ? 'disabled' : 'enabled',
       remark: adapter.remark,
-      bindings: adapter.bindings.map(({ source_model_id, model_group_id, enabled, remark }) => ({
-        source_model_id, model_group_id, enabled, remark,
+      bindings: adapter.bindings.map(({ source_model_id, model_id, enabled, remark }) => ({
+        source_model_id, model_id, enabled, remark,
       })),
     };
     try {
@@ -693,7 +689,7 @@ export default function AdaptersManagement() {
   };
 
   // 仅用于展示模型组名称
-  const groupNames = new Map(modelGroups.map((g) => [g.id, g.display_name || g.name]));
+  const groupNames = new Map(models.map((g) => [g.id, g.display_name || g.name]));
 
   return (
     <div className='flex flex-1 flex-col overflow-hidden'>
@@ -832,7 +828,7 @@ export default function AdaptersManagement() {
                         >
                           <span className='font-mono font-medium'>{binding.source_model_id}</span>
                           <span className='text-muted-foreground flex-1'>
-                            → {groupNames.get(binding.model_group_id) ?? `模型组 #${binding.model_group_id}`}
+                            → {groupNames.get(binding.model_id) ?? `模型组 #${binding.model_id}`}
                           </span>
                           <Badge variant={binding.enabled ? 'default' : 'secondary'}>
                             {binding.enabled ? '启用' : '禁用'}
