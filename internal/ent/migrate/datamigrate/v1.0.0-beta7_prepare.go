@@ -17,15 +17,10 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 	if err != nil || !exists {
 		return err
 	}
-	// 新形态没有 legacy 列时直接幂等返回；旧形态必须能读到 legacy 数据。
-	var probe *entsql.Rows
-	if err := drv.Query(ctx, "SELECT id, model_group_id FROM adapter_model_bindings LIMIT 1", nil, &probe); err != nil {
-		if drv.Dialect() == "mysql" {
-			return fmt.Errorf("mysql legacy adapter migration is unsupported: %w", err)
-		}
-		return nil
+	legacy, err := columnExists(ctx, drv, "model_group_id")
+	if err != nil || !legacy {
+		return err
 	}
-	probe.Close()
 
 	if drv.Dialect() == "mysql" {
 		return fmt.Errorf("mysql legacy adapter migration is unsupported: DDL may implicitly commit")
@@ -97,6 +92,25 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 	}
 	committed = true
 	return nil
+}
+
+func columnExists(ctx context.Context, drv interface {
+	dialect.ExecQuerier
+	Dialect() string
+}, column string) (bool, error) {
+	q, args := "SELECT name FROM pragma_table_info('adapter_model_bindings') WHERE name = ?", []any{column}
+	if drv.Dialect() == "postgres" {
+		q, args = "SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'adapter_model_bindings' AND column_name = $1", []any{column}
+	}
+	if drv.Dialect() == "mysql" {
+		q, args = "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'adapter_model_bindings' AND column_name = ?", []any{column}
+	}
+	var rows *entsql.Rows
+	if err := drv.Query(ctx, q, args, &rows); err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	return rows.Next(), nil
 }
 
 func tableExists(ctx context.Context, drv interface {
