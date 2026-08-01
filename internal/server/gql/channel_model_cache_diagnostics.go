@@ -36,6 +36,7 @@ type channelModelCacheDiagnosticsCache struct {
 	ModelAssociationCache []channelModelAssociationCacheEntrySnapshot `json:"modelAssociationCache"`
 }
 
+// channelModelAssociationCacheEntrySnapshot 表示已解析的协议关联缓存，不是 ModelSettings 配置。
 type channelModelAssociationCacheEntrySnapshot struct {
 	ModelID                 string                      `json:"modelId"`
 	Associations            []*objects.ModelAssociation `json:"associations"`

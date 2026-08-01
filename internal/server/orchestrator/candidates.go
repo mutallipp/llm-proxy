@@ -525,7 +525,11 @@ func effectiveAssociationSourceCounts(systemSettings *biz.SystemModelSettings, m
 			continue
 		}
 
-		return len(developerSettings.Associations), modelCount, developerInheritanceDisabled
+		// Developer 配置按协议池保存，统计当前模型协议对应池中的关联数量。
+		if associations, ok := developerSettings.ProtocolPools[m.Protocol]; ok {
+			return len(associations), modelCount, developerInheritanceDisabled
+		}
+		return 0, modelCount, developerInheritanceDisabled
 	}
 
 	return developerCount, modelCount, developerInheritanceDisabled
