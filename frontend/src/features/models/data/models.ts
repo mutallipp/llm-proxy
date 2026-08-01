@@ -117,12 +117,6 @@ const MODELS_QUERY = `
                 pattern
               }
             }
-            associations {
-              type
-              priority
-              disabled
-              channelModel { channelId modelId }
-            }
           }
           status
           remark

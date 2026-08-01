@@ -135,8 +135,6 @@ export const modelProtocolPoolSchema = z.object({
 export type ModelProtocolPool = z.infer<typeof modelProtocolPoolSchema>;
 
 export const modelSettingsSchema = z.object({
-  disableDeveloperSettingsInheritance: z.boolean().optional().default(false),
-  associations: z.array(modelAssociationSchema).optional().default([]),
   protocolPools: z.array(modelProtocolPoolSchema).optional().default([]),
 });
 export type ModelSettings = z.infer<typeof modelSettingsSchema>;
