@@ -55,7 +55,13 @@ func (svc *ModelService) validateModelSettings(settings *objects.ModelSettings) 
 }
 
 func validateModelSettings(settings *objects.ModelSettings) error {
-	if settings == nil || len(settings.Associations) == 0 {
+	if settings == nil {
+		return nil
+	}
+	if err := settings.ValidateProtocolPools(); err != nil {
+		return err
+	}
+	if len(settings.Associations) == 0 {
 		return nil
 	}
 

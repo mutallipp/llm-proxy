@@ -2,6 +2,7 @@ package biz
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/samber/lo"
 
@@ -69,6 +70,26 @@ func (k ChannelModelKey) String() string {
 // Returns ModelChannelConnection with priority for each match.
 // Results are ordered by the matching order of associations.
 // Deduplication: Same (channel, model) combination will only appear once.
+// MatchProtocolConnections 仅在指定协议池内匹配，避免不同入站协议串池。
+func MatchProtocolConnections(settings *objects.ModelSettings, protocol string, channels []*Channel) ([]*ModelChannelConnection, error) {
+	if settings == nil || settings.ProtocolPools == nil {
+		return nil, nil
+	}
+	if _, ok := objects.SupportedInboundAPIFormats[protocol]; !ok {
+		return nil, fmt.Errorf("unsupported protocol pool %q", protocol)
+	}
+	associations, ok := settings.ProtocolPools[protocol]
+	if !ok || len(associations) == 0 {
+		return nil, nil
+	}
+	if err := settings.ValidateProtocolPools(); err != nil {
+		return nil, err
+	}
+	ordered := append([]*objects.ModelAssociation(nil), associations...)
+	sort.SliceStable(ordered, func(i, j int) bool { return ordered[i].Priority < ordered[j].Priority })
+	return MatchConnections(ordered, channels), nil
+}
+
 func MatchConnections(
 	associations []*objects.ModelAssociation,
 	channels []*Channel,
