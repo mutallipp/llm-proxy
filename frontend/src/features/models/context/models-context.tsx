@@ -7,8 +7,6 @@ type DialogType =
   | 'edit'
   | 'delete'
   | 'archive'
-  | 'association'
-  | 'developerAssociation'
   | 'settings'
   | 'bulkEnable'
   | 'bulkDisable'
