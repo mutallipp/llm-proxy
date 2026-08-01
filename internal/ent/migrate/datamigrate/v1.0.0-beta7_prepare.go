@@ -25,15 +25,16 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 	if drv.Dialect() == "mysql" {
 		return fmt.Errorf("mysql legacy adapter migration is unsupported: DDL may implicitly commit")
 	}
-	txClient, err := client.Tx(ctx)
+	tx, err := client.Tx(ctx)
 	if err != nil {
 		return err
 	}
+	txClient := tx.Client()
 	raw := ent.RawDriver(txClient)
 	committed := false
 	defer func() {
 		if !committed {
-			_ = txClient.Rollback()
+			_ = tx.Rollback()
 		}
 	}()
 	if err := raw.Exec(ctx, "ALTER TABLE adapter_model_bindings ADD COLUMN model_id INTEGER", nil, nil); err != nil {
@@ -47,7 +48,6 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 	if err := raw.Query(ctx, "SELECT id, model_group_id FROM adapter_model_bindings WHERE model_group_id IS NOT NULL", nil, &rows); err != nil {
 		return err
 	}
-	defer rows.Close()
 	for rows.Next() {
 		var id, groupID int
 		if err := rows.Scan(&id, &groupID); err != nil {
@@ -86,12 +86,14 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 		}
 	}
 	if err := rows.Err(); err != nil {
+		rows.Close()
 		return err
 	}
+	rows.Close()
 	if err := migrateV1_0_0_Beta7(ctx, txClient); err != nil {
 		return err
 	}
-	if err := txClient.Commit(); err != nil {
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	committed = true
