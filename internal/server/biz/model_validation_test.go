@@ -1118,7 +1118,7 @@ func TestModelService_UpdateModel_WithRegexValidation(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, updatedModel)
 		require.NotNil(t, updatedModel.Settings)
-		require.Len(t, updatedModel.Settings.Associations, 1)
+		require.Len(t, updatedModel.Settings.ProtocolPools["openai"], 1)
 	})
 
 	t.Run("update model with invalid regex patterns should fail", func(t *testing.T) {
