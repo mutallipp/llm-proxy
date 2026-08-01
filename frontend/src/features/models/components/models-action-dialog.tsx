@@ -19,6 +19,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { AutoComplete } from '@/components/auto-complete';
 import { AutoCompleteSelect } from '@/components/auto-complete-select';
 import { useModels } from '../context/models-context';
+import { useQueryChannels } from '@/features/channels/data/channels';
+import type { ModelProtocolPool } from '../data/schema';
 import { DEVELOPER_IDS, DEVELOPER_ICONS } from '../data/constants';
 import { useCreateModel, useUpdateModel } from '../data/models';
 import { useDevelopersData } from '../data/providers';
@@ -43,6 +45,9 @@ export function ModelsActionDialog() {
 
   // 用于解决 Dialog 内 Popover 无法滚动的问题
   const [dialogContent, setDialogContent] = useState<HTMLDivElement | null>(null);
+  const [protocolPools, setProtocolPools] = useState<ModelProtocolPool[]>([]);
+  const { data: channelsData } = useQueryChannels({ first: 100 });
+  const channels = channelsData?.edges?.map((edge) => edge.node) ?? [];
 
   const isEdit = open === 'edit';
   const isOpen = open === 'create' || open === 'edit';
@@ -125,6 +130,7 @@ export function ModelsActionDialog() {
       setModelIdInput(currentRow.modelID);
       setModelIdSearchValue(currentRow.modelID);
       setSelectedModelCard(currentRow.modelCard || {});
+      setProtocolPools(currentRow.settings?.protocolPools || []);
     } else if (!isEdit) {
       form.reset({
         developer: '',
@@ -142,6 +148,7 @@ export function ModelsActionDialog() {
       setModelIdInput('');
       setModelIdSearchValue('');
       setSelectedModelCard({});
+      setProtocolPools([]);
     }
   }, [isEdit, currentRow, form, isOpen]);
 
@@ -227,7 +234,7 @@ export function ModelsActionDialog() {
           icon: data.icon,
           group: data.group,
           modelCard: data.modelCard,
-          settings: data.settings,
+          settings: { ...data.settings, protocolPools },
           remark: data.remark,
         };
         await updateModel.mutateAsync({ id: currentRow.id, input: updateData });
@@ -814,6 +821,17 @@ export function ModelsActionDialog() {
                 </div>
               </div>
             </div>
+
+            {isEdit && (
+              <div className='space-y-3 rounded-md border p-3'>
+                <div className='flex items-center justify-between'><FormLabel>协议池</FormLabel><Button type='button' variant='outline' size='sm' onClick={() => setProtocolPools([...protocolPools, { format: 'openai', associations: [] }])}>新增协议池</Button></div>
+                {protocolPools.map((pool, index) => { const association = pool.associations[0]; return <div key={`${pool.format}-${index}`} className='space-y-2 rounded border p-2'>
+                  <div className='flex gap-2'><Select value={pool.format} onValueChange={(format) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, format } : item))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value='openai'>openai</SelectItem><SelectItem value='anthropic'>anthropic</SelectItem></SelectContent></Select><Button type='button' variant='ghost' onClick={() => setProtocolPools(protocolPools.filter((_, i) => i !== index))}>删除</Button></div>
+                  <Input placeholder='物理模型 ID' value={association?.channelModel?.modelId || ''} onChange={(event) => { const associations = [{ type: 'channel_model' as const, priority: association?.priority || 0, disabled: association?.disabled || false, channelModel: { channelId: association?.channelModel?.channelId || 0, modelId: event.target.value } }]; setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations } : item)); }} />
+                  <Select value={String(association?.channelModel?.channelId || '')} onValueChange={(value) => { const associations = [{ type: 'channel_model' as const, priority: association?.priority || 0, disabled: association?.disabled || false, channelModel: { channelId: Number(value), modelId: association?.channelModel?.modelId || '' } }]; setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations } : item)); }}><SelectTrigger><SelectValue placeholder='选择渠道' /></SelectTrigger><SelectContent>{channels.filter((channel) => channel.endpoints?.some((endpoint) => endpoint.apiFormat === pool.format) || channel.defaultEndpoints?.some((endpoint) => endpoint.apiFormat === pool.format)).map((channel) => <SelectItem key={channel.id} value={String(channel.id)}>{channel.name}</SelectItem>)}</SelectContent></Select>
+                </div>; })}
+              </div>
+            )}
 
             <div className='flex flex-shrink-0 justify-end gap-2 border-t pt-4'>
               <Button type='button' variant='outline' onClick={handleClose}>
