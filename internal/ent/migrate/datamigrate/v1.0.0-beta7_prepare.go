@@ -12,7 +12,7 @@ import (
 
 // PrepareV1_0_0_Beta7 在 Ent schema cutover 前回填 adapter binding 的 legacy 外键。
 func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
-	drv := client.Driver()
+	drv := ent.RawDriver(client)
 	exists, err := tableExists(ctx, drv)
 	if err != nil || !exists {
 		return err
@@ -20,10 +20,16 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 	// 新形态没有 legacy 列时直接幂等返回；旧形态必须能读到 legacy 数据。
 	var probe *entsql.Rows
 	if err := drv.Query(ctx, "SELECT id, model_group_id FROM adapter_model_bindings LIMIT 1", nil, &probe); err != nil {
+		if drv.Dialect() == "mysql" {
+			return fmt.Errorf("mysql legacy adapter migration is unsupported: %w", err)
+		}
 		return nil
 	}
 	probe.Close()
 
+	if drv.Dialect() == "mysql" {
+		return fmt.Errorf("mysql legacy adapter migration is unsupported: DDL may implicitly commit")
+	}
 	tx, err := drv.Tx(ctx)
 	if err != nil {
 		return err
