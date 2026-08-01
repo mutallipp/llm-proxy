@@ -162,11 +162,11 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 	}
 
 	systemSettings := s.SystemService.ModelSettingsOrDefault(ctx)
-	developerAssociationCount, modelAssociationCount, developerInheritanceDisabled := effectiveAssociationSourceCounts(systemSettings, model)
 	protocol := req.APIFormat
 	if protocol == "" {
 		return nil, fmt.Errorf("protocol-required: request API format is missing")
 	}
+	developerAssociationCount, modelAssociationCount, developerInheritanceDisabled := effectiveAssociationSourceCounts(systemSettings, model, protocol)
 	protocolPools := biz.EffectiveModelProtocolPools(systemSettings, model)
 	associations := protocolPools[protocol]
 	if log.DebugEnabled(ctx) {
@@ -504,15 +504,13 @@ func writeSignatureBool(h hash.Hash64, value bool) {
 	writeSignatureString(h, "0")
 }
 
-func effectiveAssociationSourceCounts(systemSettings *biz.SystemModelSettings, m *ent.Model) (developerCount int, modelCount int, developerInheritanceDisabled bool) {
+func effectiveAssociationSourceCounts(systemSettings *biz.SystemModelSettings, m *ent.Model, protocol string) (developerCount int, modelCount int, developerInheritanceDisabled bool) {
 	if m == nil {
 		return 0, 0, false
 	}
 
 	if m.Settings != nil {
-		for _, pool := range m.Settings.ProtocolPools {
-			modelCount += len(pool)
-		}
+		modelCount = len(m.Settings.ProtocolPools[protocol])
 		developerInheritanceDisabled = m.Settings.DisableDeveloperSettingsInheritance
 	}
 
@@ -526,7 +524,7 @@ func effectiveAssociationSourceCounts(systemSettings *biz.SystemModelSettings, m
 		}
 
 		// Developer 配置按协议池保存，统计当前模型协议对应池中的关联数量。
-		if associations, ok := developerSettings.ProtocolPools[m.Protocol]; ok {
+		if associations, ok := developerSettings.ProtocolPools[protocol]; ok {
 			return len(associations), modelCount, developerInheritanceDisabled
 		}
 		return 0, modelCount, developerInheritanceDisabled

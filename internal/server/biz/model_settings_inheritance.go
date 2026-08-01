@@ -59,7 +59,7 @@ func validateSystemModelSettings(settings *SystemModelSettings) error {
 			if _, ok := objects.SupportedInboundAPIFormats[protocol]; !ok {
 				return fmt.Errorf("invalid developer settings for %q: unsupported protocol pool %q", developer, protocol)
 			}
-			if err := validateDeveloperAssociations(associations); err != nil {
+			if err := validateDeveloperAssociations(protocol, associations); err != nil {
 				return fmt.Errorf("invalid developer settings for %q: %w", developer, err)
 			}
 		}
@@ -87,7 +87,7 @@ func normalizeDeveloperAssociations(associations []*objects.ModelAssociation) {
 	}
 }
 
-func validateDeveloperAssociations(associations []*objects.ModelAssociation) error {
+func validateDeveloperAssociations(protocol string, associations []*objects.ModelAssociation) error {
 	for _, assoc := range associations {
 		if assoc == nil {
 			continue
@@ -107,11 +107,7 @@ func validateDeveloperAssociations(associations []*objects.ModelAssociation) err
 		}
 	}
 
-	if err := validateModelSettings(&objects.ModelSettings{ProtocolPools: map[string][]*objects.ModelAssociation{"openai": associations}}); err != nil {
-		return err
-	}
-
-	return nil
+	return (&objects.ModelSettings{ProtocolPools: map[string][]*objects.ModelAssociation{protocol: associations}}).ValidateProtocolPools()
 }
 
 func developerProtocolPoolsForDeveloper(settings *SystemModelSettings, developer string) map[string][]*objects.ModelAssociation {

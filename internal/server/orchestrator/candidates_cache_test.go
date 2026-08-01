@@ -44,7 +44,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		SetModelCard(&objects.ModelCard{}).
 		SetStatus(model.StatusEnabled).
 		SetSettings(&objects.ModelSettings{
-			Associations: associations,
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": associations},
 		}).
 		SaveX(ctx)
 
@@ -58,7 +58,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 
 	t.Run("first call caches result", func(t *testing.T) {
 		// Test selectModelCandidates with mock request
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: "openai"}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
@@ -77,7 +77,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		selector.cacheMu.RUnlock()
 
 		// Call again
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: "openai"}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
@@ -101,7 +101,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 			SetStatus(channel.StatusEnabled).
 			SaveX(ctx)
 
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: "openai"}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
@@ -134,7 +134,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		}
 		channelService.SetEnabledChannelsForTest(enabledChannels)
 
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: "openai"}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
@@ -167,7 +167,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		require.NoError(t, err)
 
 		// Call again - should refresh cache due to model update
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: "openai"}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
@@ -208,13 +208,13 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 
 		_, err = client.Model.UpdateOneID(updatedModel.ID).
 			SetSettings(&objects.ModelSettings{
-				Associations: newAssociations,
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": newAssociations},
 			}).
 			Save(ctx)
 		require.NoError(t, err)
 
 		// Call again - should refresh cache due to model update
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: "openai"}
 		_, err = selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 
@@ -254,11 +254,11 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 			SetModelCard(&objects.ModelCard{}).
 			SetStatus(model.StatusEnabled).
 			SetSettings(&objects.ModelSettings{
-				Associations: differentAssociations,
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": differentAssociations},
 			}).
 			SaveX(ctx)
 
-		req := &llm.Request{Model: differentModelID}
+		req := &llm.Request{Model: differentModelID, APIFormat: "openai"}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
@@ -472,7 +472,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 
 		selector.ChannelService = newChannelService
 
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: "openai"}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.Empty(t, candidates)
@@ -509,7 +509,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		selector.ChannelService = newChannelService
 
 		// First call to populate cache
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: "openai"}
 		_, err = selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 
