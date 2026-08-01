@@ -28,7 +28,13 @@ func (v *V1_0_0_Beta7) Migrate(ctx context.Context, client *ent.Client) (err err
 			_ = tx.Rollback()
 		}
 	}()
-	db := ent.FromContext(ctx)
+	if err = migrateV1_0_0_Beta7(ctx, ent.FromContext(ctx)); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func migrateV1_0_0_Beta7(ctx context.Context, db *ent.Client) (err error) {
 	groups, err := db.ModelGroup.Query().WithProtocols(func(q *ent.ModelGroupProtocolQuery) {
 		q.WithTargets()
 	}).Order(ent.Asc("name")).All(ctx)
@@ -80,7 +86,7 @@ func (v *V1_0_0_Beta7) Migrate(ctx context.Context, client *ent.Client) (err err
 			return err
 		}
 	}
-	return tx.Commit()
+	return nil
 }
 
 func modelID(id string) func(*ent.ModelQuery) {
