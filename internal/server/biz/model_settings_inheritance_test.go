@@ -33,17 +33,17 @@ func TestEffectiveModelAssociations_InheritsDeveloperSettings(t *testing.T) {
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					developerAssociationSamePriority,
 					developerAssociationHigherPriority,
-				},
+				}},
 			},
 		},
 	}, &ent.Model{
 		Developer: "openai",
 		ModelID:   "gpt-4o",
 		Settings: &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{modelAssociation},
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {modelAssociation}},
 		},
 	})
 
@@ -73,9 +73,9 @@ func TestEffectiveModelAssociations_DisablesDeveloperSettingsInheritance(t *test
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					developerAssociation,
-				},
+				}},
 			},
 		},
 	}, &ent.Model{
@@ -101,12 +101,12 @@ func TestEffectiveModelAssociations_LegacyModelSettingsInheritByDefault(t *testi
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type:         "channel_model",
 						ChannelModel: &objects.ChannelModelAssociation{ChannelID: 10},
 					},
-				},
+				}},
 			},
 		},
 	}, &ent.Model{
@@ -168,12 +168,12 @@ func TestValidateSystemModelSettings_RejectsDeveloperModelSelection(t *testing.T
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "anthropic",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type:    "model",
 						ModelID: &objects.ModelIDAssociation{ModelID: "claude-opus-4-6"},
 					},
-				},
+				}},
 			},
 		},
 	})

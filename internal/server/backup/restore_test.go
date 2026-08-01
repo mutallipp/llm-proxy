@@ -168,7 +168,7 @@ func TestBackupService_Restore_RemapChannelIDsInModelSettingsAndAPIKeyProfiles(t
 					Icon:      "test-icon",
 					Group:     "test",
 					Settings: &objects.ModelSettings{
-						Associations: []*objects.ModelAssociation{
+						ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 							{
 								Type:     "channel_model",
 								Priority: 0,
@@ -183,7 +183,7 @@ func TestBackupService_Restore_RemapChannelIDsInModelSettingsAndAPIKeyProfiles(t
 									},
 								},
 							},
-						},
+						}},
 					},
 					Status: model.StatusEnabled,
 				},

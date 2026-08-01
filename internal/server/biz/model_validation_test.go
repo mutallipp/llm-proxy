@@ -30,7 +30,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("valid regex patterns", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "channel_regex",
 					ChannelRegex: &objects.ChannelRegexAssociation{
@@ -67,7 +67,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						},
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -76,7 +76,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("valid when condition", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -98,7 +98,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -113,7 +113,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 		for _, value := range testCases {
 			settings := &objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "model",
 						When: &objects.ModelAssociationWhen{
@@ -135,7 +135,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 							ModelID: "test-model",
 						},
 					},
-				},
+				}},
 			}
 
 			err := svc.validateModelSettings(settings)
@@ -145,7 +145,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid when condition rejects numeric string", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -167,7 +167,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -177,7 +177,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid when without conditions", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -190,7 +190,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -200,7 +200,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid when with unsupported field", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -222,7 +222,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -232,7 +232,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("valid nested when condition", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -266,7 +266,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -276,7 +276,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("valid stream condition", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -298,7 +298,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -307,7 +307,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("valid stream condition with false value", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -329,7 +329,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -338,7 +338,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid stream condition with numeric value", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -360,7 +360,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -370,7 +370,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid stream condition with unsupported operator", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -392,7 +392,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -411,7 +411,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 		for _, field := range fields {
 			t.Run(field, func(t *testing.T) {
 				settings := &objects.ModelSettings{
-					Associations: []*objects.ModelAssociation{
+					ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 						{
 							Type: "model",
 							When: &objects.ModelAssociationWhen{
@@ -433,7 +433,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 								ModelID: "test-model",
 							},
 						},
-					},
+					}},
 				}
 
 				err := svc.validateModelSettings(settings)
@@ -444,7 +444,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid content feature condition with string value", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -466,7 +466,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -476,7 +476,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("valid combined prompt_tokens and stream condition", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -504,7 +504,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -513,7 +513,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("valid request format condition", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -535,7 +535,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -544,7 +544,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("valid daily time condition", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -566,7 +566,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -575,7 +575,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid daily time condition rejects malformed range", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -597,7 +597,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -607,7 +607,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid daily time condition rejects unsupported operator", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -629,7 +629,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -639,7 +639,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("disabled when allows empty condition", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -649,7 +649,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -658,7 +658,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid regex pattern in channel_regex", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "channel_regex",
 					ChannelRegex: &objects.ChannelRegexAssociation{
@@ -666,7 +666,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						Pattern:   "[invalid", // invalid regex
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -676,7 +676,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid regex pattern in channel_tags_regex", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "channel_tags_regex",
 					ChannelTagsRegex: &objects.ChannelTagsRegexAssociation{
@@ -684,7 +684,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						Pattern:     "(?P<invalid", // invalid regex
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -694,14 +694,14 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid regex pattern in regex association", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "regex",
 					Regex: &objects.RegexAssociation{
 						Pattern: "(?P<invalid", // invalid regex
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -711,7 +711,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("invalid regex pattern in exclude rule", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "regex",
 					Regex: &objects.RegexAssociation{
@@ -723,7 +723,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						},
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -738,7 +738,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("empty associations should pass", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{},
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -747,7 +747,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("empty patterns should pass", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "channel_regex",
 					ChannelRegex: &objects.ChannelRegexAssociation{
@@ -768,7 +768,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						Pattern: "", // empty pattern
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -780,7 +780,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 		for _, op := range operators {
 			t.Run(op, func(t *testing.T) {
 				settings := &objects.ModelSettings{
-					Associations: []*objects.ModelAssociation{
+					ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 						{
 							Type: "model",
 							When: &objects.ModelAssociationWhen{
@@ -802,7 +802,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 								ModelID: "test-model",
 							},
 						},
-					},
+					}},
 				}
 
 				err := svc.validateModelSettings(settings)
@@ -813,7 +813,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("request_header rejects unsupported operator", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -835,7 +835,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -845,7 +845,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("request_header rejects empty name", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -867,7 +867,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -877,7 +877,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("request_header rejects sensitive header", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -899,7 +899,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -909,7 +909,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 
 	t.Run("request_header rejects non-string value", func(t *testing.T) {
 		settings := &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "model",
 					When: &objects.ModelAssociationWhen{
@@ -931,7 +931,7 @@ func TestModelService_ValidateModelSettings(t *testing.T) {
 						ModelID: "test-model",
 					},
 				},
-			},
+			}},
 		}
 
 		err := svc.validateModelSettings(settings)
@@ -963,14 +963,14 @@ func TestModelService_CreateModel_WithRegexValidation(t *testing.T) {
 			Group:     "test-group",
 			ModelCard: &objects.ModelCard{},
 			Settings: &objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "regex",
 						Regex: &objects.RegexAssociation{
 							Pattern: "gpt-.*",
 						},
 					},
-				},
+				}},
 			},
 		}
 
@@ -990,14 +990,14 @@ func TestModelService_CreateModel_WithRegexValidation(t *testing.T) {
 			Group:     "test-group",
 			ModelCard: &objects.ModelCard{},
 			Settings: &objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "regex",
 						Regex: &objects.RegexAssociation{
 							Pattern: "[invalid", // invalid regex
 						},
 					},
-				},
+				}},
 			},
 		}
 
@@ -1103,14 +1103,14 @@ func TestModelService_UpdateModel_WithRegexValidation(t *testing.T) {
 	t.Run("update model with valid regex patterns", func(t *testing.T) {
 		input := &ent.UpdateModelInput{
 			Settings: &objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "regex",
 						Regex: &objects.RegexAssociation{
 							Pattern: "claude-.*",
 						},
 					},
-				},
+				}},
 			},
 		}
 
@@ -1124,14 +1124,14 @@ func TestModelService_UpdateModel_WithRegexValidation(t *testing.T) {
 	t.Run("update model with invalid regex patterns should fail", func(t *testing.T) {
 		input := &ent.UpdateModelInput{
 			Settings: &objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "regex",
 						Regex: &objects.RegexAssociation{
 							Pattern: "(?P<invalid", // invalid regex
 						},
 					},
-				},
+				}},
 			},
 		}
 

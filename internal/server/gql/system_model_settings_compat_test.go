@@ -41,12 +41,12 @@ func TestUpdateSystemModelSettings_PreservesDeveloperSettingsWhenOmitted(t *test
 		DeveloperSettings: []*biz.DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type:         "channel_model",
 						ChannelModel: &objects.ChannelModelAssociation{ChannelID: 10},
 					},
-				},
+				}},
 			},
 		},
 	})
@@ -75,12 +75,12 @@ func TestUpdateSystemModelSettings_AllowsExplicitDeveloperSettingsClear(t *testi
 		DeveloperSettings: []*biz.DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type:         "channel_model",
 						ChannelModel: &objects.ChannelModelAssociation{ChannelID: 10},
 					},
-				},
+				}},
 			},
 		},
 	})

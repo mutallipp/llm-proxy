@@ -982,9 +982,9 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 			SetIcon("icon").
 			SetModelCard(&objects.ModelCard{}).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{Type: "model", ModelID: &objects.ModelIDAssociation{ModelID: "gpt-4"}},
-				},
+				}},
 			}).
 			SetStatus(model.StatusEnabled).
 			Save(ctx)
@@ -1016,9 +1016,9 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 			SetIcon("icon").
 			SetModelCard(&objects.ModelCard{}).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{Type: "model", ModelID: &objects.ModelIDAssociation{ModelID: "gpt-4"}},
-				},
+				}},
 			}).
 			SetStatus(model.StatusEnabled).
 			Save(ctx)
@@ -1095,14 +1095,14 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 			SetIcon("icon").
 			SetModelCard(&objects.ModelCard{}).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "model",
 						ModelID: &objects.ModelIDAssociation{
 							ModelID: "gpt-4",
 						},
 					},
-				},
+				}},
 			}).
 			SetStatus(model.StatusEnabled).
 			Save(ctx)
@@ -1117,14 +1117,14 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 			SetIcon("icon").
 			SetModelCard(&objects.ModelCard{}).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "model",
 						ModelID: &objects.ModelIDAssociation{
 							ModelID: "claude-3-opus-20240229",
 						},
 					},
-				},
+				}},
 			}).
 			SetStatus(model.StatusEnabled).
 			Save(ctx)
@@ -1154,7 +1154,7 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 			SetIcon("icon").
 			SetModelCard(&objects.ModelCard{}).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{},
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {}},
 			}).
 			SetStatus(model.StatusEnabled).
 			Save(ctx)
@@ -1200,7 +1200,7 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 			SetIcon("icon").
 			SetModelCard(&objects.ModelCard{}).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "channel_model",
 						ChannelModel: &objects.ChannelModelAssociation{
@@ -1208,7 +1208,7 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 							ModelID:   "gpt-4",
 						},
 					},
-				},
+				}},
 			}).
 			SetStatus(model.StatusEnabled).
 			Save(ctx)
@@ -1223,7 +1223,7 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 			SetIcon("icon").
 			SetModelCard(&objects.ModelCard{}).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "channel_model",
 						ChannelModel: &objects.ChannelModelAssociation{
@@ -1231,7 +1231,7 @@ func TestModelService_ListEnabledModels(t *testing.T) {
 							ModelID:   "gpt-3.5-turbo",
 						},
 					},
-				},
+				}},
 			}).
 			SetStatus(model.StatusEnabled).
 			Save(ctx)

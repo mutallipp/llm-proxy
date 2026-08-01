@@ -169,7 +169,7 @@ func TestOpenAIHandlers_RetrieveModel_ReturnsExtendedConfiguredModel(t *testing.
 			Modalities: objects.ModelCardModalities{Input: []string{"text", "image"}, Output: []string{"text"}},
 		}).
 		SetSettings(&objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "channel_model",
 					ChannelModel: &objects.ChannelModelAssociation{
@@ -177,7 +177,7 @@ func TestOpenAIHandlers_RetrieveModel_ReturnsExtendedConfiguredModel(t *testing.
 						ModelID:   "gpt-4.1",
 					},
 				},
-			},
+			}},
 		}).
 		SetStatus(model.StatusEnabled).
 		SetCreatedAt(modelCreatedAt).
@@ -248,7 +248,7 @@ func TestOpenAIHandlers_RetrieveModel_ReturnsEmptyModalitiesWhenZeroValue(t *tes
 			Cost:     objects.ModelCardCost{Input: 2, Output: 8},
 		}).
 		SetSettings(&objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "channel_model",
 					ChannelModel: &objects.ChannelModelAssociation{
@@ -256,7 +256,7 @@ func TestOpenAIHandlers_RetrieveModel_ReturnsEmptyModalitiesWhenZeroValue(t *tes
 						ModelID:   "gpt-4.1",
 					},
 				},
-			},
+			}},
 		}).
 		SetStatus(model.StatusEnabled).
 		SetCreatedAt(modelCreatedAt).
@@ -332,7 +332,7 @@ func TestOpenAIHandlers_ListModels_UsesBasicFieldsByDefault(t *testing.T) {
 			Modalities: objects.ModelCardModalities{Input: []string{"text", "image"}, Output: []string{"text"}},
 		}).
 		SetSettings(&objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "channel_model",
 					ChannelModel: &objects.ChannelModelAssociation{
@@ -340,7 +340,7 @@ func TestOpenAIHandlers_ListModels_UsesBasicFieldsByDefault(t *testing.T) {
 						ModelID:   "gpt-4.1",
 					},
 				},
-			},
+			}},
 		}).
 		SetStatus(model.StatusEnabled).
 		Save(ctx)
@@ -407,7 +407,7 @@ func TestOpenAIHandlers_ListModels_UsesExtendedFieldsWhenConfiguredAsDefault(t *
 			Modalities: objects.ModelCardModalities{Input: []string{"text", "image"}, Output: []string{"text"}},
 		}).
 		SetSettings(&objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 				{
 					Type: "channel_model",
 					ChannelModel: &objects.ChannelModelAssociation{
@@ -415,7 +415,7 @@ func TestOpenAIHandlers_ListModels_UsesExtendedFieldsWhenConfiguredAsDefault(t *
 						ModelID:   "gpt-4.1",
 					},
 				},
-			},
+			}},
 		}).
 		SetStatus(model.StatusEnabled).
 		Save(ctx)
@@ -494,13 +494,13 @@ func TestOpenAIHandlers_ListModels_ExtendedModeRespectsAPIKeyProfile(t *testing.
 			Cost:     objects.ModelCardCost{Input: 2, Output: 8},
 		}).
 		SetSettings(&objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {{
 				Type: "channel_model",
 				ChannelModel: &objects.ChannelModelAssociation{
 					ChannelID: openaiCh.ID,
 					ModelID:   "gpt-4.1",
 				},
-			}},
+			}}},
 		}).
 		SetStatus(model.StatusEnabled).
 		Save(ctx)
@@ -520,13 +520,13 @@ func TestOpenAIHandlers_ListModels_ExtendedModeRespectsAPIKeyProfile(t *testing.
 			Cost:     objects.ModelCardCost{Input: 15, Output: 75},
 		}).
 		SetSettings(&objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {{
 				Type: "channel_model",
 				ChannelModel: &objects.ChannelModelAssociation{
 					ChannelID: anthropicCh.ID,
 					ModelID:   "claude-3-opus-20240229",
 				},
-			}},
+			}}},
 		}).
 		SetStatus(model.StatusEnabled).
 		Save(ctx)
@@ -621,10 +621,10 @@ func TestOpenAIHandlers_ListModels_ExtendedModeFallsBackToBasicForMissingDBModel
 			Cost:  objects.ModelCardCost{Input: 2, Output: 8},
 		}).
 		SetSettings(&objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{{
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {{
 				Type:         "channel_model",
 				ChannelModel: &objects.ChannelModelAssociation{ChannelID: openaiCh.ID, ModelID: "gpt-4.1"},
-			}},
+			}}},
 		}).
 		SetStatus(model.StatusEnabled).
 		Save(ctx)
