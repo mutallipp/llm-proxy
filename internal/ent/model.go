@@ -44,8 +44,31 @@ type Model struct {
 	// Status holds the value of the "status" field.
 	Status model.Status `json:"status,omitempty"`
 	// User-defined remark or note for the Model
-	Remark       *string `json:"remark,omitempty"`
+	Remark *string `json:"remark,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ModelQuery when eager-loading is set.
+	Edges        ModelEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// ModelEdges holds the relations/edges for other nodes in the graph.
+type ModelEdges struct {
+	// AdapterBindings holds the value of the adapter_bindings edge.
+	AdapterBindings []*AdapterModelBinding `json:"adapter_bindings,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+
+	namedAdapterBindings map[string][]*AdapterModelBinding
+}
+
+// AdapterBindingsOrErr returns the AdapterBindings value or an error if the edge
+// was not loaded in eager-loading.
+func (e ModelEdges) AdapterBindingsOrErr() ([]*AdapterModelBinding, error) {
+	if e.loadedTypes[0] {
+		return e.AdapterBindings, nil
+	}
+	return nil, &NotLoadedError{edge: "adapter_bindings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -178,6 +201,11 @@ func (_m *Model) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryAdapterBindings queries the "adapter_bindings" edge of the Model entity.
+func (_m *Model) QueryAdapterBindings() *AdapterModelBindingQuery {
+	return NewModelClient(_m.config).QueryAdapterBindings(_m)
+}
+
 // Update returns a builder for updating this Model.
 // Note that you need to call Model.Unwrap() before calling this method if this Model
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -243,6 +271,30 @@ func (_m *Model) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedAdapterBindings returns the AdapterBindings named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *Model) NamedAdapterBindings(name string) ([]*AdapterModelBinding, error) {
+	if _m.Edges.namedAdapterBindings == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedAdapterBindings[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *Model) appendNamedAdapterBindings(name string, edges ...*AdapterModelBinding) {
+	if _m.Edges.namedAdapterBindings == nil {
+		_m.Edges.namedAdapterBindings = make(map[string][]*AdapterModelBinding)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedAdapterBindings[name] = []*AdapterModelBinding{}
+	} else {
+		_m.Edges.namedAdapterBindings[name] = append(_m.Edges.namedAdapterBindings[name], edges...)
+	}
 }
 
 // Models is a parsable slice of Model.

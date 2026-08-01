@@ -49,7 +49,7 @@ type AdapterDTO struct {
 type BindingDTO struct {
 	ID            int     `json:"id"`
 	SourceModelID string  `json:"source_model_id"`
-	ModelGroupID  int     `json:"model_group_id"`
+	ModelID       int     `json:"model_id"`
 	Enabled       bool    `json:"enabled"`
 	Remark        *string `json:"remark,omitempty"`
 }
@@ -72,7 +72,7 @@ func (h *GatewayHandlers) ListAdapters(c *gin.Context) {
 			bindings = append(bindings, BindingDTO{
 				ID:            binding.ID,
 				SourceModelID: binding.SourceModelID,
-				ModelGroupID:  binding.ModelGroupID,
+				ModelID:       binding.ModelID,
 				Enabled:       binding.Enabled,
 				Remark:        binding.Remark,
 			})
@@ -105,7 +105,7 @@ type UpdateAdapterRequest struct {
 // BindingInput 绑定输入.
 type BindingInput struct {
 	SourceModelID string `json:"source_model_id" binding:"required"`
-	ModelGroupID  int    `json:"model_group_id" binding:"required"`
+	ModelID       int    `json:"model_group_id" binding:"required"`
 	Enabled       bool   `json:"enabled"`
 	Remark        string `json:"remark,omitempty"`
 }
@@ -136,8 +136,8 @@ func (h *GatewayHandlers) UpdateAdapter(c *gin.Context) {
 			JSONError(c, http.StatusBadRequest, errors.New("binding source_model_id is required"))
 			return
 		}
-		if binding.ModelGroupID <= 0 {
-			JSONError(c, http.StatusBadRequest, errors.New("binding model_group_id must be positive"))
+		if binding.ModelID <= 0 {
+			JSONError(c, http.StatusBadRequest, errors.New("binding model_id must be positive"))
 			return
 		}
 	}
@@ -444,7 +444,7 @@ func convertBindingInputs(inputs []BindingInput) []biz.BindingInput {
 		remark := input.Remark
 		result = append(result, biz.BindingInput{
 			SourceModelID: input.SourceModelID,
-			ModelGroupID:  input.ModelGroupID,
+			ModelID:       input.ModelID,
 			Enabled:       input.Enabled,
 			Remark:        &remark,
 		})
@@ -550,7 +550,7 @@ func (h *GatewayHandlers) RenameAdapter(c *gin.Context) {
 		bindings = append(bindings, BindingDTO{
 			ID:            b.ID,
 			SourceModelID: b.SourceModelID,
-			ModelGroupID:  b.ModelGroupID,
+			ModelID:       b.ModelID,
 			Enabled:       b.Enabled,
 			Remark:        b.Remark,
 		})

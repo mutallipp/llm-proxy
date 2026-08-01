@@ -156,8 +156,8 @@ func (_u *AdapterModelBindingUpdate) check() error {
 	if _u.mutation.AdapterCleared() && len(_u.mutation.AdapterIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AdapterModelBinding.adapter"`)
 	}
-	if _u.mutation.ModelGroupCleared() && len(_u.mutation.ModelGroupIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AdapterModelBinding.model_group"`)
+	if _u.mutation.ModelCleared() && len(_u.mutation.ModelIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "AdapterModelBinding.model"`)
 	}
 	return nil
 }
@@ -363,8 +363,8 @@ func (_u *AdapterModelBindingUpdateOne) check() error {
 	if _u.mutation.AdapterCleared() && len(_u.mutation.AdapterIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AdapterModelBinding.adapter"`)
 	}
-	if _u.mutation.ModelGroupCleared() && len(_u.mutation.ModelGroupIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AdapterModelBinding.model_group"`)
+	if _u.mutation.ModelCleared() && len(_u.mutation.ModelIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "AdapterModelBinding.model"`)
 	}
 	return nil
 }

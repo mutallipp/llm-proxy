@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
 	"github.com/mutallipp/llm-proxy/internal/ent/model"
 	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 	"github.com/mutallipp/llm-proxy/internal/objects"
@@ -187,9 +188,45 @@ func (_u *ModelUpdate) ClearRemark() *ModelUpdate {
 	return _u
 }
 
+// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
+func (_u *ModelUpdate) AddAdapterBindingIDs(ids ...int) *ModelUpdate {
+	_u.mutation.AddAdapterBindingIDs(ids...)
+	return _u
+}
+
+// AddAdapterBindings adds the "adapter_bindings" edges to the AdapterModelBinding entity.
+func (_u *ModelUpdate) AddAdapterBindings(v ...*AdapterModelBinding) *ModelUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAdapterBindingIDs(ids...)
+}
+
 // Mutation returns the ModelMutation object of the builder.
 func (_u *ModelUpdate) Mutation() *ModelMutation {
 	return _u.mutation
+}
+
+// ClearAdapterBindings clears all "adapter_bindings" edges to the AdapterModelBinding entity.
+func (_u *ModelUpdate) ClearAdapterBindings() *ModelUpdate {
+	_u.mutation.ClearAdapterBindings()
+	return _u
+}
+
+// RemoveAdapterBindingIDs removes the "adapter_bindings" edge to AdapterModelBinding entities by IDs.
+func (_u *ModelUpdate) RemoveAdapterBindingIDs(ids ...int) *ModelUpdate {
+	_u.mutation.RemoveAdapterBindingIDs(ids...)
+	return _u
+}
+
+// RemoveAdapterBindings removes "adapter_bindings" edges to AdapterModelBinding entities.
+func (_u *ModelUpdate) RemoveAdapterBindings(v ...*AdapterModelBinding) *ModelUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAdapterBindingIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -308,6 +345,51 @@ func (_u *ModelUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(model.FieldRemark, field.TypeString)
+	}
+	if _u.mutation.AdapterBindingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAdapterBindingsIDs(); len(nodes) > 0 && !_u.mutation.AdapterBindingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AdapterBindingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(_u.modifiers...)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -488,9 +570,45 @@ func (_u *ModelUpdateOne) ClearRemark() *ModelUpdateOne {
 	return _u
 }
 
+// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
+func (_u *ModelUpdateOne) AddAdapterBindingIDs(ids ...int) *ModelUpdateOne {
+	_u.mutation.AddAdapterBindingIDs(ids...)
+	return _u
+}
+
+// AddAdapterBindings adds the "adapter_bindings" edges to the AdapterModelBinding entity.
+func (_u *ModelUpdateOne) AddAdapterBindings(v ...*AdapterModelBinding) *ModelUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAdapterBindingIDs(ids...)
+}
+
 // Mutation returns the ModelMutation object of the builder.
 func (_u *ModelUpdateOne) Mutation() *ModelMutation {
 	return _u.mutation
+}
+
+// ClearAdapterBindings clears all "adapter_bindings" edges to the AdapterModelBinding entity.
+func (_u *ModelUpdateOne) ClearAdapterBindings() *ModelUpdateOne {
+	_u.mutation.ClearAdapterBindings()
+	return _u
+}
+
+// RemoveAdapterBindingIDs removes the "adapter_bindings" edge to AdapterModelBinding entities by IDs.
+func (_u *ModelUpdateOne) RemoveAdapterBindingIDs(ids ...int) *ModelUpdateOne {
+	_u.mutation.RemoveAdapterBindingIDs(ids...)
+	return _u
+}
+
+// RemoveAdapterBindings removes "adapter_bindings" edges to AdapterModelBinding entities.
+func (_u *ModelUpdateOne) RemoveAdapterBindings(v ...*AdapterModelBinding) *ModelUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAdapterBindingIDs(ids...)
 }
 
 // Where appends a list predicates to the ModelUpdate builder.
@@ -639,6 +757,51 @@ func (_u *ModelUpdateOne) sqlSave(ctx context.Context) (_node *Model, err error)
 	}
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(model.FieldRemark, field.TypeString)
+	}
+	if _u.mutation.AdapterBindingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAdapterBindingsIDs(); len(nodes) > 0 && !_u.mutation.AdapterBindingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AdapterBindingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_spec.AddModifiers(_u.modifiers...)
 	_node = &Model{config: _u.config}

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
 	"github.com/mutallipp/llm-proxy/internal/ent/model"
 	"github.com/mutallipp/llm-proxy/internal/objects"
 )
@@ -147,6 +148,21 @@ func (_c *ModelCreate) SetNillableRemark(v *string) *ModelCreate {
 		_c.SetRemark(*v)
 	}
 	return _c
+}
+
+// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
+func (_c *ModelCreate) AddAdapterBindingIDs(ids ...int) *ModelCreate {
+	_c.mutation.AddAdapterBindingIDs(ids...)
+	return _c
+}
+
+// AddAdapterBindings adds the "adapter_bindings" edges to the AdapterModelBinding entity.
+func (_c *ModelCreate) AddAdapterBindings(v ...*AdapterModelBinding) *ModelCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAdapterBindingIDs(ids...)
 }
 
 // Mutation returns the ModelMutation object of the builder.
@@ -335,6 +351,22 @@ func (_c *ModelCreate) createSpec() (*Model, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(model.FieldRemark, field.TypeString, value)
 		_node.Remark = &value
+	}
+	if nodes := _c.mutation.AdapterBindingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

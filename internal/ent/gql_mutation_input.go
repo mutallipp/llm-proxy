@@ -505,15 +505,16 @@ func (c *DataStorageUpdateOne) SetInput(i UpdateDataStorageInput) *DataStorageUp
 
 // CreateModelInput represents a mutation input for creating models.
 type CreateModelInput struct {
-	Developer string
-	ModelID   string
-	Type      *model.Type
-	Name      string
-	Icon      string
-	Group     string
-	ModelCard *objects.ModelCard
-	Settings  *objects.ModelSettings
-	Remark    *string
+	Developer         string
+	ModelID           string
+	Type              *model.Type
+	Name              string
+	Icon              string
+	Group             string
+	ModelCard         *objects.ModelCard
+	Settings          *objects.ModelSettings
+	Remark            *string
+	AdapterBindingIDs []int
 }
 
 // Mutate applies the CreateModelInput on the ModelMutation builder.
@@ -535,6 +536,9 @@ func (i *CreateModelInput) Mutate(m *ModelMutation) {
 	if v := i.Remark; v != nil {
 		m.SetRemark(*v)
 	}
+	if v := i.AdapterBindingIDs; len(v) > 0 {
+		m.AddAdapterBindingIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateModelInput on the ModelCreate builder.
@@ -545,17 +549,20 @@ func (c *ModelCreate) SetInput(i CreateModelInput) *ModelCreate {
 
 // UpdateModelInput represents a mutation input for updating models.
 type UpdateModelInput struct {
-	Developer   *string
-	ModelID     *string
-	Type        *model.Type
-	Name        *string
-	Icon        *string
-	Group       *string
-	ModelCard   *objects.ModelCard
-	Settings    *objects.ModelSettings
-	Status      *model.Status
-	ClearRemark bool
-	Remark      *string
+	Developer               *string
+	ModelID                 *string
+	Type                    *model.Type
+	Name                    *string
+	Icon                    *string
+	Group                   *string
+	ModelCard               *objects.ModelCard
+	Settings                *objects.ModelSettings
+	Status                  *model.Status
+	ClearRemark             bool
+	Remark                  *string
+	ClearAdapterBindings    bool
+	AddAdapterBindingIDs    []int
+	RemoveAdapterBindingIDs []int
 }
 
 // Mutate applies the UpdateModelInput on the ModelMutation builder.
@@ -592,6 +599,15 @@ func (i *UpdateModelInput) Mutate(m *ModelMutation) {
 	}
 	if v := i.Remark; v != nil {
 		m.SetRemark(*v)
+	}
+	if i.ClearAdapterBindings {
+		m.ClearAdapterBindings()
+	}
+	if v := i.AddAdapterBindingIDs; len(v) > 0 {
+		m.AddAdapterBindingIDs(v...)
+	}
+	if v := i.RemoveAdapterBindingIDs; len(v) > 0 {
+		m.RemoveAdapterBindingIDs(v...)
 	}
 }
 

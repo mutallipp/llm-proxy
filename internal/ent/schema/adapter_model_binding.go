@@ -27,8 +27,8 @@ func (AdapterModelBinding) Indexes() []ent.Index {
 		index.Fields("adapter_id", "source_model_id", "deleted_at").
 			StorageKey("adapter_model_bindings_by_adapter_model").
 			Unique(),
-		index.Fields("model_group_id", "deleted_at").
-			StorageKey("adapter_model_bindings_by_model_group"),
+		index.Fields("model_id", "deleted_at").
+			StorageKey("adapter_model_bindings_by_model"),
 	}
 }
 
@@ -36,7 +36,7 @@ func (AdapterModelBinding) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("adapter_id").Immutable(),
 		field.String("source_model_id"),
-		field.Int("model_group_id").Immutable(),
+		field.Int("model_id").Immutable(),
 		field.Bool("enabled").Default(true),
 		field.String("remark").Optional().Nillable(),
 	}
@@ -50,9 +50,9 @@ func (AdapterModelBinding) Edges() []ent.Edge {
 			Immutable().
 			Required().
 			Unique(),
-		edge.From("model_group", ModelGroup.Type).
+		edge.From("model", Model.Type).
 			Ref("adapter_bindings").
-			Field("model_group_id").
+			Field("model_id").
 			Immutable().
 			Required().
 			Unique(),

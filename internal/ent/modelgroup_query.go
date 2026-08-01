@@ -486,9 +486,7 @@ func (_q *ModelGroupQuery) loadAdapterBindings(ctx context.Context, query *Adapt
 			init(nodes[i])
 		}
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(adaptermodelbinding.FieldModelGroupID)
-	}
+	query.withFKs = true
 	query.Where(predicate.AdapterModelBinding(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(modelgroup.AdapterBindingsColumn), fks...))
 	}))
@@ -497,10 +495,13 @@ func (_q *ModelGroupQuery) loadAdapterBindings(ctx context.Context, query *Adapt
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.ModelGroupID
-		node, ok := nodeids[fk]
+		fk := n.model_group_adapter_bindings
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "model_group_adapter_bindings" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "model_group_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "model_group_adapter_bindings" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -343,7 +343,7 @@ func (svc *AdapterService) loadSnapshot(ctx context.Context) (*objects.AdapterSn
 			// 所属 Adapter 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
 			continue
 		}
-		group, ok := groupEntities[binding.ModelGroupID]
+		group, ok := groupEntities[binding.ModelID]
 		if !ok {
 			// 所属 ModelGroup 已禁用，保留数据库配置但不进入运行时，重新启用时可恢复
 			continue
@@ -431,7 +431,7 @@ type AdapterInfo struct {
 type BindingInfo struct {
 	ID            int
 	SourceModelID string
-	ModelGroupID  int
+	ModelID       int
 	Enabled       bool
 	Remark        *string
 }
@@ -480,7 +480,7 @@ type UpdateAdapterParams struct {
 // BindingInput 绑定输入
 type BindingInput struct {
 	SourceModelID string
-	ModelGroupID  int
+	ModelID       int
 	Enabled       bool
 	Remark        *string
 }
@@ -558,7 +558,7 @@ func (svc *AdapterService) ListAdapters(ctx context.Context) ([]AdapterInfo, err
 			bindingInfos = append(bindingInfos, BindingInfo{
 				ID:            b.ID,
 				SourceModelID: b.SourceModelID,
-				ModelGroupID:  b.ModelGroupID,
+				ModelID:       b.ModelID,
 				Enabled:       b.Enabled,
 				Remark:        b.Remark,
 			})
@@ -659,7 +659,7 @@ func (svc *AdapterService) UpdateAdapter(ctx context.Context, name string, param
 				_, err := db.AdapterModelBinding.Create().
 					SetAdapterID(a.ID).
 					SetSourceModelID(binding.SourceModelID).
-					SetModelGroupID(binding.ModelGroupID).
+					SetModelID(binding.ModelID).
 					SetEnabled(binding.Enabled).
 					SetRemark(remark).
 					Save(txCtx)
@@ -690,7 +690,7 @@ func (svc *AdapterService) UpdateAdapter(ctx context.Context, name string, param
 			bindingInfos = append(bindingInfos, BindingInfo{
 				ID:            b.ID,
 				SourceModelID: b.SourceModelID,
-				ModelGroupID:  b.ModelGroupID,
+				ModelID:       b.ModelID,
 				Enabled:       b.Enabled,
 				Remark:        b.Remark,
 			})
@@ -1081,7 +1081,7 @@ func (svc *AdapterService) RenameAdapter(ctx context.Context, oldName, newName s
 		for _, b := range activeBindings {
 			createBinding := db.AdapterModelBinding.Create().
 				SetAdapterID(newAdapter.ID).
-				SetModelGroupID(b.ModelGroupID).
+				SetModelID(b.ModelID).
 				SetSourceModelID(b.SourceModelID).
 				SetEnabled(b.Enabled)
 			if b.Remark != nil {
@@ -1125,7 +1125,7 @@ func (svc *AdapterService) RenameAdapter(ctx context.Context, oldName, newName s
 			bindingInfos = append(bindingInfos, BindingInfo{
 				ID:            b.ID,
 				SourceModelID: b.SourceModelID,
-				ModelGroupID:  b.ModelGroupID,
+				ModelID:       b.ModelID,
 				Enabled:       b.Enabled,
 				Remark:        b.Remark,
 			})
@@ -1205,7 +1205,7 @@ func (svc *AdapterService) DeleteModelGroup(ctx context.Context, name string) er
 
 		// 检查是否被活跃绑定引用（引用 → 409）
 		refCount, err := db.AdapterModelBinding.Query().
-			Where(adaptermodelbinding.ModelGroupID(g.ID), adaptermodelbinding.DeletedAtEQ(0)).
+			Where(adaptermodelbinding.ModelID(g.ID), adaptermodelbinding.DeletedAtEQ(0)).
 			Count(txCtx)
 		if err != nil {
 			return fmt.Errorf("failed to check active bindings: %w", err)
@@ -1266,7 +1266,7 @@ func (svc *AdapterService) buildAdapterInfo(ctx context.Context, a *ent.Adapter)
 		infos = append(infos, BindingInfo{
 			ID:            b.ID,
 			SourceModelID: b.SourceModelID,
-			ModelGroupID:  b.ModelGroupID,
+			ModelID:       b.ModelID,
 			Enabled:       b.Enabled,
 			Remark:        b.Remark,
 		})
