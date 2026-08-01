@@ -105,12 +105,6 @@ func (s *DefaultSelector) Select(ctx context.Context, req *llm.Request) ([]*Chan
 				return nil, fmt.Errorf("%w: adapter model %q was not resolved", biz.ErrInvalidModel, req.Model)
 			}
 
-			// Check if fallback to legacy channel selection is allowed
-			settings := s.SystemService.ModelSettingsOrDefault(ctx)
-			if settings.FallbackToChannelsOnModelNotFound {
-				return s.selectChannelCadidates(ctx, req)
-			}
-
 			return nil, fmt.Errorf("%w: %q", biz.ErrInvalidModel, req.Model)
 		}
 
@@ -180,11 +174,7 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 		)
 	}
 	if len(associations) == 0 {
-		if log.DebugEnabled(ctx) {
-			log.Debug(ctx, "model has no associations", log.String("model", req.Model))
-		}
-
-		return []*ChannelModelsCandidate{}, nil
+		return nil, fmt.Errorf("%w: model %q has no targets for protocol %q", biz.ErrInvalidModel, req.Model, protocol)
 	}
 
 	if log.DebugEnabled(ctx) {
@@ -202,13 +192,7 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 
 	candidates := filterResolvedCandidatesForRequest(ctx, req, resolvedCandidates)
 	if len(candidates) == 0 {
-		if log.DebugEnabled(ctx) {
-			log.Debug(ctx, "no candidates matched request conditions",
-				log.String("model", req.Model),
-			)
-		}
-
-		return []*ChannelModelsCandidate{}, nil
+		return nil, fmt.Errorf("%w: model %q has no available targets for protocol %q", biz.ErrInvalidModel, req.Model, protocol)
 	}
 
 	if log.DebugEnabled(ctx) {

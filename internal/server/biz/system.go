@@ -454,13 +454,6 @@ type WebhookSubscription struct {
 
 // SystemModelSettings represents model-related configuration settings.
 type SystemModelSettings struct {
-	// FallbackToChannelsOnModelNotFound controls whether to fall back to legacy channel
-	// selection when the requested model is not found in AxonHub Model associations.
-	// When true, if a model has no associations or doesn't exist, the system will
-	// attempt to find enabled channels that support the requested model directly.
-	// When false, such requests will return an error instead of falling back.
-	FallbackToChannelsOnModelNotFound bool `json:"fallback_to_channels_on_model_not_found"`
-
 	// QueryAllChannelModels controls whether models API returns all models from channels
 	// or only configured models (models with explicit Model entity configuration).
 	// When true, the models API will return all models supported by enabled channels.

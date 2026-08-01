@@ -247,14 +247,13 @@ type ProtocolInfo struct {
 
 // TargetInfo 目标信息
 type TargetInfo struct {
-	ID                int
-	ChannelID         int
-	TargetModelID     string
-	OutboundAPIFormat string
-	Priority          int
-	Enabled           bool
-	Remark            *string
-	Capabilities      objects.AdapterTargetCapabilities
+	ID            int
+	ChannelID     int
+	TargetModelID string
+	Priority      int
+	Enabled       bool
+	Remark        *string
+	Capabilities  objects.AdapterTargetCapabilities
 }
 
 // UpdateAdapterParams 更新适配器参数
@@ -284,13 +283,12 @@ type ProtocolInput struct {
 
 // TargetInput 目标输入
 type TargetInput struct {
-	ChannelID         int
-	TargetModelID     string
-	OutboundAPIFormat string
-	Priority          int
-	Enabled           bool
-	Remark            *string
-	Capabilities      AdapterTargetCapabilitiesInput
+	ChannelID     int
+	TargetModelID string
+	Priority      int
+	Enabled       bool
+	Remark        *string
+	Capabilities  AdapterTargetCapabilitiesInput
 }
 
 // AdapterTargetCapabilitiesInput 目标能力输入

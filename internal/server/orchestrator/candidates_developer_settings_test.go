@@ -32,8 +32,7 @@ func TestDefaultSelector_Select_InheritsDeveloperAssociations(t *testing.T) {
 	systemService := newTestSystemService(client)
 
 	err = systemService.SetModelSettings(ctx, biz.SystemModelSettings{
-		FallbackToChannelsOnModelNotFound: true,
-		QueryAllChannelModels:             true,
+		QueryAllChannelModels: true,
 		DeveloperSettings: []*biz.DeveloperModelSettings{
 			{
 				Developer: "anthropic",
