@@ -37,6 +37,17 @@ type ModelCardLimit {
 # ModelSettings 表示模型协议池配置
 type ModelSettings {
   disableDeveloperSettingsInheritance: Boolean!
+  protocolPools: [ModelProtocolPool!]!
+}
+
+type ModelProtocolPool {
+  format: String!
+  associations: [ModelAssociation!]!
+}
+
+input ModelProtocolPoolInput {
+  format: String!
+  associations: [ModelAssociationInput!]
 }
 
 type ModelAssociation {
@@ -131,6 +142,7 @@ input ModelCardLimitInput {
 
 input ModelSettingsInput {
   disableDeveloperSettingsInheritance: Boolean
+  protocolPools: [ModelProtocolPoolInput!]
 }
 
 input ModelAssociationInput {

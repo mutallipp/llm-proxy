@@ -23,6 +23,15 @@ func (r *modelResolver) AssociatedChannelCount(ctx context.Context, obj *ent.Mod
 	return r.modelService.CountModelAssociatedChannels(ctx, obj)
 }
 
+// ProtocolPools is the resolver for the protocolPools field.
+func (r *modelSettingsResolver) ProtocolPools(ctx context.Context, obj *objects.ModelSettings) ([]*ModelProtocolPool, error) {
+	pools := make([]*ModelProtocolPool, 0, len(obj.ProtocolPools))
+	for format, associations := range obj.ProtocolPools {
+		pools = append(pools, &ModelProtocolPool{Format: format, Associations: associations})
+	}
+	return pools, nil
+}
+
 // CreateModel is the resolver for the createModel field.
 func (r *mutationResolver) CreateModel(ctx context.Context, input ent.CreateModelInput) (*ent.Model, error) {
 	return r.modelService.CreateModel(ctx, input)
@@ -177,3 +186,23 @@ func (r *queryResolver) QueryModelChannelConnections(ctx context.Context, associ
 func (r *queryResolver) QueryUnassociatedChannels(ctx context.Context) ([]*biz.UnassociatedChannel, error) {
 	return r.modelService.QueryUnassociatedChannels(ctx)
 }
+
+// ProtocolPools is the resolver for the protocolPools field.
+func (r *modelSettingsInputResolver) ProtocolPools(ctx context.Context, obj *objects.ModelSettings, data []*ModelProtocolPoolInput) error {
+	obj.ProtocolPools = make(map[string][]*objects.ModelAssociation, len(data))
+	for _, pool := range data {
+		obj.ProtocolPools[pool.Format] = pool.Associations
+	}
+	return nil
+}
+
+// ModelSettings returns ModelSettingsResolver implementation.
+func (r *Resolver) ModelSettings() ModelSettingsResolver { return &modelSettingsResolver{r} }
+
+// ModelSettingsInput returns ModelSettingsInputResolver implementation.
+func (r *Resolver) ModelSettingsInput() ModelSettingsInputResolver {
+	return &modelSettingsInputResolver{r}
+}
+
+type modelSettingsResolver struct{ *Resolver }
+type modelSettingsInputResolver struct{ *Resolver }

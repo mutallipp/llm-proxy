@@ -76,7 +76,9 @@ type ResolverRoot interface {
 	ChannelProbeData() ChannelProbeDataResolver
 	ChannelSettings() ChannelSettingsResolver
 	DataStorage() DataStorageResolver
+	DeveloperModelSettings() DeveloperModelSettingsResolver
 	Model() ModelResolver
+	ModelSettings() ModelSettingsResolver
 	Mutation() MutationResolver
 	OIDCIdentity() OIDCIdentityResolver
 	Project() ProjectResolver
@@ -96,6 +98,8 @@ type ResolverRoot interface {
 	UserInfo() UserInfoResolver
 	UserProject() UserProjectResolver
 	UserRole() UserRoleResolver
+	DeveloperModelSettingsInput() DeveloperModelSettingsInputResolver
+	ModelSettingsInput() ModelSettingsInputResolver
 }
 
 type DirectiveRoot struct {
@@ -695,7 +699,8 @@ type ComplexityRoot struct {
 	}
 
 	DeveloperModelSettings struct {
-		Developer func(childComplexity int) int
+		Developer     func(childComplexity int) int
+		ProtocolPools func(childComplexity int) int
 	}
 
 	DisabledAPIKey struct {
@@ -911,8 +916,14 @@ type ComplexityRoot struct {
 		PromptWriteCacheVariants func(childComplexity int) int
 	}
 
+	ModelProtocolPool struct {
+		Associations func(childComplexity int) int
+		Format       func(childComplexity int) int
+	}
+
 	ModelSettings struct {
 		DisableDeveloperSettingsInheritance func(childComplexity int) int
+		ProtocolPools                       func(childComplexity int) int
 	}
 
 	ModelTokenUsageStats struct {
@@ -2143,10 +2154,16 @@ type ChannelSettingsResolver interface {
 type DataStorageResolver interface {
 	ID(ctx context.Context, obj *ent.DataStorage) (*objects.GUID, error)
 }
+type DeveloperModelSettingsResolver interface {
+	ProtocolPools(ctx context.Context, obj *biz.DeveloperModelSettings) ([]*ModelProtocolPool, error)
+}
 type ModelResolver interface {
 	ID(ctx context.Context, obj *ent.Model) (*objects.GUID, error)
 
 	AssociatedChannelCount(ctx context.Context, obj *ent.Model) (int, error)
+}
+type ModelSettingsResolver interface {
+	ProtocolPools(ctx context.Context, obj *objects.ModelSettings) ([]*ModelProtocolPool, error)
 }
 type MutationResolver interface {
 	CreateChannel(ctx context.Context, input ent.CreateChannelInput) (*ent.Channel, error)
@@ -2466,6 +2483,13 @@ type UserRoleResolver interface {
 	ID(ctx context.Context, obj *ent.UserRole) (*objects.GUID, error)
 	UserID(ctx context.Context, obj *ent.UserRole) (*objects.GUID, error)
 	RoleID(ctx context.Context, obj *ent.UserRole) (*objects.GUID, error)
+}
+
+type DeveloperModelSettingsInputResolver interface {
+	ProtocolPools(ctx context.Context, obj *biz.DeveloperModelSettings, data []*ModelProtocolPoolInput) error
+}
+type ModelSettingsInputResolver interface {
+	ProtocolPools(ctx context.Context, obj *objects.ModelSettings, data []*ModelProtocolPoolInput) error
 }
 
 type executableSchema struct {
@@ -4715,6 +4739,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.DeveloperModelSettings.Developer(childComplexity), true
+	case "DeveloperModelSettings.protocolPools":
+		if e.complexity.DeveloperModelSettings.ProtocolPools == nil {
+			break
+		}
+
+		return e.complexity.DeveloperModelSettings.ProtocolPools(childComplexity), true
 
 	case "DisabledAPIKey.disabledAt":
 		if e.complexity.DisabledAPIKey.DisabledAt == nil {
@@ -5467,12 +5497,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ModelPriceItem.PromptWriteCacheVariants(childComplexity), true
 
+	case "ModelProtocolPool.associations":
+		if e.complexity.ModelProtocolPool.Associations == nil {
+			break
+		}
+
+		return e.complexity.ModelProtocolPool.Associations(childComplexity), true
+	case "ModelProtocolPool.format":
+		if e.complexity.ModelProtocolPool.Format == nil {
+			break
+		}
+
+		return e.complexity.ModelProtocolPool.Format(childComplexity), true
+
 	case "ModelSettings.disableDeveloperSettingsInheritance":
 		if e.complexity.ModelSettings.DisableDeveloperSettingsInheritance == nil {
 			break
 		}
 
 		return e.complexity.ModelSettings.DisableDeveloperSettingsInheritance(childComplexity), true
+	case "ModelSettings.protocolPools":
+		if e.complexity.ModelSettings.ProtocolPools == nil {
+			break
+		}
+
+		return e.complexity.ModelSettings.ProtocolPools(childComplexity), true
 
 	case "ModelTokenUsageStats.cachedTokens":
 		if e.complexity.ModelTokenUsageStats.CachedTokens == nil {
@@ -11368,6 +11417,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputModelOrder,
 		ec.unmarshalInputModelPriceInput,
 		ec.unmarshalInputModelPriceItemInput,
+		ec.unmarshalInputModelProtocolPoolInput,
 		ec.unmarshalInputModelSettingsInput,
 		ec.unmarshalInputModelWhereInput,
 		ec.unmarshalInputOAuthCredentialsInput,
@@ -26753,6 +26803,41 @@ func (ec *executionContext) fieldContext_DeveloperModelSettings_developer(_ cont
 	return fc, nil
 }
 
+func (ec *executionContext) _DeveloperModelSettings_protocolPools(ctx context.Context, field graphql.CollectedField, obj *biz.DeveloperModelSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DeveloperModelSettings_protocolPools,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.DeveloperModelSettings().ProtocolPools(ctx, obj)
+		},
+		nil,
+		ec.marshalNModelProtocolPool2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPoolᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DeveloperModelSettings_protocolPools(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeveloperModelSettings",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "format":
+				return ec.fieldContext_ModelProtocolPool_format(ctx, field)
+			case "associations":
+				return ec.fieldContext_ModelProtocolPool_associations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModelProtocolPool", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DisabledAPIKey_key(ctx context.Context, field graphql.CollectedField, obj *objects.DisabledAPIKey) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -28568,6 +28653,8 @@ func (ec *executionContext) fieldContext_Model_settings(_ context.Context, field
 			switch field.Name {
 			case "disableDeveloperSettingsInheritance":
 				return ec.fieldContext_ModelSettings_disableDeveloperSettingsInheritance(ctx, field)
+			case "protocolPools":
+				return ec.fieldContext_ModelSettings_protocolPools(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ModelSettings", field.Name)
 		},
@@ -30553,6 +30640,86 @@ func (ec *executionContext) fieldContext_ModelPriceItem_promptWriteCacheVariants
 	return fc, nil
 }
 
+func (ec *executionContext) _ModelProtocolPool_format(ctx context.Context, field graphql.CollectedField, obj *ModelProtocolPool) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ModelProtocolPool_format,
+		func(ctx context.Context) (any, error) {
+			return obj.Format, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ModelProtocolPool_format(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModelProtocolPool",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModelProtocolPool_associations(ctx context.Context, field graphql.CollectedField, obj *ModelProtocolPool) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ModelProtocolPool_associations,
+		func(ctx context.Context) (any, error) {
+			return obj.Associations, nil
+		},
+		nil,
+		ec.marshalNModelAssociation2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociationᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ModelProtocolPool_associations(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModelProtocolPool",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_ModelAssociation_type(ctx, field)
+			case "priority":
+				return ec.fieldContext_ModelAssociation_priority(ctx, field)
+			case "disabled":
+				return ec.fieldContext_ModelAssociation_disabled(ctx, field)
+			case "when":
+				return ec.fieldContext_ModelAssociation_when(ctx, field)
+			case "channelModel":
+				return ec.fieldContext_ModelAssociation_channelModel(ctx, field)
+			case "channelRegex":
+				return ec.fieldContext_ModelAssociation_channelRegex(ctx, field)
+			case "regex":
+				return ec.fieldContext_ModelAssociation_regex(ctx, field)
+			case "modelId":
+				return ec.fieldContext_ModelAssociation_modelId(ctx, field)
+			case "channelTagsModel":
+				return ec.fieldContext_ModelAssociation_channelTagsModel(ctx, field)
+			case "channelTagsRegex":
+				return ec.fieldContext_ModelAssociation_channelTagsRegex(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModelAssociation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModelSettings_disableDeveloperSettingsInheritance(ctx context.Context, field graphql.CollectedField, obj *objects.ModelSettings) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -30577,6 +30744,41 @@ func (ec *executionContext) fieldContext_ModelSettings_disableDeveloperSettingsI
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModelSettings_protocolPools(ctx context.Context, field graphql.CollectedField, obj *objects.ModelSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ModelSettings_protocolPools,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.ModelSettings().ProtocolPools(ctx, obj)
+		},
+		nil,
+		ec.marshalNModelProtocolPool2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPoolᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ModelSettings_protocolPools(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModelSettings",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "format":
+				return ec.fieldContext_ModelProtocolPool_format(ctx, field)
+			case "associations":
+				return ec.fieldContext_ModelProtocolPool_associations(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModelProtocolPool", field.Name)
 		},
 	}
 	return fc, nil
@@ -52614,6 +52816,8 @@ func (ec *executionContext) fieldContext_SystemModelSettings_developerSettings(_
 			switch field.Name {
 			case "developer":
 				return ec.fieldContext_DeveloperModelSettings_developer(ctx, field)
+			case "protocolPools":
+				return ec.fieldContext_DeveloperModelSettings_protocolPools(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DeveloperModelSettings", field.Name)
 		},
@@ -70046,7 +70250,7 @@ func (ec *executionContext) unmarshalInputDeveloperModelSettingsInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"developer"}
+	fieldsInOrder := [...]string{"developer", "protocolPools"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -70060,6 +70264,15 @@ func (ec *executionContext) unmarshalInputDeveloperModelSettingsInput(ctx contex
 				return it, err
 			}
 			it.Developer = data
+		case "protocolPools":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocolPools"))
+			data, err := ec.unmarshalOModelProtocolPoolInput2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPoolInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.DeveloperModelSettingsInput().ProtocolPools(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -71060,6 +71273,40 @@ func (ec *executionContext) unmarshalInputModelPriceItemInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputModelProtocolPoolInput(ctx context.Context, obj any) (ModelProtocolPoolInput, error) {
+	var it ModelProtocolPoolInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"format", "associations"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "format":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("format"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Format = data
+		case "associations":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("associations"))
+			data, err := ec.unmarshalOModelAssociationInput2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociationᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Associations = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputModelSettingsInput(ctx context.Context, obj any) (objects.ModelSettings, error) {
 	var it objects.ModelSettings
 	asMap := map[string]any{}
@@ -71067,7 +71314,7 @@ func (ec *executionContext) unmarshalInputModelSettingsInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"disableDeveloperSettingsInheritance"}
+	fieldsInOrder := [...]string{"disableDeveloperSettingsInheritance", "protocolPools"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -71081,6 +71328,15 @@ func (ec *executionContext) unmarshalInputModelSettingsInput(ctx context.Context
 				return it, err
 			}
 			it.DisableDeveloperSettingsInheritance = data
+		case "protocolPools":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocolPools"))
+			data, err := ec.unmarshalOModelProtocolPoolInput2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPoolInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.ModelSettingsInput().ProtocolPools(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -93436,8 +93692,44 @@ func (ec *executionContext) _DeveloperModelSettings(ctx context.Context, sel ast
 		case "developer":
 			out.Values[i] = ec._DeveloperModelSettings_developer(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "protocolPools":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeveloperModelSettings_protocolPools(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -95081,6 +95373,50 @@ func (ec *executionContext) _ModelPriceItem(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var modelProtocolPoolImplementors = []string{"ModelProtocolPool"}
+
+func (ec *executionContext) _ModelProtocolPool(ctx context.Context, sel ast.SelectionSet, obj *ModelProtocolPool) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, modelProtocolPoolImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ModelProtocolPool")
+		case "format":
+			out.Values[i] = ec._ModelProtocolPool_format(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "associations":
+			out.Values[i] = ec._ModelProtocolPool_associations(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var modelSettingsImplementors = []string{"ModelSettings"}
 
 func (ec *executionContext) _ModelSettings(ctx context.Context, sel ast.SelectionSet, obj *objects.ModelSettings) graphql.Marshaler {
@@ -95095,8 +95431,44 @@ func (ec *executionContext) _ModelSettings(ctx context.Context, sel ast.Selectio
 		case "disableDeveloperSettingsInheritance":
 			out.Values[i] = ec._ModelSettings_disableDeveloperSettingsInheritance(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "protocolPools":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ModelSettings_protocolPools(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -110532,6 +110904,60 @@ func (ec *executionContext) marshalNModel2ᚖgithubᚗcomᚋmutallippᚋllmᚑpr
 	return ec._Model(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNModelAssociation2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociationᚄ(ctx context.Context, sel ast.SelectionSet, v []*objects.ModelAssociation) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNModelAssociation2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociation(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModelAssociation2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociation(ctx context.Context, sel ast.SelectionSet, v *objects.ModelAssociation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModelAssociation(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNModelAssociationInput2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociationᚄ(ctx context.Context, v any) ([]*objects.ModelAssociation, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
@@ -110913,6 +111339,65 @@ func (ec *executionContext) unmarshalNModelPriceItemInput2ᚕgithubᚗcomᚋmuta
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalNModelProtocolPool2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPoolᚄ(ctx context.Context, sel ast.SelectionSet, v []*ModelProtocolPool) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNModelProtocolPool2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPool(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNModelProtocolPool2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPool(ctx context.Context, sel ast.SelectionSet, v *ModelProtocolPool) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ModelProtocolPool(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNModelProtocolPoolInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPoolInput(ctx context.Context, v any) (*ModelProtocolPoolInput, error) {
+	res, err := ec.unmarshalInputModelProtocolPoolInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNModelSettings2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelSettings(ctx context.Context, sel ast.SelectionSet, v *objects.ModelSettings) graphql.Marshaler {
@@ -116830,6 +117315,24 @@ func (ec *executionContext) marshalOModel2ᚖgithubᚗcomᚋmutallippᚋllmᚑpr
 	return ec._Model(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOModelAssociationInput2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociationᚄ(ctx context.Context, v any) ([]*objects.ModelAssociation, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*objects.ModelAssociation, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNModelAssociationInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociation(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalOModelAssociationWhen2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociationWhen(ctx context.Context, sel ast.SelectionSet, v *objects.ModelAssociationWhen) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -117007,6 +117510,24 @@ func (ec *executionContext) unmarshalOModelOrder2ᚖgithubᚗcomᚋmutallippᚋl
 	}
 	res, err := ec.unmarshalInputModelOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOModelProtocolPoolInput2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPoolInputᚄ(ctx context.Context, v any) ([]*ModelProtocolPoolInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*ModelProtocolPoolInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNModelProtocolPoolInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐModelProtocolPoolInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOModelSettingsInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelSettings(ctx context.Context, v any) (*objects.ModelSettings, error) {

@@ -354,6 +354,16 @@ type ModelPerformanceStat struct {
 	RequestCount int      `json:"requestCount"`
 }
 
+type ModelProtocolPool struct {
+	Format       string                      `json:"format"`
+	Associations []*objects.ModelAssociation `json:"associations"`
+}
+
+type ModelProtocolPoolInput struct {
+	Format       string                      `json:"format"`
+	Associations []*objects.ModelAssociation `json:"associations,omitempty"`
+}
+
 type ModelTokenUsageStats struct {
 	ModelID         string `json:"modelId"`
 	InputTokens     int    `json:"inputTokens"`

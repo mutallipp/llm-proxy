@@ -216,10 +216,12 @@ input UpdateSystemModelSettingsInput {
 
 type DeveloperModelSettings {
   developer: String!
+  protocolPools: [ModelProtocolPool!]!
 }
 
 input DeveloperModelSettingsInput {
   developer: String!
+  protocolPools: [ModelProtocolPoolInput!]
 }
 
 input UpdateDefaultDataStorageInput {
