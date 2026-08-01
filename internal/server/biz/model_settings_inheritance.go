@@ -24,10 +24,13 @@ func normalizeSystemModelSettings(settings *SystemModelSettings) {
 		}
 
 		developer.Developer = strings.TrimSpace(developer.Developer)
-		if developer.Associations == nil {
-			developer.Associations = []*objects.ModelAssociation{}
+		if developer.ProtocolPools == nil {
+			developer.ProtocolPools = map[string][]*objects.ModelAssociation{}
 		}
-		normalizeDeveloperAssociations(developer.Associations)
+		for protocol, associations := range developer.ProtocolPools {
+			normalizeDeveloperAssociations(associations)
+			developer.ProtocolPools[protocol] = associations
+		}
 	}
 }
 
@@ -52,8 +55,13 @@ func validateSystemModelSettings(settings *SystemModelSettings) error {
 		}
 		seenDevelopers[developer] = struct{}{}
 
-		if err := validateDeveloperAssociations(developerSettings.Associations); err != nil {
-			return fmt.Errorf("invalid developer settings for %q: %w", developer, err)
+		for protocol, associations := range developerSettings.ProtocolPools {
+			if _, ok := objects.SupportedInboundAPIFormats[protocol]; !ok {
+				return fmt.Errorf("invalid developer settings for %q: unsupported protocol pool %q", developer, protocol)
+			}
+			if err := validateDeveloperAssociations(associations); err != nil {
+				return fmt.Errorf("invalid developer settings for %q: %w", developer, err)
+			}
 		}
 	}
 
@@ -106,7 +114,7 @@ func validateDeveloperAssociations(associations []*objects.ModelAssociation) err
 	return nil
 }
 
-func developerAssociationsForDeveloper(settings *SystemModelSettings, developer string) []*objects.ModelAssociation {
+func developerProtocolPoolsForDeveloper(settings *SystemModelSettings, developer string) map[string][]*objects.ModelAssociation {
 	if settings == nil || developer == "" {
 		return nil
 	}
@@ -116,13 +124,13 @@ func developerAssociationsForDeveloper(settings *SystemModelSettings, developer 
 			continue
 		}
 
-		return developerSettings.Associations
+		return developerSettings.ProtocolPools
 	}
 
 	return nil
 }
 
-// EffectiveModelAssociations returns the associations that should actually be
+// EffectiveModelProtocolPools returns the associations that should actually be
 // used for one model. A matching developer setting is inherited by default;
 // model settings add extra rules on top of it unless inheritance is explicitly
 // disabled on the model.
@@ -139,9 +147,11 @@ func EffectiveModelProtocolPools(systemSettings *SystemModelSettings, model *ent
 	if model.Settings != nil && model.Settings.DisableDeveloperSettingsInheritance {
 		return pools
 	}
-	inherited := inheritDeveloperAssociationsForModel(developerAssociationsForDeveloper(systemSettings, model.Developer), model.ModelID)
-	if len(inherited) > 0 {
-		pools["openai"] = mergeInheritedModelAssociations(inherited, pools["openai"])
+	for protocol, developerAssociations := range developerProtocolPoolsForDeveloper(systemSettings, model.Developer) {
+		inherited := inheritDeveloperAssociationsForModel(developerAssociations, model.ModelID)
+		if len(inherited) > 0 {
+			pools[protocol] = mergeInheritedModelAssociations(inherited, pools[protocol])
+		}
 	}
 	return pools
 }

@@ -752,8 +752,8 @@ func (svc *ModelService) queryConfiguredModelFacades(ctx context.Context, allowe
 	systemSettings := svc.modelSettingsOrDefault(ctx)
 
 	for _, m := range enabledModels {
-		effectiveAssociations := EffectiveModelAssociations(systemSettings, m)
-		associations := MatchConnections(effectiveAssociations, channels)
+		protocolPools := EffectiveModelProtocolPools(systemSettings, m)
+		associations := MatchConnections(flattenProtocolPools(protocolPools), channels)
 		if len(associations) > 0 {
 			models = append(models, ModelFacade{
 				ID:          m.ModelID,
@@ -775,7 +775,7 @@ func (svc *ModelService) CountAssociatedChannels(ctx context.Context, associatio
 
 // CountModelAssociatedChannels counts associated channels after applying developer-level inherited associations.
 func (svc *ModelService) CountModelAssociatedChannels(ctx context.Context, m *ent.Model) (int, error) {
-	return svc.countAssociatedChannels(ctx, EffectiveModelAssociations(svc.modelSettingsOrDefault(ctx), m))
+	return svc.countAssociatedChannels(ctx, flattenProtocolPools(EffectiveModelProtocolPools(svc.modelSettingsOrDefault(ctx), m)))
 }
 
 func (svc *ModelService) QueryUnassociatedChannels(ctx context.Context) ([]*UnassociatedChannel, error) {
@@ -801,10 +801,18 @@ func (svc *ModelService) QueryUnassociatedChannels(ctx context.Context) ([]*Unas
 	systemSettings := svc.modelSettingsOrDefault(ctx)
 
 	for _, m := range models {
-		allAssociations = append(allAssociations, EffectiveModelAssociations(systemSettings, m)...)
+		allAssociations = append(allAssociations, flattenProtocolPools(EffectiveModelProtocolPools(systemSettings, m))...)
 	}
 
 	return findUnassociatedChannels(channels, allAssociations), nil
+}
+
+func flattenProtocolPools(pools map[string][]*objects.ModelAssociation) []*objects.ModelAssociation {
+	associations := make([]*objects.ModelAssociation, 0)
+	for _, pool := range pools {
+		associations = append(associations, pool...)
+	}
+	return associations
 }
 
 func (svc *ModelService) countAssociatedChannels(ctx context.Context, associations []*objects.ModelAssociation) (int, error) {

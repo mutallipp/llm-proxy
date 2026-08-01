@@ -37,7 +37,7 @@ func TestDefaultSelector_Select_InheritsDeveloperAssociations(t *testing.T) {
 		DeveloperSettings: []*biz.DeveloperModelSettings{
 			{
 				Developer: "anthropic",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type:     "channel_tags_model",
 						Priority: 0,
@@ -45,7 +45,7 @@ func TestDefaultSelector_Select_InheritsDeveloperAssociations(t *testing.T) {
 							ChannelTags: []string{"anthropic"},
 						},
 					},
-				},
+				}},
 			},
 		},
 	})
@@ -102,7 +102,7 @@ func TestDefaultSelector_Select_InvalidatesCacheWhenDeveloperAssociationsChange(
 		DeveloperSettings: []*biz.DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type:     "channel_model",
 						Priority: 0,
@@ -110,7 +110,7 @@ func TestDefaultSelector_Select_InvalidatesCacheWhenDeveloperAssociationsChange(
 							ChannelID: channels[0].ID,
 						},
 					},
-				},
+				}},
 			},
 		},
 	})
@@ -142,7 +142,7 @@ func TestDefaultSelector_Select_InvalidatesCacheWhenDeveloperAssociationsChange(
 		DeveloperSettings: []*biz.DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type:     "channel_model",
 						Priority: 0,
@@ -150,7 +150,7 @@ func TestDefaultSelector_Select_InvalidatesCacheWhenDeveloperAssociationsChange(
 							ChannelID: channels[1].ID,
 						},
 					},
-				},
+				}},
 			},
 		},
 	})

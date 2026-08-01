@@ -10,7 +10,7 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
-func TestEffectiveModelAssociations_InheritsDeveloperSettings(t *testing.T) {
+func TestEffectiveModelProtocolPools_InheritsDeveloperSettings(t *testing.T) {
 	modelAssociation := &objects.ModelAssociation{
 		Type:     "model",
 		Priority: 1,
@@ -29,7 +29,7 @@ func TestEffectiveModelAssociations_InheritsDeveloperSettings(t *testing.T) {
 		},
 	}
 
-	result := EffectiveModelAssociations(&SystemModelSettings{
+	result := EffectiveModelProtocolPools(&SystemModelSettings{
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "openai",
@@ -57,7 +57,7 @@ func TestEffectiveModelAssociations_InheritsDeveloperSettings(t *testing.T) {
 	require.Empty(t, developerAssociationHigherPriority.ChannelTagsModel.ModelID)
 }
 
-func TestEffectiveModelAssociations_DisablesDeveloperSettingsInheritance(t *testing.T) {
+func TestEffectiveModelProtocolPools_DisablesDeveloperSettingsInheritance(t *testing.T) {
 	modelAssociation := &objects.ModelAssociation{
 		Type:     "model",
 		Priority: 1,
@@ -69,7 +69,7 @@ func TestEffectiveModelAssociations_DisablesDeveloperSettingsInheritance(t *test
 		ChannelModel: &objects.ChannelModelAssociation{ChannelID: 10},
 	}
 
-	result := EffectiveModelAssociations(&SystemModelSettings{
+	result := EffectiveModelProtocolPools(&SystemModelSettings{
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "openai",
@@ -91,13 +91,13 @@ func TestEffectiveModelAssociations_DisablesDeveloperSettingsInheritance(t *test
 	require.Empty(t, developerAssociation.ChannelModel.ModelID)
 }
 
-func TestEffectiveModelAssociations_LegacyModelSettingsInheritByDefault(t *testing.T) {
+func TestEffectiveModelProtocolPools_LegacyModelSettingsInheritByDefault(t *testing.T) {
 	var legacySettings objects.ModelSettings
 	err := json.Unmarshal([]byte(`{"associations":[]}`), &legacySettings)
 	require.NoError(t, err)
 	require.False(t, legacySettings.DisableDeveloperSettingsInheritance)
 
-	result := EffectiveModelAssociations(&SystemModelSettings{
+	result := EffectiveModelProtocolPools(&SystemModelSettings{
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "openai",

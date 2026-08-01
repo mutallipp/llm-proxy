@@ -294,7 +294,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 			SetModelCard(&objects.ModelCard{}).
 			SetStatus(model.StatusEnabled).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "channel_model",
 						When: &objects.ModelAssociationWhen{
@@ -331,7 +331,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 							ModelID:   "claude-3-opus",
 						},
 					},
-				},
+				}},
 			}).
 			SaveX(ctx)
 
@@ -397,7 +397,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 			SetModelCard(&objects.ModelCard{}).
 			SetStatus(model.StatusEnabled).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type: "channel_model",
 						When: &objects.ModelAssociationWhen{
@@ -416,7 +416,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 							ModelID:   "gpt-4",
 						},
 					},
-				},
+				}},
 			}).
 			SaveX(ctx)
 
