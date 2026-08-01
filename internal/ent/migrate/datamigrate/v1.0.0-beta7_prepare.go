@@ -25,25 +25,26 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 	if drv.Dialect() == "mysql" {
 		return fmt.Errorf("mysql legacy adapter migration is unsupported: DDL may implicitly commit")
 	}
-	tx, err := drv.Tx(ctx)
+	txClient, err := client.Tx(ctx)
 	if err != nil {
 		return err
 	}
+	raw := ent.RawDriver(txClient)
 	committed := false
 	defer func() {
 		if !committed {
-			_ = tx.Rollback()
+			_ = txClient.Rollback()
 		}
 	}()
-	if err := tx.Exec(ctx, "ALTER TABLE adapter_model_bindings ADD COLUMN model_id INTEGER", nil, nil); err != nil {
+	if err := raw.Exec(ctx, "ALTER TABLE adapter_model_bindings ADD COLUMN model_id INTEGER", nil, nil); err != nil {
 		var check *entsql.Rows
-		if qerr := tx.Query(ctx, "SELECT model_id FROM adapter_model_bindings LIMIT 1", nil, &check); qerr != nil {
+		if qerr := raw.Query(ctx, "SELECT model_id FROM adapter_model_bindings LIMIT 1", nil, &check); qerr != nil {
 			return fmt.Errorf("prepare model_id: %w", err)
 		}
 		check.Close()
 	}
 	var rows *entsql.Rows
-	if err := tx.Query(ctx, "SELECT id, model_group_id FROM adapter_model_bindings WHERE model_group_id IS NOT NULL", nil, &rows); err != nil {
+	if err := raw.Query(ctx, "SELECT id, model_group_id FROM adapter_model_bindings WHERE model_group_id IS NOT NULL", nil, &rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -53,7 +54,7 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 			return err
 		}
 		var groups *entsql.Rows
-		if err := tx.Query(ctx, placeholder(tx.Dialect(), "SELECT name FROM model_groups WHERE id = %s", 1), []any{groupID}, &groups); err != nil {
+		if err := raw.Query(ctx, placeholder(raw.Dialect(), "SELECT name FROM model_groups WHERE id = %s", 1), []any{groupID}, &groups); err != nil {
 			return err
 		}
 		if !groups.Next() {
@@ -67,7 +68,7 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 		}
 		groups.Close()
 		var models *entsql.Rows
-		if err := tx.Query(ctx, placeholder(tx.Dialect(), "SELECT id FROM models WHERE model_id = %s", 1), []any{name}, &models); err != nil {
+		if err := raw.Query(ctx, placeholder(raw.Dialect(), "SELECT id FROM models WHERE model_id = %s", 1), []any{name}, &models); err != nil {
 			return err
 		}
 		if !models.Next() {
@@ -80,14 +81,17 @@ func PrepareV1_0_0_Beta7(ctx context.Context, client *ent.Client) error {
 			return err
 		}
 		models.Close()
-		if err := tx.Exec(ctx, placeholder(tx.Dialect(), "UPDATE adapter_model_bindings SET model_id = %s WHERE id = %s", 2), []any{modelID, id}, nil); err != nil {
+		if err := raw.Exec(ctx, placeholder(raw.Dialect(), "UPDATE adapter_model_bindings SET model_id = %s WHERE id = %s", 2), []any{modelID, id}, nil); err != nil {
 			return err
 		}
 	}
 	if err := rows.Err(); err != nil {
 		return err
 	}
-	if err := tx.Commit(); err != nil {
+	if err := migrateV1_0_0_Beta7(ctx, txClient); err != nil {
+		return err
+	}
+	if err := txClient.Commit(); err != nil {
 		return err
 	}
 	committed = true
