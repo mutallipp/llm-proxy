@@ -811,7 +811,6 @@ export function useClearCache() {
 const MODEL_SETTINGS_QUERY = `
   query ModelSettings {
     systemModelSettings {
-      fallbackToChannelsOnModelNotFound
       queryAllChannelModels
       defaultModelAPIIncludeAll
       autoReasoningEffort
@@ -960,7 +959,6 @@ const UPDATE_SECURITY_SETTINGS_MUTATION = `
 `;
 
 export interface ModelSettings {
-  fallbackToChannelsOnModelNotFound: boolean;
   queryAllChannelModels: boolean;
   defaultModelAPIIncludeAll: boolean;
   autoReasoningEffort: boolean;
@@ -969,7 +967,6 @@ export interface ModelSettings {
 }
 
 export interface UpdateModelSettingsInput {
-  fallbackToChannelsOnModelNotFound?: boolean;
   queryAllChannelModels?: boolean;
   defaultModelAPIIncludeAll?: boolean;
   autoReasoningEffort?: boolean;

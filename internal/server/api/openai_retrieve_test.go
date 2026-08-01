@@ -368,9 +368,8 @@ func TestOpenAIHandlers_ListModels_UsesExtendedFieldsWhenConfiguredAsDefault(t *
 	client, channelSvc, systemSvc, router, ctx := setupOpenAIRetrieveTest(t)
 
 	err := systemSvc.SetModelSettings(ctx, biz.SystemModelSettings{
-		FallbackToChannelsOnModelNotFound: true,
-		QueryAllChannelModels:             true,
-		DefaultModelAPIIncludeAll:         true,
+		QueryAllChannelModels:     true,
+		DefaultModelAPIIncludeAll: true,
 	})
 	require.NoError(t, err)
 
@@ -446,9 +445,8 @@ func TestOpenAIHandlers_ListModels_ExtendedModeRespectsAPIKeyProfile(t *testing.
 	client, channelSvc, systemSvc, _, ctx := setupOpenAIRetrieveTest(t)
 
 	err := systemSvc.SetModelSettings(ctx, biz.SystemModelSettings{
-		FallbackToChannelsOnModelNotFound: true,
-		QueryAllChannelModels:             true,
-		DefaultModelAPIIncludeAll:         true,
+		QueryAllChannelModels:     true,
+		DefaultModelAPIIncludeAll: true,
 	})
 	require.NoError(t, err)
 
@@ -586,9 +584,8 @@ func TestOpenAIHandlers_ListModels_ExtendedModeFallsBackToBasicForMissingDBModel
 	client, channelSvc, systemSvc, _, ctx := setupOpenAIRetrieveTest(t)
 
 	err := systemSvc.SetModelSettings(ctx, biz.SystemModelSettings{
-		FallbackToChannelsOnModelNotFound: true,
-		QueryAllChannelModels:             true,
-		DefaultModelAPIIncludeAll:         true,
+		QueryAllChannelModels:     true,
+		DefaultModelAPIIncludeAll: true,
 	})
 	require.NoError(t, err)
 
@@ -689,9 +686,8 @@ func TestOpenAIHandlers_ListModels_ExtendedModeWithZeroAllowedModelsReturnsEmpty
 	client, channelSvc, systemSvc, _, ctx := setupOpenAIRetrieveTest(t)
 
 	err := systemSvc.SetModelSettings(ctx, biz.SystemModelSettings{
-		FallbackToChannelsOnModelNotFound: true,
-		QueryAllChannelModels:             true,
-		DefaultModelAPIIncludeAll:         true,
+		QueryAllChannelModels:     true,
+		DefaultModelAPIIncludeAll: true,
 	})
 	require.NoError(t, err)
 

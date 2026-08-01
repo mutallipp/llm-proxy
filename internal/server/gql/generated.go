@@ -1732,12 +1732,11 @@ type ComplexityRoot struct {
 	}
 
 	SystemModelSettings struct {
-		AutoReasoningEffort               func(childComplexity int) int
-		DefaultModelAPIIncludeAll         func(childComplexity int) int
-		DeveloperSettings                 func(childComplexity int) int
-		FallbackToChannelsOnModelNotFound func(childComplexity int) int
-		ModelBlacklistRegex               func(childComplexity int) int
-		QueryAllChannelModels             func(childComplexity int) int
+		AutoReasoningEffort       func(childComplexity int) int
+		DefaultModelAPIIncludeAll func(childComplexity int) int
+		DeveloperSettings         func(childComplexity int) int
+		ModelBlacklistRegex       func(childComplexity int) int
+		QueryAllChannelModels     func(childComplexity int) int
 	}
 
 	SystemStatus struct {
@@ -9828,12 +9827,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.SystemModelSettings.DeveloperSettings(childComplexity), true
-	case "SystemModelSettings.fallbackToChannelsOnModelNotFound":
-		if e.complexity.SystemModelSettings.FallbackToChannelsOnModelNotFound == nil {
-			break
-		}
-
-		return e.complexity.SystemModelSettings.FallbackToChannelsOnModelNotFound(childComplexity), true
 	case "SystemModelSettings.modelBlacklistRegex":
 		if e.complexity.SystemModelSettings.ModelBlacklistRegex == nil {
 			break
@@ -45049,8 +45042,6 @@ func (ec *executionContext) fieldContext_Query_systemModelSettings(_ context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "fallbackToChannelsOnModelNotFound":
-				return ec.fieldContext_SystemModelSettings_fallbackToChannelsOnModelNotFound(ctx, field)
 			case "queryAllChannelModels":
 				return ec.fieldContext_SystemModelSettings_queryAllChannelModels(ctx, field)
 			case "defaultModelAPIIncludeAll":
@@ -52640,35 +52631,6 @@ func (ec *executionContext) fieldContext_SystemModelSettingOnboarding_completedA
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _SystemModelSettings_fallbackToChannelsOnModelNotFound(ctx context.Context, field graphql.CollectedField, obj *biz.SystemModelSettings) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_SystemModelSettings_fallbackToChannelsOnModelNotFound,
-		func(ctx context.Context) (any, error) {
-			return obj.FallbackToChannelsOnModelNotFound, nil
-		},
-		nil,
-		ec.marshalNBoolean2bool,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_SystemModelSettings_fallbackToChannelsOnModelNotFound(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SystemModelSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -84085,20 +84047,13 @@ func (ec *executionContext) unmarshalInputUpdateSystemModelSettingsInput(ctx con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"fallbackToChannelsOnModelNotFound", "queryAllChannelModels", "defaultModelAPIIncludeAll", "autoReasoningEffort", "modelBlacklistRegex", "developerSettings"}
+	fieldsInOrder := [...]string{"queryAllChannelModels", "defaultModelAPIIncludeAll", "autoReasoningEffort", "modelBlacklistRegex", "developerSettings"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "fallbackToChannelsOnModelNotFound":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fallbackToChannelsOnModelNotFound"))
-			data, err := ec.unmarshalOBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.FallbackToChannelsOnModelNotFound = data
 		case "queryAllChannelModels":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("queryAllChannelModels"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
@@ -104039,8 +103994,6 @@ func (ec *executionContext) _SystemModelSettings(ctx context.Context, sel ast.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SystemModelSettings")
-		case "fallbackToChannelsOnModelNotFound":
-			out.Values[i] = ec._SystemModelSettings_fallbackToChannelsOnModelNotFound(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
