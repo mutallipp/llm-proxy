@@ -88,7 +88,7 @@ func ensureModelGroupBindingHandoff(ctx context.Context, drv rawDialectDriver) e
 		}
 		return nil
 	}
-	query := "SELECT column_name FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = ? AND column_name = ?"
+	query := "SELECT column_name FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = $1 AND column_name = $2"
 	if drv.Dialect() == dialect.MySQL {
 		query = "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?"
 	}
@@ -106,7 +106,7 @@ func ensureModelGroupBindingHandoff(ctx context.Context, drv rawDialectDriver) e
 func tableExists(ctx context.Context, drv rawDialectDriver, table string) (bool, error) {
 	query, args := "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?", []any{table}
 	if drv.Dialect() == dialect.Postgres {
-		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = ?"
+		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = $1"
 	}
 	if drv.Dialect() == dialect.MySQL {
 		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?"
@@ -123,7 +123,7 @@ type systemVersionReader struct{ client *ent.Client }
 
 func (r *systemVersionReader) version(ctx context.Context) (string, error) {
 	var rows *entsql.Rows
-	if err := ent.RawDriver(r.client).Query(ctx, "SELECT value FROM systems WHERE key = 'version' LIMIT 1", nil, &rows); err != nil {
+	if err := ent.RawDriver(r.client).Query(ctx, "SELECT value FROM systems WHERE key = 'system_version' LIMIT 1", nil, &rows); err != nil {
 		return "", err
 	}
 	defer rows.Close()
@@ -148,7 +148,7 @@ func existingLegacyTables(ctx context.Context, drv rawDialectDriver) ([]string, 
 		query := "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?"
 		args := []any{table}
 		if drv.Dialect() == dialect.Postgres || drv.Dialect() == dialect.MySQL {
-			query = "SELECT table_name FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = ?"
+			query = "SELECT table_name FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = $1"
 			if drv.Dialect() == dialect.MySQL {
 				query = "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?"
 			}
