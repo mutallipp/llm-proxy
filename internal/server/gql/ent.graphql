@@ -1677,6 +1677,7 @@ input CreateModelInput {
   User-defined remark or note for the Model
   """
   remark: String
+  adapterBindingIDs: [ID!]
 }
 """
 CreateOIDCIdentityInput is used for create OIDCIdentity object.
@@ -6150,6 +6151,9 @@ input UpdateModelInput {
   """
   remark: String
   clearRemark: Boolean
+  addAdapterBindingIDs: [ID!]
+  removeAdapterBindingIDs: [ID!]
+  clearAdapterBindings: Boolean
 }
 """
 UpdateOIDCIdentityInput is used for update OIDCIdentity object.

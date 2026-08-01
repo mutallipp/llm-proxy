@@ -128,7 +128,8 @@ var (
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "remark", Type: field.TypeString, Nullable: true},
 		{Name: "adapter_id", Type: field.TypeInt},
-		{Name: "model_group_id", Type: field.TypeInt},
+		{Name: "model_id", Type: field.TypeInt},
+		{Name: "model_group_adapter_bindings", Type: field.TypeInt, Nullable: true},
 	}
 	// AdapterModelBindingsTable holds the schema information for the "adapter_model_bindings" table.
 	AdapterModelBindingsTable = &schema.Table{
@@ -143,10 +144,16 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "adapter_model_bindings_model_groups_adapter_bindings",
+				Symbol:     "adapter_model_bindings_models_adapter_bindings",
 				Columns:    []*schema.Column{AdapterModelBindingsColumns[8]},
-				RefColumns: []*schema.Column{ModelGroupsColumns[0]},
+				RefColumns: []*schema.Column{ModelsColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "adapter_model_bindings_model_groups_adapter_bindings",
+				Columns:    []*schema.Column{AdapterModelBindingsColumns[9]},
+				RefColumns: []*schema.Column{ModelGroupsColumns[0]},
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -156,7 +163,7 @@ var (
 				Columns: []*schema.Column{AdapterModelBindingsColumns[7], AdapterModelBindingsColumns[4], AdapterModelBindingsColumns[3]},
 			},
 			{
-				Name:    "adapter_model_bindings_by_model_group",
+				Name:    "adapter_model_bindings_by_model",
 				Unique:  false,
 				Columns: []*schema.Column{AdapterModelBindingsColumns[8], AdapterModelBindingsColumns[3]},
 			},
@@ -1204,7 +1211,8 @@ func init() {
 	APIKeysTable.ForeignKeys[1].RefTable = UsersTable
 	APIKeyProfileTemplatesTable.ForeignKeys[0].RefTable = ProjectsTable
 	AdapterModelBindingsTable.ForeignKeys[0].RefTable = AdaptersTable
-	AdapterModelBindingsTable.ForeignKeys[1].RefTable = ModelGroupsTable
+	AdapterModelBindingsTable.ForeignKeys[1].RefTable = ModelsTable
+	AdapterModelBindingsTable.ForeignKeys[2].RefTable = ModelGroupsTable
 	ChannelModelPricesTable.ForeignKeys[0].RefTable = ChannelsTable
 	ChannelModelPriceVersionsTable.ForeignKeys[0].RefTable = ChannelModelPricesTable
 	ChannelOverrideTemplatesTable.ForeignKeys[0].RefTable = UsersTable
