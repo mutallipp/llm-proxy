@@ -27,12 +27,20 @@ type RuntimeAdapter struct {
 	BindingOrder     []string
 }
 
-// RuntimeAdapterBinding 将消费端逻辑模型绑定到模型组。
+// RuntimeAdapterBinding 将消费端逻辑模型绑定到不可变模型快照。
 type RuntimeAdapterBinding struct {
 	ID            int
 	SourceModelID string
-	ModelGroup    *RuntimeModelGroup
+	Model         *RuntimeModel
 	Enabled       bool
+}
+
+// RuntimeModel 是适配器运行时使用的逻辑模型及其协议池快照。
+type RuntimeModel struct {
+	ID       int
+	ModelID  string
+	Name     string
+	Settings *ModelSettings
 }
 
 // RuntimeModelGroup 是适配器快照中的启用模型组。
