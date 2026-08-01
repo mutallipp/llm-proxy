@@ -42,7 +42,6 @@ func (ModelGroup) Fields() []ent.Field {
 
 func (ModelGroup) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("adapter_bindings", AdapterModelBinding.Type),
 		edge.To("protocols", ModelGroupProtocol.Type),
 	}
 }

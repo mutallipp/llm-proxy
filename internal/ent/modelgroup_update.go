@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
 	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
 	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
 	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
@@ -134,21 +133,6 @@ func (_u *ModelGroupUpdate) ClearRemark() *ModelGroupUpdate {
 	return _u
 }
 
-// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
-func (_u *ModelGroupUpdate) AddAdapterBindingIDs(ids ...int) *ModelGroupUpdate {
-	_u.mutation.AddAdapterBindingIDs(ids...)
-	return _u
-}
-
-// AddAdapterBindings adds the "adapter_bindings" edges to the AdapterModelBinding entity.
-func (_u *ModelGroupUpdate) AddAdapterBindings(v ...*AdapterModelBinding) *ModelGroupUpdate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddAdapterBindingIDs(ids...)
-}
-
 // AddProtocolIDs adds the "protocols" edge to the ModelGroupProtocol entity by IDs.
 func (_u *ModelGroupUpdate) AddProtocolIDs(ids ...int) *ModelGroupUpdate {
 	_u.mutation.AddProtocolIDs(ids...)
@@ -167,27 +151,6 @@ func (_u *ModelGroupUpdate) AddProtocols(v ...*ModelGroupProtocol) *ModelGroupUp
 // Mutation returns the ModelGroupMutation object of the builder.
 func (_u *ModelGroupUpdate) Mutation() *ModelGroupMutation {
 	return _u.mutation
-}
-
-// ClearAdapterBindings clears all "adapter_bindings" edges to the AdapterModelBinding entity.
-func (_u *ModelGroupUpdate) ClearAdapterBindings() *ModelGroupUpdate {
-	_u.mutation.ClearAdapterBindings()
-	return _u
-}
-
-// RemoveAdapterBindingIDs removes the "adapter_bindings" edge to AdapterModelBinding entities by IDs.
-func (_u *ModelGroupUpdate) RemoveAdapterBindingIDs(ids ...int) *ModelGroupUpdate {
-	_u.mutation.RemoveAdapterBindingIDs(ids...)
-	return _u
-}
-
-// RemoveAdapterBindings removes "adapter_bindings" edges to AdapterModelBinding entities.
-func (_u *ModelGroupUpdate) RemoveAdapterBindings(v ...*AdapterModelBinding) *ModelGroupUpdate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveAdapterBindingIDs(ids...)
 }
 
 // ClearProtocols clears all "protocols" edges to the ModelGroupProtocol entity.
@@ -312,51 +275,6 @@ func (_u *ModelGroupUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(modelgroup.FieldRemark, field.TypeString)
-	}
-	if _u.mutation.AdapterBindingsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedAdapterBindingsIDs(); len(nodes) > 0 && !_u.mutation.AdapterBindingsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AdapterBindingsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ProtocolsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -528,21 +446,6 @@ func (_u *ModelGroupUpdateOne) ClearRemark() *ModelGroupUpdateOne {
 	return _u
 }
 
-// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
-func (_u *ModelGroupUpdateOne) AddAdapterBindingIDs(ids ...int) *ModelGroupUpdateOne {
-	_u.mutation.AddAdapterBindingIDs(ids...)
-	return _u
-}
-
-// AddAdapterBindings adds the "adapter_bindings" edges to the AdapterModelBinding entity.
-func (_u *ModelGroupUpdateOne) AddAdapterBindings(v ...*AdapterModelBinding) *ModelGroupUpdateOne {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddAdapterBindingIDs(ids...)
-}
-
 // AddProtocolIDs adds the "protocols" edge to the ModelGroupProtocol entity by IDs.
 func (_u *ModelGroupUpdateOne) AddProtocolIDs(ids ...int) *ModelGroupUpdateOne {
 	_u.mutation.AddProtocolIDs(ids...)
@@ -561,27 +464,6 @@ func (_u *ModelGroupUpdateOne) AddProtocols(v ...*ModelGroupProtocol) *ModelGrou
 // Mutation returns the ModelGroupMutation object of the builder.
 func (_u *ModelGroupUpdateOne) Mutation() *ModelGroupMutation {
 	return _u.mutation
-}
-
-// ClearAdapterBindings clears all "adapter_bindings" edges to the AdapterModelBinding entity.
-func (_u *ModelGroupUpdateOne) ClearAdapterBindings() *ModelGroupUpdateOne {
-	_u.mutation.ClearAdapterBindings()
-	return _u
-}
-
-// RemoveAdapterBindingIDs removes the "adapter_bindings" edge to AdapterModelBinding entities by IDs.
-func (_u *ModelGroupUpdateOne) RemoveAdapterBindingIDs(ids ...int) *ModelGroupUpdateOne {
-	_u.mutation.RemoveAdapterBindingIDs(ids...)
-	return _u
-}
-
-// RemoveAdapterBindings removes "adapter_bindings" edges to AdapterModelBinding entities.
-func (_u *ModelGroupUpdateOne) RemoveAdapterBindings(v ...*AdapterModelBinding) *ModelGroupUpdateOne {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveAdapterBindingIDs(ids...)
 }
 
 // ClearProtocols clears all "protocols" edges to the ModelGroupProtocol entity.
@@ -736,51 +618,6 @@ func (_u *ModelGroupUpdateOne) sqlSave(ctx context.Context) (_node *ModelGroup, 
 	}
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(modelgroup.FieldRemark, field.TypeString)
-	}
-	if _u.mutation.AdapterBindingsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedAdapterBindingsIDs(); len(nodes) > 0 && !_u.mutation.AdapterBindingsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AdapterBindingsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(adaptermodelbinding.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ProtocolsCleared() {
 		edge := &sqlgraph.EdgeSpec{

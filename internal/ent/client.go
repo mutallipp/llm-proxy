@@ -2385,22 +2385,6 @@ func (c *ModelGroupClient) GetX(ctx context.Context, id int) *ModelGroup {
 	return obj
 }
 
-// QueryAdapterBindings queries the adapter_bindings edge of a ModelGroup.
-func (c *ModelGroupClient) QueryAdapterBindings(_m *ModelGroup) *AdapterModelBindingQuery {
-	query := (&AdapterModelBindingClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(modelgroup.Table, modelgroup.FieldID, id),
-			sqlgraph.To(adaptermodelbinding.Table, adaptermodelbinding.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, modelgroup.AdapterBindingsTable, modelgroup.AdapterBindingsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryProtocols queries the protocols edge of a ModelGroup.
 func (c *ModelGroupClient) QueryProtocols(_m *ModelGroup) *ModelGroupProtocolQuery {
 	query := (&ModelGroupProtocolClient{config: c.config}).Query()

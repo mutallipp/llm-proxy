@@ -984,18 +984,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"AdapterModelBinding",
 	)
 	graph.MustAddE(
-		"adapter_bindings",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
-			Bidi:    false,
-		},
-		"ModelGroup",
-		"AdapterModelBinding",
-	)
-	graph.MustAddE(
 		"protocols",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2985,20 +2973,6 @@ func (f *ModelGroupFilter) WhereSelectionStrategy(p entql.StringP) {
 // WhereRemark applies the entql string predicate on the remark field.
 func (f *ModelGroupFilter) WhereRemark(p entql.StringP) {
 	f.Where(p.Field(modelgroup.FieldRemark))
-}
-
-// WhereHasAdapterBindings applies a predicate to check if query has an edge adapter_bindings.
-func (f *ModelGroupFilter) WhereHasAdapterBindings() {
-	f.Where(entql.HasEdge("adapter_bindings"))
-}
-
-// WhereHasAdapterBindingsWith applies a predicate to check if query has an edge adapter_bindings with a given conditions (other predicates).
-func (f *ModelGroupFilter) WhereHasAdapterBindingsWith(preds ...predicate.AdapterModelBinding) {
-	f.Where(entql.HasEdgeWith("adapter_bindings", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
 }
 
 // WhereHasProtocols applies a predicate to check if query has an edge protocols.

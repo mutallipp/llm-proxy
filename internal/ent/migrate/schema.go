@@ -129,7 +129,6 @@ var (
 		{Name: "remark", Type: field.TypeString, Nullable: true},
 		{Name: "adapter_id", Type: field.TypeInt},
 		{Name: "model_id", Type: field.TypeInt},
-		{Name: "model_group_adapter_bindings", Type: field.TypeInt, Nullable: true},
 	}
 	// AdapterModelBindingsTable holds the schema information for the "adapter_model_bindings" table.
 	AdapterModelBindingsTable = &schema.Table{
@@ -148,12 +147,6 @@ var (
 				Columns:    []*schema.Column{AdapterModelBindingsColumns[8]},
 				RefColumns: []*schema.Column{ModelsColumns[0]},
 				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "adapter_model_bindings_model_groups_adapter_bindings",
-				Columns:    []*schema.Column{AdapterModelBindingsColumns[9]},
-				RefColumns: []*schema.Column{ModelGroupsColumns[0]},
-				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -1212,7 +1205,6 @@ func init() {
 	APIKeyProfileTemplatesTable.ForeignKeys[0].RefTable = ProjectsTable
 	AdapterModelBindingsTable.ForeignKeys[0].RefTable = AdaptersTable
 	AdapterModelBindingsTable.ForeignKeys[1].RefTable = ModelsTable
-	AdapterModelBindingsTable.ForeignKeys[2].RefTable = ModelGroupsTable
 	ChannelModelPricesTable.ForeignKeys[0].RefTable = ChannelsTable
 	ChannelModelPriceVersionsTable.ForeignKeys[0].RefTable = ChannelModelPricesTable
 	ChannelOverrideTemplatesTable.ForeignKeys[0].RefTable = UsersTable

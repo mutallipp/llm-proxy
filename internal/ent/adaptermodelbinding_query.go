@@ -26,7 +26,6 @@ type AdapterModelBindingQuery struct {
 	predicates  []predicate.AdapterModelBinding
 	withAdapter *AdapterQuery
 	withModel   *ModelQuery
-	withFKs     bool
 	loadTotal   []func(context.Context, []*AdapterModelBinding) error
 	modifiers   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -409,16 +408,12 @@ func (_q *AdapterModelBindingQuery) prepareQuery(ctx context.Context) error {
 func (_q *AdapterModelBindingQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AdapterModelBinding, error) {
 	var (
 		nodes       = []*AdapterModelBinding{}
-		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
 			_q.withAdapter != nil,
 			_q.withModel != nil,
 		}
 	)
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, adaptermodelbinding.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*AdapterModelBinding).scanValues(nil, columns)
 	}

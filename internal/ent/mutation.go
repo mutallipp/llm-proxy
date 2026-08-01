@@ -11875,28 +11875,25 @@ func (m *ModelMutation) ResetEdge(name string) error {
 // ModelGroupMutation represents an operation that mutates the ModelGroup nodes in the graph.
 type ModelGroupMutation struct {
 	config
-	op                      Op
-	typ                     string
-	id                      *int
-	created_at              *time.Time
-	updated_at              *time.Time
-	deleted_at              *int
-	adddeleted_at           *int
-	name                    *string
-	display_name            *string
-	status                  *modelgroup.Status
-	selection_strategy      *modelgroup.SelectionStrategy
-	remark                  *string
-	clearedFields           map[string]struct{}
-	adapter_bindings        map[int]struct{}
-	removedadapter_bindings map[int]struct{}
-	clearedadapter_bindings bool
-	protocols               map[int]struct{}
-	removedprotocols        map[int]struct{}
-	clearedprotocols        bool
-	done                    bool
-	oldValue                func(context.Context) (*ModelGroup, error)
-	predicates              []predicate.ModelGroup
+	op                 Op
+	typ                string
+	id                 *int
+	created_at         *time.Time
+	updated_at         *time.Time
+	deleted_at         *int
+	adddeleted_at      *int
+	name               *string
+	display_name       *string
+	status             *modelgroup.Status
+	selection_strategy *modelgroup.SelectionStrategy
+	remark             *string
+	clearedFields      map[string]struct{}
+	protocols          map[int]struct{}
+	removedprotocols   map[int]struct{}
+	clearedprotocols   bool
+	done               bool
+	oldValue           func(context.Context) (*ModelGroup, error)
+	predicates         []predicate.ModelGroup
 }
 
 var _ ent.Mutation = (*ModelGroupMutation)(nil)
@@ -12318,60 +12315,6 @@ func (m *ModelGroupMutation) ResetRemark() {
 	delete(m.clearedFields, modelgroup.FieldRemark)
 }
 
-// AddAdapterBindingIDs adds the "adapter_bindings" edge to the AdapterModelBinding entity by ids.
-func (m *ModelGroupMutation) AddAdapterBindingIDs(ids ...int) {
-	if m.adapter_bindings == nil {
-		m.adapter_bindings = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.adapter_bindings[ids[i]] = struct{}{}
-	}
-}
-
-// ClearAdapterBindings clears the "adapter_bindings" edge to the AdapterModelBinding entity.
-func (m *ModelGroupMutation) ClearAdapterBindings() {
-	m.clearedadapter_bindings = true
-}
-
-// AdapterBindingsCleared reports if the "adapter_bindings" edge to the AdapterModelBinding entity was cleared.
-func (m *ModelGroupMutation) AdapterBindingsCleared() bool {
-	return m.clearedadapter_bindings
-}
-
-// RemoveAdapterBindingIDs removes the "adapter_bindings" edge to the AdapterModelBinding entity by IDs.
-func (m *ModelGroupMutation) RemoveAdapterBindingIDs(ids ...int) {
-	if m.removedadapter_bindings == nil {
-		m.removedadapter_bindings = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.adapter_bindings, ids[i])
-		m.removedadapter_bindings[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedAdapterBindings returns the removed IDs of the "adapter_bindings" edge to the AdapterModelBinding entity.
-func (m *ModelGroupMutation) RemovedAdapterBindingsIDs() (ids []int) {
-	for id := range m.removedadapter_bindings {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// AdapterBindingsIDs returns the "adapter_bindings" edge IDs in the mutation.
-func (m *ModelGroupMutation) AdapterBindingsIDs() (ids []int) {
-	for id := range m.adapter_bindings {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetAdapterBindings resets all changes to the "adapter_bindings" edge.
-func (m *ModelGroupMutation) ResetAdapterBindings() {
-	m.adapter_bindings = nil
-	m.clearedadapter_bindings = false
-	m.removedadapter_bindings = nil
-}
-
 // AddProtocolIDs adds the "protocols" edge to the ModelGroupProtocol entity by ids.
 func (m *ModelGroupMutation) AddProtocolIDs(ids ...int) {
 	if m.protocols == nil {
@@ -12702,10 +12645,7 @@ func (m *ModelGroupMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ModelGroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.adapter_bindings != nil {
-		edges = append(edges, modelgroup.EdgeAdapterBindings)
-	}
+	edges := make([]string, 0, 1)
 	if m.protocols != nil {
 		edges = append(edges, modelgroup.EdgeProtocols)
 	}
@@ -12716,12 +12656,6 @@ func (m *ModelGroupMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ModelGroupMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case modelgroup.EdgeAdapterBindings:
-		ids := make([]ent.Value, 0, len(m.adapter_bindings))
-		for id := range m.adapter_bindings {
-			ids = append(ids, id)
-		}
-		return ids
 	case modelgroup.EdgeProtocols:
 		ids := make([]ent.Value, 0, len(m.protocols))
 		for id := range m.protocols {
@@ -12734,10 +12668,7 @@ func (m *ModelGroupMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ModelGroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedadapter_bindings != nil {
-		edges = append(edges, modelgroup.EdgeAdapterBindings)
-	}
+	edges := make([]string, 0, 1)
 	if m.removedprotocols != nil {
 		edges = append(edges, modelgroup.EdgeProtocols)
 	}
@@ -12748,12 +12679,6 @@ func (m *ModelGroupMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *ModelGroupMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case modelgroup.EdgeAdapterBindings:
-		ids := make([]ent.Value, 0, len(m.removedadapter_bindings))
-		for id := range m.removedadapter_bindings {
-			ids = append(ids, id)
-		}
-		return ids
 	case modelgroup.EdgeProtocols:
 		ids := make([]ent.Value, 0, len(m.removedprotocols))
 		for id := range m.removedprotocols {
@@ -12766,10 +12691,7 @@ func (m *ModelGroupMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ModelGroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedadapter_bindings {
-		edges = append(edges, modelgroup.EdgeAdapterBindings)
-	}
+	edges := make([]string, 0, 1)
 	if m.clearedprotocols {
 		edges = append(edges, modelgroup.EdgeProtocols)
 	}
@@ -12780,8 +12702,6 @@ func (m *ModelGroupMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ModelGroupMutation) EdgeCleared(name string) bool {
 	switch name {
-	case modelgroup.EdgeAdapterBindings:
-		return m.clearedadapter_bindings
 	case modelgroup.EdgeProtocols:
 		return m.clearedprotocols
 	}
@@ -12800,9 +12720,6 @@ func (m *ModelGroupMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ModelGroupMutation) ResetEdge(name string) error {
 	switch name {
-	case modelgroup.EdgeAdapterBindings:
-		m.ResetAdapterBindings()
-		return nil
 	case modelgroup.EdgeProtocols:
 		m.ResetProtocols()
 		return nil
