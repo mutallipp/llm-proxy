@@ -40,7 +40,6 @@ type ModelCard struct {
 
 type ModelSettings struct {
 	DisableDeveloperSettingsInheritance bool                           `json:"disableDeveloperSettingsInheritance"`
-	Associations                        []*ModelAssociation            `json:"associations"`
 	ProtocolPools                       map[string][]*ModelAssociation `json:"protocolPools,omitempty"`
 }
 

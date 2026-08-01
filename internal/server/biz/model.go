@@ -61,56 +61,54 @@ func validateModelSettings(settings *objects.ModelSettings) error {
 	if err := settings.ValidateProtocolPools(); err != nil {
 		return err
 	}
-	if len(settings.Associations) == 0 {
-		return nil
-	}
-
-	for _, assoc := range settings.Associations {
-		if assoc == nil {
-			continue
-		}
-
-		if err := validateModelAssociationWhen(assoc.When); err != nil {
-			return fmt.Errorf("invalid when condition: %w", err)
-		}
-
-		// Validate ChannelRegex pattern
-		if assoc.ChannelRegex != nil && assoc.ChannelRegex.Pattern != "" {
-			if err := xregexp.ValidateRegex(assoc.ChannelRegex.Pattern); err != nil {
-				return fmt.Errorf("invalid regex pattern in channel_regex association: %w", err)
+	for _, associations := range settings.ProtocolPools {
+		for _, assoc := range associations {
+			if assoc == nil {
+				continue
 			}
-		}
 
-		// Validate ChannelTagsRegex pattern
-		if assoc.ChannelTagsRegex != nil && assoc.ChannelTagsRegex.Pattern != "" {
-			if err := xregexp.ValidateRegex(assoc.ChannelTagsRegex.Pattern); err != nil {
-				return fmt.Errorf("invalid regex pattern in channel_tags_regex association: %w", err)
+			if err := validateModelAssociationWhen(assoc.When); err != nil {
+				return fmt.Errorf("invalid when condition: %w", err)
 			}
-		}
 
-		// Validate Regex pattern
-		if assoc.Regex != nil && assoc.Regex.Pattern != "" {
-			if err := xregexp.ValidateRegex(assoc.Regex.Pattern); err != nil {
-				return fmt.Errorf("invalid regex pattern in regex association: %w", err)
+			// Validate ChannelRegex pattern
+			if assoc.ChannelRegex != nil && assoc.ChannelRegex.Pattern != "" {
+				if err := xregexp.ValidateRegex(assoc.ChannelRegex.Pattern); err != nil {
+					return fmt.Errorf("invalid regex pattern in channel_regex association: %w", err)
+				}
 			}
-		}
 
-		// Validate Exclude patterns
-		if assoc.Regex != nil && len(assoc.Regex.Exclude) > 0 {
-			for _, exclude := range assoc.Regex.Exclude {
-				if exclude.ChannelNamePattern != "" {
-					if err := xregexp.ValidateRegex(exclude.ChannelNamePattern); err != nil {
-						return fmt.Errorf("invalid regex pattern in exclude rule: %w", err)
+			// Validate ChannelTagsRegex pattern
+			if assoc.ChannelTagsRegex != nil && assoc.ChannelTagsRegex.Pattern != "" {
+				if err := xregexp.ValidateRegex(assoc.ChannelTagsRegex.Pattern); err != nil {
+					return fmt.Errorf("invalid regex pattern in channel_tags_regex association: %w", err)
+				}
+			}
+
+			// Validate Regex pattern
+			if assoc.Regex != nil && assoc.Regex.Pattern != "" {
+				if err := xregexp.ValidateRegex(assoc.Regex.Pattern); err != nil {
+					return fmt.Errorf("invalid regex pattern in regex association: %w", err)
+				}
+			}
+
+			// Validate Exclude patterns
+			if assoc.Regex != nil && len(assoc.Regex.Exclude) > 0 {
+				for _, exclude := range assoc.Regex.Exclude {
+					if exclude.ChannelNamePattern != "" {
+						if err := xregexp.ValidateRegex(exclude.ChannelNamePattern); err != nil {
+							return fmt.Errorf("invalid regex pattern in exclude rule: %w", err)
+						}
 					}
 				}
 			}
-		}
 
-		if assoc.ModelID != nil && len(assoc.ModelID.Exclude) > 0 {
-			for _, exclude := range assoc.ModelID.Exclude {
-				if exclude.ChannelNamePattern != "" {
-					if err := xregexp.ValidateRegex(exclude.ChannelNamePattern); err != nil {
-						return fmt.Errorf("invalid regex pattern in exclude rule: %w", err)
+			if assoc.ModelID != nil && len(assoc.ModelID.Exclude) > 0 {
+				for _, exclude := range assoc.ModelID.Exclude {
+					if exclude.ChannelNamePattern != "" {
+						if err := xregexp.ValidateRegex(exclude.ChannelNamePattern); err != nil {
+							return fmt.Errorf("invalid regex pattern in exclude rule: %w", err)
+						}
 					}
 				}
 			}

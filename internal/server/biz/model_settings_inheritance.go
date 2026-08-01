@@ -99,7 +99,7 @@ func validateDeveloperAssociations(associations []*objects.ModelAssociation) err
 		}
 	}
 
-	if err := validateModelSettings(&objects.ModelSettings{Associations: associations}); err != nil {
+	if err := validateModelSettings(&objects.ModelSettings{ProtocolPools: map[string][]*objects.ModelAssociation{"openai": associations}}); err != nil {
 		return err
 	}
 
@@ -133,7 +133,6 @@ func EffectiveModelAssociations(systemSettings *SystemModelSettings, model *ent.
 
 	var modelAssociations []*objects.ModelAssociation
 	if model.Settings != nil {
-		modelAssociations = model.Settings.Associations
 		if model.Settings.DisableDeveloperSettingsInheritance {
 			return mergeInheritedModelAssociations(nil, modelAssociations)
 		}
