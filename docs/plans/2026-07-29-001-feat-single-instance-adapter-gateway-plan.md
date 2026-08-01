@@ -139,6 +139,11 @@ flowchart TD
 - **DEPENDENCY-001**：现有 ModelAssociation matcher、Channel endpoint 能力和健康故障转移实现必须可复用。
 - **DEPENDENCY-002**：旧数据迁移需访问 ModelGroupProtocol/Target 与 Adapter binding 全量记录。
 
+## 运行时清理与发布边界
+
+- 清理 `internal/server/biz/adapter.go`、`internal/server/orchestrator/adapter_selector.go`、`internal/server/orchestrator/select_endpoints.go`、缓存/候选路径、API DTO 及 `frontend/src/lib/adapterApi.ts` 中的 `model_group_id`、`ModelGroup*`、目标 `outboundApiFormat` 和 ModelGroup fallback；新 selector 只从 binding 的 model_id 选同 inbound pool。
+- 发布 gate 严格顺序为：一次性迁移事务读取旧表并写入 Model protocolPools/Associations 与 Adapter bindings → 读回一致性校验 → DDL 删除旧表/约束/索引及旧 schema/生成引用 → 启动新 runtime。不得声称代码发布、DB transaction、DDL 和 runtime 启动全局原子；任一步失败即发布失败，不启动新 runtime，不提供旧链路恢复。`endpoints/defaultEndpoints` 仍按 Channel 正常能力解析。
+
 ## Implementation Units
 
 ### 执行 DAG 与交接门槛
@@ -205,6 +210,18 @@ flowchart TD
 ## 一刀切发布 Gate 与失败边界
 
 同一部署 gate 按以下顺序执行：发布迁移入口在数据库事务内一次性读取旧 ModelGroup 数据，写入 Model 的 `protocolPools`/`ModelSettings.Associations` 与 Adapter `model_id` bindings，并完成一致性校验；校验通过后执行旧表/约束/索引及旧 Ent schema/生成引用的删除，再启动新运行时。旧数据读取仅存在于发布迁移入口，运行时和新 API 不读取旧表。若项目迁移工具不能把 DDL 纳入同一事务，则 DDL 删除必须紧随数据事务并作为同一部署 gate；任一步骤失败均 atomic abort、发布失败、不启动新运行时，不提供旧链路恢复。
+
+## 数据映射与唯一协议池技术契约
+
+- `ModelGroup.name` 规范化后作为 `Model.model_id`：trim、大小写保持、空值拒绝；同名旧组归入同一 logical Model。Model 缺失时仅在 name 唯一且通过 Model 校验时创建；已有 settings 必须按协议池合并，冲突不覆盖。重复 target 以 `logical_model + pool_key + channel_id + physical_model_id` 判定；字段完全一致合并，priority/enabled 或物理目标不同则按 logical Model 原子阻止。旧组协议与 target 协议不一致、多个组映射歧义、不可表达或 endpoint 不支持，均阻止整个 Model 写入；报告包含 model、来源组/协议/target ID、冲突类型、记录和状态。
+- `ModelSettings` 唯一形态为 `{schemaVersion, protocolPools: {<inbound_api_format>: {targets: [{channel_model, priority, disabled, ...既有匹配字段}]}}}`。pool key 是唯一协议和出站协议来源；developer inheritance 先按现有 `EffectiveModelAssociations` 规则展开，再按 pool key 合并；priority 升序、disabled 等价于 disabled/enabled 既有语义；同 pool 重复键仅允许完全一致项合并，其他情况拒绝。迁移入口将旧 settings 一次性规范化，运行时/API 不读取旧形态；继续复用 `ModelAssociation` matcher，不新增表。
+
+## 前端与错误状态验收
+
+- `/models` 使用 `frontend/src/routes/_authenticated/models/`、`frontend/src/features/models/**` 编辑协议池；Adapter 绑定独立使用 `frontend/src/routes/_authenticated/adapters/`、`frontend/src/features/adapters/**`、`frontend/src/lib/adapterApi.ts`。sidebar、route-permission 同步移除 ModelGroup 导航/权限/路由；Channel 下拉仅消费服务端 resolver 过滤结果，同一 Model 可绑定多个不同协议 Adapter。
+- 浏览器验收覆盖 401（未登录）、403（无权限）、404（Model/route 不存在）、409（协议/重复 target/冲突）、5xx（迁移或保存失败）的稳定错误状态；OpenAI Adapter 只能命中 openai pool，Anthropic Adapter 只能命中 anthropic pool。
+
+> 测试路径若当前不存在，实施单元必须创建；计划不假定未存在的测试文件已提供。
 
 ## Verification Contract
 
