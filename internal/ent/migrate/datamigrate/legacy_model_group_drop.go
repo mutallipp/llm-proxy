@@ -2,6 +2,7 @@ package datamigrate
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect"
@@ -48,7 +49,7 @@ func DropLegacyModelGroupTables(ctx context.Context, client *ent.Client) error {
 		if drv.Dialect() == dialect.Postgres {
 			query += " CASCADE"
 		}
-		if err := ent.RawDriver(txClient).Exec(ctx, query, nil, nil); err != nil {
+		if err := ent.RawDriver(txClient).Exec(ctx, query, []any{}, nil); err != nil {
 			_ = tx.Rollback()
 			return fmt.Errorf("drop legacy table %s: %w", table, err)
 		}
@@ -60,50 +61,47 @@ func DropLegacyModelGroupTables(ctx context.Context, client *ent.Client) error {
 	return nil
 }
 
-func ensureModelGroupBindingHandoff(ctx context.Context, drv rawDialectDriver) error {
+func ensureModelGroupBindingHandoff(ctx context.Context, drv rawDialectDriver) (err error) {
 	exists, err := tableExists(ctx, drv, "adapter_model_bindings")
-	if err != nil {
+	if err != nil || !exists {
 		return err
 	}
-	if !exists {
-		return nil
-	}
 	if drv.Dialect() == dialect.SQLite {
-		var rows *entsql.Rows
-		if err := drv.Query(ctx, "PRAGMA table_info(adapter_model_bindings)", nil, &rows); err != nil {
+		rows := &entsql.Rows{}
+		if err = drv.Query(ctx, "PRAGMA table_info(adapter_model_bindings)", []any{}, rows); err != nil {
 			return err
 		}
-		defer rows.Close()
+		defer func() { err = errors.Join(err, rows.Close()) }()
 		for rows.Next() {
 			var cid int
 			var name, typ string
 			var notnull, pk int
 			var dflt any
-			if err := rows.Scan(&cid, &name, &typ, &notnull, &dflt, &pk); err != nil {
+			if err = rows.Scan(&cid, &name, &typ, &notnull, &dflt, &pk); err != nil {
 				return err
 			}
 			if name == "model_group_id" {
 				return fmt.Errorf("refusing to drop legacy model-group tables: handoff incomplete, adapter_model_bindings.model_group_id still exists")
 			}
 		}
-		return nil
+		return rows.Err()
 	}
 	query := "SELECT column_name FROM information_schema.columns WHERE table_schema = CURRENT_SCHEMA() AND table_name = $1 AND column_name = $2"
 	if drv.Dialect() == dialect.MySQL {
 		query = "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?"
 	}
-	var rows *entsql.Rows
-	if err := drv.Query(ctx, query, []any{"adapter_model_bindings", "model_group_id"}, &rows); err != nil {
+	rows := &entsql.Rows{}
+	if err = drv.Query(ctx, query, []any{"adapter_model_bindings", "model_group_id"}, rows); err != nil {
 		return err
 	}
-	defer rows.Close()
+	defer func() { err = errors.Join(err, rows.Close()) }()
 	if rows.Next() {
 		return fmt.Errorf("refusing to drop legacy model-group tables: handoff incomplete, adapter_model_bindings.model_group_id still exists")
 	}
-	return nil
+	return rows.Err()
 }
 
-func tableExists(ctx context.Context, drv rawDialectDriver, table string) (bool, error) {
+func tableExists(ctx context.Context, drv rawDialectDriver, table string) (exists bool, err error) {
 	query, args := "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?", []any{table}
 	if drv.Dialect() == dialect.Postgres {
 		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = $1"
@@ -111,30 +109,30 @@ func tableExists(ctx context.Context, drv rawDialectDriver, table string) (bool,
 	if drv.Dialect() == dialect.MySQL {
 		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?"
 	}
-	var rows *entsql.Rows
-	if err := drv.Query(ctx, query, args, &rows); err != nil {
+	rows := &entsql.Rows{}
+	if err = drv.Query(ctx, query, args, rows); err != nil {
 		return false, err
 	}
-	defer rows.Close()
-	return rows.Next(), nil
+	defer func() { err = errors.Join(err, rows.Close()) }()
+	exists = rows.Next()
+	return exists, rows.Err()
 }
 
 type systemVersionReader struct{ client *ent.Client }
 
-func (r *systemVersionReader) version(ctx context.Context) (string, error) {
-	var rows *entsql.Rows
-	if err := ent.RawDriver(r.client).Query(ctx, "SELECT value FROM systems WHERE key = 'system_version' LIMIT 1", nil, &rows); err != nil {
+func (r *systemVersionReader) version(ctx context.Context) (version string, err error) {
+	rows := &entsql.Rows{}
+	if err = ent.RawDriver(r.client).Query(ctx, "SELECT value FROM systems WHERE key = 'system_version' LIMIT 1", []any{}, rows); err != nil {
 		return "", err
 	}
-	defer rows.Close()
+	defer func() { err = errors.Join(err, rows.Close()) }()
 	if !rows.Next() {
-		return "", nil
+		return "", rows.Err()
 	}
-	var version string
-	if err := rows.Scan(&version); err != nil {
+	if err = rows.Scan(&version); err != nil {
 		return "", err
 	}
-	return version, nil
+	return version, rows.Err()
 }
 
 type rawDialectDriver interface {
@@ -145,20 +143,10 @@ type rawDialectDriver interface {
 func existingLegacyTables(ctx context.Context, drv rawDialectDriver) ([]string, error) {
 	var result []string
 	for _, table := range legacyModelGroupTables {
-		query := "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?"
-		args := []any{table}
-		if drv.Dialect() == dialect.Postgres || drv.Dialect() == dialect.MySQL {
-			query = "SELECT table_name FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = $1"
-			if drv.Dialect() == dialect.MySQL {
-				query = "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?"
-			}
-		}
-		var rows *entsql.Rows
-		if err := drv.Query(ctx, query, args, &rows); err != nil {
+		found, err := tableExists(ctx, drv, table)
+		if err != nil {
 			return nil, err
 		}
-		found := rows.Next()
-		rows.Close()
 		if found {
 			result = append(result, table)
 		}
