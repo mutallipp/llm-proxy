@@ -174,9 +174,8 @@ export function ModelsBatchCreateDialog() {
               lastUpdated: selectedModel.last_updated,
             };
             const normalizedType = selectedModel.type?.replace(/-/g, '_');
-            const modelType = normalizedType && modelTypeSchema.safeParse(normalizedType).success
-              ? (normalizedType as ModelType)
-              : 'chat' as ModelType;
+            const modelType =
+              normalizedType && modelTypeSchema.safeParse(normalizedType).success ? (normalizedType as ModelType) : ('chat' as ModelType);
             return {
               ...row,
               modelId,
@@ -285,15 +284,7 @@ export function ModelsBatchCreateDialog() {
         limit: { context: 0, output: 0 },
       },
       settings: {
-        associations: [
-          {
-            type: 'model',
-            priority: 0,
-            modelId: {
-              modelId: row.modelId,
-            },
-          },
-        ],
+        protocolPools: [],
       },
     }));
 
