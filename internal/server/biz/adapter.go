@@ -25,11 +25,11 @@ type RuntimeAdapterBinding = objects.RuntimeAdapterBinding
 // AdapterRefreshResult 描述适配器刷新完成或失败时对外返回的快照信息。
 type AdapterRefreshResult struct {
 	// SnapshotVersion 是本次刷新对应的快照版本号。
-	SnapshotVersion int64
+	SnapshotVersion uint64
 	// RefreshedAt 是对应快照的刷新时间。
 	RefreshedAt time.Time
 	// Diagnostics 是刷新过程中收集的诊断信息。
-	Diagnostics []string
+	Diagnostics []objects.AdapterDiagnostic
 }
 
 type AdapterServiceParams struct {
