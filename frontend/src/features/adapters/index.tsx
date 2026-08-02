@@ -14,6 +14,7 @@ import { Main } from '@/components/layout/main';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useQueryAllModels } from '@/features/models/data/models';
 import type { Model } from '@/features/models/data/schema';
+import { extractNumberIDAsNumber } from '@/lib/utils';
 import {
   INBOUND_API_FORMATS,
   type AdapterBinding,
@@ -42,6 +43,26 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
 type TestState = 'idle' | 'testing' | 'success' | 'failed';
 
 const EMPTY_MODELS: Model[] = [];
+const NUMERIC_MODEL_ID_PATTERN = /^[1-9]\d*$/;
+const MODEL_RELAY_GID_PATTERN = /^gid:\/\/axonhub\/Model\/[1-9]\d*$/;
+
+function parseModelIdFromSelectValue(value: string): number | null {
+  const isNumericId = NUMERIC_MODEL_ID_PATTERN.test(value);
+  const isRelayGid = MODEL_RELAY_GID_PATTERN.test(value);
+  if (!isNumericId && !isRelayGid) return null;
+
+  const modelId = extractNumberIDAsNumber(value);
+  return Number.isSafeInteger(modelId) && modelId > 0 ? modelId : null;
+}
+
+function modelIdToSelectValue(modelId: number | null | undefined, models: readonly Model[]): string {
+  if (!Number.isSafeInteger(modelId) || modelId <= 0) return '';
+  return models.find((model) => parseModelIdFromSelectValue(model.id) === modelId)?.id ?? '';
+}
+
+function findModelById(models: readonly Model[], modelId: number): Model | undefined {
+  return models.find((model) => parseModelIdFromSelectValue(model.id) === modelId);
+}
 
 // ===================== 绑定行测试按钮 =====================
 
@@ -189,7 +210,7 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
   };
 
   const getModelName = (modelId: number) => {
-    const model = models.find((item) => Number(item.id) === modelId);
+    const model = findModelById(models, modelId);
     return model?.name || model?.modelID || `模型 #${modelId}`;
   };
 
@@ -365,7 +386,9 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
     () => modelEdges?.map(({ node }) => node) ?? EMPTY_MODELS,
     [modelEdges]
   );
-  const firstModelId = models[0] ? String(models[0].id) : '';
+  const firstModelId = models[0]
+    ? modelIdToSelectValue(parseModelIdFromSelectValue(models[0].id), models)
+    : '';
   const [name, setName] = useState('');
   const [draft, setDraft] = useState<AdapterUpdateInput>(EMPTY_ADAPTER);
   const [sourceModelId, setSourceModelId] = useState('');
@@ -402,8 +425,8 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
   }, [firstModelId, modelId, open]);
 
   const addBinding = () => {
-    const selectedModelId = Number(modelId);
-    if (!sourceModelId.trim() || !selectedModelId) {
+    const selectedModelId = parseModelIdFromSelectValue(modelId);
+    if (!sourceModelId.trim() || selectedModelId === null) {
       toast.error('请输入源模型并选择模型');
       return;
     }
@@ -517,7 +540,7 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
               <p className='text-muted-foreground p-4 text-sm'>暂无绑定</p>
             )}
             {draft.bindings.map((binding, index) => {
-              const model = models.find((item) => Number(item.id) === binding.model_id);
+              const model = findModelById(models, binding.model_id);
               return (
                 <div
                   key={`${binding.source_model_id}-${index}`}
@@ -707,9 +730,11 @@ export default function AdaptersManagement() {
     }
   };
 
-  const modelNames = new Map(
-    models.map((model) => [Number(model.id), model.name || model.modelID])
-  );
+  const modelNames = new Map<number, string>();
+  models.forEach((model) => {
+    const modelId = parseModelIdFromSelectValue(model.id);
+    if (modelId !== null) modelNames.set(modelId, model.name || model.modelID);
+  });
 
   return (
     <div className='flex flex-1 flex-col overflow-hidden'>
