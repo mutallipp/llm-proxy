@@ -19,6 +19,7 @@ func TestLoadBalancedSelector_Select_MultipleChannels_LoadBalancing(t *testing.T
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -27,7 +28,8 @@ func TestLoadBalancedSelector_Select_MultipleChannels_LoadBalancing(t *testing.T
 	selector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -72,6 +74,7 @@ func TestDefaultChannelSelector_Select_WithTraceContext(t *testing.T) {
 	require.NoError(t, err)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	// Create trace
 	trace, err := client.Trace.Create().
@@ -103,7 +106,8 @@ func TestDefaultChannelSelector_Select_WithTraceContext(t *testing.T) {
 	selector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -134,6 +138,7 @@ func TestDefaultChannelSelector_Select_WithChannelFailures(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -144,18 +149,19 @@ func TestDefaultChannelSelector_Select_WithChannelFailures(t *testing.T) {
 	// Record failures for the high weight channel to test error awareness
 	for range 3 {
 		perf := &biz.PerformanceRecord{
-			ChannelID:        channels[0].ID,
-			StartTime:        time.Now().Add(-time.Minute),
-			EndTime:          time.Now(),
-			Success:          false,
-			RequestCompleted: true,
-			ResponseStatusCode:  500,
+			ChannelID:          channels[0].ID,
+			StartTime:          time.Now().Add(-time.Minute),
+			EndTime:            time.Now(),
+			Success:            false,
+			RequestCompleted:   true,
+			ResponseStatusCode: 500,
 		}
 		channelService.RecordPerformance(ctx, perf)
 	}
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -232,6 +238,7 @@ func TestDefaultChannelSelector_Select_WeightedRoundRobin_EqualWeights(t *testin
 	require.NoError(t, err)
 
 	channels := []*ent.Channel{ch1, ch2, ch3}
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -240,7 +247,8 @@ func TestDefaultChannelSelector_Select_WeightedRoundRobin_EqualWeights(t *testin
 	selector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	// Make multiple selections to test round-robin behavior
@@ -322,6 +330,7 @@ func TestDefaultChannelSelector_Select_WeightedRoundRobin(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -330,7 +339,8 @@ func TestDefaultChannelSelector_Select_WeightedRoundRobin(t *testing.T) {
 	selector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	// Make multiple selections to test round-robin behavior
@@ -392,6 +402,7 @@ func TestDefaultChannelSelector_Select_WithDisabledChannels(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -400,7 +411,8 @@ func TestDefaultChannelSelector_Select_WithDisabledChannels(t *testing.T) {
 	selector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -424,6 +436,7 @@ func TestLoadBalancedSelector_Select(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -440,7 +453,8 @@ func TestLoadBalancedSelector_Select(t *testing.T) {
 	selector := WithLoadBalancedSelector(baseSelector, loadBalancer, systemService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -476,6 +490,7 @@ func TestLoadBalancedSelector_Select_SingleChannel(t *testing.T) {
 		SetStatus(channel.StatusEnabled).
 		Save(ctx)
 	require.NoError(t, err)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations([]*ent.Channel{ch}, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -486,7 +501,8 @@ func TestLoadBalancedSelector_Select_SingleChannel(t *testing.T) {
 	selector := WithLoadBalancedSelector(baseSelector, loadBalancer, systemService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)

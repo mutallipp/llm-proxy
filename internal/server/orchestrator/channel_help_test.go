@@ -45,6 +45,10 @@ func newTestModelService(client *ent.Client) *biz.ModelService {
 const testOpenAIChatProtocol = llm.APIFormatOpenAIChatCompletion
 
 func createTestModel(t *testing.T, ctx context.Context, client *ent.Client, modelID string, associations []*objects.ModelAssociation) *ent.Model {
+	return createTestModelForProtocol(t, ctx, client, modelID, testOpenAIChatProtocol, associations)
+}
+
+func createTestModelForProtocol(t *testing.T, ctx context.Context, client *ent.Client, modelID string, protocol llm.APIFormat, associations []*objects.ModelAssociation) *ent.Model {
 	t.Helper()
 
 	logicalModel, err := client.Model.Create().
@@ -58,7 +62,7 @@ func createTestModel(t *testing.T, ctx context.Context, client *ent.Client, mode
 		SetStatus(model.StatusEnabled).
 		SetSettings(&objects.ModelSettings{
 			ProtocolPools: map[string][]*objects.ModelAssociation{
-				string(testOpenAIChatProtocol): associations,
+				string(protocol): associations,
 			},
 		}).
 		Save(ctx)

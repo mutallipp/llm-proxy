@@ -68,6 +68,7 @@ func TestGoogleNativeToolsSelector_Select_WithGoogleNativeTools(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createGeminiTestChannels(t, ctx, client)
+	createTestModelForProtocol(t, ctx, client, "gemini-2.0-flash", llm.APIFormatGeminiContents, channelModelAssociations(channels, "gemini-2.0-flash"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -77,7 +78,8 @@ func TestGoogleNativeToolsSelector_Select_WithGoogleNativeTools(t *testing.T) {
 
 	// Request with Google native tools
 	req := &llm.Request{
-		Model: "gemini-2.0-flash",
+		Model:     "gemini-2.0-flash",
+		APIFormat: llm.APIFormatGeminiContents,
 		Tools: []llm.Tool{
 			{Type: llm.ToolTypeGoogleSearch, Google: &llm.GoogleTools{Search: &llm.GoogleSearch{}}},
 			{Type: "function", Function: llm.Function{Name: "get_weather"}},
@@ -105,6 +107,7 @@ func TestGoogleNativeToolsSelector_Select_WithoutGoogleNativeTools(t *testing.T)
 	ctx, client := setupTest(t)
 
 	channels := createGeminiTestChannels(t, ctx, client)
+	createTestModelForProtocol(t, ctx, client, "gemini-2.0-flash", llm.APIFormatGeminiContents, channelModelAssociations(channels, "gemini-2.0-flash"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -114,7 +117,8 @@ func TestGoogleNativeToolsSelector_Select_WithoutGoogleNativeTools(t *testing.T)
 
 	// Request without Google native tools (only function tools)
 	req := &llm.Request{
-		Model: "gemini-2.0-flash",
+		Model:     "gemini-2.0-flash",
+		APIFormat: llm.APIFormatGeminiContents,
 		Tools: []llm.Tool{
 			{Type: "function", Function: llm.Function{Name: "get_weather"}},
 			{Type: "function", Function: llm.Function{Name: "search"}},
@@ -152,6 +156,14 @@ func TestGoogleNativeToolsSelector_Select_NoCompatibleChannels(t *testing.T) {
 		SetStatus(channel.StatusEnabled).
 		Save(ctx)
 	require.NoError(t, err)
+	createTestModelForProtocol(t, ctx, client, "gemini-2.0-flash", llm.APIFormatGeminiContents, []*objects.ModelAssociation{{
+		Type:     "channel_model",
+		Priority: 1,
+		ChannelModel: &objects.ChannelModelAssociation{
+			ChannelID: ch.ID,
+			ModelID:   "gemini-2.0-flash",
+		},
+	}})
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -161,7 +173,8 @@ func TestGoogleNativeToolsSelector_Select_NoCompatibleChannels(t *testing.T) {
 
 	// Request with Google native tools
 	req := &llm.Request{
-		Model: "gemini-2.0-flash",
+		Model:     "gemini-2.0-flash",
+		APIFormat: llm.APIFormatGeminiContents,
 		Tools: []llm.Tool{
 			{Type: llm.ToolTypeGoogleSearch, Google: &llm.GoogleTools{Search: &llm.GoogleSearch{}}},
 		},
@@ -181,6 +194,7 @@ func TestGoogleNativeToolsSelector_Select_EmptyTools(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createGeminiTestChannels(t, ctx, client)
+	createTestModelForProtocol(t, ctx, client, "gemini-2.0-flash", llm.APIFormatGeminiContents, channelModelAssociations(channels, "gemini-2.0-flash"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -190,8 +204,9 @@ func TestGoogleNativeToolsSelector_Select_EmptyTools(t *testing.T) {
 
 	// Request with no tools
 	req := &llm.Request{
-		Model: "gemini-2.0-flash",
-		Tools: []llm.Tool{},
+		Model:     "gemini-2.0-flash",
+		APIFormat: llm.APIFormatGeminiContents,
+		Tools:     []llm.Tool{},
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -215,6 +230,7 @@ func TestGoogleNativeToolsSelector_Select_MultipleGoogleNativeTools(t *testing.T
 	ctx, client := setupTest(t)
 
 	channels := createGeminiTestChannels(t, ctx, client)
+	createTestModelForProtocol(t, ctx, client, "gemini-2.0-flash", llm.APIFormatGeminiContents, channelModelAssociations(channels, "gemini-2.0-flash"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -224,7 +240,8 @@ func TestGoogleNativeToolsSelector_Select_MultipleGoogleNativeTools(t *testing.T
 
 	// Request with multiple Google native tools
 	req := &llm.Request{
-		Model: "gemini-2.0-flash",
+		Model:     "gemini-2.0-flash",
+		APIFormat: llm.APIFormatGeminiContents,
 		Tools: []llm.Tool{
 			{Type: llm.ToolTypeGoogleSearch, Google: &llm.GoogleTools{Search: &llm.GoogleSearch{}}},
 			{Type: llm.ToolTypeGoogleUrlContext, Google: &llm.GoogleTools{UrlContext: &llm.GoogleUrlContext{}}},
