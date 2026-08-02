@@ -1,20 +1,37 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mutallipp/llm-proxy/internal/contexts"
 	"github.com/mutallipp/llm-proxy/internal/ent"
 	"github.com/mutallipp/llm-proxy/internal/ent/enttest"
+	"github.com/mutallipp/llm-proxy/internal/pkg/xcache"
 	"github.com/mutallipp/llm-proxy/internal/server/biz"
 )
+
+func newTestAuthService(t *testing.T, client *ent.Client) *biz.AuthService {
+	t.Helper()
+
+	cacheConfig := xcache.Config{Mode: xcache.ModeMemory}
+	projectService := &biz.ProjectService{
+		ProjectCache: xcache.NewFromConfig[xcache.Entry[ent.Project]](cacheConfig),
+	}
+	apiKeyService := biz.NewAPIKeyService(biz.APIKeyServiceParams{
+		CacheConfig:    cacheConfig,
+		Ent:            client,
+		ProjectService: projectService,
+		KeyPrefix:      "ah",
+	})
+	t.Cleanup(apiKeyService.Stop)
+
+	return &biz.AuthService{APIKeyService: apiKeyService}
+}
 
 // TestWithAdapterNoAuthPersistence 测试 no-auth persistence 中间件。
 // 注意：此中间件不调用用户 APIKey 校验，因为它使用 system bypass 获取或创建 no-auth APIKey。
@@ -25,8 +42,7 @@ func TestWithAdapterNoAuthPersistence(t *testing.T) {
 		client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 		defer client.Close()
 
-		authSvc := &biz.AuthService{}
-		_ = authSvc // 实际不使用，因为已有 APIKey
+		authSvc := newTestAuthService(t, client)
 
 		router := gin.New()
 		router.Use(func(c *gin.Context) {
@@ -58,8 +74,9 @@ func TestWithAdapterNoAuthPersistence(t *testing.T) {
 		client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 		defer client.Close()
 
-		// AuthService 初始化失败会导致 system bypass 失败
-		authSvc := &biz.AuthService{} // 空的 AuthService
+		// 使用完整的 APIKeyService，确保 no-auth 查询因测试库没有默认项目而返回错误，
+		// 而不是因测试 fixture 缺少依赖而触发 panic。
+		authSvc := newTestAuthService(t, client)
 
 		router := gin.New()
 		router.Use(WithAdapterNoAuthPersistence(authSvc))
@@ -80,30 +97,13 @@ func TestWithAdapterNoAuthPersistence(t *testing.T) {
 	})
 
 	t.Run("no-op when APIKey exists in context", func(t *testing.T) {
-		client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
-		defer client.Close()
-
-		// 创建一个用户和 APIKey 用于测试
-		user, err := client.User.Create().
-			SetEmail("test@example.com").
-			Save(context.Background())
-		require.NoError(t, err)
-
-		apiKey, err := client.APIKey.Create().
-			SetUserID(user.ID).
-			SetKey("test-api-key").
-			Save(context.Background())
-		require.NoError(t, err)
-
+		apiKey := &ent.APIKey{ID: 1, Key: "test-api-key"}
 		authSvc := &biz.AuthService{}
 
 		router := gin.New()
 		// 先设置一个 APIKey 到上下文
 		router.Use(func(c *gin.Context) {
-			// 重新加载以获取完整的 edge
-			loadedKey, err := client.APIKey.Get(context.Background(), apiKey.ID)
-			require.NoError(t, err)
-			ctx := contexts.WithAPIKey(c.Request.Context(), loadedKey)
+			ctx := contexts.WithAPIKey(c.Request.Context(), apiKey)
 			c.Request = c.Request.WithContext(ctx)
 			c.Next()
 		})
@@ -138,7 +138,7 @@ func TestWithAdapterNoAuthPersistence_NoUserValidation(t *testing.T) {
 		client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 		defer client.Close()
 
-		authSvc := &biz.AuthService{} // 空的 AuthService
+		authSvc := newTestAuthService(t, client)
 
 		var middlewareCalled bool
 
@@ -166,7 +166,7 @@ func TestWithAdapterNoAuthPersistence_NoUserValidation(t *testing.T) {
 		client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 		defer client.Close()
 
-		authSvc := &biz.AuthService{}
+		authSvc := newTestAuthService(t, client)
 
 		router := gin.New()
 		router.Use(WithAdapterNoAuthPersistence(authSvc))
@@ -196,7 +196,7 @@ func TestWithAdapterNoAuthPersistence_ContextPropagation(t *testing.T) {
 		client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 		defer client.Close()
 
-		authSvc := &biz.AuthService{}
+		authSvc := newTestAuthService(t, client)
 
 		router := gin.New()
 		router.Use(WithAdapterNoAuthPersistence(authSvc))
@@ -230,7 +230,7 @@ func TestWithAdapterNoAuthPersistence_MiddlewareOrder(t *testing.T) {
 		client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 		defer client.Close()
 
-		authSvc := &biz.AuthService{}
+		authSvc := newTestAuthService(t, client)
 		callOrder := make([]string, 0)
 
 		router := gin.New()
