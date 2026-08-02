@@ -85,7 +85,6 @@ llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协
 - [前端架构、页面、GraphQL 与 Model 协议池页面](docs/architecture/frontend.md)
 - [中文开发指南](docs/zh/development/development.md)
 - [Docker 部署](docs/zh/deployment/docker.md)
-- [Adapter MVP 部署、迁移与回滚](docs/deployment/adapter-mvp.md)
 - [Adapter/Model 绑定规则](.agent/rules/adapter-model-binding.md)
 - [定向测试、curl、浏览器验收与 E2E 规则](.agent/rules/e2e.md)
 

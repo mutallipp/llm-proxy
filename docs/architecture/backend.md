@@ -103,7 +103,7 @@ Model 是 Adapter Gateway 的唯一逻辑模型中心，配置和运行时数据
 
 - `datamigrate beta7` 负责将旧 ModelGroup 协议、target 和 Adapter binding 回填到 Model 协议池及 `model_id` binding。
 - drop gate 只有在回填和一致性校验成功后才删除旧表、约束和索引；任何失败都应 fail-fast，不能启动半成品新运行时。
-- MySQL legacy 数据不作为自动兼容路径；部署、备份、升级和回滚步骤维护在 [`docs/deployment/adapter-mvp.md`](../deployment/adapter-mvp.md)。
+- MySQL legacy 数据不作为自动兼容路径。
 
 ### 3.5 关键文件索引
 
