@@ -30,6 +30,17 @@
 - **PostgreSQL**: 需要安装并运行 Docker，端口 15432 未被占用。
 - **工具**: 需要 `unzip` 用于解压下载的二进制文件。
 
+### 本地测试凭据
+
+E2E 测试从以下环境变量读取本地测试账号和密码：
+
+```bash
+export AXONHUB_TEST_EMAIL="your-test-email"
+export AXONHUB_TEST_PASSWORD="your-test-password"
+```
+
+缺少任一变量时，相关测试会跳过并提示。请勿将真实凭据写入版本控制文件。
+
 ## 功能特性
 
 1. **自动下载和缓存二进制文件** - 从 GitHub Releases 下载指定 tag 的可执行文件，并缓存到本地。
@@ -41,15 +52,15 @@
 
 ## 命令行参数
 
-| 参数 | 说明 |
-|------|------|
-| `from-tag` | **(必需)** 要测试迁移的起始 Git tag（例如：v0.1.0） |
-| `--db-type TYPE` | 数据库类型: `sqlite`, `mysql`, `postgres` (默认: `sqlite`) |
-| `--skip-download` | 如果缓存中已存在二进制文件，跳过下载直接使用 |
-| `--skip-e2e` | 迁移后跳过运行 E2E 测试 |
-| `--keep-artifacts` | 测试完成后保留工作目录（日志、数据库文件等） |
-| `--keep-db` | 测试完成后保留数据库容器（仅限 MySQL/PostgreSQL） |
-| `-h, --help` | 显示帮助信息 |
+| 参数               | 说明                                                       |
+| ------------------ | ---------------------------------------------------------- |
+| `from-tag`         | **(必需)** 要测试迁移的起始 Git tag（例如：v0.1.0）        |
+| `--db-type TYPE`   | 数据库类型: `sqlite`, `mysql`, `postgres` (默认: `sqlite`) |
+| `--skip-download`  | 如果缓存中已存在二进制文件，跳过下载直接使用               |
+| `--skip-e2e`       | 迁移后跳过运行 E2E 测试                                    |
+| `--keep-artifacts` | 测试完成后保留工作目录（日志、数据库文件等）               |
+| `--keep-db`        | 测试完成后保留数据库容器（仅限 MySQL/PostgreSQL）          |
+| `-h, --help`       | 显示帮助信息                                               |
 
 ## 常用示例
 
@@ -69,18 +80,21 @@
 ## 数据库配置与连接
 
 ### MySQL
+
 - **容器名称**: `axonhub-migration-mysql`
 - **端口**: 13306
 - **数据库/用户/密码**: `axonhub_test` / `axonhub` / `axonhub_test`
 - **连接命令**: `docker exec -it axonhub-migration-mysql mysql -u axonhub -paxonhub_test axonhub_test`
 
 ### PostgreSQL
+
 - **容器名称**: `axonhub-migration-postgres`
 - **端口**: 15432
 - **数据库/用户/密码**: `axonhub_test` / `axonhub` / `axonhub_test`
 - **连接命令**: `docker exec -it axonhub-migration-postgres psql -U axonhub -d axonhub_test`
 
 ### SQLite
+
 - **数据库文件**: `scripts/migration/migration-test/work/migration-test.db`
 - **查看命令**: `sqlite3 scripts/migration/migration-test/work/migration-test.db`
 
@@ -148,7 +162,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: "1.21"
       - name: Run migration test
         run: |
           ./scripts/migration-test.sh ${{ matrix.from-version }} \
