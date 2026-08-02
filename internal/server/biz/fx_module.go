@@ -5,9 +5,19 @@ import (
 
 	"go.uber.org/fx"
 
+	"github.com/mutallipp/llm-proxy/internal/authz"
 	"github.com/mutallipp/llm-proxy/internal/log"
 	"github.com/mutallipp/llm-proxy/internal/server/scheduler"
 )
+
+const adapterStartupRefreshBypassReason = "adapter-startup-refresh"
+
+func refreshAdapterSnapshotOnStart(ctx context.Context, svc *AdapterService) error {
+	return authz.RunWithSystemBypassVoid(ctx, adapterStartupRefreshBypassReason, func(ctx context.Context) error {
+		_, err := svc.Refresh(ctx)
+		return err
+	})
+}
 
 var Module = fx.Module("biz",
 	fx.Provide(NewLiveStreamRegistry),
@@ -63,8 +73,7 @@ var Module = fx.Module("biz",
 	fx.Invoke(func(lc fx.Lifecycle, svc *AdapterService) {
 		lc.Append(fx.Hook{
 			OnStart: func(ctx context.Context) error {
-				_, err := svc.Refresh(ctx)
-				return err
+				return refreshAdapterSnapshotOnStart(ctx, svc)
 			},
 		})
 	}),
