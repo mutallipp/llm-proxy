@@ -240,7 +240,11 @@ func TestWithAdapterNoAuthPersistence_MiddlewareOrder(t *testing.T) {
 			c.Next()
 		})
 		// 第二个中间件：no-auth persistence
-		router.Use(WithAdapterNoAuthPersistence(authSvc))
+		noAuthPersistence := WithAdapterNoAuthPersistence(authSvc)
+		router.Use(func(c *gin.Context) {
+			callOrder = append(callOrder, "noauth-persistence")
+			noAuthPersistence(c)
+		})
 		router.GET("/test", func(c *gin.Context) {
 			callOrder = append(callOrder, "handler")
 			c.Status(http.StatusOK)

@@ -55,56 +55,60 @@ func (svc *ModelService) validateModelSettings(settings *objects.ModelSettings) 
 }
 
 func validateModelSettings(settings *objects.ModelSettings) error {
-	if settings == nil || len(settings.Associations) == 0 {
+	if settings == nil {
 		return nil
 	}
-
-	for _, assoc := range settings.Associations {
-		if assoc == nil {
-			continue
-		}
-
-		if err := validateModelAssociationWhen(assoc.When); err != nil {
-			return fmt.Errorf("invalid when condition: %w", err)
-		}
-
-		// Validate ChannelRegex pattern
-		if assoc.ChannelRegex != nil && assoc.ChannelRegex.Pattern != "" {
-			if err := xregexp.ValidateRegex(assoc.ChannelRegex.Pattern); err != nil {
-				return fmt.Errorf("invalid regex pattern in channel_regex association: %w", err)
+	if err := settings.ValidateProtocolPools(); err != nil {
+		return err
+	}
+	for _, associations := range settings.ProtocolPools {
+		for _, assoc := range associations {
+			if assoc == nil {
+				continue
 			}
-		}
 
-		// Validate ChannelTagsRegex pattern
-		if assoc.ChannelTagsRegex != nil && assoc.ChannelTagsRegex.Pattern != "" {
-			if err := xregexp.ValidateRegex(assoc.ChannelTagsRegex.Pattern); err != nil {
-				return fmt.Errorf("invalid regex pattern in channel_tags_regex association: %w", err)
+			if err := validateModelAssociationWhen(assoc.When); err != nil {
+				return fmt.Errorf("invalid when condition: %w", err)
 			}
-		}
 
-		// Validate Regex pattern
-		if assoc.Regex != nil && assoc.Regex.Pattern != "" {
-			if err := xregexp.ValidateRegex(assoc.Regex.Pattern); err != nil {
-				return fmt.Errorf("invalid regex pattern in regex association: %w", err)
+			// Validate ChannelRegex pattern
+			if assoc.ChannelRegex != nil && assoc.ChannelRegex.Pattern != "" {
+				if err := xregexp.ValidateRegex(assoc.ChannelRegex.Pattern); err != nil {
+					return fmt.Errorf("invalid regex pattern in channel_regex association: %w", err)
+				}
 			}
-		}
 
-		// Validate Exclude patterns
-		if assoc.Regex != nil && len(assoc.Regex.Exclude) > 0 {
-			for _, exclude := range assoc.Regex.Exclude {
-				if exclude.ChannelNamePattern != "" {
-					if err := xregexp.ValidateRegex(exclude.ChannelNamePattern); err != nil {
-						return fmt.Errorf("invalid regex pattern in exclude rule: %w", err)
+			// Validate ChannelTagsRegex pattern
+			if assoc.ChannelTagsRegex != nil && assoc.ChannelTagsRegex.Pattern != "" {
+				if err := xregexp.ValidateRegex(assoc.ChannelTagsRegex.Pattern); err != nil {
+					return fmt.Errorf("invalid regex pattern in channel_tags_regex association: %w", err)
+				}
+			}
+
+			// Validate Regex pattern
+			if assoc.Regex != nil && assoc.Regex.Pattern != "" {
+				if err := xregexp.ValidateRegex(assoc.Regex.Pattern); err != nil {
+					return fmt.Errorf("invalid regex pattern in regex association: %w", err)
+				}
+			}
+
+			// Validate Exclude patterns
+			if assoc.Regex != nil && len(assoc.Regex.Exclude) > 0 {
+				for _, exclude := range assoc.Regex.Exclude {
+					if exclude.ChannelNamePattern != "" {
+						if err := xregexp.ValidateRegex(exclude.ChannelNamePattern); err != nil {
+							return fmt.Errorf("invalid regex pattern in exclude rule: %w", err)
+						}
 					}
 				}
 			}
-		}
 
-		if assoc.ModelID != nil && len(assoc.ModelID.Exclude) > 0 {
-			for _, exclude := range assoc.ModelID.Exclude {
-				if exclude.ChannelNamePattern != "" {
-					if err := xregexp.ValidateRegex(exclude.ChannelNamePattern); err != nil {
-						return fmt.Errorf("invalid regex pattern in exclude rule: %w", err)
+			if assoc.ModelID != nil && len(assoc.ModelID.Exclude) > 0 {
+				for _, exclude := range assoc.ModelID.Exclude {
+					if exclude.ChannelNamePattern != "" {
+						if err := xregexp.ValidateRegex(exclude.ChannelNamePattern); err != nil {
+							return fmt.Errorf("invalid regex pattern in exclude rule: %w", err)
+						}
 					}
 				}
 			}
@@ -748,8 +752,8 @@ func (svc *ModelService) queryConfiguredModelFacades(ctx context.Context, allowe
 	systemSettings := svc.modelSettingsOrDefault(ctx)
 
 	for _, m := range enabledModels {
-		effectiveAssociations := EffectiveModelAssociations(systemSettings, m)
-		associations := MatchConnections(effectiveAssociations, channels)
+		protocolPools := EffectiveModelProtocolPools(systemSettings, m)
+		associations := MatchConnections(flattenProtocolPools(protocolPools), channels)
 		if len(associations) > 0 {
 			models = append(models, ModelFacade{
 				ID:          m.ModelID,
@@ -771,7 +775,7 @@ func (svc *ModelService) CountAssociatedChannels(ctx context.Context, associatio
 
 // CountModelAssociatedChannels counts associated channels after applying developer-level inherited associations.
 func (svc *ModelService) CountModelAssociatedChannels(ctx context.Context, m *ent.Model) (int, error) {
-	return svc.countAssociatedChannels(ctx, EffectiveModelAssociations(svc.modelSettingsOrDefault(ctx), m))
+	return svc.countAssociatedChannels(ctx, flattenProtocolPools(EffectiveModelProtocolPools(svc.modelSettingsOrDefault(ctx), m)))
 }
 
 func (svc *ModelService) QueryUnassociatedChannels(ctx context.Context) ([]*UnassociatedChannel, error) {
@@ -797,10 +801,18 @@ func (svc *ModelService) QueryUnassociatedChannels(ctx context.Context) ([]*Unas
 	systemSettings := svc.modelSettingsOrDefault(ctx)
 
 	for _, m := range models {
-		allAssociations = append(allAssociations, EffectiveModelAssociations(systemSettings, m)...)
+		allAssociations = append(allAssociations, flattenProtocolPools(EffectiveModelProtocolPools(systemSettings, m))...)
 	}
 
 	return findUnassociatedChannels(channels, allAssociations), nil
+}
+
+func flattenProtocolPools(pools map[string][]*objects.ModelAssociation) []*objects.ModelAssociation {
+	associations := make([]*objects.ModelAssociation, 0)
+	for _, pool := range pools {
+		associations = append(associations, pool...)
+	}
+	return associations
 }
 
 func (svc *ModelService) countAssociatedChannels(ctx context.Context, associations []*objects.ModelAssociation) (int, error) {

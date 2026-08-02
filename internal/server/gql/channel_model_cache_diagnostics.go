@@ -314,8 +314,10 @@ func buildModelDiagnostics(
 		var associations any = nil
 
 		if mdl.Settings != nil {
-			associationCount = len(mdl.Settings.Associations)
-			associations = mdl.Settings.Associations
+			for _, pool := range mdl.Settings.ProtocolPools {
+				associationCount += len(pool)
+			}
+			associations = mdl.Settings.ProtocolPools
 		}
 
 		result = append(result, channelModelCacheDiagnosticsModelView{

@@ -91,7 +91,7 @@ func createBackupTestModel(t *testing.T, client *ent.Client, ctx context.Context
 	}
 
 	settings := &objects.ModelSettings{
-		Associations: []*objects.ModelAssociation{},
+		ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {}},
 	}
 
 	m, err := client.Model.Create().

@@ -112,7 +112,6 @@ All detailed rules are in `.agent/rules/`:
 - 协议池 key（`openai`/`anthropic`）与 Channel endpoint 的完整 `apiFormat` 分开维护；禁止跨协议兜底。详细边界见 [adapter-model-binding.md](.agent/rules/adapter-model-binding.md)。
 - GraphQL Relay GID 在 Select 中保留原值，写入数值字段前使用 `extractNumberID`；配置保存后必须刷新 runtime snapshot。
 - 出现 `no protocol pool`、`model not bound` 或 `no usable target` 时，按架构文档和 E2E 规则逐层排查。
-- 旧 ModelGroup 仅属于迁移/drop gate，不再作为运行时或管理入口。
 
 ### 子代理角色分工
 

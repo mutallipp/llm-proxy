@@ -1,5 +1,7 @@
 package objects
 
+import "fmt"
+
 type ModelCardReasoning struct {
 	Supported bool `json:"supported"`
 	Default   bool `json:"default"`
@@ -37,19 +39,55 @@ type ModelCard struct {
 }
 
 type ModelSettings struct {
-	DisableDeveloperSettingsInheritance bool                `json:"disableDeveloperSettingsInheritance"`
-	Associations                        []*ModelAssociation `json:"associations"`
+	DisableDeveloperSettingsInheritance bool                           `json:"disableDeveloperSettingsInheritance"`
+	ProtocolPools                       map[string][]*ModelAssociation `json:"protocolPools,omitempty"`
+}
+
+// SupportedInboundAPIFormats 是协议池允许的入站协议。协议池 key 同时决定出站协议。
+var SupportedInboundAPIFormats = map[string]struct{}{
+	"openai":    {},
+	"anthropic": {},
+}
+
+// ValidateProtocolPools 校验协议池结构，避免旧 settings 被静默转换或写入非法协议。
+func (s *ModelSettings) ValidateProtocolPools() error {
+	if s == nil || s.ProtocolPools == nil {
+		return nil
+	}
+	for protocol, associations := range s.ProtocolPools {
+		seen := make(map[ChannelModelKey]struct{})
+		if _, ok := SupportedInboundAPIFormats[protocol]; !ok {
+			return fmt.Errorf("unsupported protocol pool %q", protocol)
+		}
+		for _, association := range associations {
+			if association == nil || association.Disabled || association.ChannelModel == nil {
+				continue
+			}
+			key := ChannelModelKey{ChannelID: association.ChannelModel.ChannelID, ModelID: association.ChannelModel.ModelID}
+			if _, ok := seen[key]; ok {
+				return fmt.Errorf("duplicate channel model association in protocol pools: %d:%s", key.ChannelID, key.ModelID)
+			}
+			seen[key] = struct{}{}
+		}
+	}
+	return nil
+}
+
+// ChannelModelKey 用于对象层校验，避免引入业务 matcher 包。
+type ChannelModelKey struct {
+	ChannelID int
+	ModelID   string
 }
 
 const (
-	ModelAssociationConditionFieldPromptTokens  = "prompt_tokens"
-	ModelAssociationConditionFieldStream        = "stream"
-	ModelAssociationConditionFieldRequestFormat = "request_format"
-	ModelAssociationConditionFieldDailyTime     = "daily_time"
-	ModelAssociationConditionFieldHasImage      = "has_image"
-	ModelAssociationConditionFieldHasVideo      = "has_video"
-	ModelAssociationConditionFieldHasDocument   = "has_document"
-	ModelAssociationConditionFieldHasAudio      = "has_audio"
+	ModelAssociationConditionFieldPromptTokens        = "prompt_tokens"
+	ModelAssociationConditionFieldStream              = "stream"
+	ModelAssociationConditionFieldRequestFormat       = "request_format"
+	ModelAssociationConditionFieldDailyTime           = "daily_time"
+	ModelAssociationConditionFieldHasImage            = "has_image"
+	ModelAssociationConditionFieldHasVideo            = "has_video"
+	ModelAssociationConditionFieldHasDocument         = "has_document"
+	ModelAssociationConditionFieldHasAudio            = "has_audio"
 	ModelAssociationConditionFieldRequestHeader       = "request_header"
 	ModelAssociationConditionFieldRequestHeaderPrefix = "request_header."
 )

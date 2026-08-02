@@ -271,29 +271,31 @@ func remapModelSettingsChannelIDs(settings *objects.ModelSettings, channelIDMap 
 		return
 	}
 
-	for _, assoc := range settings.Associations {
-		if assoc == nil {
-			continue
-		}
-
-		if assoc.ChannelModel != nil {
-			if newID, ok := channelIDMap[assoc.ChannelModel.ChannelID]; ok {
-				assoc.ChannelModel.ChannelID = newID
+	for _, associations := range settings.ProtocolPools {
+		for _, assoc := range associations {
+			if assoc == nil {
+				continue
 			}
-		}
 
-		if assoc.ChannelRegex != nil {
-			if newID, ok := channelIDMap[assoc.ChannelRegex.ChannelID]; ok {
-				assoc.ChannelRegex.ChannelID = newID
+			if assoc.ChannelModel != nil {
+				if newID, ok := channelIDMap[assoc.ChannelModel.ChannelID]; ok {
+					assoc.ChannelModel.ChannelID = newID
+				}
 			}
-		}
 
-		if assoc.Regex != nil {
-			remapExcludeAssociationChannelIDs(assoc.Regex.Exclude, channelIDMap)
-		}
+			if assoc.ChannelRegex != nil {
+				if newID, ok := channelIDMap[assoc.ChannelRegex.ChannelID]; ok {
+					assoc.ChannelRegex.ChannelID = newID
+				}
+			}
 
-		if assoc.ModelID != nil {
-			remapExcludeAssociationChannelIDs(assoc.ModelID.Exclude, channelIDMap)
+			if assoc.Regex != nil {
+				remapExcludeAssociationChannelIDs(assoc.Regex.Exclude, channelIDMap)
+			}
+
+			if assoc.ModelID != nil {
+				remapExcludeAssociationChannelIDs(assoc.ModelID.Exclude, channelIDMap)
+			}
 		}
 	}
 }

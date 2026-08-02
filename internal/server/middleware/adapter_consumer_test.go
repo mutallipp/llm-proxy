@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -364,7 +365,7 @@ type mockReadCloser struct {
 
 func (m *mockReadCloser) Read(p []byte) (n int, err error) {
 	if m.pos >= len(m.data) {
-		return 0, nil
+		return 0, io.EOF
 	}
 	n = copy(p, m.data[m.pos:])
 	m.pos += n

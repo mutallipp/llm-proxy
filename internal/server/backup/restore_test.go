@@ -168,7 +168,7 @@ func TestBackupService_Restore_RemapChannelIDsInModelSettingsAndAPIKeyProfiles(t
 					Icon:      "test-icon",
 					Group:     "test",
 					Settings: &objects.ModelSettings{
-						Associations: []*objects.ModelAssociation{
+						ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 							{
 								Type:     "channel_model",
 								Priority: 0,
@@ -183,7 +183,7 @@ func TestBackupService_Restore_RemapChannelIDsInModelSettingsAndAPIKeyProfiles(t
 									},
 								},
 							},
-						},
+						}},
 					},
 					Status: model.StatusEnabled,
 				},
@@ -233,12 +233,12 @@ func TestBackupService_Restore_RemapChannelIDsInModelSettingsAndAPIKeyProfiles(t
 	restoredModel, err := client.Model.Query().Where(model.ModelID("gpt-4")).First(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, restoredModel.Settings)
-	require.Len(t, restoredModel.Settings.Associations, 1)
-	require.NotNil(t, restoredModel.Settings.Associations[0].ChannelModel)
-	require.Equal(t, restoredChannel.ID, restoredModel.Settings.Associations[0].ChannelModel.ChannelID)
-	require.NotNil(t, restoredModel.Settings.Associations[0].Regex)
-	require.Len(t, restoredModel.Settings.Associations[0].Regex.Exclude, 1)
-	require.Equal(t, []int{restoredChannel.ID}, restoredModel.Settings.Associations[0].Regex.Exclude[0].ChannelIds)
+	require.Len(t, restoredModel.Settings.ProtocolPools["openai"], 1)
+	require.NotNil(t, restoredModel.Settings.ProtocolPools["openai"][0].ChannelModel)
+	require.Equal(t, restoredChannel.ID, restoredModel.Settings.ProtocolPools["openai"][0].ChannelModel.ChannelID)
+	require.NotNil(t, restoredModel.Settings.ProtocolPools["openai"][0].Regex)
+	require.Len(t, restoredModel.Settings.ProtocolPools["openai"][0].Regex.Exclude, 1)
+	require.Equal(t, []int{restoredChannel.ID}, restoredModel.Settings.ProtocolPools["openai"][0].Regex.Exclude[0].ChannelIds)
 
 	restoredKey, err := client.APIKey.Query().Where(apikey.Key("sk-backup-key")).First(ctx)
 	require.NoError(t, err)

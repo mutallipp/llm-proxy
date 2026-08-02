@@ -389,7 +389,7 @@ docker compose ps
 curl http://localhost:8090/health
 ```
 
-Dockerfile 会自动构建前端并将最新 Adapter、ModelGroup 页面嵌入后端。
+Dockerfile 会自动构建前端并将最新 Adapter 页面嵌入后端。
 
 #### Helm Kubernetes 部署 | Helm Kubernetes Deployment
 

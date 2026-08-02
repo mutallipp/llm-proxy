@@ -486,8 +486,8 @@ type SystemModelSettings struct {
 
 // DeveloperModelSettings represents reusable model association rules for one model developer.
 type DeveloperModelSettings struct {
-	Developer    string                      `json:"developer"`
-	Associations []*objects.ModelAssociation `json:"associations"`
+	Developer     string                                 `json:"developer"`
+	ProtocolPools map[string][]*objects.ModelAssociation `json:"protocolPools"`
 }
 
 type SystemChannelSettings struct {

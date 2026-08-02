@@ -80,8 +80,6 @@ Model 是 Adapter Gateway 的唯一逻辑模型中心，配置和运行时数据
 - `Adapter` 对外提供 `/{adapter}/v1`，只维护消费方看到的 `source_model_id -> model_id` binding；不绑定 Channel、物理模型或出站格式。
 - 一个 `Model` 可以同时维护 `openai`、`anthropic` 等独立协议池；协议池关联负责声明 Channel、物理模型、优先级和启用状态。
 - 目标切换只修改 Model 的协议池并刷新快照，所有引用该 Model 的 Adapter 都读取新目标。
-- 旧 `ModelGroup` 仅作为迁移输入和 drop gate 的兼容边界，不能再作为运行时配置或新的维护入口。
-
 ### 3.2 协议隔离与格式边界
 
 - 入站请求使用完整格式，例如 `openai/chat_completions`、`openai/responses`、`anthropic/messages`；`normalizeProtocolPoolKey`（概念名 `protocolPoolKey`）将其归一化为协议族 key `openai` 或 `anthropic`。
@@ -99,13 +97,7 @@ Model 是 Adapter Gateway 的唯一逻辑模型中心，配置和运行时数据
 - 配置保存不是运行时生效的充分条件：写库成功后必须调用 `AdapterService.Refresh` 或管理端 `POST /admin/gateway/refresh`，并检查 `snapshot_version`/`diagnostics`。
 - 禁用的 Adapter、Model 或协议池关联不会进入运行时 snapshot；重新启用后必须再次 Refresh。请求解析失败不得回退到普通全渠道选择。
 
-### 3.4 迁移边界
-
-- `datamigrate beta7` 负责将旧 ModelGroup 协议、target 和 Adapter binding 回填到 Model 协议池及 `model_id` binding。
-- drop gate 只有在回填和一致性校验成功后才删除旧表、约束和索引；任何失败都应 fail-fast，不能启动半成品新运行时。
-- MySQL legacy 数据不作为自动兼容路径。
-
-### 3.5 关键文件索引
+### 3.4 关键文件索引
 
 | 文件 | 职责 |
 |---|---|
@@ -116,9 +108,8 @@ Model 是 Adapter Gateway 的唯一逻辑模型中心，配置和运行时数据
 | [`internal/server/api/adapter.go`](../../internal/server/api/adapter.go) | 动态 Adapter 的 chat/responses/messages/models 消费处理器。 |
 | [`internal/server/routes.go`](../../internal/server/routes.go) | 注册 `/:adapter/v1` 动态路由和 Adapter middleware。 |
 | [`internal/server/gql/`](../../internal/server/gql/) | Model settings 与 `protocolPools` 的 GraphQL 查询、输入和 resolver。 |
-| [`internal/ent/migrate/datamigrate/`](../../internal/ent/migrate/datamigrate/) | beta7 回填、校验和旧 ModelGroup drop gate。 |
 
-### 3.6 维护入口
+### 3.5 维护入口
 
 - Adapter/Model binding、GID 和协议池格式规则：[`../../.agent/rules/adapter-model-binding.md`](../../.agent/rules/adapter-model-binding.md)。
 - Ent/GraphQL schema 与生成代码：[`../../.agent/rules/ent-graphql.md`](../../.agent/rules/ent-graphql.md)。

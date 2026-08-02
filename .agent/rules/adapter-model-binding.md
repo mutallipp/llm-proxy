@@ -7,7 +7,7 @@ globs: "frontend/src/features/adapters/**/*.ts, frontend/src/features/models/**/
 
 ## Model-centric Adapter Gateway（2026-08-02）
 
-1. Adapter 只维护 `source_model_id -> model_id` 绑定；Channel、物理模型和协议能力属于 Model 的 `settings.protocolPools` 与 Channel endpoint。不要恢复 ModelGroup、Channel 或物理模型字段到 Adapter binding。
+1. Adapter 只维护 `source_model_id -> model_id` 绑定；Channel、物理模型和协议能力属于 Model 的 `settings.protocolPools` 与 Channel endpoint。不要恢复 Channel 或物理模型字段到 Adapter binding。
 2. Adapter 的入站 `apiFormat` 固定后，运行时只能读取对应协议池。协议池 key 是协议族（当前为 `openai`、`anthropic`），完整请求格式由 `normalizeProtocolPoolKey`（概念名 `protocolPoolKey`）归一化后再查找；禁止跨协议兜底、隐式转换或回退到全渠道选择。
 3. 协议池 key 与 Channel endpoint 的 `apiFormat` 不是同一字段：前者是 `openai`/`anthropic`，后者是 `openai/chat_completions`、`anthropic/messages` 等完整格式。前端用 `channelSupportsProtocolPool` 按协议前缀过滤 endpoint；运行时仍须确认启用 Channel 存在匹配完整格式的 endpoint。
 
