@@ -9,6 +9,8 @@ execution: code
 product_contract_source: ce-brainstorm
 ---
 
+> 本计划已完成。架构和开发规范见 docs/architecture.md 和 docs/development-guide.md。
+
 # 单实例适配器网关：Model-centric 迁移计划
 
 ## Goal Capsule
