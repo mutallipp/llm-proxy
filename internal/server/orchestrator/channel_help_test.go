@@ -13,6 +13,7 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/ent"
 	"github.com/mutallipp/llm-proxy/internal/ent/channel"
 	"github.com/mutallipp/llm-proxy/internal/ent/enttest"
+	"github.com/mutallipp/llm-proxy/internal/ent/model"
 	"github.com/mutallipp/llm-proxy/internal/objects"
 	"github.com/mutallipp/llm-proxy/internal/pkg/xcache"
 	"github.com/mutallipp/llm-proxy/internal/server/biz"
@@ -39,6 +40,47 @@ func newTestModelService(client *ent.Client) *biz.ModelService {
 	return biz.NewModelService(biz.ModelServiceParams{
 		Ent: client,
 	})
+}
+
+const testOpenAIChatProtocol = llm.APIFormatOpenAIChatCompletion
+
+func createTestModel(t *testing.T, ctx context.Context, client *ent.Client, modelID string, associations []*objects.ModelAssociation) *ent.Model {
+	t.Helper()
+
+	logicalModel, err := client.Model.Create().
+		SetDeveloper("test-developer").
+		SetModelID(modelID).
+		SetType(model.TypeChat).
+		SetName(modelID).
+		SetIcon("test-icon").
+		SetGroup("test-group").
+		SetModelCard(&objects.ModelCard{}).
+		SetStatus(model.StatusEnabled).
+		SetSettings(&objects.ModelSettings{
+			ProtocolPools: map[string][]*objects.ModelAssociation{
+				string(testOpenAIChatProtocol): associations,
+			},
+		}).
+		Save(ctx)
+	require.NoError(t, err)
+
+	return logicalModel
+}
+
+func channelModelAssociations(channels []*ent.Channel, modelID string) []*objects.ModelAssociation {
+	associations := make([]*objects.ModelAssociation, 0, len(channels))
+	for _, ch := range channels {
+		associations = append(associations, &objects.ModelAssociation{
+			Type:     "channel_model",
+			Priority: 1,
+			ChannelModel: &objects.ChannelModelAssociation{
+				ChannelID: ch.ID,
+				ModelID:   modelID,
+			},
+		})
+	}
+
+	return associations
 }
 
 // newTestLoadBalancedSelector creates a load-balanced selector with ModelService for testing.
