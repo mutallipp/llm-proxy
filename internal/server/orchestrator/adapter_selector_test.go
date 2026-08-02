@@ -28,8 +28,8 @@ func newSelectorTestBizChannel(id int, typ channel.Type, name, baseURL string, m
 	return &biz.Channel{Channel: &ent.Channel{ID: id, Type: typ, Name: name, BaseURL: baseURL, SupportedModels: models, DefaultTestModel: models[0], Endpoints: endpoints}}
 }
 
-func selectorEndpoint(format string) objects.ChannelEndpoint {
-	return objects.ChannelEndpoint{APIFormat: format, Path: "/v1"}
+func selectorEndpoint(format llm.APIFormat) objects.ChannelEndpoint {
+	return objects.ChannelEndpoint{APIFormat: format.String(), Path: "/v1"}
 }
 
 func selectorModel(pools map[string][]*objects.ModelAssociation) *objects.RuntimeModel {
@@ -40,11 +40,11 @@ func selectorAssociation(channelID int, modelID string, priority int) *objects.M
 	return &objects.ModelAssociation{Type: "channel_model", Priority: priority, ChannelModel: &objects.ChannelModelAssociation{ChannelID: channelID, ModelID: modelID}}
 }
 
-func selectorAdapter(format string, model *objects.RuntimeModel) *objects.RuntimeAdapter {
-	return &objects.RuntimeAdapter{ID: 1, Name: "test-adapter", InboundAPIFormat: format, Bindings: map[string]*objects.RuntimeAdapterBinding{"gpt-4": {SourceModelID: "gpt-4", Model: model, Enabled: true}}}
+func selectorAdapter(format llm.APIFormat, model *objects.RuntimeModel) *objects.RuntimeAdapter {
+	return &objects.RuntimeAdapter{ID: 1, Name: "test-adapter", InboundAPIFormat: format.String(), Bindings: map[string]*objects.RuntimeAdapterBinding{"gpt-4": {SourceModelID: "gpt-4", Model: model, Enabled: true}}}
 }
 
-func selectorRequest(format string) *llm.Request {
+func selectorRequest(format llm.APIFormat) *llm.Request {
 	return &llm.Request{Model: "gpt-4", APIFormat: format}
 }
 
