@@ -32,8 +32,7 @@ func TestDefaultSelector_Select_InheritsDeveloperAssociations(t *testing.T) {
 	systemService := newTestSystemService(client)
 
 	err = systemService.SetModelSettings(ctx, biz.SystemModelSettings{
-		FallbackToChannelsOnModelNotFound: true,
-		QueryAllChannelModels:             true,
+		QueryAllChannelModels: true,
 		DeveloperSettings: []*biz.DeveloperModelSettings{
 			{
 				Developer: "anthropic",
@@ -77,12 +76,12 @@ func TestDefaultSelector_Select_InheritsDeveloperAssociations(t *testing.T) {
 	require.NoError(t, err)
 
 	selector := NewDefaultSelector(channelService, modelService, systemService)
-	candidates, err := selector.Select(ctx, &llm.Request{Model: "claude-opus-4-6"})
+	candidates, err := selector.Select(ctx, &llm.Request{Model: "claude-opus-4-6", APIFormat: llm.APIFormat("openai")})
 	require.NoError(t, err)
 	require.NotEmpty(t, candidates)
 	require.Equal(t, "claude-opus-4-6", candidates[0].Models[0].ActualModel)
 
-	candidates, err = selector.Select(ctx, &llm.Request{Model: "claude-sonnet-4-6"})
+	candidates, err = selector.Select(ctx, &llm.Request{Model: "claude-sonnet-4-6", APIFormat: llm.APIFormat("openai")})
 	require.NoError(t, err)
 	require.NotEmpty(t, candidates)
 	require.Equal(t, "claude-sonnet-4-6", candidates[0].Models[0].ActualModel)
@@ -129,11 +128,11 @@ func TestDefaultSelector_Select_InvalidatesCacheWhenDeveloperAssociationsChange(
 		Save(ctx)
 	require.NoError(t, err)
 
-	_, err = selector.selectModelCandidates(ctx, &llm.Request{Model: "gpt-4"})
+	_, err = selector.selectModelCandidates(ctx, &llm.Request{Model: "gpt-4", APIFormat: llm.APIFormat("openai")})
 	require.NoError(t, err)
 
 	selector.cacheMu.RLock()
-	initialEntry := selector.associationCache["gpt-4"]
+	initialEntry := selector.associationCache["gpt-4:openai"]
 	selector.cacheMu.RUnlock()
 	require.NotNil(t, initialEntry)
 
@@ -156,11 +155,11 @@ func TestDefaultSelector_Select_InvalidatesCacheWhenDeveloperAssociationsChange(
 	})
 	require.NoError(t, err)
 
-	_, err = selector.selectModelCandidates(ctx, &llm.Request{Model: "gpt-4"})
+	_, err = selector.selectModelCandidates(ctx, &llm.Request{Model: "gpt-4", APIFormat: llm.APIFormat("openai")})
 	require.NoError(t, err)
 
 	selector.cacheMu.RLock()
-	currentEntry := selector.associationCache["gpt-4"]
+	currentEntry := selector.associationCache["gpt-4:openai"]
 	selector.cacheMu.RUnlock()
 	require.NotSame(t, initialEntry, currentEntry)
 }

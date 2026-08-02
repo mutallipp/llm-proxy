@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
 	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
+	"github.com/mutallipp/llm-proxy/internal/ent/model"
 )
 
 // AdapterModelBinding is the model entity for the AdapterModelBinding schema.
@@ -29,8 +29,8 @@ type AdapterModelBinding struct {
 	AdapterID int `json:"adapter_id,omitempty"`
 	// SourceModelID holds the value of the "source_model_id" field.
 	SourceModelID string `json:"source_model_id,omitempty"`
-	// ModelGroupID holds the value of the "model_group_id" field.
-	ModelGroupID int `json:"model_group_id,omitempty"`
+	// ModelID holds the value of the "model_id" field.
+	ModelID int `json:"model_id,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
 	// Remark holds the value of the "remark" field.
@@ -45,11 +45,13 @@ type AdapterModelBinding struct {
 type AdapterModelBindingEdges struct {
 	// Adapter holds the value of the adapter edge.
 	Adapter *Adapter `json:"adapter,omitempty"`
-	// ModelGroup holds the value of the model_group edge.
-	ModelGroup *ModelGroup `json:"model_group,omitempty"`
+	// Model holds the value of the model edge.
+	Model *Model `json:"model,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
 }
 
 // AdapterOrErr returns the Adapter value or an error if the edge
@@ -63,15 +65,15 @@ func (e AdapterModelBindingEdges) AdapterOrErr() (*Adapter, error) {
 	return nil, &NotLoadedError{edge: "adapter"}
 }
 
-// ModelGroupOrErr returns the ModelGroup value or an error if the edge
+// ModelOrErr returns the Model value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AdapterModelBindingEdges) ModelGroupOrErr() (*ModelGroup, error) {
-	if e.ModelGroup != nil {
-		return e.ModelGroup, nil
+func (e AdapterModelBindingEdges) ModelOrErr() (*Model, error) {
+	if e.Model != nil {
+		return e.Model, nil
 	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: modelgroup.Label}
+		return nil, &NotFoundError{label: model.Label}
 	}
-	return nil, &NotLoadedError{edge: "model_group"}
+	return nil, &NotLoadedError{edge: "model"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -81,7 +83,7 @@ func (*AdapterModelBinding) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case adaptermodelbinding.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case adaptermodelbinding.FieldID, adaptermodelbinding.FieldDeletedAt, adaptermodelbinding.FieldAdapterID, adaptermodelbinding.FieldModelGroupID:
+		case adaptermodelbinding.FieldID, adaptermodelbinding.FieldDeletedAt, adaptermodelbinding.FieldAdapterID, adaptermodelbinding.FieldModelID:
 			values[i] = new(sql.NullInt64)
 		case adaptermodelbinding.FieldSourceModelID, adaptermodelbinding.FieldRemark:
 			values[i] = new(sql.NullString)
@@ -138,11 +140,11 @@ func (_m *AdapterModelBinding) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				_m.SourceModelID = value.String
 			}
-		case adaptermodelbinding.FieldModelGroupID:
+		case adaptermodelbinding.FieldModelID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field model_group_id", values[i])
+				return fmt.Errorf("unexpected type %T for field model_id", values[i])
 			} else if value.Valid {
-				_m.ModelGroupID = int(value.Int64)
+				_m.ModelID = int(value.Int64)
 			}
 		case adaptermodelbinding.FieldEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -175,9 +177,9 @@ func (_m *AdapterModelBinding) QueryAdapter() *AdapterQuery {
 	return NewAdapterModelBindingClient(_m.config).QueryAdapter(_m)
 }
 
-// QueryModelGroup queries the "model_group" edge of the AdapterModelBinding entity.
-func (_m *AdapterModelBinding) QueryModelGroup() *ModelGroupQuery {
-	return NewAdapterModelBindingClient(_m.config).QueryModelGroup(_m)
+// QueryModel queries the "model" edge of the AdapterModelBinding entity.
+func (_m *AdapterModelBinding) QueryModel() *ModelQuery {
+	return NewAdapterModelBindingClient(_m.config).QueryModel(_m)
 }
 
 // Update returns a builder for updating this AdapterModelBinding.
@@ -218,8 +220,8 @@ func (_m *AdapterModelBinding) String() string {
 	builder.WriteString("source_model_id=")
 	builder.WriteString(_m.SourceModelID)
 	builder.WriteString(", ")
-	builder.WriteString("model_group_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ModelGroupID))
+	builder.WriteString("model_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ModelID))
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))

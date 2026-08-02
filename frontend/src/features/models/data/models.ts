@@ -5,6 +5,75 @@ import { toast } from 'sonner';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { Model, ModelConnection, CreateModelInput, UpdateModelInput, modelConnectionSchema, modelSchema } from './schema';
 
+const MODEL_SETTINGS_FIELDS = `
+  settings {
+    protocolPools {
+      format
+      associations {
+        type
+        priority
+        disabled
+        when {
+          enabled
+          condition {
+            type
+            logic
+            field
+            operator
+            value
+            conditions {
+              type
+              logic
+              field
+              operator
+              value
+              conditions {
+                type
+                logic
+                field
+                operator
+                value
+              }
+            }
+          }
+        }
+        channelModel {
+          channelId
+          modelId
+        }
+        channelRegex {
+          channelId
+          pattern
+        }
+        regex {
+          pattern
+          exclude {
+            channelNamePattern
+            channelIds
+            channelTags
+          }
+        }
+        modelId {
+          modelId
+          exclude {
+            channelNamePattern
+            channelIds
+            channelTags
+          }
+        }
+        channelTagsModel {
+          channelTags
+          modelId
+        }
+        channelTagsRegex {
+          channelTags
+          pattern
+        }
+      }
+    }
+  }
+`;
+
 const MODELS_QUERY = `
   query GetModels(
     $first: Int
@@ -52,70 +121,7 @@ const MODELS_QUERY = `
             releaseDate
             lastUpdated
           }
-          settings {
-            disableDeveloperSettingsInheritance
-            associations {
-              type
-              priority
-              disabled
-              when {
-                enabled
-                condition {
-                  type
-                  logic
-                  field
-                  operator
-                  value
-                  conditions {
-                    type
-                    logic
-                    field
-                    operator
-                    value
-                    conditions {
-                      type
-                      logic
-                      field
-                      operator
-                      value
-                    }
-                  }
-                }
-              }
-              channelModel {
-                channelId
-                modelId
-              }
-              channelRegex {
-                channelId
-                pattern
-              }
-              regex {
-                pattern
-                exclude {
-                  channelNamePattern
-                  channelIds
-                  channelTags
-                }
-              }
-              modelId {
-                modelId
-                exclude {
-                  channelNamePattern
-                  channelIds
-                  channelTags
-                }
-              }
-              channelTagsModel {
-                channelTags
-                modelId
-              }
-              channelTagsRegex {
-                channelTags
-                pattern
-              }
-            }
-          }
+          ${MODEL_SETTINGS_FIELDS}
           status
           remark
           associatedChannelCount
@@ -171,62 +177,7 @@ const CREATE_MODEL_MUTATION = `
         releaseDate
         lastUpdated
       }
-      settings {
-        disableDeveloperSettingsInheritance
-        associations {
-          type
-          priority
-          disabled
-          when {
-            enabled
-            condition {
-              type
-              logic
-              field
-              operator
-              value
-              conditions {
-                type
-                logic
-                field
-                operator
-                value
-                conditions {
-                  type
-                  logic
-                  field
-                  operator
-                  value
-                }
-              }
-            }
-          }
-          channelModel {
-            channelId
-            modelId
-          }
-          channelRegex {
-            channelId
-            pattern
-          }
-          regex {
-            pattern
-            exclude {
-              channelNamePattern
-              channelIds
-              channelTags
-            }
-          }
-          modelId {
-            modelId
-            exclude {
-              channelNamePattern
-              channelIds
-              channelTags
-            }
-          }
-        }
-      }
+      ${MODEL_SETTINGS_FIELDS}
       status
       remark
       associatedChannelCount
@@ -272,62 +223,7 @@ const BULK_CREATE_MODELS_MUTATION = `
         releaseDate
         lastUpdated
       }
-      settings {
-        disableDeveloperSettingsInheritance
-        associations {
-          type
-          priority
-          disabled
-          when {
-            enabled
-            condition {
-              type
-              logic
-              field
-              operator
-              value
-              conditions {
-                type
-                logic
-                field
-                operator
-                value
-                conditions {
-                  type
-                  logic
-                  field
-                  operator
-                  value
-                }
-              }
-            }
-          }
-          channelModel {
-            channelId
-            modelId
-          }
-          channelRegex {
-            channelId
-            pattern
-          }
-          regex {
-            pattern
-            exclude {
-              channelNamePattern
-              channelIds
-              channelTags
-            }
-          }
-          modelId {
-            modelId
-            exclude {
-              channelNamePattern
-              channelIds
-              channelTags
-            }
-          }
-        }
-      }
+      ${MODEL_SETTINGS_FIELDS}
       status
       remark
       associatedChannelCount
@@ -373,62 +269,7 @@ const UPDATE_MODEL_MUTATION = `
         releaseDate
         lastUpdated
       }
-      settings {
-        disableDeveloperSettingsInheritance
-        associations {
-          type
-          priority
-          disabled
-          when {
-            enabled
-            condition {
-              type
-              logic
-              field
-              operator
-              value
-              conditions {
-                type
-                logic
-                field
-                operator
-                value
-                conditions {
-                  type
-                  logic
-                  field
-                  operator
-                  value
-                }
-              }
-            }
-          }
-          channelModel {
-            channelId
-            modelId
-          }
-          channelRegex {
-            channelId
-            pattern
-          }
-          regex {
-            pattern
-            exclude {
-              channelNamePattern
-              channelIds
-              channelTags
-            }
-          }
-          modelId {
-            modelId
-            exclude {
-              channelNamePattern
-              channelIds
-              channelTags
-            }
-          }
-        }
-      }
+      ${MODEL_SETTINGS_FIELDS}
       status
       remark
       associatedChannelCount

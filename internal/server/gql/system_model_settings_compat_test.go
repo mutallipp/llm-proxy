@@ -36,8 +36,7 @@ func TestUpdateSystemModelSettings_PreservesDeveloperSettingsWhenOmitted(t *test
 	defer client.Close()
 
 	err := mutationResolver.systemService.SetModelSettings(ctx, biz.SystemModelSettings{
-		FallbackToChannelsOnModelNotFound: true,
-		QueryAllChannelModels:             true,
+		QueryAllChannelModels: true,
 		DeveloperSettings: []*biz.DeveloperModelSettings{
 			{
 				Developer: "openai",
@@ -53,8 +52,7 @@ func TestUpdateSystemModelSettings_PreservesDeveloperSettingsWhenOmitted(t *test
 	require.NoError(t, err)
 
 	ok, err := mutationResolver.UpdateSystemModelSettings(ctx, biz.SystemModelSettings{
-		FallbackToChannelsOnModelNotFound: false,
-		QueryAllChannelModels:             false,
+		QueryAllChannelModels: false,
 	})
 	require.NoError(t, err)
 	require.True(t, ok)
@@ -63,7 +61,6 @@ func TestUpdateSystemModelSettings_PreservesDeveloperSettingsWhenOmitted(t *test
 	require.NoError(t, err)
 	require.Len(t, settings.DeveloperSettings, 1)
 	require.Equal(t, "openai", settings.DeveloperSettings[0].Developer)
-	require.False(t, settings.FallbackToChannelsOnModelNotFound)
 	require.False(t, settings.QueryAllChannelModels)
 }
 

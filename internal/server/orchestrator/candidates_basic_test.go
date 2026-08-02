@@ -5,8 +5,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mutallipp/llm-proxy/internal/ent"
 	"github.com/mutallipp/llm-proxy/internal/ent/channel"
 	"github.com/mutallipp/llm-proxy/internal/objects"
+	"github.com/mutallipp/llm-proxy/internal/server/biz"
 	"github.com/mutallipp/llm-proxy/llm"
 )
 
@@ -24,6 +26,7 @@ func TestDefaultChannelSelector_Select_SingleChannel(t *testing.T) {
 		SetStatus(channel.StatusEnabled).
 		Save(ctx)
 	require.NoError(t, err)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations([]*ent.Channel{ch}, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -32,7 +35,8 @@ func TestDefaultChannelSelector_Select_SingleChannel(t *testing.T) {
 	selector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -46,6 +50,7 @@ func TestDefaultSelector_Select(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -53,7 +58,8 @@ func TestDefaultSelector_Select(t *testing.T) {
 	selector := NewDefaultSelector(channelService, modelService, systemService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -78,6 +84,12 @@ func TestDefaultSelector_Select(t *testing.T) {
 func TestDefaultChannelSelector_Select_NoChannelsAvailable(t *testing.T) {
 	ctx, client := setupTest(t)
 
+	createTestModel(t, ctx, client, "gpt-4", []*objects.ModelAssociation{{
+		Type:     "regex",
+		Priority: 1,
+		Regex:    &objects.RegexAssociation{Pattern: ".*"},
+	}})
+
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
 	requestService := newTestRequestServiceForChannels(client, systemService)
@@ -85,12 +97,13 @@ func TestDefaultChannelSelector_Select_NoChannelsAvailable(t *testing.T) {
 	selector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
-	require.NoError(t, err)
-	require.Empty(t, result) // Should return empty slice, not error
+	require.ErrorIs(t, err, biz.ErrInvalidModel)
+	require.Nil(t, result)
 }
 
 // TestDefaultChannelSelector_Select_ModelNotSupported tests when requested model is not supported.
@@ -98,7 +111,7 @@ func TestDefaultChannelSelector_Select_ModelNotSupported(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	// Create channel that doesn't support the requested model
-	_, err := client.Channel.Create().
+	ch, err := client.Channel.Create().
 		SetType(channel.TypeOpenai).
 		SetName("Limited Channel").
 		SetBaseURL("https://api.openai.com/v1").
@@ -108,6 +121,7 @@ func TestDefaultChannelSelector_Select_ModelNotSupported(t *testing.T) {
 		SetStatus(channel.StatusEnabled).
 		Save(ctx)
 	require.NoError(t, err)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations([]*ent.Channel{ch}, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -116,12 +130,13 @@ func TestDefaultChannelSelector_Select_ModelNotSupported(t *testing.T) {
 	selector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4", // This model is not supported by the channel
+		Model:     "gpt-4", // This model is not supported by the channel
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
-	require.NoError(t, err)
-	require.Empty(t, result) // Should return empty slice when model not supported
+	require.ErrorIs(t, err, biz.ErrInvalidModel)
+	require.Nil(t, result)
 }
 
 // TestDefaultChannelSelector_Select_EmptyRequest tests handling of empty request.
@@ -140,8 +155,8 @@ func TestDefaultChannelSelector_Select_EmptyRequest(t *testing.T) {
 	req := &llm.Request{}
 
 	result, err := selector.Select(ctx, req)
-	require.NoError(t, err)
-	require.Empty(t, result) // Empty model should return empty slice
+	require.ErrorIs(t, err, biz.ErrInvalidModel)
+	require.Nil(t, result)
 }
 
 // TestSpecifiedChannelSelector_Select_ValidChannel tests SpecifiedChannelSelector with valid channel.
@@ -223,6 +238,7 @@ func TestSelectedChannelsSelector_Select_WithFilter(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -234,7 +250,8 @@ func TestSelectedChannelsSelector_Select_WithFilter(t *testing.T) {
 	selector := WithSelectedChannelsSelector(baseSelector, allowedIDs)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -258,6 +275,7 @@ func TestSelectedChannelsSelector_Select_EmptyFilter(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -268,7 +286,8 @@ func TestSelectedChannelsSelector_Select_EmptyFilter(t *testing.T) {
 	selector := WithSelectedChannelsSelector(baseSelector, nil)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)

@@ -19,6 +19,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { AutoComplete } from '@/components/auto-complete';
 import { AutoCompleteSelect } from '@/components/auto-complete-select';
 import { useModels } from '../context/models-context';
+import { useQueryChannels } from '@/features/channels/data/channels';
+import type { ModelProtocolPool } from '../data/schema';
+import {
+  channelIdToSelectValue,
+  channelSupportsProtocolPool,
+  parseChannelIdFromSelectValue,
+  protocolPoolFormats,
+} from '../data/protocol-pools';
 import { DEVELOPER_IDS, DEVELOPER_ICONS } from '../data/constants';
 import { useCreateModel, useUpdateModel } from '../data/models';
 import { useDevelopersData } from '../data/providers';
@@ -43,6 +51,10 @@ export function ModelsActionDialog() {
 
   // 用于解决 Dialog 内 Popover 无法滚动的问题
   const [dialogContent, setDialogContent] = useState<HTMLDivElement | null>(null);
+  const [protocolPools, setProtocolPools] = useState<ModelProtocolPool[]>([]);
+  const [protocolError, setProtocolError] = useState('');
+  const { data: channelsData } = useQueryChannels({ first: 2000 });
+  const channels = channelsData?.edges?.map((edge) => edge.node) ?? [];
 
   const isEdit = open === 'edit';
   const isOpen = open === 'create' || open === 'edit';
@@ -102,7 +114,7 @@ export function ModelsActionDialog() {
       icon: '',
       group: '',
       modelCard: {},
-      settings: { associations: [] },
+      settings: { protocolPools: [] },
       remark: '',
     },
   });
@@ -125,6 +137,7 @@ export function ModelsActionDialog() {
       setModelIdInput(currentRow.modelID);
       setModelIdSearchValue(currentRow.modelID);
       setSelectedModelCard(currentRow.modelCard || {});
+      setProtocolPools(currentRow.settings?.protocolPools || []);
     } else if (!isEdit) {
       form.reset({
         developer: '',
@@ -134,7 +147,7 @@ export function ModelsActionDialog() {
         icon: '',
         group: '',
         modelCard: {},
-        settings: { associations: [] },
+        settings: { protocolPools: [] },
         remark: '',
       });
       setSelectedProvider('');
@@ -142,6 +155,7 @@ export function ModelsActionDialog() {
       setModelIdInput('');
       setModelIdSearchValue('');
       setSelectedModelCard({});
+      setProtocolPools([]);
     }
   }, [isEdit, currentRow, form, isOpen]);
 
@@ -217,6 +231,17 @@ export function ModelsActionDialog() {
   );
 
   const onSubmit = async (data: CreateModelInput) => {
+    if (isEdit) {
+      if (protocolPools.some((pool) => !pool.format.trim())) { setProtocolError('协议池格式不能为空'); return; }
+      for (const pool of protocolPools) {
+        if (pool.associations.length === 0) { setProtocolError(`协议池 ${pool.format} 至少需要一个 target`); return; }
+        if (pool.associations.some((target) => !Number.isFinite(target.priority) || !Number.isInteger(target.priority) || target.priority < 0 || target.priority > 100)) { setProtocolError(`协议池 ${pool.format} 的 priority 必须是 0 到 100 的整数`); return; }
+        const keys = pool.associations.map((target) => `${target.channelModel?.channelId || 0}:${target.channelModel?.modelId?.trim() || ''}`);
+        if (keys.some((key) => key.startsWith('0:') || key.endsWith(':'))) { setProtocolError('每个 target 都必须选择渠道并填写物理模型'); return; }
+        if (new Set(keys).size !== keys.length) { setProtocolError(`协议池 ${pool.format} 存在重复的渠道和物理模型`); return; }
+      }
+      setProtocolError('');
+    }
     try {
       if (isEdit && currentRow) {
         const updateData: UpdateModelInput = {
@@ -227,7 +252,7 @@ export function ModelsActionDialog() {
           icon: data.icon,
           group: data.group,
           modelCard: data.modelCard,
-          settings: data.settings,
+          settings: { ...data.settings, protocolPools },
           remark: data.remark,
         };
         await updateModel.mutateAsync({ id: currentRow.id, input: updateData });
@@ -235,8 +260,9 @@ export function ModelsActionDialog() {
         await createModel.mutateAsync(data);
       }
       handleClose();
-    } catch (_error) {
-      // Error is handled by mutation
+    } catch (error) {
+      const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : 0;
+      setProtocolError(status === 401 ? '未登录或登录已过期' : status === 403 ? '没有修改模型的权限' : status === 404 ? '模型或渠道不存在' : status === 409 ? '协议池配置冲突，请检查重复 target' : status >= 500 ? '服务暂时不可用，请稍后重试' : '保存协议池失败，请检查输入后重试');
     }
   };
 
@@ -814,6 +840,21 @@ export function ModelsActionDialog() {
                 </div>
               </div>
             </div>
+
+            {isEdit && (
+              <div className='space-y-3 rounded-md border p-3'>
+                <div className='flex items-center justify-between'><FormLabel>协议池</FormLabel><Button type='button' variant='outline' size='sm' onClick={() => setProtocolPools([...protocolPools, { format: 'openai', associations: [] }])}>新增协议池</Button></div>
+                {protocolError && <p className='text-sm text-destructive'>{protocolError}</p>}
+                {protocolPools.map((pool, index) => <div key={`${pool.format}-${index}`} className='space-y-2 rounded border p-2'>
+                  <div className='flex gap-2'><Select value={pool.format} onValueChange={(format) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, format } : item))}><SelectTrigger><SelectValue placeholder='选择协议' /></SelectTrigger><SelectContent>{protocolPoolFormats.map((format) => <SelectItem key={format} value={format}>{format}</SelectItem>)}</SelectContent></Select><Button type='button' variant='ghost' onClick={() => setProtocolPools(protocolPools.filter((_, i) => i !== index))}>删除协议池</Button></div>
+                  {pool.associations.map((association, targetIndex) => <div key={targetIndex} className='space-y-2 rounded bg-muted/30 p-2'>
+                    <div className='flex gap-2'><Input placeholder='物理模型 ID' value={association.channelModel?.modelId || ''} onChange={(event) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, channelModel: { ...target.channelModel!, modelId: event.target.value } } : target) } : item))} /><Input className='w-24' type='number' min={0} max={100} step={1} placeholder='优先级' value={association.priority ?? 0} onChange={(event) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, priority: Number(event.target.value) } : target) } : item))} /></div>
+                    <div className='flex gap-2'><Select value={channelIdToSelectValue(association.channelModel?.channelId, channels)} onValueChange={(value) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, channelModel: { ...target.channelModel!, channelId: parseChannelIdFromSelectValue(value) ?? 0 } } : target) } : item))}><SelectTrigger><SelectValue placeholder='选择渠道' /></SelectTrigger><SelectContent>{channels.filter((channel) => channelSupportsProtocolPool(channel, pool.format)).map((channel) => <SelectItem key={channel.id} value={channel.id}>{channel.name}</SelectItem>)}</SelectContent></Select><label className='flex items-center gap-2 text-sm'><Checkbox checked={!association.disabled} onCheckedChange={(checked) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, disabled: !checked } : target) } : item))} />启用</label><Button type='button' variant='ghost' onClick={() => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.filter((_, j) => j !== targetIndex) } : item))}>删除 target</Button></div>
+                  </div>)}
+                  <Button type='button' variant='outline' size='sm' onClick={() => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: [...item.associations, { type: 'channel_model' as const, priority: 0, disabled: false, channelModel: { channelId: 0, modelId: '' } }] } : item))}>新增 target</Button>
+                </div>)}
+              </div>
+            )}
 
             <div className='flex flex-shrink-0 justify-end gap-2 border-t pt-4'>
               <Button type='button' variant='outline' onClick={handleClose}>

@@ -23,9 +23,6 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/ent/channelprobe"
 	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
 	"github.com/mutallipp/llm-proxy/internal/ent/model"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
 	"github.com/mutallipp/llm-proxy/internal/ent/oidcidentity"
 	"github.com/mutallipp/llm-proxy/internal/ent/project"
 	"github.com/mutallipp/llm-proxy/internal/ent/prompt"
@@ -112,9 +109,6 @@ func checkColumn(t, c string) error {
 			channelprobe.Table:             channelprobe.ValidColumn,
 			datastorage.Table:              datastorage.ValidColumn,
 			model.Table:                    model.ValidColumn,
-			modelgroup.Table:               modelgroup.ValidColumn,
-			modelgroupprotocol.Table:       modelgroupprotocol.ValidColumn,
-			modelgrouptarget.Table:         modelgrouptarget.ValidColumn,
 			oidcidentity.Table:             oidcidentity.ValidColumn,
 			project.Table:                  project.ValidColumn,
 			prompt.Table:                   prompt.ValidColumn,

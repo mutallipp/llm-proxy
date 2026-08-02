@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -43,8 +44,17 @@ const (
 	FieldStatus = "status"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
+	// EdgeAdapterBindings holds the string denoting the adapter_bindings edge name in mutations.
+	EdgeAdapterBindings = "adapter_bindings"
 	// Table holds the table name of the model in the database.
 	Table = "models"
+	// AdapterBindingsTable is the table that holds the adapter_bindings relation/edge.
+	AdapterBindingsTable = "adapter_model_bindings"
+	// AdapterBindingsInverseTable is the table name for the AdapterModelBinding entity.
+	// It exists in this package in order to avoid circular dependency with the "adaptermodelbinding" package.
+	AdapterBindingsInverseTable = "adapter_model_bindings"
+	// AdapterBindingsColumn is the table column denoting the adapter_bindings relation/edge.
+	AdapterBindingsColumn = "model_id"
 )
 
 // Columns holds all SQL columns for model fields.
@@ -211,6 +221,27 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByRemark orders the results by the remark field.
 func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByAdapterBindingsCount orders the results by adapter_bindings count.
+func ByAdapterBindingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAdapterBindingsStep(), opts...)
+	}
+}
+
+// ByAdapterBindings orders the results by adapter_bindings terms.
+func ByAdapterBindings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAdapterBindingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newAdapterBindingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AdapterBindingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AdapterBindingsTable, AdapterBindingsColumn),
+	)
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

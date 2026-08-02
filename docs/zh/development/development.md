@@ -87,7 +87,7 @@ make build
 ./axonhub
 ```
 
-不要只执行 `go run ./cmd/axonhub`：新 clone 的仓库不提交前端 dist，直接运行可能看不到最新的 Adapter、ModelGroup 等页面。
+不要只执行 `go run ./cmd/axonhub`：新 clone 的仓库不提交前端 dist，直接运行可能看不到最新的 Adapter、Model 等页面。
 
 后端服务默认启动在 `http://localhost:8090`。
 

@@ -19,9 +19,15 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 	ctx, client := setupTest(t)
 	now := time.Now()
 	modelID := "test-model"
+	protocol := testOpenAIChatProtocol
+	cacheKey := modelID + ":" + string(protocol)
 
 	// Create test channels in database
 	channels := createTestChannels(t, ctx, client)
+	testChannelIDs := make([]int, 0, len(channels)+3)
+	for _, ch := range channels {
+		testChannelIDs = append(testChannelIDs, ch.ID)
+	}
 
 	associations := []*objects.ModelAssociation{
 		{
@@ -44,7 +50,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		SetModelCard(&objects.ModelCard{}).
 		SetStatus(model.StatusEnabled).
 		SetSettings(&objects.ModelSettings{
-			Associations: associations,
+			ProtocolPools: map[string][]*objects.ModelAssociation{string(protocol): associations},
 		}).
 		SaveX(ctx)
 
@@ -58,7 +64,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 
 	t.Run("first call caches result", func(t *testing.T) {
 		// Test selectModelCandidates with mock request
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: protocol}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
@@ -66,25 +72,25 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		// Verify cache was populated
 		selector.cacheMu.RLock()
 		require.Len(t, selector.associationCache, 1)
-		require.Contains(t, selector.associationCache, modelID)
+		require.Contains(t, selector.associationCache, cacheKey)
 		selector.cacheMu.RUnlock()
 	})
 
 	t.Run("second call uses cache", func(t *testing.T) {
 		// Get initial cache entry
 		selector.cacheMu.RLock()
-		initialEntry := selector.associationCache[modelID]
+		initialEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		// Call again
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: protocol}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
 
 		// Verify same cache entry is used (pointer equality)
 		selector.cacheMu.RLock()
-		currentEntry := selector.associationCache[modelID]
+		currentEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		require.Same(t, initialEntry, currentEntry, "should use same cache entry")
@@ -92,31 +98,35 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 
 	t.Run("cache invalidated when channel count changes", func(t *testing.T) {
 		// Add a new channel
-		client.Channel.Create().
-			SetName("anthropic-primary").
-			SetType(channel.TypeAnthropic).
-			SetSupportedModels([]string{"claude-3-opus"}).
-			SetDefaultTestModel("claude-3-opus").
+		additionalChannel := client.Channel.Create().
+			SetName("additional-openai").
+			SetType(channel.TypeOpenai).
+			SetBaseURL("https://api.openai.com/v1").
+			SetSupportedModels([]string{"gpt-4"}).
+			SetDefaultTestModel("gpt-4").
 			SetCredentials(objects.ChannelCredentials{APIKey: "test-key"}).
 			SetStatus(channel.StatusEnabled).
 			SaveX(ctx)
+		testChannelIDs = append(testChannelIDs, additionalChannel.ID)
+		selector.ChannelService = newTestChannelServiceForChannels(client)
+		channelService = selector.ChannelService
 
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: protocol}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
 
 		// Verify cache was updated with new channel count
 		selector.cacheMu.RLock()
-		entry := selector.associationCache[modelID]
+		entry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
-		require.Equal(t, 3, entry.channelCount, "cache should reflect new channel count")
+		require.Equal(t, 4, entry.channelCount, "cache should reflect new channel count")
 	})
 
 	t.Run("cache invalidated when channel updated", func(t *testing.T) {
 		selector.cacheMu.RLock()
-		initialEntry := selector.associationCache[modelID]
+		initialEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		// Update a channel's timestamp
@@ -134,14 +144,14 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		}
 		channelService.SetEnabledChannelsForTest(enabledChannels)
 
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: protocol}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
 
 		// Verify cache was populated
 		selector.cacheMu.RLock()
-		entry := selector.associationCache[modelID]
+		entry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		require.NotNil(t, entry)
@@ -152,7 +162,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 	t.Run("cache invalidated when model updated", func(t *testing.T) {
 		// Get initial cache entry
 		selector.cacheMu.RLock()
-		initialEntry := selector.associationCache[modelID]
+		initialEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		// Update model's UpdatedAt timestamp
@@ -167,14 +177,14 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		require.NoError(t, err)
 
 		// Call again - should refresh cache due to model update
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: protocol}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
 
 		// Verify cache was refreshed with new model update time
 		selector.cacheMu.RLock()
-		currentEntry := selector.associationCache[modelID]
+		currentEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		require.NotSame(t, initialEntry, currentEntry, "cache entry should be refreshed when model is updated")
@@ -184,7 +194,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 	t.Run("cache invalidated when model associations updated", func(t *testing.T) {
 		// Get initial cache entry
 		selector.cacheMu.RLock()
-		initialEntry := selector.associationCache[modelID]
+		initialEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		// Wait a bit to ensure timestamp difference
@@ -201,26 +211,26 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 				Type:     "regex",
 				Priority: 2,
 				Regex: &objects.RegexAssociation{
-					Pattern: "claude-.*",
+					Pattern: "gpt-.*",
 				},
 			},
 		}
 
 		_, err = client.Model.UpdateOneID(updatedModel.ID).
 			SetSettings(&objects.ModelSettings{
-				Associations: newAssociations,
+				ProtocolPools: map[string][]*objects.ModelAssociation{string(protocol): newAssociations},
 			}).
 			Save(ctx)
 		require.NoError(t, err)
 
 		// Call again - should refresh cache due to model update
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: protocol}
 		_, err = selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 
 		// Verify cache was refreshed with new model update time
 		selector.cacheMu.RLock()
-		currentEntry := selector.associationCache[modelID]
+		currentEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		require.NotSame(t, initialEntry, currentEntry, "cache entry should be refreshed when model associations are updated")
@@ -254,11 +264,12 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 			SetModelCard(&objects.ModelCard{}).
 			SetStatus(model.StatusEnabled).
 			SetSettings(&objects.ModelSettings{
-				Associations: differentAssociations,
+				ProtocolPools: map[string][]*objects.ModelAssociation{string(protocol): differentAssociations},
 			}).
 			SaveX(ctx)
 
-		req := &llm.Request{Model: differentModelID}
+		differentCacheKey := differentModelID + ":" + string(protocol)
+		req := &llm.Request{Model: differentModelID, APIFormat: protocol}
 		candidates, err := selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 		require.NotEmpty(t, candidates)
@@ -266,8 +277,8 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		// Verify we now have 2 cache entries
 		selector.cacheMu.RLock()
 		require.Len(t, selector.associationCache, 2)
-		require.Contains(t, selector.associationCache, modelID)
-		require.Contains(t, selector.associationCache, differentModelID)
+		require.Contains(t, selector.associationCache, cacheKey)
+		require.Contains(t, selector.associationCache, differentCacheKey)
 		selector.cacheMu.RUnlock()
 	})
 
@@ -276,13 +287,15 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 
 		longContextChannel, err := client.Channel.Create().
 			SetName("Long Context Channel").
-			SetType(channel.TypeAnthropic).
-			SetSupportedModels([]string{"claude-3-opus"}).
-			SetDefaultTestModel("claude-3-opus").
+			SetType(channel.TypeOpenai).
+			SetBaseURL("https://api.openai.com/v1").
+			SetSupportedModels([]string{"gpt-4"}).
+			SetDefaultTestModel("gpt-4").
 			SetCredentials(objects.ChannelCredentials{APIKey: "test-key-long"}).
 			SetStatus(channel.StatusEnabled).
 			Save(ctx)
 		require.NoError(t, err)
+		testChannelIDs = append(testChannelIDs, longContextChannel.ID)
 
 		client.Model.Create().
 			SetDeveloper("test-developer").
@@ -294,7 +307,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 			SetModelCard(&objects.ModelCard{}).
 			SetStatus(model.StatusEnabled).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{string(protocol): {
 					{
 						Type: "channel_model",
 						When: &objects.ModelAssociationWhen{
@@ -328,17 +341,18 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 						},
 						ChannelModel: &objects.ChannelModelAssociation{
 							ChannelID: longContextChannel.ID,
-							ModelID:   "claude-3-opus",
+							ModelID:   "gpt-4",
 						},
 					},
-				},
+				}},
 			}).
 			SaveX(ctx)
 
 		selector.ChannelService = newTestChannelServiceForChannels(client)
 
 		smallReq := &llm.Request{
-			Model: conditionalModelID,
+			Model:     conditionalModelID,
+			APIFormat: protocol,
 			Messages: []llm.Message{{
 				Role: "user",
 				Content: llm.MessageContent{
@@ -353,7 +367,8 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		require.Equal(t, channels[0].ID, smallCandidates[0].Channel.ID)
 
 		largeReq := &llm.Request{
-			Model: conditionalModelID,
+			Model:     conditionalModelID,
+			APIFormat: protocol,
 			Messages: []llm.Message{{
 				Role: "user",
 				Content: llm.MessageContent{
@@ -368,7 +383,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		require.Equal(t, longContextChannel.ID, largeCandidates[0].Channel.ID)
 
 		selector.cacheMu.RLock()
-		require.Contains(t, selector.associationCache, conditionalModelID)
+		require.Contains(t, selector.associationCache, conditionalModelID+":"+string(protocol))
 		selector.cacheMu.RUnlock()
 	})
 
@@ -386,6 +401,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 			SetStatus(channel.StatusEnabled).
 			Save(ctx)
 		require.NoError(t, err)
+		testChannelIDs = append(testChannelIDs, streamChannel.ID)
 
 		client.Model.Create().
 			SetDeveloper("test-developer").
@@ -397,7 +413,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 			SetModelCard(&objects.ModelCard{}).
 			SetStatus(model.StatusEnabled).
 			SetSettings(&objects.ModelSettings{
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{string(protocol): {
 					{
 						Type: "channel_model",
 						When: &objects.ModelAssociationWhen{
@@ -416,18 +432,18 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 							ModelID:   "gpt-4",
 						},
 					},
-				},
+				}},
 			}).
 			SaveX(ctx)
 
 		selector.ChannelService = newTestChannelServiceForChannels(client)
-
 		streamTrue := true
 		streamFalse := false
 
 		streamReq := &llm.Request{
-			Model:  streamModelID,
-			Stream: &streamTrue,
+			Model:     streamModelID,
+			APIFormat: protocol,
+			Stream:    &streamTrue,
 			Messages: []llm.Message{{
 				Role: "user",
 				Content: llm.MessageContent{
@@ -442,8 +458,9 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		require.Equal(t, streamChannel.ID, streamCandidates[0].Channel.ID)
 
 		noStreamReq := &llm.Request{
-			Model:  streamModelID,
-			Stream: &streamFalse,
+			Model:     streamModelID,
+			APIFormat: protocol,
+			Stream:    &streamFalse,
 			Messages: []llm.Message{{
 				Role: "user",
 				Content: llm.MessageContent{
@@ -453,13 +470,13 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		}
 
 		noStreamCandidates, err := selector.selectModelCandidates(ctx, noStreamReq)
-		require.NoError(t, err)
-		require.Empty(t, noStreamCandidates)
+		require.ErrorIs(t, err, biz.ErrInvalidModel)
+		require.Nil(t, noStreamCandidates)
 	})
 
 	t.Run("empty channels returns empty candidates", func(t *testing.T) {
-		// Delete all channels
-		_, err := client.Channel.Delete().Where(channel.IDIn(channels[0].ID, channels[1].ID, channels[2].ID)).Exec(ctx)
+		// Delete channels created by this test
+		_, err := client.Channel.Delete().Where(channel.IDIn(testChannelIDs...)).Exec(ctx)
 		require.NoError(t, err)
 
 		// Create a new channel service to force fresh data
@@ -472,10 +489,10 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 
 		selector.ChannelService = newChannelService
 
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: protocol}
 		candidates, err := selector.selectModelCandidates(ctx, req)
-		require.NoError(t, err)
-		require.Empty(t, candidates)
+		require.ErrorIs(t, err, biz.ErrInvalidModel)
+		require.Nil(t, candidates)
 	})
 
 	t.Run("cache expires after TTL", func(t *testing.T) {
@@ -509,20 +526,20 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 		selector.ChannelService = newChannelService
 
 		// First call to populate cache
-		req := &llm.Request{Model: modelID}
+		req := &llm.Request{Model: modelID, APIFormat: protocol}
 		_, err = selector.selectModelCandidates(ctx, req)
 		require.NoError(t, err)
 
 		// Manually set cache entry to be older than TTL
 		selector.cacheMu.Lock()
-		entry := selector.associationCache[modelID]
+		entry := selector.associationCache[cacheKey]
 		entry.cachedAt = time.Now().Add(-6 * time.Minute) // 6 minutes ago, past 5-minute TTL
 
 		selector.cacheMu.Unlock()
 
 		// Get cache before
 		selector.cacheMu.RLock()
-		oldEntry := selector.associationCache[modelID]
+		oldEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		// Call again - should refresh cache due to expiration
@@ -532,7 +549,7 @@ func TestDefaultSelector_SelectModelCandidates_Cache(t *testing.T) {
 
 		// Verify cache was refreshed
 		selector.cacheMu.RLock()
-		newEntry := selector.associationCache[modelID]
+		newEntry := selector.associationCache[cacheKey]
 		selector.cacheMu.RUnlock()
 
 		require.NotSame(t, oldEntry, newEntry, "cache entry should be refreshed after TTL")

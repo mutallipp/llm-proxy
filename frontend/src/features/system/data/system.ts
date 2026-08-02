@@ -6,7 +6,7 @@ import i18n from '@/lib/i18n';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { ProxyConfig } from '@/features/channels/data/schema';
-import type { ModelAssociation } from '@/features/models/data/schema';
+import type { ModelProtocolPool } from '@/features/models/data/schema';
 
 // GraphQL queries and mutations
 const SYSTEM_VERSION_QUERY = `
@@ -759,10 +759,9 @@ export function useExportCacheDiagnostics() {
 
   return useMutation({
     mutationFn: async () => {
-      const data = await graphqlRequest<{ getCacheDiagnostics: GetCacheDiagnosticsPayload }>(
-        GET_CACHE_DIAGNOSTICS_QUERY,
-        { input: { targets: ['CHANNEL_CACHE'] } }
-      );
+      const data = await graphqlRequest<{ getCacheDiagnostics: GetCacheDiagnosticsPayload }>(GET_CACHE_DIAGNOSTICS_QUERY, {
+        input: { targets: ['CHANNEL_CACHE'] },
+      });
       return data.getCacheDiagnostics;
     },
     onSuccess: (data) => {
@@ -811,26 +810,21 @@ export function useClearCache() {
 const MODEL_SETTINGS_QUERY = `
   query ModelSettings {
     systemModelSettings {
-      fallbackToChannelsOnModelNotFound
       queryAllChannelModels
       defaultModelAPIIncludeAll
       autoReasoningEffort
       modelBlacklistRegex
       developerSettings {
         developer
-        associations {
-          type
-          priority
-          disabled
-          when {
-            enabled
-            condition {
-              type
-              logic
-              field
-              operator
-              value
-              conditions {
+        protocolPools {
+          format
+          associations {
+            type
+            priority
+            disabled
+            when {
+              enabled
+              condition {
                 type
                 logic
                 field
@@ -842,41 +836,48 @@ const MODEL_SETTINGS_QUERY = `
                   field
                   operator
                   value
+                  conditions {
+                    type
+                    logic
+                    field
+                    operator
+                    value
+                  }
                 }
               }
             }
-          }
-          channelModel {
-            channelId
-            modelId
-          }
-          channelRegex {
-            channelId
-            pattern
-          }
-          regex {
-            pattern
-            exclude {
-              channelNamePattern
-              channelIds
-              channelTags
+            channelModel {
+              channelId
+              modelId
             }
-          }
-          modelId {
-            modelId
-            exclude {
-              channelNamePattern
-              channelIds
-              channelTags
+            channelRegex {
+              channelId
+              pattern
             }
-          }
-          channelTagsModel {
-            channelTags
-            modelId
-          }
-          channelTagsRegex {
-            channelTags
-            pattern
+            regex {
+              pattern
+              exclude {
+                channelNamePattern
+                channelIds
+                channelTags
+              }
+            }
+            modelId {
+              modelId
+              exclude {
+                channelNamePattern
+                channelIds
+                channelTags
+              }
+            }
+            channelTagsModel {
+              channelTags
+              modelId
+            }
+            channelTagsRegex {
+              channelTags
+              pattern
+            }
           }
         }
       }
@@ -960,7 +961,6 @@ const UPDATE_SECURITY_SETTINGS_MUTATION = `
 `;
 
 export interface ModelSettings {
-  fallbackToChannelsOnModelNotFound: boolean;
   queryAllChannelModels: boolean;
   defaultModelAPIIncludeAll: boolean;
   autoReasoningEffort: boolean;
@@ -969,7 +969,6 @@ export interface ModelSettings {
 }
 
 export interface UpdateModelSettingsInput {
-  fallbackToChannelsOnModelNotFound?: boolean;
   queryAllChannelModels?: boolean;
   defaultModelAPIIncludeAll?: boolean;
   autoReasoningEffort?: boolean;
@@ -979,7 +978,7 @@ export interface UpdateModelSettingsInput {
 
 export interface DeveloperModelSettings {
   developer: string;
-  associations: ModelAssociation[];
+  protocolPools: ModelProtocolPool[];
 }
 
 export function useModelSettings() {
@@ -1549,7 +1548,6 @@ export function useDeleteProxyPreset() {
   });
 }
 
-
 // User-Agent Pass-Through Settings
 const USER_AGENT_PASS_THROUGH_SETTINGS_QUERY = `
   query UserAgentPassThroughSettings {
@@ -1580,7 +1578,9 @@ export function useUserAgentPassThroughSettings() {
     queryKey: ['userAgentPassThroughSettings'],
     queryFn: async () => {
       try {
-        const data = await graphqlRequest<{ userAgentPassThroughSettings: UserAgentPassThroughSettings }>(USER_AGENT_PASS_THROUGH_SETTINGS_QUERY);
+        const data = await graphqlRequest<{ userAgentPassThroughSettings: UserAgentPassThroughSettings }>(
+          USER_AGENT_PASS_THROUGH_SETTINGS_QUERY
+        );
         return data.userAgentPassThroughSettings;
       } catch (error) {
         handleError(error, i18n.t('common.errors.internalServerError'));
@@ -1595,7 +1595,9 @@ export function useUpdateUserAgentPassThroughSettings() {
 
   return useMutation({
     mutationFn: async (input: UpdateUserAgentPassThroughSettingsInput) => {
-      const data = await graphqlRequest<{ updateUserAgentPassThroughSettings: boolean }>(UPDATE_USER_AGENT_PASS_THROUGH_SETTINGS_MUTATION, { input });
+      const data = await graphqlRequest<{ updateUserAgentPassThroughSettings: boolean }>(UPDATE_USER_AGENT_PASS_THROUGH_SETTINGS_MUTATION, {
+        input,
+      });
       return data.updateUserAgentPassThroughSettings;
     },
     onSuccess: () => {

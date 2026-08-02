@@ -5,7 +5,6 @@
   "sidebar.items.dashboard": "Dashboard",
   "sidebar.items.channels": "Channels",
   "sidebar.items.adapters": "Adapters",
-  "sidebar.items.modelGroups": "Model Groups",
   "sidebar.items.models": "Models",
   "sidebar.items.promptProtectionRules": "Prompt Protection",
   "sidebar.items.prompts": "Prompts",

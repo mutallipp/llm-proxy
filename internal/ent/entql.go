@@ -14,9 +14,6 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/ent/channelprobe"
 	"github.com/mutallipp/llm-proxy/internal/ent/datastorage"
 	"github.com/mutallipp/llm-proxy/internal/ent/model"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroupprotocol"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgrouptarget"
 	"github.com/mutallipp/llm-proxy/internal/ent/oidcidentity"
 	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 	"github.com/mutallipp/llm-proxy/internal/ent/project"
@@ -42,7 +39,7 @@ import (
 
 // schemaGraph holds a representation of ent/schema at runtime.
 var schemaGraph = func() *sqlgraph.Schema {
-	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 29)}
+	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 26)}
 	graph.Nodes[0] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   apikey.Table,
@@ -125,7 +122,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			adaptermodelbinding.FieldDeletedAt:     {Type: field.TypeInt, Column: adaptermodelbinding.FieldDeletedAt},
 			adaptermodelbinding.FieldAdapterID:     {Type: field.TypeInt, Column: adaptermodelbinding.FieldAdapterID},
 			adaptermodelbinding.FieldSourceModelID: {Type: field.TypeString, Column: adaptermodelbinding.FieldSourceModelID},
-			adaptermodelbinding.FieldModelGroupID:  {Type: field.TypeInt, Column: adaptermodelbinding.FieldModelGroupID},
+			adaptermodelbinding.FieldModelID:       {Type: field.TypeInt, Column: adaptermodelbinding.FieldModelID},
 			adaptermodelbinding.FieldEnabled:       {Type: field.TypeBool, Column: adaptermodelbinding.FieldEnabled},
 			adaptermodelbinding.FieldRemark:        {Type: field.TypeString, Column: adaptermodelbinding.FieldRemark},
 		},
@@ -299,71 +296,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 	}
 	graph.Nodes[11] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
-			Table:   modelgroup.Table,
-			Columns: modelgroup.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: modelgroup.FieldID,
-			},
-		},
-		Type: "ModelGroup",
-		Fields: map[string]*sqlgraph.FieldSpec{
-			modelgroup.FieldCreatedAt:         {Type: field.TypeTime, Column: modelgroup.FieldCreatedAt},
-			modelgroup.FieldUpdatedAt:         {Type: field.TypeTime, Column: modelgroup.FieldUpdatedAt},
-			modelgroup.FieldDeletedAt:         {Type: field.TypeInt, Column: modelgroup.FieldDeletedAt},
-			modelgroup.FieldName:              {Type: field.TypeString, Column: modelgroup.FieldName},
-			modelgroup.FieldDisplayName:       {Type: field.TypeString, Column: modelgroup.FieldDisplayName},
-			modelgroup.FieldStatus:            {Type: field.TypeEnum, Column: modelgroup.FieldStatus},
-			modelgroup.FieldSelectionStrategy: {Type: field.TypeEnum, Column: modelgroup.FieldSelectionStrategy},
-			modelgroup.FieldRemark:            {Type: field.TypeString, Column: modelgroup.FieldRemark},
-		},
-	}
-	graph.Nodes[12] = &sqlgraph.Node{
-		NodeSpec: sqlgraph.NodeSpec{
-			Table:   modelgroupprotocol.Table,
-			Columns: modelgroupprotocol.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: modelgroupprotocol.FieldID,
-			},
-		},
-		Type: "ModelGroupProtocol",
-		Fields: map[string]*sqlgraph.FieldSpec{
-			modelgroupprotocol.FieldCreatedAt:        {Type: field.TypeTime, Column: modelgroupprotocol.FieldCreatedAt},
-			modelgroupprotocol.FieldUpdatedAt:        {Type: field.TypeTime, Column: modelgroupprotocol.FieldUpdatedAt},
-			modelgroupprotocol.FieldDeletedAt:        {Type: field.TypeInt, Column: modelgroupprotocol.FieldDeletedAt},
-			modelgroupprotocol.FieldModelGroupID:     {Type: field.TypeInt, Column: modelgroupprotocol.FieldModelGroupID},
-			modelgroupprotocol.FieldInboundAPIFormat: {Type: field.TypeString, Column: modelgroupprotocol.FieldInboundAPIFormat},
-			modelgroupprotocol.FieldEnabled:          {Type: field.TypeBool, Column: modelgroupprotocol.FieldEnabled},
-			modelgroupprotocol.FieldRemark:           {Type: field.TypeString, Column: modelgroupprotocol.FieldRemark},
-		},
-	}
-	graph.Nodes[13] = &sqlgraph.Node{
-		NodeSpec: sqlgraph.NodeSpec{
-			Table:   modelgrouptarget.Table,
-			Columns: modelgrouptarget.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: modelgrouptarget.FieldID,
-			},
-		},
-		Type: "ModelGroupTarget",
-		Fields: map[string]*sqlgraph.FieldSpec{
-			modelgrouptarget.FieldCreatedAt:            {Type: field.TypeTime, Column: modelgrouptarget.FieldCreatedAt},
-			modelgrouptarget.FieldUpdatedAt:            {Type: field.TypeTime, Column: modelgrouptarget.FieldUpdatedAt},
-			modelgrouptarget.FieldDeletedAt:            {Type: field.TypeInt, Column: modelgrouptarget.FieldDeletedAt},
-			modelgrouptarget.FieldModelGroupProtocolID: {Type: field.TypeInt, Column: modelgrouptarget.FieldModelGroupProtocolID},
-			modelgrouptarget.FieldChannelID:            {Type: field.TypeInt, Column: modelgrouptarget.FieldChannelID},
-			modelgrouptarget.FieldTargetModelID:        {Type: field.TypeString, Column: modelgrouptarget.FieldTargetModelID},
-			modelgrouptarget.FieldOutboundAPIFormat:    {Type: field.TypeString, Column: modelgrouptarget.FieldOutboundAPIFormat},
-			modelgrouptarget.FieldPriority:             {Type: field.TypeInt, Column: modelgrouptarget.FieldPriority},
-			modelgrouptarget.FieldEnabled:              {Type: field.TypeBool, Column: modelgrouptarget.FieldEnabled},
-			modelgrouptarget.FieldCapabilities:         {Type: field.TypeJSON, Column: modelgrouptarget.FieldCapabilities},
-			modelgrouptarget.FieldRemark:               {Type: field.TypeString, Column: modelgrouptarget.FieldRemark},
-		},
-	}
-	graph.Nodes[14] = &sqlgraph.Node{
-		NodeSpec: sqlgraph.NodeSpec{
 			Table:   oidcidentity.Table,
 			Columns: oidcidentity.Columns,
 			ID: &sqlgraph.FieldSpec{
@@ -384,7 +316,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			oidcidentity.FieldUserID:      {Type: field.TypeInt, Column: oidcidentity.FieldUserID},
 		},
 	}
-	graph.Nodes[15] = &sqlgraph.Node{
+	graph.Nodes[12] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   project.Table,
 			Columns: project.Columns,
@@ -404,7 +336,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			project.FieldProfiles:    {Type: field.TypeJSON, Column: project.FieldProfiles},
 		},
 	}
-	graph.Nodes[16] = &sqlgraph.Node{
+	graph.Nodes[13] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   prompt.Table,
 			Columns: prompt.Columns,
@@ -428,7 +360,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			prompt.FieldSettings:    {Type: field.TypeJSON, Column: prompt.FieldSettings},
 		},
 	}
-	graph.Nodes[17] = &sqlgraph.Node{
+	graph.Nodes[14] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   promptprotectionrule.Table,
 			Columns: promptprotectionrule.Columns,
@@ -449,7 +381,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			promptprotectionrule.FieldSettings:    {Type: field.TypeJSON, Column: promptprotectionrule.FieldSettings},
 		},
 	}
-	graph.Nodes[18] = &sqlgraph.Node{
+	graph.Nodes[15] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   providerquotastatus.Table,
 			Columns: providerquotastatus.Columns,
@@ -472,7 +404,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			providerquotastatus.FieldNextCheckAt:  {Type: field.TypeTime, Column: providerquotastatus.FieldNextCheckAt},
 		},
 	}
-	graph.Nodes[19] = &sqlgraph.Node{
+	graph.Nodes[16] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   request.Table,
 			Columns: request.Columns,
@@ -511,7 +443,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			request.FieldContentSavedAt:             {Type: field.TypeTime, Column: request.FieldContentSavedAt},
 		},
 	}
-	graph.Nodes[20] = &sqlgraph.Node{
+	graph.Nodes[17] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   requestexecution.Table,
 			Columns: requestexecution.Columns,
@@ -546,7 +478,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			requestexecution.FieldPassThroughApplied:         {Type: field.TypeBool, Column: requestexecution.FieldPassThroughApplied},
 		},
 	}
-	graph.Nodes[21] = &sqlgraph.Node{
+	graph.Nodes[18] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   role.Table,
 			Columns: role.Columns,
@@ -566,7 +498,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			role.FieldScopes:    {Type: field.TypeJSON, Column: role.FieldScopes},
 		},
 	}
-	graph.Nodes[22] = &sqlgraph.Node{
+	graph.Nodes[19] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   system.Table,
 			Columns: system.Columns,
@@ -584,7 +516,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			system.FieldValue:     {Type: field.TypeString, Column: system.FieldValue},
 		},
 	}
-	graph.Nodes[23] = &sqlgraph.Node{
+	graph.Nodes[20] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   thread.Table,
 			Columns: thread.Columns,
@@ -602,7 +534,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			thread.FieldStatus:    {Type: field.TypeEnum, Column: thread.FieldStatus},
 		},
 	}
-	graph.Nodes[24] = &sqlgraph.Node{
+	graph.Nodes[21] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   trace.Table,
 			Columns: trace.Columns,
@@ -621,7 +553,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			trace.FieldStatus:    {Type: field.TypeEnum, Column: trace.FieldStatus},
 		},
 	}
-	graph.Nodes[25] = &sqlgraph.Node{
+	graph.Nodes[22] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   usagelog.Table,
 			Columns: usagelog.Columns,
@@ -658,7 +590,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			usagelog.FieldCostPriceReferenceID:               {Type: field.TypeString, Column: usagelog.FieldCostPriceReferenceID},
 		},
 	}
-	graph.Nodes[26] = &sqlgraph.Node{
+	graph.Nodes[23] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   user.Table,
 			Columns: user.Columns,
@@ -683,7 +615,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			user.FieldScopes:         {Type: field.TypeJSON, Column: user.FieldScopes},
 		},
 	}
-	graph.Nodes[27] = &sqlgraph.Node{
+	graph.Nodes[24] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   userproject.Table,
 			Columns: userproject.Columns,
@@ -702,7 +634,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			userproject.FieldScopes:    {Type: field.TypeJSON, Column: userproject.FieldScopes},
 		},
 	}
-	graph.Nodes[28] = &sqlgraph.Node{
+	graph.Nodes[25] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   userrole.Table,
 			Columns: userrole.Columns,
@@ -792,16 +724,16 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"Adapter",
 	)
 	graph.MustAddE(
-		"model_group",
+		"model",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   adaptermodelbinding.ModelGroupTable,
-			Columns: []string{adaptermodelbinding.ModelGroupColumn},
+			Table:   adaptermodelbinding.ModelTable,
+			Columns: []string{adaptermodelbinding.ModelColumn},
 			Bidi:    false,
 		},
 		"AdapterModelBinding",
-		"ModelGroup",
+		"Model",
 	)
 	graph.MustAddE(
 		"requests",
@@ -874,18 +806,6 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"Channel",
 		"ProviderQuotaStatus",
-	)
-	graph.MustAddE(
-		"model_group_targets",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   channel.ModelGroupTargetsTable,
-			Columns: []string{channel.ModelGroupTargetsColumn},
-			Bidi:    false,
-		},
-		"Channel",
-		"ModelGroupTarget",
 	)
 	graph.MustAddE(
 		"channel",
@@ -976,72 +896,12 @@ var schemaGraph = func() *sqlgraph.Schema {
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   modelgroup.AdapterBindingsTable,
-			Columns: []string{modelgroup.AdapterBindingsColumn},
+			Table:   model.AdapterBindingsTable,
+			Columns: []string{model.AdapterBindingsColumn},
 			Bidi:    false,
 		},
-		"ModelGroup",
+		"Model",
 		"AdapterModelBinding",
-	)
-	graph.MustAddE(
-		"protocols",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroup.ProtocolsTable,
-			Columns: []string{modelgroup.ProtocolsColumn},
-			Bidi:    false,
-		},
-		"ModelGroup",
-		"ModelGroupProtocol",
-	)
-	graph.MustAddE(
-		"model_group",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   modelgroupprotocol.ModelGroupTable,
-			Columns: []string{modelgroupprotocol.ModelGroupColumn},
-			Bidi:    false,
-		},
-		"ModelGroupProtocol",
-		"ModelGroup",
-	)
-	graph.MustAddE(
-		"targets",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   modelgroupprotocol.TargetsTable,
-			Columns: []string{modelgroupprotocol.TargetsColumn},
-			Bidi:    false,
-		},
-		"ModelGroupProtocol",
-		"ModelGroupTarget",
-	)
-	graph.MustAddE(
-		"model_group_protocol",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   modelgrouptarget.ModelGroupProtocolTable,
-			Columns: []string{modelgrouptarget.ModelGroupProtocolColumn},
-			Bidi:    false,
-		},
-		"ModelGroupTarget",
-		"ModelGroupProtocol",
-	)
-	graph.MustAddE(
-		"channel",
-		&sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   modelgrouptarget.ChannelTable,
-			Columns: []string{modelgrouptarget.ChannelColumn},
-			Bidi:    false,
-		},
-		"ModelGroupTarget",
-		"Channel",
 	)
 	graph.MustAddE(
 		"user",
@@ -1982,9 +1842,9 @@ func (f *AdapterModelBindingFilter) WhereSourceModelID(p entql.StringP) {
 	f.Where(p.Field(adaptermodelbinding.FieldSourceModelID))
 }
 
-// WhereModelGroupID applies the entql int predicate on the model_group_id field.
-func (f *AdapterModelBindingFilter) WhereModelGroupID(p entql.IntP) {
-	f.Where(p.Field(adaptermodelbinding.FieldModelGroupID))
+// WhereModelID applies the entql int predicate on the model_id field.
+func (f *AdapterModelBindingFilter) WhereModelID(p entql.IntP) {
+	f.Where(p.Field(adaptermodelbinding.FieldModelID))
 }
 
 // WhereEnabled applies the entql bool predicate on the enabled field.
@@ -2011,14 +1871,14 @@ func (f *AdapterModelBindingFilter) WhereHasAdapterWith(preds ...predicate.Adapt
 	})))
 }
 
-// WhereHasModelGroup applies a predicate to check if query has an edge model_group.
-func (f *AdapterModelBindingFilter) WhereHasModelGroup() {
-	f.Where(entql.HasEdge("model_group"))
+// WhereHasModel applies a predicate to check if query has an edge model.
+func (f *AdapterModelBindingFilter) WhereHasModel() {
+	f.Where(entql.HasEdge("model"))
 }
 
-// WhereHasModelGroupWith applies a predicate to check if query has an edge model_group with a given conditions (other predicates).
-func (f *AdapterModelBindingFilter) WhereHasModelGroupWith(preds ...predicate.ModelGroup) {
-	f.Where(entql.HasEdgeWith("model_group", sqlgraph.WrapFunc(func(s *sql.Selector) {
+// WhereHasModelWith applies a predicate to check if query has an edge model with a given conditions (other predicates).
+func (f *AdapterModelBindingFilter) WhereHasModelWith(preds ...predicate.Model) {
+	f.Where(entql.HasEdgeWith("model", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}
@@ -2248,20 +2108,6 @@ func (f *ChannelFilter) WhereHasProviderQuotaStatus() {
 // WhereHasProviderQuotaStatusWith applies a predicate to check if query has an edge provider_quota_status with a given conditions (other predicates).
 func (f *ChannelFilter) WhereHasProviderQuotaStatusWith(preds ...predicate.ProviderQuotaStatus) {
 	f.Where(entql.HasEdgeWith("provider_quota_status", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// WhereHasModelGroupTargets applies a predicate to check if query has an edge model_group_targets.
-func (f *ChannelFilter) WhereHasModelGroupTargets() {
-	f.Where(entql.HasEdge("model_group_targets"))
-}
-
-// WhereHasModelGroupTargetsWith applies a predicate to check if query has an edge model_group_targets with a given conditions (other predicates).
-func (f *ChannelFilter) WhereHasModelGroupTargetsWith(preds ...predicate.ModelGroupTarget) {
-	f.Where(entql.HasEdgeWith("model_group_targets", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}
@@ -2881,334 +2727,14 @@ func (f *ModelFilter) WhereRemark(p entql.StringP) {
 	f.Where(p.Field(model.FieldRemark))
 }
 
-// addPredicate implements the predicateAdder interface.
-func (_q *ModelGroupQuery) addPredicate(pred func(s *sql.Selector)) {
-	_q.predicates = append(_q.predicates, pred)
-}
-
-// Filter returns a Filter implementation to apply filters on the ModelGroupQuery builder.
-func (_q *ModelGroupQuery) Filter() *ModelGroupFilter {
-	return &ModelGroupFilter{config: _q.config, predicateAdder: _q}
-}
-
-// addPredicate implements the predicateAdder interface.
-func (m *ModelGroupMutation) addPredicate(pred func(s *sql.Selector)) {
-	m.predicates = append(m.predicates, pred)
-}
-
-// Filter returns an entql.Where implementation to apply filters on the ModelGroupMutation builder.
-func (m *ModelGroupMutation) Filter() *ModelGroupFilter {
-	return &ModelGroupFilter{config: m.config, predicateAdder: m}
-}
-
-// ModelGroupFilter provides a generic filtering capability at runtime for ModelGroupQuery.
-type ModelGroupFilter struct {
-	predicateAdder
-	config
-}
-
-// Where applies the entql predicate on the query filter.
-func (f *ModelGroupFilter) Where(p entql.P) {
-	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[11].Type, p, s); err != nil {
-			s.AddError(err)
-		}
-	})
-}
-
-// WhereID applies the entql int predicate on the id field.
-func (f *ModelGroupFilter) WhereID(p entql.IntP) {
-	f.Where(p.Field(modelgroup.FieldID))
-}
-
-// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
-func (f *ModelGroupFilter) WhereCreatedAt(p entql.TimeP) {
-	f.Where(p.Field(modelgroup.FieldCreatedAt))
-}
-
-// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
-func (f *ModelGroupFilter) WhereUpdatedAt(p entql.TimeP) {
-	f.Where(p.Field(modelgroup.FieldUpdatedAt))
-}
-
-// WhereDeletedAt applies the entql int predicate on the deleted_at field.
-func (f *ModelGroupFilter) WhereDeletedAt(p entql.IntP) {
-	f.Where(p.Field(modelgroup.FieldDeletedAt))
-}
-
-// WhereName applies the entql string predicate on the name field.
-func (f *ModelGroupFilter) WhereName(p entql.StringP) {
-	f.Where(p.Field(modelgroup.FieldName))
-}
-
-// WhereDisplayName applies the entql string predicate on the display_name field.
-func (f *ModelGroupFilter) WhereDisplayName(p entql.StringP) {
-	f.Where(p.Field(modelgroup.FieldDisplayName))
-}
-
-// WhereStatus applies the entql string predicate on the status field.
-func (f *ModelGroupFilter) WhereStatus(p entql.StringP) {
-	f.Where(p.Field(modelgroup.FieldStatus))
-}
-
-// WhereSelectionStrategy applies the entql string predicate on the selection_strategy field.
-func (f *ModelGroupFilter) WhereSelectionStrategy(p entql.StringP) {
-	f.Where(p.Field(modelgroup.FieldSelectionStrategy))
-}
-
-// WhereRemark applies the entql string predicate on the remark field.
-func (f *ModelGroupFilter) WhereRemark(p entql.StringP) {
-	f.Where(p.Field(modelgroup.FieldRemark))
-}
-
 // WhereHasAdapterBindings applies a predicate to check if query has an edge adapter_bindings.
-func (f *ModelGroupFilter) WhereHasAdapterBindings() {
+func (f *ModelFilter) WhereHasAdapterBindings() {
 	f.Where(entql.HasEdge("adapter_bindings"))
 }
 
 // WhereHasAdapterBindingsWith applies a predicate to check if query has an edge adapter_bindings with a given conditions (other predicates).
-func (f *ModelGroupFilter) WhereHasAdapterBindingsWith(preds ...predicate.AdapterModelBinding) {
+func (f *ModelFilter) WhereHasAdapterBindingsWith(preds ...predicate.AdapterModelBinding) {
 	f.Where(entql.HasEdgeWith("adapter_bindings", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// WhereHasProtocols applies a predicate to check if query has an edge protocols.
-func (f *ModelGroupFilter) WhereHasProtocols() {
-	f.Where(entql.HasEdge("protocols"))
-}
-
-// WhereHasProtocolsWith applies a predicate to check if query has an edge protocols with a given conditions (other predicates).
-func (f *ModelGroupFilter) WhereHasProtocolsWith(preds ...predicate.ModelGroupProtocol) {
-	f.Where(entql.HasEdgeWith("protocols", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// addPredicate implements the predicateAdder interface.
-func (_q *ModelGroupProtocolQuery) addPredicate(pred func(s *sql.Selector)) {
-	_q.predicates = append(_q.predicates, pred)
-}
-
-// Filter returns a Filter implementation to apply filters on the ModelGroupProtocolQuery builder.
-func (_q *ModelGroupProtocolQuery) Filter() *ModelGroupProtocolFilter {
-	return &ModelGroupProtocolFilter{config: _q.config, predicateAdder: _q}
-}
-
-// addPredicate implements the predicateAdder interface.
-func (m *ModelGroupProtocolMutation) addPredicate(pred func(s *sql.Selector)) {
-	m.predicates = append(m.predicates, pred)
-}
-
-// Filter returns an entql.Where implementation to apply filters on the ModelGroupProtocolMutation builder.
-func (m *ModelGroupProtocolMutation) Filter() *ModelGroupProtocolFilter {
-	return &ModelGroupProtocolFilter{config: m.config, predicateAdder: m}
-}
-
-// ModelGroupProtocolFilter provides a generic filtering capability at runtime for ModelGroupProtocolQuery.
-type ModelGroupProtocolFilter struct {
-	predicateAdder
-	config
-}
-
-// Where applies the entql predicate on the query filter.
-func (f *ModelGroupProtocolFilter) Where(p entql.P) {
-	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[12].Type, p, s); err != nil {
-			s.AddError(err)
-		}
-	})
-}
-
-// WhereID applies the entql int predicate on the id field.
-func (f *ModelGroupProtocolFilter) WhereID(p entql.IntP) {
-	f.Where(p.Field(modelgroupprotocol.FieldID))
-}
-
-// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
-func (f *ModelGroupProtocolFilter) WhereCreatedAt(p entql.TimeP) {
-	f.Where(p.Field(modelgroupprotocol.FieldCreatedAt))
-}
-
-// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
-func (f *ModelGroupProtocolFilter) WhereUpdatedAt(p entql.TimeP) {
-	f.Where(p.Field(modelgroupprotocol.FieldUpdatedAt))
-}
-
-// WhereDeletedAt applies the entql int predicate on the deleted_at field.
-func (f *ModelGroupProtocolFilter) WhereDeletedAt(p entql.IntP) {
-	f.Where(p.Field(modelgroupprotocol.FieldDeletedAt))
-}
-
-// WhereModelGroupID applies the entql int predicate on the model_group_id field.
-func (f *ModelGroupProtocolFilter) WhereModelGroupID(p entql.IntP) {
-	f.Where(p.Field(modelgroupprotocol.FieldModelGroupID))
-}
-
-// WhereInboundAPIFormat applies the entql string predicate on the inbound_api_format field.
-func (f *ModelGroupProtocolFilter) WhereInboundAPIFormat(p entql.StringP) {
-	f.Where(p.Field(modelgroupprotocol.FieldInboundAPIFormat))
-}
-
-// WhereEnabled applies the entql bool predicate on the enabled field.
-func (f *ModelGroupProtocolFilter) WhereEnabled(p entql.BoolP) {
-	f.Where(p.Field(modelgroupprotocol.FieldEnabled))
-}
-
-// WhereRemark applies the entql string predicate on the remark field.
-func (f *ModelGroupProtocolFilter) WhereRemark(p entql.StringP) {
-	f.Where(p.Field(modelgroupprotocol.FieldRemark))
-}
-
-// WhereHasModelGroup applies a predicate to check if query has an edge model_group.
-func (f *ModelGroupProtocolFilter) WhereHasModelGroup() {
-	f.Where(entql.HasEdge("model_group"))
-}
-
-// WhereHasModelGroupWith applies a predicate to check if query has an edge model_group with a given conditions (other predicates).
-func (f *ModelGroupProtocolFilter) WhereHasModelGroupWith(preds ...predicate.ModelGroup) {
-	f.Where(entql.HasEdgeWith("model_group", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// WhereHasTargets applies a predicate to check if query has an edge targets.
-func (f *ModelGroupProtocolFilter) WhereHasTargets() {
-	f.Where(entql.HasEdge("targets"))
-}
-
-// WhereHasTargetsWith applies a predicate to check if query has an edge targets with a given conditions (other predicates).
-func (f *ModelGroupProtocolFilter) WhereHasTargetsWith(preds ...predicate.ModelGroupTarget) {
-	f.Where(entql.HasEdgeWith("targets", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// addPredicate implements the predicateAdder interface.
-func (_q *ModelGroupTargetQuery) addPredicate(pred func(s *sql.Selector)) {
-	_q.predicates = append(_q.predicates, pred)
-}
-
-// Filter returns a Filter implementation to apply filters on the ModelGroupTargetQuery builder.
-func (_q *ModelGroupTargetQuery) Filter() *ModelGroupTargetFilter {
-	return &ModelGroupTargetFilter{config: _q.config, predicateAdder: _q}
-}
-
-// addPredicate implements the predicateAdder interface.
-func (m *ModelGroupTargetMutation) addPredicate(pred func(s *sql.Selector)) {
-	m.predicates = append(m.predicates, pred)
-}
-
-// Filter returns an entql.Where implementation to apply filters on the ModelGroupTargetMutation builder.
-func (m *ModelGroupTargetMutation) Filter() *ModelGroupTargetFilter {
-	return &ModelGroupTargetFilter{config: m.config, predicateAdder: m}
-}
-
-// ModelGroupTargetFilter provides a generic filtering capability at runtime for ModelGroupTargetQuery.
-type ModelGroupTargetFilter struct {
-	predicateAdder
-	config
-}
-
-// Where applies the entql predicate on the query filter.
-func (f *ModelGroupTargetFilter) Where(p entql.P) {
-	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[13].Type, p, s); err != nil {
-			s.AddError(err)
-		}
-	})
-}
-
-// WhereID applies the entql int predicate on the id field.
-func (f *ModelGroupTargetFilter) WhereID(p entql.IntP) {
-	f.Where(p.Field(modelgrouptarget.FieldID))
-}
-
-// WhereCreatedAt applies the entql time.Time predicate on the created_at field.
-func (f *ModelGroupTargetFilter) WhereCreatedAt(p entql.TimeP) {
-	f.Where(p.Field(modelgrouptarget.FieldCreatedAt))
-}
-
-// WhereUpdatedAt applies the entql time.Time predicate on the updated_at field.
-func (f *ModelGroupTargetFilter) WhereUpdatedAt(p entql.TimeP) {
-	f.Where(p.Field(modelgrouptarget.FieldUpdatedAt))
-}
-
-// WhereDeletedAt applies the entql int predicate on the deleted_at field.
-func (f *ModelGroupTargetFilter) WhereDeletedAt(p entql.IntP) {
-	f.Where(p.Field(modelgrouptarget.FieldDeletedAt))
-}
-
-// WhereModelGroupProtocolID applies the entql int predicate on the model_group_protocol_id field.
-func (f *ModelGroupTargetFilter) WhereModelGroupProtocolID(p entql.IntP) {
-	f.Where(p.Field(modelgrouptarget.FieldModelGroupProtocolID))
-}
-
-// WhereChannelID applies the entql int predicate on the channel_id field.
-func (f *ModelGroupTargetFilter) WhereChannelID(p entql.IntP) {
-	f.Where(p.Field(modelgrouptarget.FieldChannelID))
-}
-
-// WhereTargetModelID applies the entql string predicate on the target_model_id field.
-func (f *ModelGroupTargetFilter) WhereTargetModelID(p entql.StringP) {
-	f.Where(p.Field(modelgrouptarget.FieldTargetModelID))
-}
-
-// WhereOutboundAPIFormat applies the entql string predicate on the outbound_api_format field.
-func (f *ModelGroupTargetFilter) WhereOutboundAPIFormat(p entql.StringP) {
-	f.Where(p.Field(modelgrouptarget.FieldOutboundAPIFormat))
-}
-
-// WherePriority applies the entql int predicate on the priority field.
-func (f *ModelGroupTargetFilter) WherePriority(p entql.IntP) {
-	f.Where(p.Field(modelgrouptarget.FieldPriority))
-}
-
-// WhereEnabled applies the entql bool predicate on the enabled field.
-func (f *ModelGroupTargetFilter) WhereEnabled(p entql.BoolP) {
-	f.Where(p.Field(modelgrouptarget.FieldEnabled))
-}
-
-// WhereCapabilities applies the entql json.RawMessage predicate on the capabilities field.
-func (f *ModelGroupTargetFilter) WhereCapabilities(p entql.BytesP) {
-	f.Where(p.Field(modelgrouptarget.FieldCapabilities))
-}
-
-// WhereRemark applies the entql string predicate on the remark field.
-func (f *ModelGroupTargetFilter) WhereRemark(p entql.StringP) {
-	f.Where(p.Field(modelgrouptarget.FieldRemark))
-}
-
-// WhereHasModelGroupProtocol applies a predicate to check if query has an edge model_group_protocol.
-func (f *ModelGroupTargetFilter) WhereHasModelGroupProtocol() {
-	f.Where(entql.HasEdge("model_group_protocol"))
-}
-
-// WhereHasModelGroupProtocolWith applies a predicate to check if query has an edge model_group_protocol with a given conditions (other predicates).
-func (f *ModelGroupTargetFilter) WhereHasModelGroupProtocolWith(preds ...predicate.ModelGroupProtocol) {
-	f.Where(entql.HasEdgeWith("model_group_protocol", sqlgraph.WrapFunc(func(s *sql.Selector) {
-		for _, p := range preds {
-			p(s)
-		}
-	})))
-}
-
-// WhereHasChannel applies a predicate to check if query has an edge channel.
-func (f *ModelGroupTargetFilter) WhereHasChannel() {
-	f.Where(entql.HasEdge("channel"))
-}
-
-// WhereHasChannelWith applies a predicate to check if query has an edge channel with a given conditions (other predicates).
-func (f *ModelGroupTargetFilter) WhereHasChannelWith(preds ...predicate.Channel) {
-	f.Where(entql.HasEdgeWith("channel", sqlgraph.WrapFunc(func(s *sql.Selector) {
 		for _, p := range preds {
 			p(s)
 		}
@@ -3244,7 +2770,7 @@ type OIDCIdentityFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *OIDCIdentityFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[14].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[11].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -3343,7 +2869,7 @@ type ProjectFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ProjectFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[15].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[12].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -3558,7 +3084,7 @@ type PromptFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *PromptFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[16].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[13].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -3667,7 +3193,7 @@ type PromptProtectionRuleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *PromptProtectionRuleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[17].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[14].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -3747,7 +3273,7 @@ type ProviderQuotaStatusFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ProviderQuotaStatusFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[18].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[15].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -3851,7 +3377,7 @@ type RequestFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RequestFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[19].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[16].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4119,7 +3645,7 @@ type RequestExecutionFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RequestExecutionFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[20].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[17].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4311,7 +3837,7 @@ type RoleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RoleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[21].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[18].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4428,7 +3954,7 @@ type SystemFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *SystemFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[22].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[19].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4493,7 +4019,7 @@ type ThreadFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ThreadFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[23].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[20].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4586,7 +4112,7 @@ type TraceFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *TraceFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[24].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[21].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4698,7 +4224,7 @@ type UsageLogFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UsageLogFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[25].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[22].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -4900,7 +4426,7 @@ type UserFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[26].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[23].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -5098,7 +4624,7 @@ type UserProjectFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserProjectFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[27].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[24].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -5196,7 +4722,7 @@ type UserRoleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserRoleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[28].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[25].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})

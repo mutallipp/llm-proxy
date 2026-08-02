@@ -1,7 +1,6 @@
 package biz
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,7 +9,7 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/objects"
 )
 
-func TestEffectiveModelAssociations_InheritsDeveloperSettings(t *testing.T) {
+func TestEffectiveModelProtocolPools_InheritsDeveloperSettings(t *testing.T) {
 	modelAssociation := &objects.ModelAssociation{
 		Type:     "model",
 		Priority: 1,
@@ -29,35 +28,35 @@ func TestEffectiveModelAssociations_InheritsDeveloperSettings(t *testing.T) {
 		},
 	}
 
-	result := EffectiveModelAssociations(&SystemModelSettings{
+	result := EffectiveModelProtocolPools(&SystemModelSettings{
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					developerAssociationSamePriority,
 					developerAssociationHigherPriority,
-				},
+				}},
 			},
 		},
 	}, &ent.Model{
 		Developer: "openai",
 		ModelID:   "gpt-4o",
 		Settings: &objects.ModelSettings{
-			Associations: []*objects.ModelAssociation{modelAssociation},
+			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {modelAssociation}},
 		},
 	})
 
-	require.Len(t, result, 3)
-	require.Equal(t, "channel_tags_model", result[0].Type)
-	require.Equal(t, "gpt-4o", result[0].ChannelTagsModel.ModelID)
-	require.Same(t, modelAssociation, result[1])
-	require.Equal(t, "channel_model", result[2].Type)
-	require.Equal(t, "gpt-4o", result[2].ChannelModel.ModelID)
+	require.Len(t, result["openai"], 3)
+	require.Equal(t, "channel_tags_model", result["openai"][0].Type)
+	require.Equal(t, "gpt-4o", result["openai"][0].ChannelTagsModel.ModelID)
+	require.Same(t, modelAssociation, result["openai"][1])
+	require.Equal(t, "channel_model", result["openai"][2].Type)
+	require.Equal(t, "gpt-4o", result["openai"][2].ChannelModel.ModelID)
 	require.Empty(t, developerAssociationSamePriority.ChannelModel.ModelID)
 	require.Empty(t, developerAssociationHigherPriority.ChannelTagsModel.ModelID)
 }
 
-func TestEffectiveModelAssociations_DisablesDeveloperSettingsInheritance(t *testing.T) {
+func TestEffectiveModelProtocolPools_DisablesDeveloperSettingsInheritance(t *testing.T) {
 	modelAssociation := &objects.ModelAssociation{
 		Type:     "model",
 		Priority: 1,
@@ -69,13 +68,13 @@ func TestEffectiveModelAssociations_DisablesDeveloperSettingsInheritance(t *test
 		ChannelModel: &objects.ChannelModelAssociation{ChannelID: 10},
 	}
 
-	result := EffectiveModelAssociations(&SystemModelSettings{
+	result := EffectiveModelProtocolPools(&SystemModelSettings{
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					developerAssociation,
-				},
+				}},
 			},
 		},
 	}, &ent.Model{
@@ -83,40 +82,12 @@ func TestEffectiveModelAssociations_DisablesDeveloperSettingsInheritance(t *test
 		ModelID:   "gpt-4",
 		Settings: &objects.ModelSettings{
 			DisableDeveloperSettingsInheritance: true,
-			Associations:                        []*objects.ModelAssociation{modelAssociation},
+			ProtocolPools:                       map[string][]*objects.ModelAssociation{"openai": {modelAssociation}},
 		},
 	})
 
-	require.Equal(t, []*objects.ModelAssociation{modelAssociation}, result)
+	require.Equal(t, []*objects.ModelAssociation{modelAssociation}, result["openai"])
 	require.Empty(t, developerAssociation.ChannelModel.ModelID)
-}
-
-func TestEffectiveModelAssociations_LegacyModelSettingsInheritByDefault(t *testing.T) {
-	var legacySettings objects.ModelSettings
-	err := json.Unmarshal([]byte(`{"associations":[]}`), &legacySettings)
-	require.NoError(t, err)
-	require.False(t, legacySettings.DisableDeveloperSettingsInheritance)
-
-	result := EffectiveModelAssociations(&SystemModelSettings{
-		DeveloperSettings: []*DeveloperModelSettings{
-			{
-				Developer: "openai",
-				Associations: []*objects.ModelAssociation{
-					{
-						Type:         "channel_model",
-						ChannelModel: &objects.ChannelModelAssociation{ChannelID: 10},
-					},
-				},
-			},
-		},
-	}, &ent.Model{
-		Developer: "openai",
-		ModelID:   "gpt-4",
-		Settings:  &legacySettings,
-	})
-
-	require.Len(t, result, 1)
-	require.Equal(t, "gpt-4", result[0].ChannelModel.ModelID)
 }
 
 func TestCloneModelAssociation_DeepCopiesWhenCondition(t *testing.T) {
@@ -168,12 +139,12 @@ func TestValidateSystemModelSettings_RejectsDeveloperModelSelection(t *testing.T
 		DeveloperSettings: []*DeveloperModelSettings{
 			{
 				Developer: "anthropic",
-				Associations: []*objects.ModelAssociation{
+				ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
 					{
 						Type:    "model",
 						ModelID: &objects.ModelIDAssociation{ModelID: "claude-opus-4-6"},
 					},
-				},
+				}},
 			},
 		},
 	})

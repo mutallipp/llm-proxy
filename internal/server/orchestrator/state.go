@@ -25,9 +25,7 @@ type PersistenceState struct {
 	LoadBalancer        *LoadBalancer
 
 	// Adapter 运行时元数据来自当前选中的不可变快照。
-	Adapter       *objects.RuntimeAdapter
-	ModelGroup    *objects.RuntimeModelGroup
-	AdapterTarget *objects.RuntimeModelGroupTarget
+	Adapter *objects.RuntimeAdapter
 
 	// Request state
 	ModelMapper *ModelMapper

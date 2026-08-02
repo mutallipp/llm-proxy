@@ -80,9 +80,9 @@ func SourceModelID(v string) predicate.AdapterModelBinding {
 	return predicate.AdapterModelBinding(sql.FieldEQ(FieldSourceModelID, v))
 }
 
-// ModelGroupID applies equality check predicate on the "model_group_id" field. It's identical to ModelGroupIDEQ.
-func ModelGroupID(v int) predicate.AdapterModelBinding {
-	return predicate.AdapterModelBinding(sql.FieldEQ(FieldModelGroupID, v))
+// ModelID applies equality check predicate on the "model_id" field. It's identical to ModelIDEQ.
+func ModelID(v int) predicate.AdapterModelBinding {
+	return predicate.AdapterModelBinding(sql.FieldEQ(FieldModelID, v))
 }
 
 // Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
@@ -300,24 +300,24 @@ func SourceModelIDContainsFold(v string) predicate.AdapterModelBinding {
 	return predicate.AdapterModelBinding(sql.FieldContainsFold(FieldSourceModelID, v))
 }
 
-// ModelGroupIDEQ applies the EQ predicate on the "model_group_id" field.
-func ModelGroupIDEQ(v int) predicate.AdapterModelBinding {
-	return predicate.AdapterModelBinding(sql.FieldEQ(FieldModelGroupID, v))
+// ModelIDEQ applies the EQ predicate on the "model_id" field.
+func ModelIDEQ(v int) predicate.AdapterModelBinding {
+	return predicate.AdapterModelBinding(sql.FieldEQ(FieldModelID, v))
 }
 
-// ModelGroupIDNEQ applies the NEQ predicate on the "model_group_id" field.
-func ModelGroupIDNEQ(v int) predicate.AdapterModelBinding {
-	return predicate.AdapterModelBinding(sql.FieldNEQ(FieldModelGroupID, v))
+// ModelIDNEQ applies the NEQ predicate on the "model_id" field.
+func ModelIDNEQ(v int) predicate.AdapterModelBinding {
+	return predicate.AdapterModelBinding(sql.FieldNEQ(FieldModelID, v))
 }
 
-// ModelGroupIDIn applies the In predicate on the "model_group_id" field.
-func ModelGroupIDIn(vs ...int) predicate.AdapterModelBinding {
-	return predicate.AdapterModelBinding(sql.FieldIn(FieldModelGroupID, vs...))
+// ModelIDIn applies the In predicate on the "model_id" field.
+func ModelIDIn(vs ...int) predicate.AdapterModelBinding {
+	return predicate.AdapterModelBinding(sql.FieldIn(FieldModelID, vs...))
 }
 
-// ModelGroupIDNotIn applies the NotIn predicate on the "model_group_id" field.
-func ModelGroupIDNotIn(vs ...int) predicate.AdapterModelBinding {
-	return predicate.AdapterModelBinding(sql.FieldNotIn(FieldModelGroupID, vs...))
+// ModelIDNotIn applies the NotIn predicate on the "model_id" field.
+func ModelIDNotIn(vs ...int) predicate.AdapterModelBinding {
+	return predicate.AdapterModelBinding(sql.FieldNotIn(FieldModelID, vs...))
 }
 
 // EnabledEQ applies the EQ predicate on the "enabled" field.
@@ -428,21 +428,21 @@ func HasAdapterWith(preds ...predicate.Adapter) predicate.AdapterModelBinding {
 	})
 }
 
-// HasModelGroup applies the HasEdge predicate on the "model_group" edge.
-func HasModelGroup() predicate.AdapterModelBinding {
+// HasModel applies the HasEdge predicate on the "model" edge.
+func HasModel() predicate.AdapterModelBinding {
 	return predicate.AdapterModelBinding(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ModelGroupTable, ModelGroupColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ModelTable, ModelColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasModelGroupWith applies the HasEdge predicate on the "model_group" edge with a given conditions (other predicates).
-func HasModelGroupWith(preds ...predicate.ModelGroup) predicate.AdapterModelBinding {
+// HasModelWith applies the HasEdge predicate on the "model" edge with a given conditions (other predicates).
+func HasModelWith(preds ...predicate.Model) predicate.AdapterModelBinding {
 	return predicate.AdapterModelBinding(func(s *sql.Selector) {
-		step := newModelGroupStep()
+		step := newModelStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

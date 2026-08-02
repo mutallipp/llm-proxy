@@ -13,21 +13,21 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
 	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
+	"github.com/mutallipp/llm-proxy/internal/ent/model"
 	"github.com/mutallipp/llm-proxy/internal/ent/predicate"
 )
 
 // AdapterModelBindingQuery is the builder for querying AdapterModelBinding entities.
 type AdapterModelBindingQuery struct {
 	config
-	ctx            *QueryContext
-	order          []adaptermodelbinding.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.AdapterModelBinding
-	withAdapter    *AdapterQuery
-	withModelGroup *ModelGroupQuery
-	loadTotal      []func(context.Context, []*AdapterModelBinding) error
-	modifiers      []func(*sql.Selector)
+	ctx         *QueryContext
+	order       []adaptermodelbinding.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.AdapterModelBinding
+	withAdapter *AdapterQuery
+	withModel   *ModelQuery
+	loadTotal   []func(context.Context, []*AdapterModelBinding) error
+	modifiers   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -86,9 +86,9 @@ func (_q *AdapterModelBindingQuery) QueryAdapter() *AdapterQuery {
 	return query
 }
 
-// QueryModelGroup chains the current query on the "model_group" edge.
-func (_q *AdapterModelBindingQuery) QueryModelGroup() *ModelGroupQuery {
-	query := (&ModelGroupClient{config: _q.config}).Query()
+// QueryModel chains the current query on the "model" edge.
+func (_q *AdapterModelBindingQuery) QueryModel() *ModelQuery {
+	query := (&ModelClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -99,8 +99,8 @@ func (_q *AdapterModelBindingQuery) QueryModelGroup() *ModelGroupQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(adaptermodelbinding.Table, adaptermodelbinding.FieldID, selector),
-			sqlgraph.To(modelgroup.Table, modelgroup.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, adaptermodelbinding.ModelGroupTable, adaptermodelbinding.ModelGroupColumn),
+			sqlgraph.To(model.Table, model.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, adaptermodelbinding.ModelTable, adaptermodelbinding.ModelColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -295,13 +295,13 @@ func (_q *AdapterModelBindingQuery) Clone() *AdapterModelBindingQuery {
 		return nil
 	}
 	return &AdapterModelBindingQuery{
-		config:         _q.config,
-		ctx:            _q.ctx.Clone(),
-		order:          append([]adaptermodelbinding.OrderOption{}, _q.order...),
-		inters:         append([]Interceptor{}, _q.inters...),
-		predicates:     append([]predicate.AdapterModelBinding{}, _q.predicates...),
-		withAdapter:    _q.withAdapter.Clone(),
-		withModelGroup: _q.withModelGroup.Clone(),
+		config:      _q.config,
+		ctx:         _q.ctx.Clone(),
+		order:       append([]adaptermodelbinding.OrderOption{}, _q.order...),
+		inters:      append([]Interceptor{}, _q.inters...),
+		predicates:  append([]predicate.AdapterModelBinding{}, _q.predicates...),
+		withAdapter: _q.withAdapter.Clone(),
+		withModel:   _q.withModel.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
@@ -320,14 +320,14 @@ func (_q *AdapterModelBindingQuery) WithAdapter(opts ...func(*AdapterQuery)) *Ad
 	return _q
 }
 
-// WithModelGroup tells the query-builder to eager-load the nodes that are connected to
-// the "model_group" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *AdapterModelBindingQuery) WithModelGroup(opts ...func(*ModelGroupQuery)) *AdapterModelBindingQuery {
-	query := (&ModelGroupClient{config: _q.config}).Query()
+// WithModel tells the query-builder to eager-load the nodes that are connected to
+// the "model" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AdapterModelBindingQuery) WithModel(opts ...func(*ModelQuery)) *AdapterModelBindingQuery {
+	query := (&ModelClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withModelGroup = query
+	_q.withModel = query
 	return _q
 }
 
@@ -411,7 +411,7 @@ func (_q *AdapterModelBindingQuery) sqlAll(ctx context.Context, hooks ...queryHo
 		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
 			_q.withAdapter != nil,
-			_q.withModelGroup != nil,
+			_q.withModel != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,9 +441,9 @@ func (_q *AdapterModelBindingQuery) sqlAll(ctx context.Context, hooks ...queryHo
 			return nil, err
 		}
 	}
-	if query := _q.withModelGroup; query != nil {
-		if err := _q.loadModelGroup(ctx, query, nodes, nil,
-			func(n *AdapterModelBinding, e *ModelGroup) { n.Edges.ModelGroup = e }); err != nil {
+	if query := _q.withModel; query != nil {
+		if err := _q.loadModel(ctx, query, nodes, nil,
+			func(n *AdapterModelBinding, e *Model) { n.Edges.Model = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -484,11 +484,11 @@ func (_q *AdapterModelBindingQuery) loadAdapter(ctx context.Context, query *Adap
 	}
 	return nil
 }
-func (_q *AdapterModelBindingQuery) loadModelGroup(ctx context.Context, query *ModelGroupQuery, nodes []*AdapterModelBinding, init func(*AdapterModelBinding), assign func(*AdapterModelBinding, *ModelGroup)) error {
+func (_q *AdapterModelBindingQuery) loadModel(ctx context.Context, query *ModelQuery, nodes []*AdapterModelBinding, init func(*AdapterModelBinding), assign func(*AdapterModelBinding, *Model)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*AdapterModelBinding)
 	for i := range nodes {
-		fk := nodes[i].ModelGroupID
+		fk := nodes[i].ModelID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -497,7 +497,7 @@ func (_q *AdapterModelBindingQuery) loadModelGroup(ctx context.Context, query *M
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(modelgroup.IDIn(ids...))
+	query.Where(model.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -505,7 +505,7 @@ func (_q *AdapterModelBindingQuery) loadModelGroup(ctx context.Context, query *M
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "model_group_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "model_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -545,8 +545,8 @@ func (_q *AdapterModelBindingQuery) querySpec() *sqlgraph.QuerySpec {
 		if _q.withAdapter != nil {
 			_spec.Node.AddColumnOnce(adaptermodelbinding.FieldAdapterID)
 		}
-		if _q.withModelGroup != nil {
-			_spec.Node.AddColumnOnce(adaptermodelbinding.FieldModelGroupID)
+		if _q.withModel != nil {
+			_spec.Node.AddColumnOnce(adaptermodelbinding.FieldModelID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

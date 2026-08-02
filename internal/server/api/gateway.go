@@ -49,7 +49,7 @@ type AdapterDTO struct {
 type BindingDTO struct {
 	ID            int     `json:"id"`
 	SourceModelID string  `json:"source_model_id"`
-	ModelGroupID  int     `json:"model_group_id"`
+	ModelID       int     `json:"model_id"`
 	Enabled       bool    `json:"enabled"`
 	Remark        *string `json:"remark,omitempty"`
 }
@@ -72,7 +72,7 @@ func (h *GatewayHandlers) ListAdapters(c *gin.Context) {
 			bindings = append(bindings, BindingDTO{
 				ID:            binding.ID,
 				SourceModelID: binding.SourceModelID,
-				ModelGroupID:  binding.ModelGroupID,
+				ModelID:       binding.ModelID,
 				Enabled:       binding.Enabled,
 				Remark:        binding.Remark,
 			})
@@ -105,7 +105,7 @@ type UpdateAdapterRequest struct {
 // BindingInput 绑定输入.
 type BindingInput struct {
 	SourceModelID string `json:"source_model_id" binding:"required"`
-	ModelGroupID  int    `json:"model_group_id" binding:"required"`
+	ModelID       int    `json:"model_id" binding:"required"`
 	Enabled       bool   `json:"enabled"`
 	Remark        string `json:"remark,omitempty"`
 }
@@ -136,8 +136,8 @@ func (h *GatewayHandlers) UpdateAdapter(c *gin.Context) {
 			JSONError(c, http.StatusBadRequest, errors.New("binding source_model_id is required"))
 			return
 		}
-		if binding.ModelGroupID <= 0 {
-			JSONError(c, http.StatusBadRequest, errors.New("binding model_group_id must be positive"))
+		if binding.ModelID <= 0 {
+			JSONError(c, http.StatusBadRequest, errors.New("binding model_id must be positive"))
 			return
 		}
 	}
@@ -171,22 +171,6 @@ func (h *GatewayHandlers) UpdateAdapter(c *gin.Context) {
 	})
 }
 
-// ListModelGroupsResponse 模型组列表响应.
-type ListModelGroupsResponse struct {
-	ModelGroups []ModelGroupDTO `json:"model_groups"`
-}
-
-// ModelGroupDTO 模型组数据传输对象.
-type ModelGroupDTO struct {
-	ID                int           `json:"id"`
-	Name              string        `json:"name"`
-	DisplayName       string        `json:"display_name"`
-	Status            string        `json:"status"`
-	SelectionStrategy string        `json:"selection_strategy"`
-	Remark            *string       `json:"remark,omitempty"`
-	Protocols         []ProtocolDTO `json:"protocols"`
-}
-
 // ProtocolDTO 协议数据传输对象.
 type ProtocolDTO struct {
 	ID               int         `json:"id"`
@@ -198,14 +182,13 @@ type ProtocolDTO struct {
 
 // TargetDTO 目标数据传输对象.
 type TargetDTO struct {
-	ID                int                   `json:"id"`
-	ChannelID         int                   `json:"channel_id"`
-	TargetModelID     string                `json:"target_model_id"`
-	OutboundAPIFormat string                `json:"outbound_api_format"`
-	Priority          int                   `json:"priority"`
-	Enabled           bool                  `json:"enabled"`
-	Remark            *string               `json:"remark,omitempty"`
-	Capabilities      TargetCapabilitiesDTO `json:"capabilities"`
+	ID            int                   `json:"id"`
+	ChannelID     int                   `json:"channel_id"`
+	TargetModelID string                `json:"target_model_id"`
+	Priority      int                   `json:"priority"`
+	Enabled       bool                  `json:"enabled"`
+	Remark        *string               `json:"remark,omitempty"`
+	Capabilities  TargetCapabilitiesDTO `json:"capabilities"`
 }
 
 // TargetCapabilitiesDTO 目标能力数据传输对象.
@@ -213,83 +196,9 @@ type TargetCapabilitiesDTO struct {
 	SupportsTools  bool `json:"supports_tools"`
 	SupportsStream bool `json:"supports_stream"`
 	// StreamPolicy 目标级流式响应策略："unlimited"、"require"、"forbid"。空字符串按旧数据兼容处理。
-	StreamPolicy      string   `json:"stream_policy,omitempty"`
-	SupportsReasoning bool     `json:"supports_reasoning"`
-	ContextLength     int      `json:"context_length,omitempty"`
-	MaxOutputTokens   int      `json:"max_output_tokens,omitempty"`
-	InputModalities   []string `json:"input_modalities"`
-	OutputModalities  []string `json:"output_modalities"`
-}
-
-// ListModelGroups 返回所有模型组配置（包含协议和目标信息）.
-func (h *GatewayHandlers) ListModelGroups(c *gin.Context) {
-	modelGroups, err := h.AdapterService.ListModelGroups(c.Request.Context())
-	if err != nil {
-		JSONError(c, http.StatusInternalServerError, err)
-		return
-	}
-
-	response := ListModelGroupsResponse{
-		ModelGroups: make([]ModelGroupDTO, 0, len(modelGroups)),
-	}
-
-	for _, mg := range modelGroups {
-		protocols := make([]ProtocolDTO, 0, len(mg.Protocols))
-		for _, protocol := range mg.Protocols {
-			targets := make([]TargetDTO, 0, len(protocol.Targets))
-			for _, target := range protocol.Targets {
-				targets = append(targets, TargetDTO{
-					ID:                target.ID,
-					ChannelID:         target.ChannelID,
-					TargetModelID:     target.TargetModelID,
-					OutboundAPIFormat: target.OutboundAPIFormat,
-					Priority:          target.Priority,
-					Enabled:           target.Enabled,
-					Remark:            target.Remark,
-					Capabilities: TargetCapabilitiesDTO{
-						SupportsTools:     target.Capabilities.SupportsTools,
-						SupportsStream:    target.Capabilities.SupportsStream,
-						StreamPolicy:      target.Capabilities.StreamPolicy,
-						SupportsReasoning: target.Capabilities.SupportsReasoning,
-						ContextLength:     target.Capabilities.ContextLength,
-						MaxOutputTokens:   target.Capabilities.MaxOutputTokens,
-						InputModalities:   target.Capabilities.InputModalities,
-						OutputModalities:  target.Capabilities.OutputModalities,
-					},
-				})
-			}
-
-			protocols = append(protocols, ProtocolDTO{
-				ID:               protocol.ID,
-				InboundAPIFormat: protocol.InboundAPIFormat,
-				Enabled:          protocol.Enabled,
-				Remark:           protocol.Remark,
-				Targets:          targets,
-			})
-		}
-
-		response.ModelGroups = append(response.ModelGroups, ModelGroupDTO{
-			ID:                mg.ID,
-			Name:              mg.Name,
-			DisplayName:       mg.DisplayName,
-			Status:            mg.Status,
-			SelectionStrategy: mg.SelectionStrategy,
-			Remark:            mg.Remark,
-			Protocols:         protocols,
-		})
-	}
-
-	c.JSON(http.StatusOK, response)
-}
-
-// UpdateModelGroupRequest 更新模型组请求.
-type UpdateModelGroupRequest struct {
-	DisplayName       string  `json:"display_name"`
-	Status            string  `json:"status"`
-	SelectionStrategy string  `json:"selection_strategy"`
-	Remark            *string `json:"remark,omitempty"`
-	// Protocols 整体替换：传入完整的新协议列表（含目标），不传则保留现有配置
-	Protocols []ProtocolInput `json:"protocols,omitempty"`
+	StreamPolicy     string   `json:"stream_policy,omitempty"`
+	InputModalities  []string `json:"input_modalities"`
+	OutputModalities []string `json:"output_modalities"`
 }
 
 // ProtocolInput 协议输入.
@@ -303,108 +212,12 @@ type ProtocolInput struct {
 
 // TargetInput 目标输入.
 type TargetInput struct {
-	ChannelID         int                   `json:"channel_id" binding:"required"`
-	TargetModelID     string                `json:"target_model_id" binding:"required"`
-	OutboundAPIFormat string                `json:"outbound_api_format" binding:"required"`
-	Priority          int                   `json:"priority"`
-	Enabled           bool                  `json:"enabled"`
-	Remark            *string               `json:"remark,omitempty"`
-	Capabilities      TargetCapabilitiesDTO `json:"capabilities"`
-}
-
-// UpdateModelGroup 更新模型组配置，包含可选的整体协议/目标替换（事务操作）。
-func (h *GatewayHandlers) UpdateModelGroup(c *gin.Context) {
-	name := c.Param("name")
-	if name == "" {
-		JSONError(c, http.StatusBadRequest, errors.New("model group name is required"))
-		return
-	}
-
-	var req UpdateModelGroupRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		JSONError(c, http.StatusBadRequest, err)
-		return
-	}
-
-	// 验证 status 值
-	if req.Status != "" && req.Status != "enabled" && req.Status != "disabled" && req.Status != "archived" {
-		JSONError(c, http.StatusBadRequest, errors.New("invalid status: must be enabled, disabled, or archived"))
-		return
-	}
-
-	// 验证 selection_strategy 值
-	if req.SelectionStrategy != "" && req.SelectionStrategy != "priority_failover" {
-		JSONError(c, http.StatusBadRequest, errors.New("invalid selection_strategy: must be priority_failover"))
-		return
-	}
-
-	// 验证 protocols 输入
-	for _, protocol := range req.Protocols {
-		if protocol.InboundAPIFormat == "" {
-			JSONError(c, http.StatusBadRequest, errors.New("protocol inbound_api_format is required"))
-			return
-		}
-		for _, target := range protocol.Targets {
-			if target.ChannelID <= 0 {
-				JSONError(c, http.StatusBadRequest, errors.New("target channel_id must be positive"))
-				return
-			}
-			if target.TargetModelID == "" {
-				JSONError(c, http.StatusBadRequest, errors.New("target target_model_id is required"))
-				return
-			}
-			if target.OutboundAPIFormat == "" {
-				JSONError(c, http.StatusBadRequest, errors.New("target outbound_api_format is required"))
-				return
-			}
-			if target.Capabilities.ContextLength < 0 {
-				JSONError(c, http.StatusBadRequest, errors.New("target context_length must be non-negative"))
-				return
-			}
-			if target.Capabilities.MaxOutputTokens < 0 {
-				JSONError(c, http.StatusBadRequest, errors.New("target max_output_tokens must be non-negative"))
-				return
-			}
-			// 校验 stream_policy 必须为合法枚举值
-			sp := target.Capabilities.StreamPolicy
-			if sp != "" && sp != "unlimited" && sp != "require" && sp != "forbid" {
-				JSONError(c, http.StatusBadRequest, errors.New("invalid stream_policy: must be unlimited, require, or forbid"))
-				return
-			}
-		}
-	}
-
-	// 执行更新操作（包含事务）
-	updatedModelGroup, err := h.AdapterService.UpdateModelGroup(c.Request.Context(), name, &biz.UpdateModelGroupParams{
-		DisplayName:       req.DisplayName,
-		Status:            req.Status,
-		SelectionStrategy: req.SelectionStrategy,
-		Remark:            req.Remark,
-		Protocols:         convertProtocolInputs(req.Protocols),
-	})
-	if err != nil {
-		if errors.Is(err, biz.ErrModelGroupNotFound) {
-			JSONError(c, http.StatusNotFound, errors.New("model group not found"))
-			return
-		}
-		JSONError(c, http.StatusInternalServerError, err)
-		return
-	}
-
-	// 刷新快照
-	result, err := h.AdapterService.Refresh(c.Request.Context())
-	if err != nil {
-		// 刷新失败，保留旧快照，返回错误
-		JSONError(c, http.StatusInternalServerError, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"model_group":      updatedModelGroup,
-		"snapshot_version": result.SnapshotVersion,
-		"refreshed_at":     result.RefreshedAt,
-		"diagnostics":      result.Diagnostics,
-	})
+	ChannelID     int                   `json:"channel_id" binding:"required"`
+	TargetModelID string                `json:"target_model_id" binding:"required"`
+	Priority      int                   `json:"priority"`
+	Enabled       bool                  `json:"enabled"`
+	Remark        *string               `json:"remark,omitempty"`
+	Capabilities  TargetCapabilitiesDTO `json:"capabilities"`
 }
 
 // GetRuntimeStatus 返回当前适配器运行时状态.
@@ -444,7 +257,7 @@ func convertBindingInputs(inputs []BindingInput) []biz.BindingInput {
 		remark := input.Remark
 		result = append(result, biz.BindingInput{
 			SourceModelID: input.SourceModelID,
-			ModelGroupID:  input.ModelGroupID,
+			ModelID:       input.ModelID,
 			Enabled:       input.Enabled,
 			Remark:        &remark,
 		})
@@ -470,21 +283,17 @@ func convertProtocolInputs(inputs []ProtocolInput) []biz.ProtocolInput {
 				targetRemark = *target.Remark
 			}
 			targets = append(targets, biz.TargetInput{
-				ChannelID:         target.ChannelID,
-				TargetModelID:     target.TargetModelID,
-				OutboundAPIFormat: target.OutboundAPIFormat,
-				Priority:          target.Priority,
-				Enabled:           target.Enabled,
-				Remark:            &targetRemark,
+				ChannelID:     target.ChannelID,
+				TargetModelID: target.TargetModelID,
+				Priority:      target.Priority,
+				Enabled:       target.Enabled,
+				Remark:        &targetRemark,
 				Capabilities: biz.AdapterTargetCapabilitiesInput{
-					SupportsTools:     target.Capabilities.SupportsTools,
-					SupportsStream:    target.Capabilities.SupportsStream,
-					StreamPolicy:      target.Capabilities.StreamPolicy,
-					SupportsReasoning: target.Capabilities.SupportsReasoning,
-					ContextLength:     target.Capabilities.ContextLength,
-					MaxOutputTokens:   target.Capabilities.MaxOutputTokens,
-					InputModalities:   target.Capabilities.InputModalities,
-					OutputModalities:  target.Capabilities.OutputModalities,
+					SupportsTools:    target.Capabilities.SupportsTools,
+					SupportsStream:   target.Capabilities.SupportsStream,
+					StreamPolicy:     target.Capabilities.StreamPolicy,
+					InputModalities:  target.Capabilities.InputModalities,
+					OutputModalities: target.Capabilities.OutputModalities,
 				},
 			})
 		}
@@ -550,7 +359,7 @@ func (h *GatewayHandlers) RenameAdapter(c *gin.Context) {
 		bindings = append(bindings, BindingDTO{
 			ID:            b.ID,
 			SourceModelID: b.SourceModelID,
-			ModelGroupID:  b.ModelGroupID,
+			ModelID:       b.ModelID,
 			Enabled:       b.Enabled,
 			Remark:        b.Remark,
 		})
@@ -586,41 +395,6 @@ func (h *GatewayHandlers) DeleteAdapter(c *gin.Context) {
 		if errors.Is(err, biz.ErrAdapterNotFound) {
 			JSONError(c, http.StatusNotFound, err)
 		} else {
-			JSONError(c, http.StatusInternalServerError, err)
-		}
-		return
-	}
-
-	// 刷新快照，使删除立即生效
-	refreshResult, err := h.AdapterService.Refresh(c.Request.Context())
-	if err != nil {
-		JSONError(c, http.StatusInternalServerError, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"snapshot_version": refreshResult.SnapshotVersion,
-		"refreshed_at":     refreshResult.RefreshedAt,
-		"diagnostics":      refreshResult.Diagnostics,
-	})
-}
-
-// DeleteModelGroup 软删除指定名称的模型组（含协议和目标）。
-// 若仍被活跃绑定引用，返回 409 并提示先移除绑定。不存在时返回 404。
-func (h *GatewayHandlers) DeleteModelGroup(c *gin.Context) {
-	name := c.Param("name")
-	if name == "" {
-		JSONError(c, http.StatusBadRequest, errors.New("model group name is required"))
-		return
-	}
-
-	if err := h.AdapterService.DeleteModelGroup(c.Request.Context(), name); err != nil {
-		switch {
-		case errors.Is(err, biz.ErrModelGroupNotFound):
-			JSONError(c, http.StatusNotFound, err)
-		case errors.Is(err, biz.ErrModelGroupInUse):
-			JSONError(c, http.StatusConflict, err)
-		default:
 			JSONError(c, http.StatusInternalServerError, err)
 		}
 		return

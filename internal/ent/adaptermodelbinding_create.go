@@ -13,7 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/mutallipp/llm-proxy/internal/ent/adapter"
 	"github.com/mutallipp/llm-proxy/internal/ent/adaptermodelbinding"
-	"github.com/mutallipp/llm-proxy/internal/ent/modelgroup"
+	"github.com/mutallipp/llm-proxy/internal/ent/model"
 )
 
 // AdapterModelBindingCreate is the builder for creating a AdapterModelBinding entity.
@@ -78,9 +78,9 @@ func (_c *AdapterModelBindingCreate) SetSourceModelID(v string) *AdapterModelBin
 	return _c
 }
 
-// SetModelGroupID sets the "model_group_id" field.
-func (_c *AdapterModelBindingCreate) SetModelGroupID(v int) *AdapterModelBindingCreate {
-	_c.mutation.SetModelGroupID(v)
+// SetModelID sets the "model_id" field.
+func (_c *AdapterModelBindingCreate) SetModelID(v int) *AdapterModelBindingCreate {
+	_c.mutation.SetModelID(v)
 	return _c
 }
 
@@ -117,9 +117,9 @@ func (_c *AdapterModelBindingCreate) SetAdapter(v *Adapter) *AdapterModelBinding
 	return _c.SetAdapterID(v.ID)
 }
 
-// SetModelGroup sets the "model_group" edge to the ModelGroup entity.
-func (_c *AdapterModelBindingCreate) SetModelGroup(v *ModelGroup) *AdapterModelBindingCreate {
-	return _c.SetModelGroupID(v.ID)
+// SetModel sets the "model" edge to the Model entity.
+func (_c *AdapterModelBindingCreate) SetModel(v *Model) *AdapterModelBindingCreate {
+	return _c.SetModelID(v.ID)
 }
 
 // Mutation returns the AdapterModelBindingMutation object of the builder.
@@ -195,8 +195,8 @@ func (_c *AdapterModelBindingCreate) check() error {
 	if _, ok := _c.mutation.SourceModelID(); !ok {
 		return &ValidationError{Name: "source_model_id", err: errors.New(`ent: missing required field "AdapterModelBinding.source_model_id"`)}
 	}
-	if _, ok := _c.mutation.ModelGroupID(); !ok {
-		return &ValidationError{Name: "model_group_id", err: errors.New(`ent: missing required field "AdapterModelBinding.model_group_id"`)}
+	if _, ok := _c.mutation.ModelID(); !ok {
+		return &ValidationError{Name: "model_id", err: errors.New(`ent: missing required field "AdapterModelBinding.model_id"`)}
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "AdapterModelBinding.enabled"`)}
@@ -204,8 +204,8 @@ func (_c *AdapterModelBindingCreate) check() error {
 	if len(_c.mutation.AdapterIDs()) == 0 {
 		return &ValidationError{Name: "adapter", err: errors.New(`ent: missing required edge "AdapterModelBinding.adapter"`)}
 	}
-	if len(_c.mutation.ModelGroupIDs()) == 0 {
-		return &ValidationError{Name: "model_group", err: errors.New(`ent: missing required edge "AdapterModelBinding.model_group"`)}
+	if len(_c.mutation.ModelIDs()) == 0 {
+		return &ValidationError{Name: "model", err: errors.New(`ent: missing required edge "AdapterModelBinding.model"`)}
 	}
 	return nil
 }
@@ -275,21 +275,21 @@ func (_c *AdapterModelBindingCreate) createSpec() (*AdapterModelBinding, *sqlgra
 		_node.AdapterID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.ModelGroupIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ModelIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   adaptermodelbinding.ModelGroupTable,
-			Columns: []string{adaptermodelbinding.ModelGroupColumn},
+			Table:   adaptermodelbinding.ModelTable,
+			Columns: []string{adaptermodelbinding.ModelColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(modelgroup.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(model.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.ModelGroupID = nodes[0]
+		_node.ModelID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -433,8 +433,8 @@ func (u *AdapterModelBindingUpsertOne) UpdateNewValues() *AdapterModelBindingUps
 		if _, exists := u.create.mutation.AdapterID(); exists {
 			s.SetIgnore(adaptermodelbinding.FieldAdapterID)
 		}
-		if _, exists := u.create.mutation.ModelGroupID(); exists {
-			s.SetIgnore(adaptermodelbinding.FieldModelGroupID)
+		if _, exists := u.create.mutation.ModelID(); exists {
+			s.SetIgnore(adaptermodelbinding.FieldModelID)
 		}
 	}))
 	return u
@@ -733,8 +733,8 @@ func (u *AdapterModelBindingUpsertBulk) UpdateNewValues() *AdapterModelBindingUp
 			if _, exists := b.mutation.AdapterID(); exists {
 				s.SetIgnore(adaptermodelbinding.FieldAdapterID)
 			}
-			if _, exists := b.mutation.ModelGroupID(); exists {
-				s.SetIgnore(adaptermodelbinding.FieldModelGroupID)
+			if _, exists := b.mutation.ModelID(); exists {
+				s.SetIgnore(adaptermodelbinding.FieldModelID)
 			}
 		}
 	}))

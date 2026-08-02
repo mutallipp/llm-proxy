@@ -30,7 +30,7 @@ cp .env.example .env
 docker compose up -d --build --force-recreate
 ```
 
-首次启动或代码更新后必须带 `--build`，否则可能继续使用旧的 `llm-proxy:latest` 镜像。Dockerfile 会自动构建前端并将 Adapter、ModelGroup 等最新页面嵌入后端。
+首次启动或代码更新后必须带 `--build`，否则可能继续使用旧的 `llm-proxy:latest` 镜像。Dockerfile 会自动构建前端并将 Adapter、Model 等最新页面嵌入后端。
 
 ### 4. 验证部署
 

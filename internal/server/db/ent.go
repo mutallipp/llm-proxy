@@ -64,6 +64,10 @@ func NewEntClient(cfg Config) *ent.Client {
 	client := ent.NewClient(opts...)
 
 	if !cfg.DisableAutoMigration {
+		if err := datamigrate.DropLegacyModelGroupTables(context.Background(), client); err != nil {
+			panic(err)
+		}
+
 		err = client.Schema.Create(
 			context.Background(),
 			migrate.WithGlobalUniqueID(false),

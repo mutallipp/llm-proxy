@@ -105,12 +105,6 @@ func (s *DefaultSelector) Select(ctx context.Context, req *llm.Request) ([]*Chan
 				return nil, fmt.Errorf("%w: adapter model %q was not resolved", biz.ErrInvalidModel, req.Model)
 			}
 
-			// Check if fallback to legacy channel selection is allowed
-			settings := s.SystemService.ModelSettingsOrDefault(ctx)
-			if settings.FallbackToChannelsOnModelNotFound {
-				return s.selectChannelCadidates(ctx, req)
-			}
-
 			return nil, fmt.Errorf("%w: %q", biz.ErrInvalidModel, req.Model)
 		}
 
@@ -162,8 +156,13 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 	}
 
 	systemSettings := s.SystemService.ModelSettingsOrDefault(ctx)
-	developerAssociationCount, modelAssociationCount, developerInheritanceDisabled := effectiveAssociationSourceCounts(systemSettings, model)
-	associations := biz.EffectiveModelAssociations(systemSettings, model)
+	protocol := string(req.APIFormat)
+	if protocol == "" {
+		return nil, fmt.Errorf("protocol-required: request API format is missing")
+	}
+	developerAssociationCount, modelAssociationCount, developerInheritanceDisabled := effectiveAssociationSourceCounts(systemSettings, model, protocol)
+	protocolPools := biz.EffectiveModelProtocolPools(systemSettings, model)
+	associations := protocolPools[protocol]
 	if log.DebugEnabled(ctx) {
 		log.Debug(ctx, "computed effective model associations",
 			log.String("model", model.ModelID),
@@ -175,11 +174,7 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 		)
 	}
 	if len(associations) == 0 {
-		if log.DebugEnabled(ctx) {
-			log.Debug(ctx, "model has no associations", log.String("model", req.Model))
-		}
-
-		return []*ChannelModelsCandidate{}, nil
+		return nil, fmt.Errorf("%w: model %q has no targets for protocol %q", biz.ErrInvalidModel, req.Model, protocol)
 	}
 
 	if log.DebugEnabled(ctx) {
@@ -190,20 +185,14 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 		)
 	}
 
-	resolvedCandidates, err := s.resolveAssociations(ctx, model, associations)
+	resolvedCandidates, err := s.resolveAssociations(ctx, model, protocol, associations)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve associations: %w", err)
 	}
 
 	candidates := filterResolvedCandidatesForRequest(ctx, req, resolvedCandidates)
 	if len(candidates) == 0 {
-		if log.DebugEnabled(ctx) {
-			log.Debug(ctx, "no candidates matched request conditions",
-				log.String("model", req.Model),
-			)
-		}
-
-		return []*ChannelModelsCandidate{}, nil
+		return nil, fmt.Errorf("%w: model %q has no available targets for protocol %q", biz.ErrInvalidModel, req.Model, protocol)
 	}
 
 	if log.DebugEnabled(ctx) {
@@ -225,6 +214,7 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 func (s *DefaultSelector) resolveAssociations(
 	ctx context.Context,
 	model *ent.Model,
+	protocol string,
 	associations []*objects.ModelAssociation,
 ) ([]*resolvedAssociationCandidate, error) {
 	// Read version before channels to avoid storing an older channel snapshot with
@@ -245,7 +235,7 @@ func (s *DefaultSelector) resolveAssociations(
 	}
 
 	// Use model ID as cache key
-	modelID := model.ModelID
+	modelID := model.ModelID + ":" + protocol
 	associationSignature := modelAssociationSignature(associations)
 	channelCount := len(channels)
 	latestChannelUpdateTime := s.getLatestChannelUpdateTime(channels)
@@ -498,13 +488,13 @@ func writeSignatureBool(h hash.Hash64, value bool) {
 	writeSignatureString(h, "0")
 }
 
-func effectiveAssociationSourceCounts(systemSettings *biz.SystemModelSettings, m *ent.Model) (developerCount int, modelCount int, developerInheritanceDisabled bool) {
+func effectiveAssociationSourceCounts(systemSettings *biz.SystemModelSettings, m *ent.Model, protocol string) (developerCount int, modelCount int, developerInheritanceDisabled bool) {
 	if m == nil {
 		return 0, 0, false
 	}
 
 	if m.Settings != nil {
-		modelCount = len(m.Settings.Associations)
+		modelCount = len(m.Settings.ProtocolPools[protocol])
 		developerInheritanceDisabled = m.Settings.DisableDeveloperSettingsInheritance
 	}
 
@@ -517,7 +507,11 @@ func effectiveAssociationSourceCounts(systemSettings *biz.SystemModelSettings, m
 			continue
 		}
 
-		return len(developerSettings.Associations), modelCount, developerInheritanceDisabled
+		// Developer 配置按协议池保存，统计当前模型协议对应池中的关联数量。
+		if associations, ok := developerSettings.ProtocolPools[protocol]; ok {
+			return len(associations), modelCount, developerInheritanceDisabled
+		}
+		return 0, modelCount, developerInheritanceDisabled
 	}
 
 	return developerCount, modelCount, developerInheritanceDisabled

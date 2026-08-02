@@ -798,10 +798,9 @@ func TestSystemService_ModelSettingsBackwardCompatibility(t *testing.T) {
 	ctx = authz.WithTestBypass(ctx)
 
 	oldModelSettings := map[string]any{
-		"fallback_to_channels_on_model_not_found": true,
-		"query_all_channel_models":                true,
-		"default_model_api_include_all":           false,
-		"auto_reasoning_effort":                   false,
+		"query_all_channel_models":      true,
+		"default_model_api_include_all": false,
+		"auto_reasoning_effort":         false,
 	}
 
 	oldModelSettingsJSON, err := json.Marshal(oldModelSettings)
@@ -815,7 +814,6 @@ func TestSystemService_ModelSettingsBackwardCompatibility(t *testing.T) {
 
 	settings, err := service.ModelSettings(ctx)
 	require.NoError(t, err)
-	require.True(t, settings.FallbackToChannelsOnModelNotFound)
 	require.True(t, settings.QueryAllChannelModels)
 	require.NotNil(t, settings.DeveloperSettings)
 	require.Empty(t, settings.DeveloperSettings)
