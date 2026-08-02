@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { IconEdit, IconFlask, IconLoader2, IconPencil, IconPlus, IconRefresh, IconTrash, IconPower } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import { Header } from '@/components/layout/header';
 import { Main } from '@/components/layout/main';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useQueryAllModels } from '@/features/models/data/models';
+import type { Model } from '@/features/models/data/schema';
 import {
   INBOUND_API_FORMATS,
   type AdapterBinding,
@@ -39,6 +40,8 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
 
 // 绑定行测试状态
 type TestState = 'idle' | 'testing' | 'success' | 'failed';
+
+const EMPTY_MODELS: Model[] = [];
 
 // ===================== 绑定行测试按钮 =====================
 
@@ -154,7 +157,11 @@ interface AdapterTestDialogProps {
 
 function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogProps) {
   const { data: modelsData } = useQueryAllModels({});
-  const models = modelsData?.edges.map(({ node }) => node) ?? [];
+  const modelEdges = modelsData?.edges;
+  const models = useMemo(
+    () => modelEdges?.map(({ node }) => node) ?? EMPTY_MODELS,
+    [modelEdges]
+  );
 
   // 只展示已启用的绑定项
   const enabledBindings = adapter?.bindings.filter((b) => b.enabled) ?? [];
@@ -353,7 +360,12 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
   const { t } = useTranslation();
   const upsert = useUpsertAdapter();
   const { data: modelsData } = useQueryAllModels({});
-  const models = modelsData?.edges.map(({ node }) => node) ?? [];
+  const modelEdges = modelsData?.edges;
+  const models = useMemo(
+    () => modelEdges?.map(({ node }) => node) ?? EMPTY_MODELS,
+    [modelEdges]
+  );
+  const firstModelId = models[0] ? String(models[0].id) : '';
   const [name, setName] = useState('');
   const [draft, setDraft] = useState<AdapterUpdateInput>(EMPTY_ADAPTER);
   const [sourceModelId, setSourceModelId] = useState('');
@@ -379,15 +391,15 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
           : { ...EMPTY_ADAPTER, bindings: [] }
       );
       setSourceModelId('');
-      setModelId(models[0] ? String(models[0].id) : '');
+      setModelId('');
     }
-  }, [adapter, models, open]);
+  }, [adapter, open]);
 
   useEffect(() => {
-    if (open && !modelId && models[0]) {
-      setModelId(String(models[0].id));
+    if (open && !modelId && firstModelId) {
+      setModelId(firstModelId);
     }
-  }, [modelId, models, open]);
+  }, [firstModelId, modelId, open]);
 
   const addBinding = () => {
     const selectedModelId = Number(modelId);
@@ -644,7 +656,11 @@ export default function AdaptersManagement() {
 
   const adapters = data?.adapters ?? [];
   const { data: modelsData } = useQueryAllModels({});
-  const models = modelsData?.edges.map(({ node }) => node) ?? [];
+  const modelEdges = modelsData?.edges;
+  const models = useMemo(
+    () => modelEdges?.map(({ node }) => node) ?? EMPTY_MODELS,
+    [modelEdges]
+  );
 
   const openCreate = () => {
     setEditing(null);
