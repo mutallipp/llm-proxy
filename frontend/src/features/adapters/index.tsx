@@ -678,12 +678,6 @@ export default function AdaptersManagement() {
   const [isTestOpen, setIsTestOpen] = useState(false);
 
   const adapters = data?.adapters ?? [];
-  const { data: modelsData } = useQueryAllModels({});
-  const modelEdges = modelsData?.edges;
-  const models = useMemo(
-    () => modelEdges?.map(({ node }) => node) ?? EMPTY_MODELS,
-    [modelEdges]
-  );
 
   const openCreate = () => {
     setEditing(null);
@@ -730,12 +724,6 @@ export default function AdaptersManagement() {
     }
   };
 
-  const modelNames = new Map<number, string>();
-  models.forEach((model) => {
-    const modelId = parseModelIdFromSelectValue(model.id);
-    if (modelId !== null) modelNames.set(modelId, model.name || model.modelID);
-  });
-
   return (
     <div className='flex flex-1 flex-col overflow-hidden'>
       <Header fixed>
@@ -772,6 +760,7 @@ export default function AdaptersManagement() {
                       <th className='p-3'>名称</th>
                       <th className='p-3'>显示名称</th>
                       <th className='p-3'>入站协议</th>
+                      <th className='p-3'>绑定数</th>
                       <th className='p-3'>状态</th>
                       <th className='p-3 text-right'>操作</th>
                     </tr>
@@ -783,6 +772,9 @@ export default function AdaptersManagement() {
                         <td className='p-3'>{adapter.display_name || '-'}</td>
                         <td className='p-3'>
                           <Badge variant='outline'>{adapter.inbound_api_format}</Badge>
+                        </td>
+                        <td className='p-3'>
+                          <span className='text-muted-foreground'>{adapter.bindings.length} 个绑定</span>
                         </td>
                         <td className='p-3'>
                           <Badge variant={statusVariant(adapter.status)}>{statusLabel(adapter.status)}</Badge>
@@ -837,7 +829,7 @@ export default function AdaptersManagement() {
                     ))}
                     {adapters.length === 0 && (
                       <tr>
-                        <td colSpan={5} className='text-muted-foreground p-8 text-center'>
+                        <td colSpan={6} className='text-muted-foreground p-8 text-center'>
                           暂无 Adapter，点击右上角创建。
                         </td>
                       </tr>
@@ -848,50 +840,6 @@ export default function AdaptersManagement() {
             )}
           </CardContent>
         </Card>
-
-        {/* 展开视图：每个 adapter 下的绑定列表（带测试按钮） */}
-        {!isLoading && !isError && adapters.length > 0 && (
-          <div className='mt-4 space-y-4'>
-            {adapters.map((adapter) => (
-              <Card key={adapter.id || adapter.name}>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-base'>
-                    <span className='font-mono'>{adapter.name}</span>
-                    <Badge variant='outline' className='ml-2'>{adapter.inbound_api_format}</Badge>
-                  </CardTitle>
-                  <span className='text-muted-foreground text-sm'>{adapter.bindings.length} 个绑定</span>
-                </CardHeader>
-                <CardContent>
-                  {adapter.bindings.length === 0 ? (
-                    <p className='text-muted-foreground text-sm'>暂无绑定</p>
-                  ) : (
-                    <div className='divide-y rounded-md border'>
-                      {adapter.bindings.map((binding, index) => (
-                        <div
-                          key={`${binding.source_model_id}-${index}`}
-                          className='flex flex-wrap items-center gap-3 p-3 text-sm'
-                        >
-                          <span className='font-mono font-medium'>{binding.source_model_id}</span>
-                          <span className='text-muted-foreground flex-1'>
-                            → {modelNames.get(binding.model_id) ?? `模型 #${binding.model_id}`}
-                          </span>
-                          <Badge variant={binding.enabled ? 'default' : 'secondary'}>
-                            {binding.enabled ? '启用' : '禁用'}
-                          </Badge>
-                          <BindingTestButton
-                            adapterName={adapter.name}
-                            inboundApiFormat={adapter.inbound_api_format}
-                            binding={binding}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
 
         <p className='text-muted-foreground mt-3 text-xs'>
           提示：绑定和状态变更会整体提交 Adapter 配置，并自动刷新运行时快照。
