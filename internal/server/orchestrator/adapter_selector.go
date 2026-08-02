@@ -47,10 +47,11 @@ func (s *AdapterCandidateSelector) Select(ctx context.Context, req *llm.Request)
 		return nil, fmt.Errorf("%w: adapter %q model %q is missing binding model", biz.ErrInternal, adapterConfig.Name, req.Model)
 	}
 
-	protocol := string(req.APIFormat)
-	associations, ok := binding.Model.Settings.ProtocolPools[protocol]
+	apiFormat := string(req.APIFormat)
+	protocolPoolKey := normalizeProtocolPoolKey(apiFormat)
+	associations, ok := binding.Model.Settings.ProtocolPools[protocolPoolKey]
 	if !ok {
-		return nil, fmt.Errorf("%w: model %q has no protocol pool for %q", biz.ErrInvalidModel, req.Model, protocol)
+		return nil, fmt.Errorf("%w: model %q has no protocol pool for %q", biz.ErrInvalidModel, req.Model, apiFormat)
 	}
 
 	candidates := make([]*ChannelModelsCandidate, 0, len(associations))
@@ -59,10 +60,10 @@ func (s *AdapterCandidateSelector) Select(ctx context.Context, req *llm.Request)
 			continue
 		}
 		channel := s.ChannelService.GetEnabledChannel(association.ChannelModel.ChannelID)
-		if channel == nil || !hasOutboundEndpoint(channel, protocol) {
+		if channel == nil || !hasOutboundEndpoint(channel, apiFormat) {
 			continue
 		}
-		candidates = append(candidates, &ChannelModelsCandidate{Channel: channel, Priority: association.Priority, Models: []biz.ChannelModelEntry{{RequestModel: req.Model, ActualModel: association.ChannelModel.ModelID, Source: "adapter"}}, APIFormat: protocol})
+		candidates = append(candidates, &ChannelModelsCandidate{Channel: channel, Priority: association.Priority, Models: []biz.ChannelModelEntry{{RequestModel: req.Model, ActualModel: association.ChannelModel.ModelID, Source: "adapter"}}, APIFormat: apiFormat})
 	}
 
 	if len(candidates) == 0 {
@@ -86,6 +87,19 @@ func (s *AdapterCandidateSelector) resolveAdapter(ctx context.Context) (*objects
 	}
 
 	return nil, fmt.Errorf("%w: runtime adapter context is missing", biz.ErrInternal)
+}
+
+// normalizeProtocolPoolKey 将完整 APIFormat 归一化为模型协议池 key。
+// 未知协议保持原值，避免误用其他协议池。
+func normalizeProtocolPoolKey(apiFormat string) string {
+	protocol, _, ok := strings.Cut(apiFormat, "/")
+	if ok {
+		if _, supported := objects.SupportedInboundAPIFormats[protocol]; supported {
+			return protocol
+		}
+	}
+
+	return apiFormat
 }
 
 func hasOutboundEndpoint(channel *biz.Channel, outboundAPIFormat string) bool {
