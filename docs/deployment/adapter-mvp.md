@@ -5,7 +5,7 @@
 
 ## 1. 这个版本是什么
 
-- **是什么**：在 AxonHub 上做了一次裁剪式二开。新增 5 个 Ent 表（`Adapter`、`AdapterModelBinding`、`ModelGroup`、`ModelGroupProtocol`、`ModelGroupTarget`）和一个管理入口（`/admin/gateway/*`）。消费端通过 `/{adapterName}/v1/...` 接入，模型组负责把逻辑模型映射到真实渠道目标。
+- **是什么**：在 AxonHub 上做了一次裁剪式二开。Adapter 通过 `model_id` 绑定现有 Model，Model 的 `protocolPools[inbound protocol]` 保存 Channel、physical model、priority 和 enabled 配置；管理入口为 `/admin/gateway/*`，模型协议池在 `/models` 管理。消费端通过 `/{adapterName}/v1/...` 接入。
 - **不是什么**：不是多租户 / 多用户平台，不是带用户级 API Key 的代理，不是面向公网的 SaaS 网关。
 - **MVP 边界**：消费入口默认不校验 API Key；后台 `/admin/gateway/*` 复用现有 owner 登录；旧 `/v1`、`/anthropic/v1` 等通用入口仍然监听（详见 §3）。
 
@@ -106,45 +106,16 @@ curl -fsS -H "Authorization: Bearer $TOKEN" http://localhost:8090/admin/gateway/
 
 Channel 是真实上游，凭证放这里。**MVP 不动原 Channel 管理入口**，所以直接用 `/admin/channels` 的现有 API（或后台页面）。
 
-### 5.2 创建 ModelGroup + ModelGroupProtocol
+### 5.2 配置 Model 协议池
 
-```bash
-TOKEN=...
+在 `/models` 创建或编辑逻辑 Model，并按入站协议添加协议池。例如 Anthropic 池使用 `anthropic/messages`（以系统实际 APIFormat 枚举为准），池内 target 只填写 Channel、physical model、priority 和 enabled；不要填写 outbound 字段。
 
-# 1. 创建 ModelGroup
-curl -fsS -X POST -H "Authorization: Bearer $TOKEN" \
-  -H 'Content-Type: application/json' \
-  http://localhost:8090/admin/gateway/model-groups \
-  -d '{
-    "name": "opus-default",
-    "displayName": "Opus Default",
-    "selectionStrategy": "priority_failover"
-  }'
+配置规则：
 
-# 2. 给 ModelGroup 加一个入站协议（Anthropic）
-curl -fsS -X PUT -H "Authorization: Bearer $TOKEN" \
-  -H 'Content-Type: application/json' \
-  http://localhost:8090/admin/gateway/model-groups/opus-default \
-  -d '{
-    "name": "opus-default",
-    "displayName": "Opus Default",
-    "selectionStrategy": "priority_failover",
-    "protocols": [
-      { "inboundAPIFormat": "anthropic_messages", "enabled": true }
-    ],
-    "targets": [
-      {
-        "channelId": 1,
-        "targetModelId": "claude-opus-4-20250514",
-        "outboundAPIFormat": "anthropic_messages",
-        "priority": 10,
-        "enabled": true
-      }
-    ]
-  }'
-```
-
-> targets 是按入站协议拆分的；同一个 ModelGroup 想同时服务 Anthropic 和 OpenAI 入口，就要分别给 `anthropic_messages` 和 `openai_responses` 配置自己的 targets。
+- 同一个 Model 可以同时拥有 OpenAI 和 Anthropic 等多个协议池。
+- Channel 只有在 `endpoints` 或 `defaultEndpoints` 明确支持协议池 key 时才能加入。
+- 协议池 key 决定 Channel endpoint 和出站协议，不执行跨协议转换。
+- 保存后由 Adapter refresh 读取最新快照，无需再维护第二个逻辑模型。
 
 ### 5.3 创建 Adapter + 绑定
 
@@ -158,8 +129,8 @@ curl -fsS -X PUT -H "Authorization: Bearer $TOKEN" \
     "inboundAPIFormat": "anthropic_messages",
     "status": "enabled",
     "bindings": [
-      { "sourceModelId": "fast",   "modelGroupName": "opus-default", "enabled": true },
-      { "sourceModelId": "opus",   "modelGroupName": "opus-default", "enabled": true }
+      { "source_model_id": "fast", "model_id": 1, "enabled": true },
+      { "source_model_id": "opus", "model_id": 1, "enabled": true }
     ]
   }'
 ```
@@ -175,12 +146,14 @@ Pi 客户端用 `model: fast` 或 `model: opus` 请求，会自动落到 `claude
 
 ### 5.5 切换真实目标
 
+在 `/models` 修改对应协议池中的 Channel、physical model、priority 或 enabled 配置。保存后刷新 Adapter 快照即可生效，无需修改 binding 或重启：
+
 ```bash
-# 把 pi-anthropic 的"opus"绑到另一个 ModelGroup，或者改 targets 里的 targetModelId
-# 保存后立即生效，无需重启
 curl -fsS -X POST -H "Authorization: Bearer $TOKEN" \
   http://localhost:8090/admin/gateway/refresh
 ```
+
+Adapter binding 只负责 `source_model_id → model_id`，真实目标始终由 Model 的对应协议池决定。
 
 ## 6. 反向代理（生产部署）
 
@@ -242,10 +215,9 @@ docker compose up -d --build
 ```bash
 docker compose pull        # 拉新镜像（或 docker compose build --pull）
 docker compose up -d       # 滚动重启
-docker compose exec axonhub axonhub config migrate  # 如果有手动迁移步骤
 ```
 
-MVP 阶段没有独立 migration 命令，Ent 自动迁移在启动时跑。
+Model-centric 版本启动时由 `datamigrate beta7 + drop gate` 自动完成旧配置回填、读回校验和旧结构删除。迁移失败按设计 fail-fast，不启动新运行时，也不接受半成品数据；升级前请备份数据库并确认 Adapter binding 已使用 `model_id`。
 
 ## 11. 公司 VPN / 宿主机代理配置
 

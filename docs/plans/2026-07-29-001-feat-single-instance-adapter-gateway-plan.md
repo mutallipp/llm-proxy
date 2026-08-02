@@ -156,6 +156,7 @@ flowchart TD
 - **实现要点**：增加协议池标识/结构并定义规范化、校验、空池行为；池 key 决定协议，target 不含 outbound 字段；matcher 接收协议池后保持既有优先级、enabled 与匹配条件。
 - **场景**：happy：同一 Model 有 openai 与 anthropic 两池且各自匹配；edge：缺省池、空池、重复 target、禁用 target；error：未知协议或非法 Channel 能力；integration：继承 settings 后池选择仍确定。
 - **验证**：`internal/objects/model_test.go`、`internal/server/biz/model_association_matcher_test.go` 覆盖版本化读写、旧 settings 兼容、协议隔离、priority 和 endpoint 拒绝；schema/API 校验拒绝非法池。
+- **完成状态**：✅ 已完成（U1）。对应提交：基线 `a4d8f10f`（U1 已完成并作为本次集成基线）。
 
 ### IU-02：ModelGroup 一次性回填、冲突报告与事务 atomic abort
 
@@ -165,6 +166,7 @@ flowchart TD
 - **迁移与幂等**：本次不保留旧运行链路、legacy reader 或双写。以 `logical_model_id + legacy_model_group_id + inbound_api_format + channel_id + physical_model_id` 为确定性幂等键；在单事务中以源数据和目标 settings/bindings 读回校验判定重复执行，事务 abort 后重新从旧数据重试，禁止产生半成品。IU-02 只负责读取/回填/校验，IU-06 接收成功报告后负责删除旧 schema、生成引用和表。
 - **场景**：happy：`gpt-5.6-luna` 正确回填 openai/responses target；edge：重复运行幂等、同池重复目标合并、已有 settings 合并；error：协议冲突、缺 Model/非唯一创建条件、endpoint 不支持、绑定歧义；integration：预览→事务→读回→失败中止→重试。
 - **验证**：`internal/server/biz/model_group_migration_test.go` 固定 fixture 断言按 Model 原子性、幂等重试、报告字段、artifact 全量字段/hash、删表顺序及失败边界内事务 atomic abort；确认无静默跨协议改写且失败不产生半成品。
+- **完成状态**：✅ 已完成（U2）。对应提交范围：`9ac04fbd..221caa71`（含 `873743e8..f6339e46` 的跨方言、SQLite fixture 与事务边界修复），迁移 gate 后续修复见 U7。
 
 ### IU-03：Adapter binding 改为 model_id
 
@@ -173,6 +175,7 @@ flowchart TD
 - **实现要点**：将 `model_group_id` 替换为 `source_model_id/model_id`，同一 Adapter 内唯一；多个不同 inbound protocol Adapter 可共享 Model。binding 不含 Channel、physical 或 outbound 字段，priority 只来自 Model 协议池。
 - **场景**：happy：两个协议 Adapter 绑定同一 Model；edge：重复 source_model_id、重复 DEFAULT、不同协议合法共存；error：提交 ModelGroup ID、Channel/physical/outbound 字段或未知 Model；integration：迁移后的 `pi-openai-v2` binding 读回正确。
 - **验证**：`internal/ent/schema/adapter_model_binding_test.go`、`internal/server/api/adapter_binding_test.go` 覆盖唯一约束、DTO 拒绝字段、共享 Model 和错误响应。
+- **完成状态**：✅ 已完成（U3）。对应提交范围：`bb223ae5..8f968152`；后续 binding GID/字段回归修复纳入 U7。
 
 ### IU-04：Adapter snapshot/selector 与 priority/failover
 
@@ -182,6 +185,7 @@ flowchart TD
 - **实现要点**：snapshot 从 binding 取 Model，使用 Adapter 固定 inbound protocol 选择同 key pool；Channel endpoint 使用该 pool protocol，仅在池内按 priority/enabled/健康状态 failover；移除 ModelGroup 兼容路径，不做跨协议转换。
 - **场景**：happy：openai Adapter 只走 openai pool；edge：最高 priority 不健康转下一个、池只有一个 target；error：无 binding、无池、全禁用、协议不匹配；integration：真实 Adapter 请求确认上游使用同一 pool protocol。
 - **验证**：`internal/server/orchestrator/adapter_selector_test.go`、`internal/server/biz/adapter_snapshot_disabled_test.go`、对应 `llm/pipeline/*_test.go` 覆盖快照原子刷新、协议隔离和 failover；日志不出现 ModelGroup 查询。
+- **完成状态**：✅ 已完成（U4）。对应提交范围：`d8d98763..c85af528`；协议隔离与 selector 类型边界修复见 U7。
 
 ### IU-05：`/models` 协议池配置与共享 Model UI
 
@@ -190,6 +194,7 @@ flowchart TD
 - **实现要点**：以协议池作为编辑边界；Channel 下拉按池协议过滤 `endpoints/defaultEndpoints`；保存池内 Channel/physical/priority/enabled，不提交 outbound 字段；Adapter 绑定选择已有 Model，支持多个不同协议 Adapter 共享。
 - **场景**：happy：新增 openai/responses 池并选择 `cider-openai`；edge：渠道能力变化、空池、禁用 target、同 Model 多绑定、旧目标不在 endpoint 列表；error：提交不支持 endpoint 或 outbound/跨协议字段；integration：浏览器创建、保存、刷新后配置一致且旧目标只显示警告。
 - **验证**：`frontend/src/features/models/model-pool-form.test.tsx`、`frontend/tests/models-model-pool.spec.ts` 覆盖过滤、警告、保存和共享 Model；API contract 证明只接受池内目标，浏览器验收证明旧 ModelGroup route 不可达。
+- **完成状态**：✅ 已完成（U5）。对应提交范围：`5d0e253d..af15f75d`；Channel 过滤、Relay GID、模型初始化循环等前端回归修复见 U7。
 
 ### IU-06：ModelGroup 产品、运行时与旧持久化结构一刀切移除
 
@@ -198,6 +203,7 @@ flowchart TD
 - **实现要点**：消费 IU-02 成功报告后移除 ModelGroup REST/GraphQL/DTO/UI/routes、新配置入口和运行时读写；随后删除旧表、约束、索引、旧 schema、生成代码和迁移遗留；不保留双写、legacy reader 或旧链路兼容。
 - **场景**：happy：全局搜索无产品/运行时引用且旧表仍可读；edge：历史数据已迁移、旧表为空；error：迁移未完成时阻止运行时切换；integration：启动后的 API 路由不暴露 ModelGroup，Adapter 仍可用。
 - **验证**：`internal/server/api/gateway_model_group_removal_test.go`、`internal/server/biz/model_group_removal_test.go`、Ent 删除迁移验证；确认旧表不存在、旧 schema/生成引用不存在、ModelGroup API 404/不注册。
+- **完成状态**：✅ 已完成（U6）。对应提交范围：`09c94038..3a173920`（产品面/运行时移除、旧表清理与删除 gate）。
 
 ### IU-07：全链路验收与发布失败边界及原子中止证明
 
@@ -206,6 +212,25 @@ flowchart TD
 - **实现要点**：覆盖协议隔离、共享 Model、优先级故障转移、endpoint 过滤、迁移报告、旧表删除前后的发布失败边界与原子中止；不将无关功能纳入验收。
 - **场景**：happy：openai 与 anthropic Adapter 分别命中各自同协议池；edge：同 Model 多 Adapter、目标健康变化、旧目标警告；error：协议冲突、空池、事务 atomic abort、删表失败；integration：真实 Adapter 请求证明 inbound protocol 选择同协议 pool 且 Channel 使用该协议 endpoint。
 - **验证**：`internal/server/integration/model_centric_adapter_test.go`、`frontend/tests/model-centric-adapter.spec.ts` 和迁移 fixture 产出请求日志、候选顺序、报告、发布失败边界与原子中止证据、route 结果；证据齐全后才允许启动新运行时并执行旧表删除。
+- **完成状态**：✅ 已完成（U7）。对应提交范围：`ca8417a5..d603b134`，含 `f8793d24`/`d0fed1b7`（AdapterRefreshResult）、`b717fd09`/`7257a672`（APIFormat）、`a649ae29`（migration gate）、`af15f75d..d603b134`（前端与运行时回归修复）。
+
+## 集成验收结果
+
+- ✅ Go 定向测试通过。
+- ✅ 前端 typecheck：无本次新增回归；保留 175 条既有 TypeScript 错误。
+- ✅ SQLite 迁移 gate 通过；迁移由 beta7 + drop gate 自动执行。
+- ✅ curl E2E 通过。
+- ✅ 浏览器 E2E 通过。
+- ✅ 协议隔离通过：Adapter 固定 inbound protocol，只命中同 key 协议池。
+
+> 提交范围按主要归属标注；跨 Unit 的修复提交在对应 Unit 和 U7 中交叉注明。
+
+## 已知限制
+
+- PostgreSQL 未实连验证。
+- MySQL 按设计 fail-fast，未作为兼容运行路径验证。
+- 前端仍有 175 条既有 TypeScript 错误，确认非本次引入。
+- general settings/retry policy 仍可能出现 `no user in context` 告警；该告警不在 Adapter 请求路径内。
 
 ## 一刀切发布 Gate 与失败边界
 
