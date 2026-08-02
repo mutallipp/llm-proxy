@@ -51,7 +51,7 @@ func TestDefaultSelector_Select_Deduplication(t *testing.T) {
 		SetModelCard(&objects.ModelCard{}).
 		SetStatus("enabled").
 		SetSettings(&objects.ModelSettings{
-			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
+			ProtocolPools: map[string][]*objects.ModelAssociation{string(testOpenAIChatProtocol): {
 				{
 					Type:     "regex",
 					Priority: 1,
@@ -65,7 +65,8 @@ func TestDefaultSelector_Select_Deduplication(t *testing.T) {
 	require.NoError(t, err)
 
 	req := &llm.Request{
-		Model: model.ModelID,
+		Model:     model.ModelID,
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -105,7 +106,7 @@ func TestDefaultSelector_Select_AggregateSameChannelSamePriority(t *testing.T) {
 		SetModelCard(&objects.ModelCard{}).
 		SetStatus("enabled").
 		SetSettings(&objects.ModelSettings{
-			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
+			ProtocolPools: map[string][]*objects.ModelAssociation{string(testOpenAIChatProtocol): {
 				{
 					Type:     "regex",
 					Priority: 1,
@@ -125,7 +126,7 @@ func TestDefaultSelector_Select_AggregateSameChannelSamePriority(t *testing.T) {
 		Save(ctx)
 	require.NoError(t, err)
 
-	req := &llm.Request{Model: model.ModelID}
+	req := &llm.Request{Model: model.ModelID, APIFormat: testOpenAIChatProtocol}
 	result, err := selector.Select(ctx, req)
 	require.NoError(t, err)
 
@@ -171,7 +172,7 @@ func TestDefaultSelector_Select_DeduplicateAcrossConditionalAssociationsByActual
 		SetModelCard(&objects.ModelCard{}).
 		SetStatus("enabled").
 		SetSettings(&objects.ModelSettings{
-			ProtocolPools: map[string][]*objects.ModelAssociation{"openai": {
+			ProtocolPools: map[string][]*objects.ModelAssociation{string(testOpenAIChatProtocol): {
 				{
 					Type:     "channel_model",
 					Priority: 1,
@@ -199,7 +200,7 @@ func TestDefaultSelector_Select_DeduplicateAcrossConditionalAssociationsByActual
 		Save(ctx)
 	require.NoError(t, err)
 
-	req := &llm.Request{Model: model.ModelID}
+	req := &llm.Request{Model: model.ModelID, APIFormat: testOpenAIChatProtocol}
 	result, err := selector.Select(ctx, req)
 	require.NoError(t, err)
 

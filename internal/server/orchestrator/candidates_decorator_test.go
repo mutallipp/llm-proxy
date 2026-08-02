@@ -13,6 +13,7 @@ func TestDecoratorChain_FullStack(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -31,7 +32,8 @@ func TestDecoratorChain_FullStack(t *testing.T) {
 	selector := WithLoadBalancedSelector(filteredSelector, loadBalancer, systemService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	result, err := selector.Select(ctx, req)
@@ -55,6 +57,7 @@ func TestSelectedChannelsSelector_WithAllowedChannels(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	systemService := newTestSystemService(client)
@@ -63,7 +66,8 @@ func TestSelectedChannelsSelector_WithAllowedChannels(t *testing.T) {
 	baseSelector := newTestLoadBalancedSelector(channelService, client, systemService, requestService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	// Test without allowed channels - should return all 3 enabled channels
@@ -92,6 +96,7 @@ func TestSelectedChannelsSelector_WithEmptyFilter(t *testing.T) {
 	ctx, client := setupTest(t)
 
 	channels := createTestChannels(t, ctx, client)
+	createTestModel(t, ctx, client, "gpt-4", channelModelAssociations(channels, "gpt-4"))
 
 	channelService := newTestChannelServiceForChannels(client)
 	modelService := newTestModelService(client)
@@ -99,7 +104,8 @@ func TestSelectedChannelsSelector_WithEmptyFilter(t *testing.T) {
 	baseSelector := NewDefaultSelector(channelService, modelService, systemService)
 
 	req := &llm.Request{
-		Model: "gpt-4",
+		Model:     "gpt-4",
+		APIFormat: testOpenAIChatProtocol,
 	}
 
 	// Empty slice should return all channels from wrapped selector
