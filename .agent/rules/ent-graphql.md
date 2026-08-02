@@ -7,10 +7,11 @@ globs: "internal/ent/schema/**/*.go, internal/server/gql/**/*.go, internal/serve
 
 ## Ent
 
-1. If you change any Ent schema or GraphQL schema, run `make generate`.
+1. If you change any Ent schema or GraphQL schema, run `make generate` (equivalently, run `go generate` from `internal/server/gql`).
 2. If you add or update a struct used by GraphQL objects, update the mapping in `gqlgen.yml`.
-3. Use `enttest.NewEntClient(t, \"sqlite3\", \"file:ent?mode=memory&_fk=0\")` for Ent tests.
-4. Do not edit `ent.graphql` directly; add GraphQL schema in the appropriate non-generated schema file.
+3. Treat `internal/ent/` and gqlgen output as generated files: never hand-edit them; fix the schema or generation configuration and regenerate.
+4. Use `enttest.NewEntClient(t, \"sqlite3\", \"file:ent?mode=memory&_fk=0\")` for Ent tests.
+5. Do not edit `ent.graphql` directly; add GraphQL schema in the appropriate non-generated schema file.
 
 ## GraphQL
 

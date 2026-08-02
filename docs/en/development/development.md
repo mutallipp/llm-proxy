@@ -87,7 +87,7 @@ make build
 ./axonhub
 ```
 
-Do not run only `go run ./cmd/axonhub`: the repository does not commit the generated frontend dist, so the latest Adapter and ModelGroup pages may not be available.
+Do not run only `go run ./cmd/axonhub`: the repository does not commit the generated frontend dist, so the latest Adapter and Model pages may not be available.
 
 The backend server will start at `http://localhost:8090`.
 

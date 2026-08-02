@@ -77,6 +77,28 @@ All detailed rules are in `.agent/rules/`:
 | [frontend-general.md](.agent/rules/frontend-general.md) | `frontend/**/*.ts`, `frontend/**/*.tsx` | 前端通用开发约定、GraphQL 数据约束、页面作用域 |
 | [frontend-i18n.md](.agent/rules/frontend-i18n.md) | `frontend/src/**/*.ts`, `frontend/src/**/*.tsx`, `frontend/src/locales/*.json` | i18n 与货币格式规则 |
 | [frontend-ui.md](.agent/rules/frontend-ui.md) | `frontend/**/*.tsx` | 前端 UI 组件使用规则 |
-| [e2e.md](.agent/rules/e2e.md) | `frontend/tests/**/*.ts` | E2E testing rules |
+| [adapter-model-binding.md](.agent/rules/adapter-model-binding.md) | Adapter/Model binding 相关前后端文件 | Model-centric binding、协议池 key、endpoint 边界和运行时刷新规则 |
+| [e2e.md](.agent/rules/e2e.md) | `frontend/tests/**/*.ts`, `scripts/e2e/**/*.sh` | E2E 测试、定向验证和本地凭据规则 |
 | [docs.md](.agent/rules/docs.md) | `docs/**/*.md` | Documentation rules |
 | [workflows/add-channel.md](.agent/rules/workflows/add-channel.md) | Manual | Workflow for adding a new channel |
+
+## Model-centric Adapter Gateway（2026-08-02）
+
+- Adapter 只维护 `source_model_id -> model_id`；Model 的 `settings.protocolPools` 维护协议族下的 Channel、物理模型、优先级和启用状态。
+- 协议池 key 与 Channel endpoint 的完整 `apiFormat` 分层维护；禁止跨协议兜底。详细边界见 [adapter-model-binding.md](.agent/rules/adapter-model-binding.md)。
+- 配置保存后必须刷新运行时 snapshot；出现 `no protocol pool`、`model not bound` 或 `no usable target` 时，按架构文档和 E2E 规则逐层排查。
+- 旧 ModelGroup 只属于迁移/drop gate，不是新的运行时或管理入口。
+
+### 文档维护入口
+
+- 架构与请求链路：[docs/architecture/backend.md](docs/architecture/backend.md)
+- 前端页面与 GraphQL：[docs/architecture/frontend.md](docs/architecture/frontend.md)
+- 部署、迁移与回滚：[docs/deployment/adapter-mvp.md](docs/deployment/adapter-mvp.md)
+- 定向测试、curl 和浏览器验收：[.agent/rules/e2e.md](.agent/rules/e2e.md)
+
+### 子代理角色分工
+
+- `frontend-worker`：实现前端功能；开始前声明允许/禁止修改的文件。
+- `frontend-reviewer`：只做前端改动审查和验证，不与 worker 并发修改同一文件。
+- `claude-code`：承担后端或全栈实现；共享契约由单一 owner 维护。
+- 每个功能使用独立 worktree；集成 worktree 只做 cherry-pick 合并。子代理完成后必须报告变更文件和验证证据。

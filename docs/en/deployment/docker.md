@@ -30,7 +30,7 @@ Keep `.env` local; it is ignored by Git. The Compose file injects database, auth
 docker compose up -d --build --force-recreate
 ```
 
-Use `--build` on the first start and after code changes. The Dockerfile builds the frontend and embeds the latest Adapter and ModelGroup pages into the backend.
+Use `--build` on the first start and after code changes. The Dockerfile builds the frontend and embeds the latest Adapter and Model pages into the backend.
 
 ### 4. Verify Deployment
 

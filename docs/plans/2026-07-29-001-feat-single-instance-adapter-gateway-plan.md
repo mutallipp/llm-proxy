@@ -9,7 +9,7 @@ execution: code
 product_contract_source: ce-brainstorm
 ---
 
-> 本计划已完成。架构和开发规范见 docs/architecture.md 和 docs/development-guide.md。
+> 本计划已完成。架构见 [`docs/architecture/backend.md`](../architecture/backend.md)，开发规则见 [`.agent/rules/adapter-model-binding.md`](../../.agent/rules/adapter-model-binding.md)，定向验证见 [`.agent/rules/e2e.md`](../../.agent/rules/e2e.md)。
 
 # 单实例适配器网关：Model-centric 迁移计划
 

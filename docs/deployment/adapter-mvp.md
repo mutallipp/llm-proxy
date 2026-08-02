@@ -10,6 +10,24 @@
 - **消费入口默认不校验 API Key**：可读取 `Authorization: Bearer`、`x-api-key`、`anthropic-api-key`，但默认放行、不落库、不转发；上游凭证只使用 Channel 自身配置。
 - 生产部署必须绑定本机、使用反向代理/WAF 鉴权或开启 IP 白名单，不能直接把 `8090` 暴露到公网。
 
+## Model-centric Adapter Gateway（2026-08-02）
+
+部署和排障都以以下唯一数据流为准：
+
+```text
+Adapter source_model_id
+  -> AdapterModelBinding.model_id
+  -> Model.settings.protocolPools[协议族]
+  -> Channel + 物理模型关联
+  -> 完整 apiFormat endpoint
+  -> provider
+```
+
+- 协议池 key 只使用 `openai` 或 `anthropic` 等协议族；`openai/chat_completions`、`anthropic/messages` 等是 Channel endpoint 的完整 `apiFormat`，不能混用。
+- `/admin/graphql` 的 Model 编辑器按协议族过滤 Channel endpoint；运行时还会确认启用 Channel 存在匹配完整格式的 endpoint，不做跨协议兜底或隐式转换。
+- Adapter binding 只负责 alias 到逻辑 Model。协议池、Channel endpoint 或物理模型变更后，保存并刷新 snapshot 即可生效，不需要修改 binding 或重启。
+- 旧 ModelGroup 仅由 `datamigrate beta7` 迁移到 Model 协议池；迁移成功并通过 drop gate 后，运行时不再读取旧 ModelGroup。
+
 ## 2. 数据库迁移与兼容边界
 
 - `datamigrate beta7` 自动执行 `ModelGroup → Model.protocolPools` 回填，并回填 Adapter 的 `model_id` binding。

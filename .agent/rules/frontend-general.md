@@ -12,7 +12,7 @@ globs: "frontend/**/*.ts, frontend/**/*.tsx"
 5. When adding fields used by the UI, update the relevant GraphQL query and schema together.
 6. Search filters should use debounce to avoid excessive requests.
 7. When adding a new feature page, also add the corresponding route and sidebar entry if the feature should be navigable.
-8. Use `extractNumberID` from `frontend/src/lib/utils.ts` to extract integer IDs from GUID values.
+8. GraphQL Relay GID 在 Select 状态中保持原字符串；写入 REST/Ent 数字字段前使用 `frontend/src/lib/utils.ts` 的 `extractNumberID` 或 `extractNumberIDAsNumber`，禁止裸写 `Number(gid)`，编辑回显时再映射回 GID。Adapter/Model 协议池的边界规则见 `adapter-model-binding.md`。
 9. Respect page scoping semantics:
    Project-level pages must explicitly pass project context such as `projectId` or `X-Project-ID`.
    Admin-level pages must not implicitly inherit the current project unless the feature is intentionally project-scoped.

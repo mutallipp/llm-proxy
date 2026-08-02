@@ -10,11 +10,13 @@ llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协
 ## 文档入口
 
 - [项目 README](README.md)
-- [后端架构](docs/architecture/backend.md)
-- [前端架构](docs/architecture/frontend.md)
+- [后端架构与 Model-centric Adapter Gateway](docs/architecture/backend.md)
+- [前端架构与 Model 协议池页面](docs/architecture/frontend.md)
 - [中文开发指南](docs/zh/development/development.md)
 - [Docker 部署](docs/zh/deployment/docker.md)
-- [Adapter MVP 部署说明](docs/deployment/adapter-mvp.md)
+- [Adapter MVP 部署、迁移与回滚](docs/deployment/adapter-mvp.md)
+- [Adapter/Model 绑定规则](.agent/rules/adapter-model-binding.md)
+- [定向测试与 E2E 规则](.agent/rules/e2e.md)
 
 ## 开发约定
 
@@ -25,11 +27,9 @@ llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协
 5. 涉及前端交互时用浏览器 snapshot、Network、Console 和截图验收。
 6. 不把 credentials、真实代理地址或临时密码写入代码、文档、日志或提交。
 
-## Adapter / ModelGroup 关键约定
+## Model-centric Adapter Gateway（2026-08-02）
 
-- Adapter 入站协议固定；ModelGroup 可按入站协议维护独立目标池。
-- Target 由 `Channel + targetModelId + outbound_api_format` 组成。
-- GraphQL Channel 全局 ID 传 REST numeric `channel_id` 前必须用 `extractNumberID` 转换。
-- 目标草稿点击“添加”后才进入目标池，目标池为空时不能保存有效路由。
-- `capabilities.stream_policy` 使用 `unlimited`、`require`、`forbid`；缺省按跟随下游处理。
-- Adapter 配置保存后应刷新运行时 snapshot；出现 `no usable target` 时优先检查绑定、协议、目标、渠道状态和 snapshot。
+- Adapter 只绑定逻辑 Model（`source_model_id -> model_id`）；Model 的 `settings.protocolPools` 按入站协议族维护 Channel 和物理模型关联。
+- 协议池 key（`openai`/`anthropic`）与 Channel endpoint 的完整 `apiFormat` 分开维护；禁止跨协议兜底。详细规则见 `.agent/rules/adapter-model-binding.md`。
+- GraphQL Relay GID 在 Select 中保留原值，写入数值字段前使用 `extractNumberID`；保存后必须刷新 runtime snapshot。
+- 旧 ModelGroup 仅属于迁移/drop gate，不再作为运行时或管理入口。
