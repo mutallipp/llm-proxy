@@ -156,7 +156,7 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 	}
 
 	systemSettings := s.SystemService.ModelSettingsOrDefault(ctx)
-	protocol := req.APIFormat
+	protocol := string(req.APIFormat)
 	if protocol == "" {
 		return nil, fmt.Errorf("protocol-required: request API format is missing")
 	}
