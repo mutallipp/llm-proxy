@@ -1320,7 +1320,7 @@ export function useSaveChannelCapabilities() {
         throw error;
       }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['channels'] });
       queryClient.invalidateQueries({ queryKey: ['channel', variables.channelID] });
       queryClient.invalidateQueries({ queryKey: ['models'] });
