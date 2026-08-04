@@ -87,7 +87,15 @@ Model 是 Adapter Gateway 的唯一逻辑模型中心，配置和运行时数据
 - 前端通过 `channelSupportsProtocolPool` 按 `openai/`、`anthropic/` 前缀过滤可选 Channel；运行时仍需确认启用 Channel 存在匹配请求格式的完整 endpoint。
 - Adapter 只查与自身入站协议对应的 pool，不跨协议兜底、不隐式转换，也不回退到全渠道选择；无 pool、无 binding 或无可用 endpoint 时应返回明确诊断。
 
-### 3.3 Snapshot、Refresh 与状态规则
+### 3.3 渠道协议能力声明与自动派生（2026-08-05）
+
+- 协议×模型能力归渠道层声明：Channel 的 `protocol_capabilities`（`DeclaredProtocols` + 逐模型 `Protocols`），唯一写入面 `saveChannelCapabilities`（含端点能力校验与协议族白名单校验；`Create/UpdateChannelInput` 不含该字段）。
+- 保存后 `protocol_pool_derivation.go` 对账，为同名逻辑模型物化 `settings.protocolPools` 的 auto 关联（`auto: true`、默认禁用）；对账只碰 auto 条目，手动条目（含存量显式关联与 developer 继承）永不被派生触碰。
+- auto 条目一经启用即转手动；启用（首次/批量/重启用）统一走 `model_capability_validation.go` 校验，钩子覆盖 CreateModel/UpdateModel/BulkCreateModels 三条 settings 写入路径；服务端拒绝删除现存 auto 条目，入站 auto/disabledReason 以服务端现存状态为准。
+- 派生触发点：saveChannelCapabilities、SaveChannelEndpoints 端点复核（失去端点能力支撑的声明按撤销处理）、auto_sync 模型增删、Delete/BulkDeleteChannels 清理、deriveModelAssociations（按模型名增量、只增不撤）。DuplicateChannel 不复制能力声明。
+- 运行时路由链路（orchestrator）不变：仍读 `EffectiveModelProtocolPools`，auto 与手动条目运行期语义一致。
+
+### 3.4 Snapshot、Refresh 与状态规则
 
 [`internal/server/biz/adapter.go`](../../internal/server/biz/adapter.go) 的 `AdapterService` 使用 `atomic.Value` 保存 [`objects.AdapterSnapshot`](../../internal/objects/adapter.go)：
 
@@ -97,7 +105,7 @@ Model 是 Adapter Gateway 的唯一逻辑模型中心，配置和运行时数据
 - 配置保存不是运行时生效的充分条件：写库成功后必须调用 `AdapterService.Refresh` 或管理端 `POST /admin/gateway/refresh`，并检查 `snapshot_version`/`diagnostics`。
 - 禁用的 Adapter、Model 或协议池关联不会进入运行时 snapshot；重新启用后必须再次 Refresh。请求解析失败不得回退到普通全渠道选择。
 
-### 3.4 关键文件索引
+### 3.5 关键文件索引
 
 | 文件 | 职责 |
 |---|---|
@@ -108,8 +116,11 @@ Model 是 Adapter Gateway 的唯一逻辑模型中心，配置和运行时数据
 | [`internal/server/api/adapter.go`](../../internal/server/api/adapter.go) | 动态 Adapter 的 chat/responses/messages/models 消费处理器。 |
 | [`internal/server/routes.go`](../../internal/server/routes.go) | 注册 `/:adapter/v1` 动态路由和 Adapter middleware。 |
 | [`internal/server/gql/`](../../internal/server/gql/) | Model settings 与 `protocolPools` 的 GraphQL 查询、输入和 resolver。 |
+| [`internal/server/biz/channel_capability.go`](../../internal/server/biz/channel_capability.go) | 渠道协议能力声明读写、端点能力校验、端点复核与派生触发。 |
+| [`internal/server/biz/protocol_pool_derivation.go`](../../internal/server/biz/protocol_pool_derivation.go) | 协议池 auto 派生对账引擎（纯函数 reconcile + 单事务 merge-write）。 |
+| [`internal/server/biz/model_capability_validation.go`](../../internal/server/biz/model_capability_validation.go) | auto 条目启用的统一能力校验。 |
 
-### 3.5 维护入口
+### 3.6 维护入口
 
 - Adapter/Model binding、GID 和协议池格式规则：[`../../.agent/rules/adapter-model-binding.md`](../../.agent/rules/adapter-model-binding.md)。
 - Ent/GraphQL schema 与生成代码：[`../../.agent/rules/ent-graphql.md`](../../.agent/rules/ent-graphql.md)。
