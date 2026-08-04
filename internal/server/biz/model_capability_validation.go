@@ -135,30 +135,7 @@ func modelAssociationDefinitionChanged(existing, incoming *objects.ModelAssociat
 
 // validateDerivedAssociationEnablement 校验 auto 派生条目启用所需的四项能力。
 func (svc *ModelService) validateDerivedAssociationEnablement(ctx context.Context, protocol string, association *objects.ModelAssociation) error {
-	if association == nil || association.ChannelModel == nil {
-		return fmt.Errorf("derived association must target a channel model")
-	}
-	channelID := association.ChannelModel.ChannelID
-	modelID := association.ChannelModel.ModelID
-	ch, err := svc.entFromContext(ctx).Channel.Get(ctx, channelID)
-	if err != nil {
-		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "渠道不存在"}
-	}
-	if ch.Status != channel.StatusEnabled {
-		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "渠道未启用"}
-	}
-	if !channelCapabilityDeclaresProtocol(ch.ProtocolCapabilities, modelID, protocol) {
-		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "渠道当前未声明该模型与协议"}
-	}
-	if !channelSupportsProtocolFamily(resolveChannelEndpoints(ch), protocol) {
-		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "渠道端点不支持该协议"}
-	}
-	entries := (&Channel{Channel: ch}).GetModelEntries()
-	if _, ok := entries[modelID]; !ok {
-		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "物理模型不在渠道运行时模型条目中"}
-	}
-
-	return nil
+	return validateDerivedAssociationEnablementWithChannelService(ctx, svc.channelService, protocol, association)
 }
 
 func channelCapabilityDeclaresProtocol(capabilities objects.ChannelProtocolCapabilities, modelID, protocol string) bool {
