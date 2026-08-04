@@ -3830,6 +3830,7 @@ type ChannelMutation struct {
 	appenddisabled_api_keys      []objects.DisabledAPIKey
 	supported_models             *[]string
 	appendsupported_models       []string
+	protocol_capabilities        *objects.ChannelProtocolCapabilities
 	manual_models                *[]string
 	appendmanual_models          []string
 	auto_sync_supported_models   *bool
@@ -4401,6 +4402,55 @@ func (m *ChannelMutation) AppendedSupportedModels() ([]string, bool) {
 func (m *ChannelMutation) ResetSupportedModels() {
 	m.supported_models = nil
 	m.appendsupported_models = nil
+}
+
+// SetProtocolCapabilities sets the "protocol_capabilities" field.
+func (m *ChannelMutation) SetProtocolCapabilities(opc objects.ChannelProtocolCapabilities) {
+	m.protocol_capabilities = &opc
+}
+
+// ProtocolCapabilities returns the value of the "protocol_capabilities" field in the mutation.
+func (m *ChannelMutation) ProtocolCapabilities() (r objects.ChannelProtocolCapabilities, exists bool) {
+	v := m.protocol_capabilities
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProtocolCapabilities returns the old "protocol_capabilities" field's value of the Channel entity.
+// If the Channel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChannelMutation) OldProtocolCapabilities(ctx context.Context) (v objects.ChannelProtocolCapabilities, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProtocolCapabilities is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProtocolCapabilities requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProtocolCapabilities: %w", err)
+	}
+	return oldValue.ProtocolCapabilities, nil
+}
+
+// ClearProtocolCapabilities clears the value of the "protocol_capabilities" field.
+func (m *ChannelMutation) ClearProtocolCapabilities() {
+	m.protocol_capabilities = nil
+	m.clearedFields[channel.FieldProtocolCapabilities] = struct{}{}
+}
+
+// ProtocolCapabilitiesCleared returns if the "protocol_capabilities" field was cleared in this mutation.
+func (m *ChannelMutation) ProtocolCapabilitiesCleared() bool {
+	_, ok := m.clearedFields[channel.FieldProtocolCapabilities]
+	return ok
+}
+
+// ResetProtocolCapabilities resets all changes to the "protocol_capabilities" field.
+func (m *ChannelMutation) ResetProtocolCapabilities() {
+	m.protocol_capabilities = nil
+	delete(m.clearedFields, channel.FieldProtocolCapabilities)
 }
 
 // SetManualModels sets the "manual_models" field.
@@ -5314,7 +5364,7 @@ func (m *ChannelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ChannelMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 22)
 	if m.created_at != nil {
 		fields = append(fields, channel.FieldCreatedAt)
 	}
@@ -5344,6 +5394,9 @@ func (m *ChannelMutation) Fields() []string {
 	}
 	if m.supported_models != nil {
 		fields = append(fields, channel.FieldSupportedModels)
+	}
+	if m.protocol_capabilities != nil {
+		fields = append(fields, channel.FieldProtocolCapabilities)
 	}
 	if m.manual_models != nil {
 		fields = append(fields, channel.FieldManualModels)
@@ -5406,6 +5459,8 @@ func (m *ChannelMutation) Field(name string) (ent.Value, bool) {
 		return m.DisabledAPIKeys()
 	case channel.FieldSupportedModels:
 		return m.SupportedModels()
+	case channel.FieldProtocolCapabilities:
+		return m.ProtocolCapabilities()
 	case channel.FieldManualModels:
 		return m.ManualModels()
 	case channel.FieldAutoSyncSupportedModels:
@@ -5457,6 +5512,8 @@ func (m *ChannelMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldDisabledAPIKeys(ctx)
 	case channel.FieldSupportedModels:
 		return m.OldSupportedModels(ctx)
+	case channel.FieldProtocolCapabilities:
+		return m.OldProtocolCapabilities(ctx)
 	case channel.FieldManualModels:
 		return m.OldManualModels(ctx)
 	case channel.FieldAutoSyncSupportedModels:
@@ -5557,6 +5614,13 @@ func (m *ChannelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSupportedModels(v)
+		return nil
+	case channel.FieldProtocolCapabilities:
+		v, ok := value.(objects.ChannelProtocolCapabilities)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProtocolCapabilities(v)
 		return nil
 	case channel.FieldManualModels:
 		v, ok := value.([]string)
@@ -5698,6 +5762,9 @@ func (m *ChannelMutation) ClearedFields() []string {
 	if m.FieldCleared(channel.FieldDisabledAPIKeys) {
 		fields = append(fields, channel.FieldDisabledAPIKeys)
 	}
+	if m.FieldCleared(channel.FieldProtocolCapabilities) {
+		fields = append(fields, channel.FieldProtocolCapabilities)
+	}
 	if m.FieldCleared(channel.FieldManualModels) {
 		fields = append(fields, channel.FieldManualModels)
 	}
@@ -5741,6 +5808,9 @@ func (m *ChannelMutation) ClearField(name string) error {
 		return nil
 	case channel.FieldDisabledAPIKeys:
 		m.ClearDisabledAPIKeys()
+		return nil
+	case channel.FieldProtocolCapabilities:
+		m.ClearProtocolCapabilities()
 		return nil
 	case channel.FieldManualModels:
 		m.ClearManualModels()
@@ -5803,6 +5873,9 @@ func (m *ChannelMutation) ResetField(name string) error {
 		return nil
 	case channel.FieldSupportedModels:
 		m.ResetSupportedModels()
+		return nil
+	case channel.FieldProtocolCapabilities:
+		m.ResetProtocolCapabilities()
 		return nil
 	case channel.FieldManualModels:
 		m.ResetManualModels()

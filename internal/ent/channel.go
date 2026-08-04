@@ -40,6 +40,8 @@ type Channel struct {
 	DisabledAPIKeys []objects.DisabledAPIKey `json:"-"`
 	// SupportedModels holds the value of the "supported_models" field.
 	SupportedModels []string `json:"supported_models,omitempty"`
+	// ProtocolCapabilities holds the value of the "protocol_capabilities" field.
+	ProtocolCapabilities objects.ChannelProtocolCapabilities `json:"protocol_capabilities,omitempty"`
 	// ManualModels holds the value of the "manual_models" field.
 	ManualModels []string `json:"manual_models,omitempty"`
 	// AutoSyncSupportedModels holds the value of the "auto_sync_supported_models" field.
@@ -156,7 +158,7 @@ func (*Channel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case channel.FieldCredentials, channel.FieldDisabledAPIKeys, channel.FieldSupportedModels, channel.FieldManualModels, channel.FieldTags, channel.FieldPolicies, channel.FieldSettings, channel.FieldEndpoints:
+		case channel.FieldCredentials, channel.FieldDisabledAPIKeys, channel.FieldSupportedModels, channel.FieldProtocolCapabilities, channel.FieldManualModels, channel.FieldTags, channel.FieldPolicies, channel.FieldSettings, channel.FieldEndpoints:
 			values[i] = new([]byte)
 		case channel.FieldAutoSyncSupportedModels:
 			values[i] = new(sql.NullBool)
@@ -251,6 +253,14 @@ func (_m *Channel) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &_m.SupportedModels); err != nil {
 					return fmt.Errorf("unmarshal field supported_models: %w", err)
+				}
+			}
+		case channel.FieldProtocolCapabilities:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field protocol_capabilities", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.ProtocolCapabilities); err != nil {
+					return fmt.Errorf("unmarshal field protocol_capabilities: %w", err)
 				}
 			}
 		case channel.FieldManualModels:
@@ -424,6 +434,9 @@ func (_m *Channel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("supported_models=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SupportedModels))
+	builder.WriteString(", ")
+	builder.WriteString("protocol_capabilities=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ProtocolCapabilities))
 	builder.WriteString(", ")
 	builder.WriteString("manual_models=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ManualModels))

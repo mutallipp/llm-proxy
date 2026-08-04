@@ -39,6 +39,8 @@ const (
 	FieldDisabledAPIKeys = "disabled_api_keys"
 	// FieldSupportedModels holds the string denoting the supported_models field in the database.
 	FieldSupportedModels = "supported_models"
+	// FieldProtocolCapabilities holds the string denoting the protocol_capabilities field in the database.
+	FieldProtocolCapabilities = "protocol_capabilities"
 	// FieldManualModels holds the string denoting the manual_models field in the database.
 	FieldManualModels = "manual_models"
 	// FieldAutoSyncSupportedModels holds the string denoting the auto_sync_supported_models field in the database.
@@ -132,6 +134,7 @@ var Columns = []string{
 	FieldCredentials,
 	FieldDisabledAPIKeys,
 	FieldSupportedModels,
+	FieldProtocolCapabilities,
 	FieldManualModels,
 	FieldAutoSyncSupportedModels,
 	FieldAutoSyncModelPattern,
@@ -174,6 +177,8 @@ var (
 	DefaultDeletedAt int
 	// DefaultDisabledAPIKeys holds the default value on creation for the "disabled_api_keys" field.
 	DefaultDisabledAPIKeys []objects.DisabledAPIKey
+	// DefaultProtocolCapabilities holds the default value on creation for the "protocol_capabilities" field.
+	DefaultProtocolCapabilities objects.ChannelProtocolCapabilities
 	// DefaultManualModels holds the default value on creation for the "manual_models" field.
 	DefaultManualModels []string
 	// DefaultAutoSyncSupportedModels holds the default value on creation for the "auto_sync_supported_models" field.

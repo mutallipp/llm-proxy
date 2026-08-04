@@ -120,6 +120,13 @@ func (Channel) Fields() []ent.Field {
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
 			),
 		field.Strings("supported_models"),
+		field.JSON("protocol_capabilities", objects.ChannelProtocolCapabilities{}).
+			Default(objects.ChannelProtocolCapabilities{
+				DeclaredProtocols: []string{},
+				Models:            []objects.ChannelModelCapability{},
+			}).
+			Optional().
+			Annotations(entgql.Skip(entgql.SkipAll)),
 		field.Strings("manual_models").Optional().Default([]string{}),
 		field.Bool("auto_sync_supported_models").Default(false),
 		field.String("auto_sync_model_pattern").Optional().Default("").

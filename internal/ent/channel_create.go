@@ -129,6 +129,20 @@ func (_c *ChannelCreate) SetSupportedModels(v []string) *ChannelCreate {
 	return _c
 }
 
+// SetProtocolCapabilities sets the "protocol_capabilities" field.
+func (_c *ChannelCreate) SetProtocolCapabilities(v objects.ChannelProtocolCapabilities) *ChannelCreate {
+	_c.mutation.SetProtocolCapabilities(v)
+	return _c
+}
+
+// SetNillableProtocolCapabilities sets the "protocol_capabilities" field if the given value is not nil.
+func (_c *ChannelCreate) SetNillableProtocolCapabilities(v *objects.ChannelProtocolCapabilities) *ChannelCreate {
+	if v != nil {
+		_c.SetProtocolCapabilities(*v)
+	}
+	return _c
+}
+
 // SetManualModels sets the "manual_models" field.
 func (_c *ChannelCreate) SetManualModels(v []string) *ChannelCreate {
 	_c.mutation.SetManualModels(v)
@@ -400,6 +414,10 @@ func (_c *ChannelCreate) defaults() error {
 		v := channel.DefaultDisabledAPIKeys
 		_c.mutation.SetDisabledAPIKeys(v)
 	}
+	if _, ok := _c.mutation.ProtocolCapabilities(); !ok {
+		v := channel.DefaultProtocolCapabilities
+		_c.mutation.SetProtocolCapabilities(v)
+	}
 	if _, ok := _c.mutation.ManualModels(); !ok {
 		v := channel.DefaultManualModels
 		_c.mutation.SetManualModels(v)
@@ -540,6 +558,10 @@ func (_c *ChannelCreate) createSpec() (*Channel, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SupportedModels(); ok {
 		_spec.SetField(channel.FieldSupportedModels, field.TypeJSON, value)
 		_node.SupportedModels = value
+	}
+	if value, ok := _c.mutation.ProtocolCapabilities(); ok {
+		_spec.SetField(channel.FieldProtocolCapabilities, field.TypeJSON, value)
+		_node.ProtocolCapabilities = value
 	}
 	if value, ok := _c.mutation.ManualModels(); ok {
 		_spec.SetField(channel.FieldManualModels, field.TypeJSON, value)
@@ -856,6 +878,24 @@ func (u *ChannelUpsert) SetSupportedModels(v []string) *ChannelUpsert {
 // UpdateSupportedModels sets the "supported_models" field to the value that was provided on create.
 func (u *ChannelUpsert) UpdateSupportedModels() *ChannelUpsert {
 	u.SetExcluded(channel.FieldSupportedModels)
+	return u
+}
+
+// SetProtocolCapabilities sets the "protocol_capabilities" field.
+func (u *ChannelUpsert) SetProtocolCapabilities(v objects.ChannelProtocolCapabilities) *ChannelUpsert {
+	u.Set(channel.FieldProtocolCapabilities, v)
+	return u
+}
+
+// UpdateProtocolCapabilities sets the "protocol_capabilities" field to the value that was provided on create.
+func (u *ChannelUpsert) UpdateProtocolCapabilities() *ChannelUpsert {
+	u.SetExcluded(channel.FieldProtocolCapabilities)
+	return u
+}
+
+// ClearProtocolCapabilities clears the value of the "protocol_capabilities" field.
+func (u *ChannelUpsert) ClearProtocolCapabilities() *ChannelUpsert {
+	u.SetNull(channel.FieldProtocolCapabilities)
 	return u
 }
 
@@ -1234,6 +1274,27 @@ func (u *ChannelUpsertOne) SetSupportedModels(v []string) *ChannelUpsertOne {
 func (u *ChannelUpsertOne) UpdateSupportedModels() *ChannelUpsertOne {
 	return u.Update(func(s *ChannelUpsert) {
 		s.UpdateSupportedModels()
+	})
+}
+
+// SetProtocolCapabilities sets the "protocol_capabilities" field.
+func (u *ChannelUpsertOne) SetProtocolCapabilities(v objects.ChannelProtocolCapabilities) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetProtocolCapabilities(v)
+	})
+}
+
+// UpdateProtocolCapabilities sets the "protocol_capabilities" field to the value that was provided on create.
+func (u *ChannelUpsertOne) UpdateProtocolCapabilities() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateProtocolCapabilities()
+	})
+}
+
+// ClearProtocolCapabilities clears the value of the "protocol_capabilities" field.
+func (u *ChannelUpsertOne) ClearProtocolCapabilities() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.ClearProtocolCapabilities()
 	})
 }
 
@@ -1809,6 +1870,27 @@ func (u *ChannelUpsertBulk) SetSupportedModels(v []string) *ChannelUpsertBulk {
 func (u *ChannelUpsertBulk) UpdateSupportedModels() *ChannelUpsertBulk {
 	return u.Update(func(s *ChannelUpsert) {
 		s.UpdateSupportedModels()
+	})
+}
+
+// SetProtocolCapabilities sets the "protocol_capabilities" field.
+func (u *ChannelUpsertBulk) SetProtocolCapabilities(v objects.ChannelProtocolCapabilities) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetProtocolCapabilities(v)
+	})
+}
+
+// UpdateProtocolCapabilities sets the "protocol_capabilities" field to the value that was provided on create.
+func (u *ChannelUpsertBulk) UpdateProtocolCapabilities() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateProtocolCapabilities()
+	})
+}
+
+// ClearProtocolCapabilities clears the value of the "protocol_capabilities" field.
+func (u *ChannelUpsertBulk) ClearProtocolCapabilities() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.ClearProtocolCapabilities()
 	})
 }
 
