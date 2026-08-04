@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/samber/lo"
 
@@ -138,7 +139,7 @@ func (svc *ChannelService) syncChannelModelsForChannel(ctx context.Context, ch *
 	err = svc.RunInTransaction(ctx, func(ctx context.Context) error {
 		updatedCh = ch
 		if modelsChanged {
-			channel, err := svc.entFromContext(ctx).Channel.
+			updatedChannel, err := svc.entFromContext(ctx).Channel.
 				UpdateOneID(ch.ID).
 				SetSupportedModels(mergedModels).
 				Save(ctx)
@@ -146,7 +147,20 @@ func (svc *ChannelService) syncChannelModelsForChannel(ctx context.Context, ch *
 				return fmt.Errorf("failed to update channel supported models: %w", err)
 			}
 
-			updatedCh = channel
+			updatedCh = updatedChannel
+			previousCapabilities := ch.ProtocolCapabilities
+			currentCapabilities := capabilitiesAfterModelSync(previousCapabilities, addedModels, removedModels)
+			if !reflect.DeepEqual(previousCapabilities, currentCapabilities) {
+				updatedCh, err = svc.entFromContext(ctx).Channel.UpdateOneID(ch.ID).
+					SetProtocolCapabilities(currentCapabilities).
+					Save(ctx)
+				if err != nil {
+					return fmt.Errorf("failed to update channel protocol capabilities after model sync: %w", err)
+				}
+				if _, err := svc.reconcileChannelProtocolCapabilities(ctx, ch.ID, previousCapabilities, currentCapabilities); err != nil {
+					return err
+				}
+			}
 		}
 
 		pricesChanged, err := svc.ensureChannelModelPrices(ctx, ch.ID, mergedModels)

@@ -864,7 +864,7 @@ func (svc *ChannelService) reloadChannelsAfterCommit(ctx context.Context) {
 // SaveChannelEndpoints updates the endpoints field for a channel.
 // Validates user-configured endpoint overrides before storing them. Runtime
 // endpoint resolution merges matching api_format entries with defaults.
-func (svc *ChannelService) SaveChannelEndpoints(ctx context.Context, input SaveChannelEndpointsInput) (*ent.Channel, error) {
+func (svc *ChannelService) SaveChannelEndpoints(ctx context.Context, input SaveChannelEndpointsInput) (*SaveChannelEndpointsPayload, error) {
 	if err := ValidateEndpoints(input.Endpoints); err != nil {
 		return nil, fmt.Errorf("invalid endpoints: %w", err)
 	}
@@ -881,13 +881,21 @@ func (svc *ChannelService) SaveChannelEndpoints(ctx context.Context, input SaveC
 		return nil, fmt.Errorf("failed to update channel endpoints: %w", err)
 	}
 
+	ch, revoked, err := svc.reviewChannelEndpointCapabilities(ctx, ch)
+	if err != nil {
+		return nil, err
+	}
+
 	svc.asyncReloadChannels()
 
-	return ch, nil
+	return &SaveChannelEndpointsPayload{Channel: ch, Revoked: revoked}, nil
 }
 
 // DeleteChannel deletes a channel by ID.
 func (svc *ChannelService) DeleteChannel(ctx context.Context, id int) error {
+	if err := svc.CleanupDeletedChannelAssociations(ctx, []int{id}); err != nil {
+		return err
+	}
 	if err := svc.entFromContext(ctx).Channel.DeleteOneID(id).Exec(ctx); err != nil {
 		return fmt.Errorf("failed to delete channel: %w", err)
 	}

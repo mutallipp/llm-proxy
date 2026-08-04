@@ -215,6 +215,9 @@ func (svc *ChannelService) BulkDeleteChannels(ctx context.Context, ids []int) er
 	if len(ids) == 0 {
 		return nil
 	}
+	if err := svc.CleanupDeletedChannelAssociations(ctx, ids); err != nil {
+		return err
+	}
 
 	deleted, err := svc.entFromContext(ctx).Channel.Delete().Where(channel.IDIn(ids...)).Exec(ctx)
 	if err != nil {
