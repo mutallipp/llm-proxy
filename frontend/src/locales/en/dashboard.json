@@ -7,6 +7,8 @@
   "dashboard.sections.users": "User Analytics",
   "dashboard.sections.analytics": "Data Details Analytics",
   "dashboard.sections.analyticsDescription": "Multi-dimensional data analysis with custom filtering",
+  "dashboard.sections.channelQuota": "Channel Plan Usage",
+  "dashboard.sections.channelQuotaDescription": "Token plan usage and reset countdown for each channel",
   "dashboard.cards.requestsByTime": "Requests by Time",
   "dashboard.cards.successRate": "Success Rate",
   "dashboard.cards.tokenStats": "Token Statistics",

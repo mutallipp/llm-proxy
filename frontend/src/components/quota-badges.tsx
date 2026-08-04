@@ -268,7 +268,7 @@ function formatTokenCount(n: number): string {
   return `${n}`;
 }
 
-function QuotaRow({ channel, enforcementMode }: { channel: ProviderQuotaChannel; enforcementMode?: QuotaEnforcementMode | null }) {
+export function QuotaRow({ channel, enforcementMode }: { channel: ProviderQuotaChannel; enforcementMode?: QuotaEnforcementMode | null }) {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const [isResetting, setIsResetting] = useState(false);
@@ -1572,15 +1572,10 @@ function QuotaBadgeTrigger({ channels, isLoading, isError }: { channels: Provide
   return <BatteryIcon className={`h-5 w-5 ${textColor} transition-colors`} />;
 }
 
-export function QuotaBadges({ isRefreshing, onRefresh }: { isRefreshing: boolean; onRefresh: () => void }) {
-  const { t } = useTranslation();
-  const { channels, isLoading, isError, error } = useProviderQuotaStatuses();
-  const { data: enforcementSettings } = useQuotaEnforcementSettings();
-  const enforcementMode = enforcementSettings?.enabled ? enforcementSettings.mode : null;
-
-  if (!isLoading && !isError && channels.length === 0) return null;
-
-  const groupedChannels = channels.reduce((acc: ProviderQuotaChannel[], channel: ProviderQuotaChannel) => {
+// 把同一套餐的多个渠道变体（如 nanogpt / nanogpt_responses、同一 workspace 的
+// OpenCode Go 变体、相同 providerType 的 openai 系渠道）折叠为一行，避免重复展示。
+export function groupQuotaChannels(channels: ProviderQuotaChannel[]): ProviderQuotaChannel[] {
+  return channels.reduce((acc: ProviderQuotaChannel[], channel: ProviderQuotaChannel) => {
     if (channel.type === 'nanogpt_responses') {
       const existing = acc.find((c) => c.type === 'nanogpt');
       if (!existing) {
@@ -1606,6 +1601,17 @@ export function QuotaBadges({ isRefreshing, onRefresh }: { isRefreshing: boolean
     }
     return acc;
   }, [] as ProviderQuotaChannel[]);
+}
+
+export function QuotaBadges({ isRefreshing, onRefresh }: { isRefreshing: boolean; onRefresh: () => void }) {
+  const { t } = useTranslation();
+  const { channels, isLoading, isError, error } = useProviderQuotaStatuses();
+  const { data: enforcementSettings } = useQuotaEnforcementSettings();
+  const enforcementMode = enforcementSettings?.enabled ? enforcementSettings.mode : null;
+
+  if (!isLoading && !isError && channels.length === 0) return null;
+
+  const groupedChannels = groupQuotaChannels(channels);
 
   const renderContent = () => {
     if (isLoading) {
