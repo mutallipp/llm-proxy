@@ -39,6 +39,22 @@ func (r *channelResolver) DefaultEndpoints(ctx context.Context, obj *ent.Channel
 	return lo.ToSlicePtr(endpoints), nil
 }
 
+// ProtocolCapabilities is the resolver for the protocolCapabilities field.
+func (r *channelResolver) ProtocolCapabilities(ctx context.Context, obj *ent.Channel) (*objects.ChannelProtocolCapabilities, error) {
+	if obj == nil {
+		return &objects.ChannelProtocolCapabilities{DeclaredProtocols: []string{}, Models: []objects.ChannelModelCapability{}}, nil
+	}
+	capabilities := obj.ProtocolCapabilities
+	if capabilities.DeclaredProtocols == nil {
+		capabilities.DeclaredProtocols = []string{}
+	}
+	if capabilities.Models == nil {
+		capabilities.Models = []objects.ChannelModelCapability{}
+	}
+
+	return &capabilities, nil
+}
+
 // AllModelEntries is the resolver for the allModelEntries field.
 func (r *channelResolver) AllModelEntries(ctx context.Context, obj *ent.Channel) ([]*biz.ChannelModelEntry, error) {
 	ch := biz.Channel{Channel: obj}
@@ -174,8 +190,23 @@ func (r *mutationResolver) UpdateChannel(ctx context.Context, id objects.GUID, i
 }
 
 // SaveChannelEndpoints is the resolver for the saveChannelEndpoints field.
-func (r *mutationResolver) SaveChannelEndpoints(ctx context.Context, input biz.SaveChannelEndpointsInput) (*ent.Channel, error) {
+func (r *mutationResolver) SaveChannelEndpoints(ctx context.Context, input biz.SaveChannelEndpointsInput) (*biz.SaveChannelEndpointsPayload, error) {
 	return r.channelService.SaveChannelEndpoints(ctx, input)
+}
+
+// SaveChannelCapabilities is the resolver for the saveChannelCapabilities field.
+func (r *mutationResolver) SaveChannelCapabilities(ctx context.Context, input biz.SaveChannelCapabilitiesInput) (*biz.SaveChannelCapabilitiesPayload, error) {
+	return r.channelService.SaveProtocolCapabilities(ctx, input)
+}
+
+// BulkEnableDerivedAssociations is the resolver for the bulkEnableDerivedAssociations field.
+func (r *mutationResolver) BulkEnableDerivedAssociations(ctx context.Context, input biz.BulkEnableDerivedAssociationsInput) (*biz.BulkEnableDerivedAssociationsResult, error) {
+	return r.modelService.BulkEnableDerivedAssociations(ctx, input)
+}
+
+// DeriveModelAssociations is the resolver for the deriveModelAssociations field.
+func (r *mutationResolver) DeriveModelAssociations(ctx context.Context, modelID objects.GUID) (*biz.DeriveModelAssociationsPayload, error) {
+	return r.modelService.DeriveModelAssociations(ctx, modelID.ID)
 }
 
 // UpdateChannelStatus is the resolver for the updateChannelStatus field.

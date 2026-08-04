@@ -54,6 +54,8 @@ type ModelAssociation {
   type: String!
   priority: Int!
   disabled: Boolean!
+  auto: Boolean!
+  disabledReason: String
   when: ModelAssociationWhen
   channelModel: ChannelModelAssociation
   channelRegex: ChannelRegexAssociation
@@ -149,6 +151,8 @@ input ModelAssociationInput {
   type: String!
   priority: Int
   disabled: Boolean
+  auto: Boolean
+  disabledReason: String
   when: ModelAssociationWhenInput
   channelModel: ChannelModelAssociationInput
   channelRegex: ChannelRegexAssociationInput

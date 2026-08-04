@@ -121,6 +121,62 @@ input SaveChannelEndpointsInput {
   endpoints: [ChannelEndpointInput!]!
 }
 
+type ChannelModelCapability {
+  modelId: String!
+  protocols: [String!]!
+}
+
+input ChannelModelCapabilityInput {
+  modelId: String!
+  protocols: [String!]!
+}
+
+type ChannelProtocolCapabilities {
+  declaredProtocols: [String!]!
+  models: [ChannelModelCapability!]!
+}
+
+input SaveChannelCapabilitiesInput {
+  channelID: ID!
+  declaredProtocols: [String!]!
+  models: [ChannelModelCapabilityInput!]!
+}
+
+type RevokedChannelCapabilitiesPayload {
+  autoDisabledCount: Int!
+  manualNotices: [String!]!
+}
+
+type SaveChannelCapabilitiesPayload {
+  channel: Channel!
+  addedCount: Int!
+  unmatchedModels: [String!]!
+  revoked: RevokedChannelCapabilitiesPayload!
+}
+
+type SaveChannelEndpointsPayload {
+  channel: Channel!
+  revoked: RevokedChannelCapabilitiesPayload!
+}
+
+input BulkEnableDerivedAssociationsInput {
+  channelID: ID!
+}
+
+type BulkEnableDerivedAssociationResult {
+  associationId: String!
+  success: Boolean!
+  reason: String
+}
+
+type BulkEnableDerivedAssociationsResult {
+  results: [BulkEnableDerivedAssociationResult!]!
+}
+
+type DeriveModelAssociationsPayload {
+  addedCount: Int!
+}
+
 input ProxyConfigInput {
   type: ProxyType!
   url: String
@@ -678,6 +734,7 @@ extend type Channel {
   These are displayed to users but are not directly editable.
   """
   defaultEndpoints: [ChannelEndpoint!]! @goField(forceResolver: true)
+  protocolCapabilities: ChannelProtocolCapabilities! @goField(forceResolver: true)
 
   """
   All model entries this channel can handle, including direct models, prefixed models, auto-trimmed models, and mapped models
@@ -837,7 +894,10 @@ type Mutation {
   duplicateChannel(sourceID: ID!, input: CreateChannelInput!): Channel!
   bulkCreateChannels(input: BulkCreateChannelsInput!): [Channel!]!
   updateChannel(id: ID!, input: UpdateChannelInput!): Channel!
-  saveChannelEndpoints(input: SaveChannelEndpointsInput!): Channel!
+  saveChannelEndpoints(input: SaveChannelEndpointsInput!): SaveChannelEndpointsPayload!
+  saveChannelCapabilities(input: SaveChannelCapabilitiesInput!): SaveChannelCapabilitiesPayload!
+  bulkEnableDerivedAssociations(input: BulkEnableDerivedAssociationsInput!): BulkEnableDerivedAssociationsResult!
+  deriveModelAssociations(modelID: ID!): DeriveModelAssociationsPayload!
   updateChannelStatus(id: ID!, status: ChannelStatus!): Channel!
   deleteChannel(id: ID!): Boolean!
   bulkArchiveChannels(ids: [ID!]!): Boolean!
