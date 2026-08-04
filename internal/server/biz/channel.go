@@ -869,39 +869,59 @@ func (svc *ChannelService) SaveChannelEndpoints(ctx context.Context, input SaveC
 		return nil, fmt.Errorf("invalid endpoints: %w", err)
 	}
 
-	ch, err := svc.entFromContext(ctx).Channel.Get(ctx, input.ChannelID.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get channel: %w", err)
-	}
+	var (
+		ch      *ent.Channel
+		revoked *RevokedChannelCapabilitiesPayload
+	)
+	if err := svc.RunInTransaction(ctx, func(txCtx context.Context) error {
+		var err error
+		ch, err = svc.entFromContext(txCtx).Channel.Get(txCtx, input.ChannelID.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get channel: %w", err)
+		}
 
-	ch, err = svc.entFromContext(ctx).Channel.UpdateOne(ch).
-		SetEndpoints(input.Endpoints).
-		Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update channel endpoints: %w", err)
-	}
+		ch, err = svc.entFromContext(txCtx).Channel.UpdateOne(ch).
+			SetEndpoints(input.Endpoints).
+			Save(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to update channel endpoints: %w", err)
+		}
 
-	ch, revoked, err := svc.reviewChannelEndpointCapabilities(ctx, ch)
-	if err != nil {
+		ch, revoked, err = svc.reviewChannelEndpointCapabilities(txCtx, ch)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		return nil, err
 	}
+	if ent.TxFromContext(ctx) == nil {
+		ch.Unwrap()
+	}
 
-	svc.asyncReloadChannels()
+	svc.reloadChannelsAfterCommit(ctx)
 
 	return &SaveChannelEndpointsPayload{Channel: ch, Revoked: revoked}, nil
 }
 
 // DeleteChannel deletes a channel by ID.
 func (svc *ChannelService) DeleteChannel(ctx context.Context, id int) error {
-	if err := svc.CleanupDeletedChannelAssociations(ctx, []int{id}); err != nil {
+	if err := svc.RunInTransaction(ctx, func(txCtx context.Context) error {
+		if err := svc.CleanupDeletedChannelAssociations(txCtx, []int{id}); err != nil {
+			return err
+		}
+		if err := svc.entFromContext(txCtx).Channel.DeleteOneID(id).Exec(txCtx); err != nil {
+			return fmt.Errorf("failed to delete channel: %w", err)
+		}
+
+		return nil
+	}); err != nil {
 		return err
-	}
-	if err := svc.entFromContext(ctx).Channel.DeleteOneID(id).Exec(ctx); err != nil {
-		return fmt.Errorf("failed to delete channel: %w", err)
 	}
 
 	svc.forgetLimiter(id)
-	svc.asyncReloadChannels()
+	svc.reloadChannelsAfterCommit(ctx)
 
 	return nil
 }
