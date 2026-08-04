@@ -82,6 +82,10 @@ function isMinimaxType(t: string): t is 'minimax' | 'minimax_anthropic' {
   return t === 'minimax' || t === 'minimax_anthropic';
 }
 
+function isBailianType(t: string): t is 'bailian' | 'bailian_anthropic' {
+  return t === 'bailian' || t === 'bailian_anthropic';
+}
+
 // Dedup key for OpenCode Go channels: the quota is per workspace, so channels
 // sharing a workspace id collapse to one row, while a channel with no workspace
 // id configured falls back to its unique channel id (never merged with others).
@@ -1081,7 +1085,7 @@ export function QuotaRow({ channel, enforcementMode }: { channel: ProviderQuotaC
         </div>
       )}
 
-      {isMinimaxType(channel.type) && (
+      {(isMinimaxType(channel.type) || isBailianType(channel.type)) && (
         <div className='mt-3 space-y-3'>
           {(() => {
             const qd = channel.quotaStatus.quotaData as ProviderMinimaxQuotaData | undefined;

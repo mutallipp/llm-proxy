@@ -348,6 +348,7 @@ func NewProviderQuotaService(params ProviderQuotaServiceParams) *ProviderQuotaSe
 	svc.registerKimiCodeSupport()
 	svc.registerMinimaxSupport()
 	svc.registerZhipuSupport()
+	svc.registerQianwenSupport()
 
 	go svc.loadQuotaCache(context.Background())
 
@@ -414,6 +415,10 @@ func (svc *ProviderQuotaService) registerMinimaxSupport() {
 
 func (svc *ProviderQuotaService) registerZhipuSupport() {
 	svc.checkers["zhipu"] = provider_quota.NewZhipuQuotaChecker(svc.httpClient)
+}
+
+func (svc *ProviderQuotaService) registerQianwenSupport() {
+	svc.checkers["qianwen"] = provider_quota.NewQianwenQuotaChecker(svc.httpClient)
 }
 
 func (svc *ProviderQuotaService) intervalToCronExpr(interval time.Duration) string {

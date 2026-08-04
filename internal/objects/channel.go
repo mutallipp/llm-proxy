@@ -221,11 +221,19 @@ type RetryableErrorPattern struct {
 
 type ChannelProviderQuotaSettings struct {
 	OpencodeGo *OpenCodeGoQuotaSettings `json:"opencodeGo,omitempty"`
+	Qianwen    *QianwenQuotaSettings    `json:"qianwen,omitempty"`
 }
 
 type OpenCodeGoQuotaSettings struct {
 	WorkspaceID string `json:"workspaceId,omitempty"`
 	AuthCookie  string `json:"authCookie,omitempty"`
+}
+
+// QianwenQuotaSettings 存储用于轮询千问（bailian）Token Plan 用量的控制台会话 Cookie。
+// 千问没有可用 API Key 调用的配额查询接口，因此配额轮询复用平台控制台会话。
+// Cookie 会过期，过期后配额状态会显示为不可用，需要重新粘贴。
+type QianwenQuotaSettings struct {
+	AuthCookie string `json:"authCookie,omitempty"`
 }
 
 type ChannelRateLimit struct {

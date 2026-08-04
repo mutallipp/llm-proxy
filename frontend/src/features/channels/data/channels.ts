@@ -119,6 +119,9 @@ const CREATE_CHANNEL_MUTATION = `
             workspaceId
             authCookie
           }
+          qianwen {
+            authCookie
+          }
         }
       }
       orderingWeight
@@ -191,6 +194,9 @@ const DUPLICATE_CHANNEL_MUTATION = `
         providerQuota {
           opencodeGo {
             workspaceId
+            authCookie
+          }
+          qianwen {
             authCookie
           }
         }
@@ -267,6 +273,9 @@ const BULK_CREATE_CHANNELS_MUTATION = `
             workspaceId
             authCookie
           }
+          qianwen {
+            authCookie
+          }
         }
       }
       orderingWeight
@@ -339,6 +348,9 @@ const UPDATE_CHANNEL_MUTATION = `
         providerQuota {
           opencodeGo {
             workspaceId
+            authCookie
+          }
+          qianwen {
             authCookie
           }
         }
@@ -531,6 +543,9 @@ const BULK_IMPORT_CHANNELS_MUTATION = `
               workspaceId
               authCookie
             }
+          qianwen {
+            authCookie
+          }
           }
         }
       }
@@ -761,6 +776,9 @@ const BULK_UPDATE_CHANNEL_ORDERING_MUTATION = `
               workspaceId
               authCookie
             }
+          qianwen {
+            authCookie
+          }
           }
         }
       }
@@ -919,6 +937,9 @@ const QUERY_CHANNELS_QUERY = `
                 workspaceId
                 authCookie
               }
+          qianwen {
+            authCookie
+          }
             }
           }
           orderingWeight

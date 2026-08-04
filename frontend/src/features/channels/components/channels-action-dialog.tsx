@@ -178,6 +178,10 @@ function getResponsesWebSocketBaseURL(channelType: ChannelType): string | undefi
   return undefined;
 }
 
+function isBailianChannelType(channelType: ChannelType | undefined): channelType is 'bailian' | 'bailian_anthropic' {
+  return channelType === 'bailian' || channelType === 'bailian_anthropic';
+}
+
 function isOpenCodeGoChannelType(channelType: ChannelType | undefined): channelType is 'opencode_go' | 'opencode_go_anthropic' {
   return channelType === 'opencode_go' || channelType === 'opencode_go_anthropic';
 }
@@ -364,6 +368,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
   const [confirmRemoveKey, setConfirmRemoveKey] = useState<string | null>(null);
   const [confirmDisableKey, setConfirmDisableKey] = useState<string | null>(null);
   const [showOpenCodeGoAuthCookie, setShowOpenCodeGoAuthCookie] = useState(false);
+  const [showQianwenAuthCookie, setShowQianwenAuthCookie] = useState(false);
   const [authMode, setAuthMode] = useState<'official' | 'auth-json' | 'third-party'>('official');
   const [codexAuthJSONText, setCodexAuthJSONText] = useState('');
   const [patternError, setPatternError] = useState<string | null>(null);
@@ -1202,12 +1207,21 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
         manualModels,
         credentials: valuesForSubmit.credentials,
       };
-      const settingsForSubmit = isOpenCodeGoChannelType(dataWithModels.type as ChannelType | undefined)
+      // providerQuota 只保留当前渠道类型需要的配额凭据，避免把无关提供商的会话写入配置
+      const submitChannelType = dataWithModels.type as ChannelType | undefined;
+      const settingsForSubmit = isOpenCodeGoChannelType(submitChannelType)
         ? values.settings
-        : {
-            ...(values.settings ?? {}),
-            providerQuota: null,
-          };
+        : isBailianChannelType(submitChannelType)
+          ? {
+              ...(values.settings ?? {}),
+              providerQuota: {
+                qianwen: values.settings?.providerQuota?.qianwen ?? null,
+              },
+            }
+          : {
+              ...(values.settings ?? {}),
+              providerQuota: null,
+            };
 
       const shouldUseProtocolDefaultBaseURL =
         (isCodexType && (authMode === 'official' || authMode === 'auth-json')) ||
@@ -2397,6 +2411,50 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                             )}
                           />
                         </>
+                      )}
+
+                      {isBailianChannelType(activeChannelType) && (
+                        <FormField
+                          control={form.control}
+                          name='settings.providerQuota.qianwen.authCookie'
+                          render={({ field, fieldState }) => (
+                            <FormItem className='grid grid-cols-1 items-start gap-x-6 gap-y-2 md:grid-cols-8'>
+                              <FormLabel className='pt-2 font-medium md:col-span-2 md:text-right'>
+                                {t('channels.dialogs.fields.qianwenQuota.authCookie.label')}
+                              </FormLabel>
+                              <div className='space-y-1 md:col-span-6'>
+                                <div className='relative'>
+                                  <Input
+                                    type={showQianwenAuthCookie ? 'text' : 'password'}
+                                    placeholder={t('channels.dialogs.fields.qianwenQuota.authCookie.placeholder')}
+                                    autoComplete='new-password'
+                                    data-form-type='other'
+                                    spellCheck={false}
+                                    className='pr-10 font-mono text-sm'
+                                    aria-invalid={!!fieldState.error}
+                                    data-testid='channel-qianwen-auth-cookie-input'
+                                    {...field}
+                                    value={field.value ?? ''}
+                                  />
+                                  <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='sm'
+                                    className='absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0'
+                                    aria-label={t('channels.dialogs.fields.qianwenQuota.authCookie.toggleVisibility')}
+                                    onClick={() => setShowQianwenAuthCookie((visible) => !visible)}
+                                  >
+                                    {showQianwenAuthCookie ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                                  </Button>
+                                </div>
+                                <p className='text-muted-foreground text-xs'>
+                                  {t('channels.dialogs.fields.qianwenQuota.authCookie.description')}
+                                </p>
+                                <FormMessage />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
                       )}
 
                       <FormField

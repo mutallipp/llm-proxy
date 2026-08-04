@@ -154,6 +154,12 @@ models:
   OpenCodeGoQuotaSettingsInput:
     model:
       - github.com/mutallipp/llm-proxy/internal/objects.OpenCodeGoQuotaSettings
+  QianwenQuotaSettings:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.QianwenQuotaSettings
+  QianwenQuotaSettingsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.QianwenQuotaSettings
   ChannelProviderQuotaSettings:
     model:
       - github.com/mutallipp/llm-proxy/internal/objects.ChannelProviderQuotaSettings

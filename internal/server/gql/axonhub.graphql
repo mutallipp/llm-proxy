@@ -149,12 +149,22 @@ input OpenCodeGoQuotaSettingsInput {
   authCookie: String
 }
 
+type QianwenQuotaSettings {
+  authCookie: String
+}
+
+input QianwenQuotaSettingsInput {
+  authCookie: String
+}
+
 type ChannelProviderQuotaSettings {
   opencodeGo: OpenCodeGoQuotaSettings
+  qianwen: QianwenQuotaSettings
 }
 
 input ChannelProviderQuotaSettingsInput {
   opencodeGo: OpenCodeGoQuotaSettingsInput
+  qianwen: QianwenQuotaSettingsInput
 }
 
 type ChannelSettings {

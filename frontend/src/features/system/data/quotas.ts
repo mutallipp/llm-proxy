@@ -399,6 +399,13 @@ export type ProviderQuotaChannel = {
       };
     }
   | {
+      type: 'bailian' | 'bailian_anthropic';
+      quotaStatus: {
+        // 千问 checker 复用 minimax 的行结构渲染进度条
+        quotaData: ProviderMinimaxQuotaData;
+      };
+    }
+  | {
       type: 'zhipu' | 'zhipu_anthropic';
       quotaStatus: {
         quotaData: ProviderZhipuQuotaData;
@@ -474,6 +481,35 @@ type QueryChannelsResponse = {
 type QueryChannelNodeWithQuota = QueryChannelNode & {
   providerQuotaStatus: ProviderQuotaStatusNode;
 };
+
+// 千问 checker 复用 minimax 的行结构；quotaData 属外部输入，这里做字段级清洗，
+// 保证进度条渲染拿到的始终是数值/字符串默认值。
+function toMinimaxQuotaData(raw: unknown): ProviderMinimaxQuotaData {
+  if (typeof raw !== 'object' || raw === null) return {};
+  const data = raw as Record<string, unknown>;
+  const num = (v: unknown, fallback = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+  const str = (v: unknown) => (typeof v === 'string' ? v : undefined);
+  const rows = Array.isArray(data.rows)
+    ? (data.rows as Array<Record<string, unknown>>).map((r) => ({
+        modelName: typeof r.modelName === 'string' ? r.modelName : '',
+        intervalUsedPercent: num(r.intervalUsedPercent),
+        intervalTotalPercent: num(r.intervalTotalPercent, 100),
+        intervalPercent: num(r.intervalPercent),
+        intervalStatus: typeof r.intervalStatus === 'string' ? r.intervalStatus : 'unknown',
+        intervalResetAt: str(r.intervalResetAt),
+        weeklyUsedPercent: num(r.weeklyUsedPercent),
+        weeklyTotalPercent: num(r.weeklyTotalPercent, 100),
+        weeklyPercent: num(r.weeklyPercent),
+        weeklyStatus: typeof r.weeklyStatus === 'string' ? r.weeklyStatus : '',
+        weeklyResetAt: str(r.weeklyResetAt),
+      }))
+    : undefined;
+  return {
+    plan_type: str(data.plan_type),
+    error: str(data.error),
+    rows,
+  };
+}
 
 function hasProviderQuotaStatus(node: QueryChannelNode | null | undefined): node is QueryChannelNodeWithQuota {
   return node?.providerQuotaStatus != null;
@@ -555,6 +591,13 @@ function parseChannelNode(node: QueryChannelNodeWithQuota): ProviderQuotaChannel
       ...base,
       type: node.type as 'minimax' | 'minimax_anthropic',
       quotaStatus: { ...base.quotaStatus, quotaData: node.providerQuotaStatus.quotaData as ProviderMinimaxQuotaData },
+    };
+  }
+  if (node.type === 'bailian' || node.type === 'bailian_anthropic') {
+    return {
+      ...base,
+      type: node.type as 'bailian' | 'bailian_anthropic',
+      quotaStatus: { ...base.quotaStatus, quotaData: toMinimaxQuotaData(node.providerQuotaStatus.quotaData) },
     };
   }
   if (node.type === 'zhipu' || node.type === 'zhipu_anthropic') {

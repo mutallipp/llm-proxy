@@ -535,6 +535,7 @@ type ComplexityRoot struct {
 
 	ChannelProviderQuotaSettings struct {
 		OpencodeGo func(childComplexity int) int
+		Qianwen    func(childComplexity int) int
 	}
 
 	ChannelRateLimit struct {
@@ -1322,6 +1323,10 @@ type ComplexityRoot struct {
 		Password func(childComplexity int) int
 		URL      func(childComplexity int) int
 		Username func(childComplexity int) int
+	}
+
+	QianwenQuotaSettings struct {
+		AuthCookie func(childComplexity int) int
 	}
 
 	Query struct {
@@ -4146,6 +4151,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ChannelProviderQuotaSettings.OpencodeGo(childComplexity), true
+	case "ChannelProviderQuotaSettings.qianwen":
+		if e.complexity.ChannelProviderQuotaSettings.Qianwen == nil {
+			break
+		}
+
+		return e.complexity.ChannelProviderQuotaSettings.Qianwen(childComplexity), true
 
 	case "ChannelRateLimit.maxConcurrent":
 		if e.complexity.ChannelRateLimit.MaxConcurrent == nil {
@@ -7882,6 +7893,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ProxyPreset.Username(childComplexity), true
 
+	case "QianwenQuotaSettings.authCookie":
+		if e.complexity.QianwenQuotaSettings.AuthCookie == nil {
+			break
+		}
+
+		return e.complexity.QianwenQuotaSettings.AuthCookie(childComplexity), true
+
 	case "Query.apiKeyProfileTemplates":
 		if e.complexity.Query.APIKeyProfileTemplates == nil {
 			break
@@ -11441,6 +11459,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputProviderQuotaStatusOrder,
 		ec.unmarshalInputProviderQuotaStatusWhereInput,
 		ec.unmarshalInputProxyConfigInput,
+		ec.unmarshalInputQianwenQuotaSettingsInput,
 		ec.unmarshalInputQueryChannelInput,
 		ec.unmarshalInputQueryModelsInput,
 		ec.unmarshalInputReasoningEffortMappingInput,
@@ -23811,6 +23830,39 @@ func (ec *executionContext) fieldContext_ChannelProviderQuotaSettings_opencodeGo
 	return fc, nil
 }
 
+func (ec *executionContext) _ChannelProviderQuotaSettings_qianwen(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelProviderQuotaSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ChannelProviderQuotaSettings_qianwen,
+		func(ctx context.Context) (any, error) {
+			return obj.Qianwen, nil
+		},
+		nil,
+		ec.marshalOQianwenQuotaSettings2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐQianwenQuotaSettings,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ChannelProviderQuotaSettings_qianwen(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChannelProviderQuotaSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "authCookie":
+				return ec.fieldContext_QianwenQuotaSettings_authCookie(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type QianwenQuotaSettings", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ChannelRateLimit_rpm(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelRateLimit) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -24561,6 +24613,8 @@ func (ec *executionContext) fieldContext_ChannelSettings_providerQuota(_ context
 			switch field.Name {
 			case "opencodeGo":
 				return ec.fieldContext_ChannelProviderQuotaSettings_opencodeGo(ctx, field)
+			case "qianwen":
+				return ec.fieldContext_ChannelProviderQuotaSettings_qianwen(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ChannelProviderQuotaSettings", field.Name)
 		},
@@ -42360,6 +42414,35 @@ func (ec *executionContext) _ProxyPreset_password(ctx context.Context, field gra
 func (ec *executionContext) fieldContext_ProxyPreset_password(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ProxyPreset",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _QianwenQuotaSettings_authCookie(ctx context.Context, field graphql.CollectedField, obj *objects.QianwenQuotaSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_QianwenQuotaSettings_authCookie,
+		func(ctx context.Context) (any, error) {
+			return obj.AuthCookie, nil
+		},
+		nil,
+		ec.marshalOString2string,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_QianwenQuotaSettings_authCookie(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "QianwenQuotaSettings",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -66574,7 +66657,7 @@ func (ec *executionContext) unmarshalInputChannelProviderQuotaSettingsInput(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"opencodeGo"}
+	fieldsInOrder := [...]string{"opencodeGo", "qianwen"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -66588,6 +66671,13 @@ func (ec *executionContext) unmarshalInputChannelProviderQuotaSettingsInput(ctx 
 				return it, err
 			}
 			it.OpencodeGo = data
+		case "qianwen":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qianwen"))
+			data, err := ec.unmarshalOQianwenQuotaSettingsInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐQianwenQuotaSettings(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Qianwen = data
 		}
 	}
 
@@ -76266,6 +76356,33 @@ func (ec *executionContext) unmarshalInputProxyConfigInput(ctx context.Context, 
 				return it, err
 			}
 			it.DisableConnectionReuse = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputQianwenQuotaSettingsInput(ctx context.Context, obj any) (objects.QianwenQuotaSettings, error) {
+	var it objects.QianwenQuotaSettings
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"authCookie"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "authCookie":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authCookie"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthCookie = data
 		}
 	}
 
@@ -92340,6 +92457,8 @@ func (ec *executionContext) _ChannelProviderQuotaSettings(ctx context.Context, s
 			out.Values[i] = graphql.MarshalString("ChannelProviderQuotaSettings")
 		case "opencodeGo":
 			out.Values[i] = ec._ChannelProviderQuotaSettings_opencodeGo(ctx, field, obj)
+		case "qianwen":
+			out.Values[i] = ec._ChannelProviderQuotaSettings_qianwen(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -98940,6 +99059,42 @@ func (ec *executionContext) _ProxyPreset(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var qianwenQuotaSettingsImplementors = []string{"QianwenQuotaSettings"}
+
+func (ec *executionContext) _QianwenQuotaSettings(ctx context.Context, sel ast.SelectionSet, obj *objects.QianwenQuotaSettings) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, qianwenQuotaSettingsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("QianwenQuotaSettings")
+		case "authCookie":
+			out.Values[i] = ec._QianwenQuotaSettings_authCookie(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -103994,9 +104149,6 @@ func (ec *executionContext) _SystemModelSettings(ctx context.Context, sel ast.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SystemModelSettings")
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "queryAllChannelModels":
 			out.Values[i] = ec._SystemModelSettings_queryAllChannelModels(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -119028,6 +119180,21 @@ func (ec *executionContext) unmarshalOProxyConfigInput2ᚖgithubᚗcomᚋmutalli
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputProxyConfigInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOQianwenQuotaSettings2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐQianwenQuotaSettings(ctx context.Context, sel ast.SelectionSet, v *objects.QianwenQuotaSettings) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._QianwenQuotaSettings(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOQianwenQuotaSettingsInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐQianwenQuotaSettings(ctx context.Context, v any) (*objects.QianwenQuotaSettings, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputQianwenQuotaSettingsInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

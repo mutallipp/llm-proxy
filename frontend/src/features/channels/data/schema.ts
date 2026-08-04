@@ -240,8 +240,14 @@ export const openCodeGoQuotaSettingsSchema = z.object({
 });
 export type OpenCodeGoQuotaSettings = z.infer<typeof openCodeGoQuotaSettingsSchema>;
 
+export const qianwenQuotaSettingsSchema = z.object({
+  authCookie: z.string().optional().nullable(),
+});
+export type QianwenQuotaSettings = z.infer<typeof qianwenQuotaSettingsSchema>;
+
 export const channelProviderQuotaSettingsSchema = z.object({
   opencodeGo: openCodeGoQuotaSettingsSchema.optional().nullable(),
+  qianwen: qianwenQuotaSettingsSchema.optional().nullable(),
 });
 export type ChannelProviderQuotaSettings = z.infer<typeof channelProviderQuotaSettingsSchema>;
 
