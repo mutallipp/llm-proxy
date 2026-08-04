@@ -3739,6 +3739,7 @@ enum ProviderQuotaStatusProviderType @goModel(model: "github.com/mutallipp/llm-p
   kimi_code
   minimax
   zhipu
+  qianwen
 }
 """
 ProviderQuotaStatusStatus is enum for the field status

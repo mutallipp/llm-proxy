@@ -803,6 +803,8 @@ func (svc *ProviderQuotaService) getProviderType(ch *ent.Channel) string {
 		return "minimax"
 	case channel.TypeZhipu, channel.TypeZhipuAnthropic:
 		return "zhipu"
+	case channel.TypeBailian, channel.TypeBailianAnthropic:
+		return "qianwen"
 	default:
 		return ""
 	}
@@ -836,8 +838,22 @@ func hasCredentialsForProvider(ch *ent.Channel) bool {
 		return hasOpenCodeGoQuotaCredentials(ch)
 	}
 
+	// 千问配额轮询依赖控制台会话 Cookie，而不是渠道 API Key
+	if ch.Type == channel.TypeBailian || ch.Type == channel.TypeBailianAnthropic {
+		return hasQianwenQuotaCredentials(ch)
+	}
+
 	return ch.Credentials.OAuth != nil || isOAuthJSON(ch.Credentials.APIKey) ||
 		strings.TrimSpace(ch.Credentials.APIKey) != "" || len(ch.Credentials.APIKeys) > 0
+}
+
+// hasQianwenQuotaCredentials reports whether the channel has the Qianwen console
+// session cookie configured for token plan usage polling.
+func hasQianwenQuotaCredentials(ch *ent.Channel) bool {
+	if ch.Settings == nil || ch.Settings.ProviderQuota == nil || ch.Settings.ProviderQuota.Qianwen == nil {
+		return false
+	}
+	return strings.TrimSpace(ch.Settings.ProviderQuota.Qianwen.AuthCookie) != ""
 }
 
 // hasOpenCodeGoQuotaCredentials reports whether the channel has the auth cookie
