@@ -10,6 +10,7 @@ import (
 
 	"github.com/mutallipp/llm-proxy/internal/authz"
 	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/channel"
 	"github.com/mutallipp/llm-proxy/internal/ent/enttest"
 	"github.com/mutallipp/llm-proxy/internal/ent/model"
 	"github.com/mutallipp/llm-proxy/internal/objects"
@@ -1140,4 +1141,112 @@ func TestModelService_UpdateModel_WithRegexValidation(t *testing.T) {
 		require.Nil(t, updatedModel)
 		require.Contains(t, err.Error(), "invalid regex pattern")
 	})
+}
+
+func TestModelService_DerivedAssociationValidationAndLifecycle(t *testing.T) {
+	client := enttest.Open(t, dialect.SQLite, "file:ent?mode=memory&_fk=0")
+	defer client.Close()
+	ctx := authz.WithTestBypass(context.Background())
+	channelService := NewChannelServiceForTest(client)
+	modelService := NewModelService(ModelServiceParams{
+		ChannelService: channelService,
+		SystemService:  channelService.SystemService,
+		Ent:            client,
+	})
+
+	ch, err := client.Channel.Create().
+		SetType(channel.TypeOpenai).
+		SetName("derived-channel").
+		SetStatus(channel.StatusEnabled).
+		SetCredentials(objects.ChannelCredentials{}).
+		SetSupportedModels([]string{"model-a"}).
+		SetDefaultTestModel("model-a").
+		SetProtocolCapabilities(objects.ChannelProtocolCapabilities{
+			DeclaredProtocols: []string{"openai"},
+			Models:            []objects.ChannelModelCapability{{ModelID: "model-a", Protocols: []string{"openai"}}},
+		}).
+		Save(ctx)
+	require.NoError(t, err)
+
+	settings := &objects.ModelSettings{ProtocolPools: map[string][]*objects.ModelAssociation{
+		"openai": {{
+			Type:     "channel_model",
+			Disabled: true,
+			Auto:     true,
+			ChannelModel: &objects.ChannelModelAssociation{
+				ChannelID: ch.ID,
+				ModelID:   "model-a",
+			},
+		}},
+	}}
+	created, err := modelService.CreateModel(ctx, ent.CreateModelInput{
+		Developer: "provider",
+		ModelID:   "model-a",
+		Type:      lo.ToPtr(model.TypeChat),
+		Name:      "model-a",
+		ModelCard: &objects.ModelCard{},
+		Settings:  settings,
+	})
+	require.NoError(t, err)
+
+	_, err = modelService.UpdateModel(ctx, created.ID, &ent.UpdateModelInput{Settings: &objects.ModelSettings{ProtocolPools: map[string][]*objects.ModelAssociation{}}})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "cannot delete existing derived association")
+
+	updated, err := modelService.UpdateModel(ctx, created.ID, &ent.UpdateModelInput{Settings: settings})
+	require.NoError(t, err)
+	require.True(t, updated.Settings.ProtocolPools["openai"][0].Auto)
+
+	enabledSettings := cloneModelSettings(settings)
+	enabledSettings.ProtocolPools["openai"][0].Disabled = false
+	updated, err = modelService.UpdateModel(ctx, created.ID, &ent.UpdateModelInput{Settings: enabledSettings})
+	require.NoError(t, err)
+	require.False(t, updated.Settings.ProtocolPools["openai"][0].Auto)
+}
+
+func TestModelService_BulkCreateModelsValidatesDerivedAssociation(t *testing.T) {
+	client := enttest.Open(t, dialect.SQLite, "file:ent?mode=memory&_fk=0")
+	defer client.Close()
+	ctx := authz.WithTestBypass(context.Background())
+	channelService := NewChannelServiceForTest(client)
+	modelService := NewModelService(ModelServiceParams{
+		ChannelService: channelService,
+		SystemService:  channelService.SystemService,
+		Ent:            client,
+	})
+
+	ch, err := client.Channel.Create().
+		SetType(channel.TypeOpenai).
+		SetName("bulk-derived-channel").
+		SetStatus(channel.StatusEnabled).
+		SetCredentials(objects.ChannelCredentials{}).
+		SetSupportedModels([]string{"model-a"}).
+		SetDefaultTestModel("model-a").
+		SetProtocolCapabilities(objects.ChannelProtocolCapabilities{
+			DeclaredProtocols: []string{"openai"},
+			Models:            []objects.ChannelModelCapability{{ModelID: "model-a", Protocols: []string{"openai"}}},
+		}).
+		Save(ctx)
+	require.NoError(t, err)
+
+	_, err = modelService.BulkCreateModels(ctx, []*ent.CreateModelInput{{
+		Developer: "provider",
+		ModelID:   "model-a",
+		Type:      lo.ToPtr(model.TypeChat),
+		Name:      "model-a",
+		ModelCard: &objects.ModelCard{},
+		Settings: &objects.ModelSettings{ProtocolPools: map[string][]*objects.ModelAssociation{
+			"anthropic": {{
+				Type:     "channel_model",
+				Auto:     true,
+				Disabled: false,
+				ChannelModel: &objects.ChannelModelAssociation{
+					ChannelID: ch.ID,
+					ModelID:   "model-a",
+				},
+			}},
+		}},
+	}})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "渠道当前未声明该模型与协议")
 }

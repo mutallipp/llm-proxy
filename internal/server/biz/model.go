@@ -345,11 +345,16 @@ func filterConditionValueToInt64(condition objects.Condition) (int64, bool, erro
 
 // CreateModel creates a new model with the provided input.
 func (svc *ModelService) CreateModel(ctx context.Context, input ent.CreateModelInput) (*ent.Model, error) {
-	// Validate regex patterns in settings if provided
+	// Validate settings and derived association enablement if provided.
 	if input.Settings != nil {
-		if err := svc.validateModelSettings(input.Settings); err != nil {
+		prepared, err := svc.prepareNewModelSettings(ctx, input.Settings)
+		if err != nil {
 			return nil, err
 		}
+		if err := svc.validateModelSettings(prepared); err != nil {
+			return nil, err
+		}
+		input.Settings = prepared
 	}
 
 	// Check if a model with the same developer and modelId already exists
@@ -384,7 +389,17 @@ func (svc *ModelService) BulkCreateModels(ctx context.Context, inputs []*ent.Cre
 	// Check for duplicates in the input
 	inputMap := make(map[string]bool)
 
-	for _, input := range inputs {
+	for index, input := range inputs {
+		if input.Settings != nil {
+			prepared, err := svc.prepareNewModelSettings(ctx, input.Settings)
+			if err != nil {
+				return nil, err
+			}
+			if err := svc.validateModelSettings(prepared); err != nil {
+				return nil, err
+			}
+			inputs[index].Settings = prepared
+		}
 		key := fmt.Sprintf("%s:%s", input.Developer, input.ModelID)
 		if inputMap[key] {
 			return nil, fmt.Errorf("duplicate model in input: developer '%s' and modelId '%s'", input.Developer, input.ModelID)
@@ -442,11 +457,20 @@ func (svc *ModelService) BulkCreateModels(ctx context.Context, inputs []*ent.Cre
 
 // UpdateModel updates an existing model with the provided input.
 func (svc *ModelService) UpdateModel(ctx context.Context, id int, input *ent.UpdateModelInput) (*ent.Model, error) {
-	// Validate regex patterns in settings if provided
+	// Validate settings and derive the server-authoritative association state.
 	if input.Settings != nil {
-		if err := svc.validateModelSettings(input.Settings); err != nil {
+		existing, err := svc.entFromContext(ctx).Model.Get(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get existing model: %w", err)
+		}
+		prepared, err := svc.prepareUpdatedModelSettings(ctx, input.Settings, existing.Settings)
+		if err != nil {
 			return nil, err
 		}
+		if err := svc.validateModelSettings(prepared); err != nil {
+			return nil, err
+		}
+		input.Settings = prepared
 	}
 
 	mut := svc.entFromContext(ctx).Model.UpdateOneID(id).
