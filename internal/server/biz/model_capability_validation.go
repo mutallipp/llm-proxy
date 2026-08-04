@@ -150,7 +150,7 @@ func (svc *ModelService) validateDerivedAssociationEnablement(ctx context.Contex
 	if !channelCapabilityDeclaresProtocol(ch.ProtocolCapabilities, modelID, protocol) {
 		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "渠道当前未声明该模型与协议"}
 	}
-	if !channelSupportsProtocolFamily(ch, protocol) {
+	if !channelSupportsProtocolFamily(resolveChannelEndpoints(ch), protocol) {
 		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "渠道端点不支持该协议"}
 	}
 	entries := (&Channel{Channel: ch}).GetModelEntries()
@@ -284,7 +284,7 @@ func validateDerivedAssociationEnablementWithChannelService(ctx context.Context,
 	if !channelCapabilityDeclaresProtocol(ch.ProtocolCapabilities, modelID, protocol) {
 		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "渠道当前未声明该模型与协议"}
 	}
-	if !channelSupportsProtocolFamily(ch, protocol) {
+	if !channelSupportsProtocolFamily(resolveChannelEndpoints(ch), protocol) {
 		return &ModelCapabilityValidationError{ChannelID: channelID, ModelID: modelID, Protocol: protocol, Reason: "渠道端点不支持该协议"}
 	}
 	entries := (&Channel{Channel: ch}).GetModelEntries()

@@ -137,7 +137,7 @@ func validateProtocolCapabilities(ch *ent.Channel, declaredProtocols []string, m
 
 	if ch != nil {
 		for _, protocol := range declaredProtocols {
-			if !channelSupportsProtocolFamily(ch, protocol) {
+			if !channelSupportsProtocolFamily(resolveChannelEndpoints(ch), protocol) {
 				return fmt.Errorf("channel endpoints do not support protocol %q", protocol)
 			}
 		}
@@ -151,15 +151,12 @@ func validateMergedProtocolCapabilities(ch *ent.Channel, capabilities objects.Ch
 }
 
 // channelSupportsProtocolFamily 判断端点是否具备协议族的完整端点能力。
-func channelSupportsProtocolFamily(ch *ent.Channel, family string) bool {
-	if ch == nil {
-		return false
-	}
+func channelSupportsProtocolFamily(resolvedEndpoints []objects.ChannelEndpoint, family string) bool {
 	prefix, ok := protocolPoolEndpointAPIPrefixes[family]
 	if !ok {
 		return false
 	}
-	for _, endpoint := range resolveChannelEndpoints(ch) {
+	for _, endpoint := range resolvedEndpoints {
 		if strings.HasPrefix(endpoint.APIFormat, prefix) {
 			return true
 		}
@@ -344,7 +341,7 @@ func filterCapabilitiesByEndpoints(ch *ent.Channel, capabilities objects.Channel
 	declared := make([]string, 0, len(capabilities.DeclaredProtocols))
 	declaredSet := make(map[string]struct{}, len(capabilities.DeclaredProtocols))
 	for _, protocol := range capabilities.DeclaredProtocols {
-		if !channelSupportsProtocolFamily(ch, protocol) {
+		if !channelSupportsProtocolFamily(resolveChannelEndpoints(ch), protocol) {
 			continue
 		}
 		declared = append(declared, protocol)
