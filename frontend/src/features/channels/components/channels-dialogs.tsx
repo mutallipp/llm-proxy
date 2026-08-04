@@ -24,6 +24,7 @@ import { ChannelsTestAPIKeysDialog } from './channels-test-api-keys-dialog';
 import { ChannelsRateLimitDialog } from './channels-rate-limit-dialog';
 import { ChannelsTransformOptionsDialog } from './channels-transform-options-dialog';
 import { ChannelsEndpointsDialog } from './channels-endpoints-dialog';
+import { ChannelsCapabilityDialog } from './channels-capability-dialog';
 import { ChannelsSystemSettingsDialog } from './channels-system-settings-dialog';
 
 export function ChannelsDialogs() {
@@ -287,6 +288,20 @@ export function ChannelsDialogs() {
           <ChannelsEndpointsDialog
             key={`channel-endpoints-${currentRow.id}`}
             open={open === 'endpoints'}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                setOpen(null);
+                setTimeout(() => {
+                  setCurrentRow(null);
+                }, 500);
+              }
+            }}
+            channel={currentRow}
+          />
+
+          <ChannelsCapabilityDialog
+            key={`channel-capability-${currentRow.id}`}
+            open={open === 'capability'}
             onOpenChange={(isOpen) => {
               if (!isOpen) {
                 setOpen(null);

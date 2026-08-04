@@ -105,7 +105,7 @@ export const filterConditionSchema: z.ZodType<FilterCondition> = z.object({
   conditions: z.array(z.lazy(() => filterConditionSchema)).optional().default([]),
   field: z.string().optional(),
   operator: z.string().optional(),
-  value: z.any().optional(),
+  value: z.union([z.string(), z.number(), z.boolean()]).optional(),
 });
 
 export const modelAssociationWhenSchema = z.object({
@@ -118,6 +118,8 @@ export const modelAssociationSchema = z.object({
   type: z.enum(['channel_model', 'channel_regex', 'model', 'regex', 'channel_tags_model', 'channel_tags_regex']),
   priority: z.number().min(0).max(100).optional().default(0),
   disabled: z.boolean().optional().default(false),
+  auto: z.boolean().optional().default(false),
+  disabledReason: z.string().optional().nullable(),
   when: modelAssociationWhenSchema.optional().nullable(),
   channelModel: channelModelAssociationSchema.optional().nullable(),
   channelRegex: channelRegexAssociationSchema.optional().nullable(),

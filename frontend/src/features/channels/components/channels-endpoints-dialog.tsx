@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { AlertCircle, Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -164,7 +165,7 @@ export function ChannelsEndpointsDialog({ channel, open, onOpenChange }: Props) 
     }
 
     try {
-      await saveEndpoints.mutateAsync({
+      const result = await saveEndpoints.mutateAsync({
         channelID: channel.id,
         endpoints: endpoints.map((ep) => ({
           apiFormat: ep.apiFormat,
@@ -172,6 +173,13 @@ export function ChannelsEndpointsDialog({ channel, open, onOpenChange }: Props) 
           baseURL: ep.baseURL || undefined,
           transport: ep.transport || undefined,
         })),
+      });
+      const revoked = result.revoked ?? { autoDisabledCount: 0, manualNotices: [] };
+      if (revoked.autoDisabledCount > 0) {
+        toast.warning(t('channels.endpoints.revoked.autoDisabled', { count: revoked.autoDisabledCount }));
+      }
+      revoked.manualNotices.forEach((notice) => {
+        toast.warning(t('channels.endpoints.revoked.manualNotice', { notice }));
       });
       onOpenChange(false);
     } catch {

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { pageInfoSchema } from '@/gql/pagination';
+import { protocolPoolFormats } from '@/features/models/data/protocol-pools';
 
 export const apiFormatSchema = z.enum([
   'openai/chat_completions',
@@ -51,6 +52,32 @@ export const channelEndpointSchema = z.object({
   transport: z.enum(['http', 'websocket']).optional().or(z.literal('')),
 });
 export type ChannelEndpoint = z.infer<typeof channelEndpointSchema>;
+
+// 渠道协议能力声明，与 KTD18 契约一致；codegen 就绪后可替换为生成类型。
+export const channelModelCapabilitySchema = z.object({
+  modelId: z.string(),
+  protocols: z.array(z.string()),
+});
+export type ChannelModelCapability = z.infer<typeof channelModelCapabilitySchema>;
+
+export const channelProtocolCapabilitiesSchema = z.object({
+  declaredProtocols: z.array(z.string()),
+  models: z.array(channelModelCapabilitySchema),
+});
+export type ChannelProtocolCapabilities = z.infer<typeof channelProtocolCapabilitiesSchema>;
+
+// 以下本地类型与 KTD18 契约一致，codegen 就绪后替换为生成类型。
+export const saveChannelCapabilitiesInputSchema = z.object({
+  channelID: z.string().min(1),
+  declaredProtocols: z.array(z.enum(protocolPoolFormats)),
+  models: z.array(channelModelCapabilitySchema),
+});
+export type SaveChannelCapabilitiesInput = z.infer<typeof saveChannelCapabilitiesInputSchema>;
+
+export const bulkEnableDerivedAssociationsInputSchema = z.object({
+  channelID: z.string().min(1),
+});
+export type BulkEnableDerivedAssociationsInput = z.infer<typeof bulkEnableDerivedAssociationsInputSchema>;
 
 // Channel Types
 export const channelTypeSchema = z.enum([
@@ -155,7 +182,7 @@ export const overrideOperationSchema = z.object({
   path: z.string().optional(),
   from: z.string().optional(),
   to: z.string().optional(),
-  value: z.any().optional(),
+  value: z.unknown().optional(),
   condition: z.string().optional(),
   match: overrideMatchSchema.nullish(),
   index: z.number().int().nullish(),
@@ -343,8 +370,33 @@ export const channelSchema = z.object({
   liveLimiterStats: channelLimiterStatsSchema.optional().nullable(),
   endpoints: z.array(channelEndpointSchema).optional().default([]).nullable(),
   defaultEndpoints: z.array(channelEndpointSchema).optional().default([]).nullable(),
+  protocolCapabilities: channelProtocolCapabilitiesSchema.optional().nullable(),
 });
 export type Channel = z.infer<typeof channelSchema>;
+
+export const channelCapabilityRevokedSchema = z.object({
+  autoDisabledCount: z.number(),
+  manualNotices: z.array(z.string()),
+});
+export type ChannelCapabilityRevoked = z.infer<typeof channelCapabilityRevokedSchema>;
+
+export const saveChannelCapabilitiesPayloadSchema = z.object({
+  channel: channelSchema.pick({ id: true, type: true, name: true, protocolCapabilities: true }),
+  addedCount: z.number(),
+  unmatchedModels: z.array(z.string()),
+  revoked: channelCapabilityRevokedSchema,
+});
+export type SaveChannelCapabilitiesPayload = z.infer<typeof saveChannelCapabilitiesPayloadSchema>;
+
+export const bulkEnableDerivedAssociationResultSchema = z.object({
+  associationId: z.string().optional().nullable(),
+  success: z.boolean(),
+  reason: z.string().optional().nullable(),
+});
+export const bulkEnableDerivedAssociationsResultSchema = z.object({
+  results: z.array(bulkEnableDerivedAssociationResultSchema),
+});
+export type BulkEnableDerivedAssociationsResult = z.infer<typeof bulkEnableDerivedAssociationsResultSchema>;
 
 // Simplified schema for saveChannelEndpoints mutation response
 export const channelEndpointsResponseSchema = z.object({
@@ -355,6 +407,12 @@ export const channelEndpointsResponseSchema = z.object({
   endpoints: z.array(channelEndpointSchema).optional().default([]).nullable(),
 });
 export type ChannelEndpointsResponse = z.infer<typeof channelEndpointsResponseSchema>;
+
+export const saveChannelEndpointsPayloadSchema = z.object({
+  channel: channelEndpointsResponseSchema,
+  revoked: channelCapabilityRevokedSchema,
+});
+export type SaveChannelEndpointsPayload = z.infer<typeof saveChannelEndpointsPayloadSchema>;
 
 export const testAPIKeyResultSchema = z.object({
   keyPrefix: z.string(),
