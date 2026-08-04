@@ -49,6 +49,13 @@ var SupportedInboundAPIFormats = map[string]struct{}{
 	"anthropic": {},
 }
 
+// IsSupportedInboundAPIFormat 判断协议池 key 是否在当前支持的协议族白名单内。
+func IsSupportedInboundAPIFormat(protocol string) bool {
+	_, ok := SupportedInboundAPIFormats[protocol]
+
+	return ok
+}
+
 // ValidateProtocolPools 校验协议池结构，避免旧 settings 被静默转换或写入非法协议。
 func (s *ModelSettings) ValidateProtocolPools() error {
 	if s == nil || s.ProtocolPools == nil {
@@ -102,6 +109,8 @@ type ModelAssociation struct {
 	Type             string                       `json:"type"`
 	Priority         int                          `json:"priority"` // Lower value = higher priority, default 0
 	Disabled         bool                         `json:"disabled"`
+	Auto             bool                         `json:"auto,omitempty"`
+	DisabledReason   string                       `json:"disabledReason,omitempty"`
 	When             *ModelAssociationWhen        `json:"when,omitempty"`
 	ChannelModel     *ChannelModelAssociation     `json:"channelModel"`
 	ChannelRegex     *ChannelRegexAssociation     `json:"channelRegex"`

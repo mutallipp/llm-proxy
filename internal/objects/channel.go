@@ -21,6 +21,18 @@ type ChannelEndpoint struct {
 	Transport string `json:"transport,omitempty"`
 }
 
+// ChannelProtocolCapabilities 描述渠道声明的协议族与逐模型协议例外。
+type ChannelProtocolCapabilities struct {
+	DeclaredProtocols []string                 `json:"declaredProtocols"`
+	Models            []ChannelModelCapability `json:"models"`
+}
+
+// ChannelModelCapability 描述渠道上单个物理模型支持的协议族。
+type ChannelModelCapability struct {
+	ModelID   string   `json:"modelId"`
+	Protocols []string `json:"protocols"`
+}
+
 const (
 	ChannelEndpointTransportHTTP      = "http"
 	ChannelEndpointTransportWebSocket = "websocket"
