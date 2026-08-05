@@ -32,7 +32,7 @@ export function channelIdToSelectValue(
   channelId: number | null | undefined,
   channels: readonly ChannelIdentity[]
 ): string {
-  if (!Number.isSafeInteger(channelId) || channelId <= 0) return '';
+  if (typeof channelId !== 'number' || !Number.isSafeInteger(channelId) || channelId <= 0) return '';
   return channels.find((channel) => parseChannelIdFromSelectValue(channel.id) === channelId)?.id ?? '';
 }
 

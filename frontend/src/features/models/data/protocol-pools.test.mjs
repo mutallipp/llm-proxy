@@ -27,7 +27,8 @@ test('protocol pool filters channels by endpoint capability namespace', () => {
   const helper = read('features/models/data/protocol-pools.ts');
   const dialog = read('features/models/components/models-action-dialog.tsx');
 
-  assert.ok(helper.includes("openai: ['openai/']"));
+  assert.ok(helper.includes("openai: ['openai/chat_completions']"));
+  assert.ok(helper.includes("openai_responses: ['openai/responses']"));
   assert.ok(helper.includes("anthropic: ['anthropic/']"));
   assert.match(dialog, /channels\.filter\(\(channel\) => channelSupportsProtocolPool\(channel, pool\.format\)\)/);
   assert.doesNotMatch(dialog, /endpoint\.apiFormat === pool\.format/);

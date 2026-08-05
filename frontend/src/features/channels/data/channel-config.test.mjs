@@ -28,6 +28,16 @@ test('Cline is available as a channel type in frontend schemas and configs', () 
 });
 
 
+test('Ollama Anthropic maps to the Ollama provider', () => {
+  const channelsConfig = read('features/channels/data/config_channels.ts');
+  const providerMappings = channelsConfig.slice(
+    channelsConfig.indexOf('export const CHANNEL_TYPE_TO_PROVIDER'),
+    channelsConfig.indexOf('export const getProvider')
+  );
+
+  assert.match(providerMappings, /ollama_anthropic:\s*'ollama'/);
+});
+
 test('Cline has localized channel and provider labels', () => {
   for (const locale of ['en', 'zh-CN']) {
     const messages = parseLocale(locale);
