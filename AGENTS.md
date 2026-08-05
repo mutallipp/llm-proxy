@@ -9,6 +9,7 @@ This file provides guidance to AI coding assistants when working with code in th
 1. Do NOT run lint or build commands unless explicitly requested by the user.
 2. Do NOT restart the development server — it's already started and managed.
 3. All summary files should be stored in `.agent/summary` directory if available.
+4. **dev / prod 启停、构建、部署、日志统一走 Makefile target**。禁止在 `scripts/` 下新增 `start.sh` / `stop.sh` / `dev-*.sh` 之类的包装脚本（这类脚本与 Makefile 二选一，不要两边都有）。需要直调 docker compose 时也走 `make` 包装的 target，不要裸调 `docker compose`。
 
 ### 开发约定
 
