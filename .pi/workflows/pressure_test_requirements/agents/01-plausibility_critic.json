@@ -1,0 +1,53 @@
+{
+  "findings": [
+    {
+      "title": "渠道声明协议与端点实际能力之间无一致性校验要求，Success Criteria 的\"配置阶段不可能误配\"不成立",
+      "severity": "high",
+      "category": "可信性：内部矛盾/边界遗漏",
+      "description": "走查\"接入 kiro → 声明能力 → 启用 → 路由\"流程：R1 允许任意渠道多选 openai/anthropic，KTD5 说 endpoints 由渠道类型自动推导，但全文没有要求声明的协议族必须与渠道类型/endpoints 实际能力一致或给出警告。运行时渠道内端点选择仍是 SelectAPIFormat 跨协议兜底（优先匹配→allowed 兜底→直接 endpoints[0]）。若运维在 endpoints 只会说 openai 的渠道上声明了 anthropic，派生会把模型放进 anthropic 池指向该渠道，请求到达后静默跨协议转换——正是 Problem Frame 声称要消灭的行为。现有手动添加 UI 本有按端点能力过滤渠道的守卫（channelSupportsProtocolPool），文档引用了它却没有为声明/派生路径要求等价守卫。",
+      "evidence": "R1、KTD5、Success Criteria 第2条；internal/server/orchestrator/select_endpoints.go:84-95（最终兜底 endpoints[0]）；frontend/src/features/models/data/protocol-pools.ts:32-39（现有 channelSupportsProtocolPool 守卫）",
+      "suggested_fix": "在 R1 或 R4 增加校验要求：声明协议必须与渠道 endpoints/类型能力一致（至少声明时警告、派生生成前校验端点能力），并定义声明与 endpoints 冲突时以谁为准；否则修改 Success Criteria 表述。"
+    },
+    {
+      "title": "渠道声明的模型名无对应逻辑模型时行为未定义，静默跳过与接入承诺矛盾",
+      "severity": "medium",
+      "category": "可信性：边界遗漏",
+      "description": "接新渠道时声明平台上尚不存在的模型名是常见场景。按 R4 精确匹配语义，无同名逻辑模型则派生被静默跳过；R11 的\"新增 N 个模型关联\"只统计成功派生数，运维无从得知部分声明未生效。而补全接入必须先创建逻辑模型（在模型页面），这与 Success Criteria\"无需进入任何模型编辑页即可完成接入\"冲突。文档未定义未匹配声明的任何反馈（提示/列表/引导），流程在此处断链但未报错。",
+      "evidence": "R4、R11、Success Criteria 第1条；AE1 隐含假设逻辑模型已存在",
+      "suggested_fix": "定义渠道保存时未匹配声明模型名的行为：在 R11 提示中增加\"M 个声明模型未匹配到逻辑模型\"及后续操作指引（创建后走 R10），或明确声明静默跳过并修正 Success Criteria。"
+    },
+    {
+      "title": "派生条目被删除后是否会被重新派生未定义，运维无法去除不想要的派生关联",
+      "severity": "medium",
+      "category": "可信性：行为未定义",
+      "description": "R9 允许 Model 侧删除关联，但未区分能否删除 auto 派生条目。若可删：下次渠道保存或 R10 一键同步是否重新生成该条目？R4 的\"不存在则生成\"语义暗示会重建，则运维永远无法去除不想要的派生关联（只能靠渠道撤销声明）；若不可删：需要 UI/API 层面的限制，同样没有需求条目。KTD7 只约束派生不改手动条目，未覆盖\"已删除的 auto 条目\"这一状态。",
+      "evidence": "R9、R4、R5、R8、KTD7",
+      "suggested_fix": "三选一并写明：派生条目不可删除（只能禁用）；或删除后对账会重建（明示该行为）；或定义\"不再派生\"标记及其归属。"
+    },
+    {
+      "title": "auto_sync_supported_models 定时新增模型与能力声明/派生的交互未定义",
+      "severity": "medium",
+      "category": "可信性：边界遗漏",
+      "description": "开启 auto_sync 的渠道每小时定时同步会把上游新模型并入渠道模型列表，这既不是\"渠道保存\"（R3 触发点）也不是编辑页手动\"拉取模型列表\"（R2 场景），且 Dependencies 明确派生触发点只有渠道保存与一键同步两处。结果：自动同步进来的新模型长期没有协议能力声明、不产生派生关联，而运维在渠道侧也看不到任何提示。能力表数据形态虽 Deferred to Planning，但\"自动同步的新模型是否继承勾选协议、是否触发派生\"是行为级缺口，直接影响 auto_sync 渠道的日常运维走查。",
+      "evidence": "R2、R3、Dependencies/Assumptions（触发点两处）；internal/server/biz/channel_model_sync.go（定时 syncChannelModels 合并 fetched+manual 后 SetSupportedModels）；internal/ent/schema/channel.go:124（auto_sync_supported_models）",
+      "suggested_fix": "明确二选一：自动同步新模型默认继承渠道当前勾选协议并触发派生对账；或明示 auto_sync 只更新模型列表、需人工补声明，并在渠道侧给出待声明提示。"
+    },
+    {
+      "title": "R5 去重范围未覆盖 developer 设置继承的关联，有效池可能出现重复候选",
+      "severity": "medium",
+      "category": "可信性：歧义",
+      "description": "运行时读取的是合并后的有效协议池（model 自身 settings + developer 级继承），R5/R13 的\"已存在同 (模型,协议,渠道) 手动关联则不派生\"未说明判断基准是模型自身 settings 还是有效视图。若 developer 级已存在同渠道同物理模型的手动关联，派生仍会向模型 settings 写入同语义条目，有效池出现两条等价候选，影响优先级与选择行为。",
+      "evidence": "R5、R13；internal/server/orchestrator/candidates.go:159（EffectiveModelProtocolPools）；internal/server/biz/model_settings_inheritance.go:133,271-310（developer 池合并）",
+      "suggested_fix": "明确 R5 去重基准（建议有效关联视图，含 developer 继承），并定义若仍出现重复时的运行时期望。"
+    },
+    {
+      "title": "逐模型协议去掉的例外在渠道级协议取消/重勾后的存续语义未定义",
+      "severity": "low",
+      "category": "可信性：行为未定义",
+      "description": "KTD8 交互是\"继承全部→逐个去掉\"。若模型 M 被单独去掉协议 X，渠道随后全局取消 X 再重新勾选 X：R7 只定义了派生条目状态恢复，未定义逐模型例外是否保留。\"恢复为全部继承\"与\"保留历史例外\"会产生不同的声明结果，进而影响派生集合。",
+      "evidence": "R1、R2、R7、KTD8",
+      "suggested_fix": "定义逐模型例外是否持久保存并跨越渠道级协议开关保留。"
+    }
+  ],
+  "summary": "以新渠道接入与自定义模型绑定两条日常流程走查：主链路（声明→派生→启用→路由、撤销→禁用→校验重启用）有定义且自洽，但存在 1 个 high 缺口——声明协议与渠道端点实际能力无一致性校验，使\"配置阶段不可能误配\"的承诺不可行；另有 4 个 medium 行为缺口（未匹配逻辑模型的静默跳过、派生条目删除后的重建语义、auto_sync 定时新增模型不触发声明/派生、R5 去重基准未含 developer 继承）与 1 个 low（逐模型例外的存续语义）。"
+}

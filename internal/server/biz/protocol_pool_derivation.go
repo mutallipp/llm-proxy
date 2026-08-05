@@ -209,12 +209,17 @@ func (svc *ChannelService) reconcileChannelProtocolCapabilities(
 		}
 
 		for _, logicalModel := range models {
+			previousForModel := capabilitiesForModel(previous, logicalModel.ModelID)
+			currentForModel := capabilitiesForModel(current, logicalModel.ModelID)
+			if len(previousForModel.Models) == 0 && len(currentForModel.Models) == 0 {
+				continue
+			}
 			localPools := map[string][]*objects.ModelAssociation{}
 			if logicalModel.Settings != nil {
 				localPools = logicalModel.Settings.ProtocolPools
 			}
 			effectivePools := EffectiveModelProtocolPools(systemSettings, logicalModel)
-			mergedPools, modelStats := reconcileAssociations(channelID, previous, current, localPools, effectivePools)
+			mergedPools, modelStats := reconcileAssociations(channelID, previousForModel, currentForModel, localPools, effectivePools)
 			if protocolPoolsEqual(localPools, mergedPools) {
 				continue
 			}
@@ -282,7 +287,7 @@ func (svc *ChannelService) deriveModelAssociationsForModel(ctx context.Context, 
 			}
 			effective := EffectiveModelProtocolPools(systemSettings, logicalModel)
 			var modelStats AssociationReconcileStats
-			mergedPools, modelStats = reconcileAssociationsIncremental(ch.ID, current, mergedPools, effective)
+			mergedPools, modelStats = reconcileAssociationsIncremental(ch.ID, capabilitiesForModel(current, logicalModel.ModelID), mergedPools, effective)
 			stats.AddedCount += modelStats.AddedCount
 			stats.AutoRestoredCount += modelStats.AutoRestoredCount
 		}
@@ -318,6 +323,21 @@ func capabilityDeclaresModel(capabilities objects.ChannelProtocolCapabilities, m
 	}
 
 	return false
+}
+
+// capabilitiesForModel 只保留指定逻辑模型名的能力声明（同名精确匹配，R4），
+// 避免把渠道声明的其他模型写入目标模型的协议池。
+func capabilitiesForModel(capabilities objects.ChannelProtocolCapabilities, modelID string) objects.ChannelProtocolCapabilities {
+	filtered := objects.ChannelProtocolCapabilities{
+		DeclaredProtocols: capabilities.DeclaredProtocols,
+	}
+	for _, modelCapability := range capabilities.Models {
+		if modelCapability.ModelID == modelID {
+			filtered.Models = append(filtered.Models, modelCapability)
+		}
+	}
+
+	return filtered
 }
 
 // cleanupDeletedChannelAssociations 清理渠道删除后的模型级关联。

@@ -1,0 +1,163 @@
+{
+  "ok": true,
+  "total_findings": 18,
+  "false_positives": [
+    {
+      "title": "派生写入与 Model 编辑保存的跨实体并发写冲突未列入需求考量",
+      "reason": "文档 Outstanding Questions 的 Deferred to Planning 已明确列出「派生对账的事务边界、批量写入与并发保存的冲突处理」，该条目字面即覆盖派生批量写入与并发保存（含模型编辑保存）的冲突类别；具体冲突对清单与合并语义属下游 ce-plan 实现细节，且评审纪律不替技术方案做实现选型批评。"
+    },
+    {
+      "title": "（未单列）批评者关于 KTD9 启用校验循环定义的独立指控",
+      "reason": "该点已并入「端点能力校验缺失/成功准则不可行」条目作为辅助证据，不单独成条，避免重复计数。"
+    }
+  ],
+  "must_fix": [
+    {
+      "title": "渠道声明协议与端点实际能力无一致性校验，Success Criteria「误配在配置阶段不可能发生」不成立",
+      "severity": "high",
+      "category": "内部矛盾/承诺不可行",
+      "description": "合并两条同类 finding。R1 只限定协议池 key 白名单，不校验渠道 endpoints/类型是否真实支持所选协议族；KTD5 称 endpoints 由渠道类型自动推导，但全文无「声明必须与端点能力一致」的要求。运行时 SelectAPIFormat 无匹配时按 allowed 兜底、最终兜底 endpoints[0]，跨协议静默转换——正是 Problem Frame 要消灭的行为。复现：endpoints 只有 openai 格式的渠道勾选 anthropic → 为全部模型派生并启用 → anthropic 入站请求静默落到 openai 端点，误配从逐模型放大为一次性全模型。KTD9 的启用校验「是否支持该协议」若以「是否已声明」为依据则是循环定义。现有手动配置 UI 本有 channelSupportsProtocolPool 按端点能力过滤渠道的守卫，文档引用了它却没有为声明/派生路径要求等价守卫。「误配场景（模型配置到不支持该协议的渠道）在配置阶段即不可能发生」按当前需求无法成立。",
+      "evidence": "文档 Success Criteria 第2条、R1、KTD5、KTD9、Problem Frame；internal/server/orchestrator/select_endpoints.go:103-119（allowed 兜底 + endpoints[0] 最终兜底）；frontend/src/features/models/data/protocol-pools.ts:32-39（现有 channelSupportsProtocolPool 守卫）",
+      "suggested_fix": "二选一：补充需求——声明/启用时校验渠道 endpoints 是否具备该协议族格式，定义不通过时的行为（拒绝或警告），并定义声明与 endpoints 冲突时以谁为准；或把成功准则改写为「误配从 N 处收敛到渠道声明 1 处」。"
+    },
+    {
+      "title": "auto_sync_supported_models 定时同步绕过全部派生触发点，模型增删与声明/派生的交互未定义",
+      "severity": "high",
+      "category": "边界遗漏/触发点缺口",
+      "description": "合并三条同类 finding。Dependencies 明确派生触发点只有渠道保存与一键同步两处、不依赖定时任务，但仓库存在每小时后台同步：对 auto_sync_supported_models=true 的渠道直接 UpdateOneID().SetSupportedModels() 全量覆盖（合并 fetched+manual），不经过用户保存。双向缺口：①上游新增模型 → 写入列表但不触发派生，新模型长期无能力声明、无派生条目，与 R2「新模型默认继承全部协议」冲突（auto-sync 算不算「添加模型」未定义），渠道侧也无任何待声明提示；②上游下线模型 → 列表移除但不触发 R6 对账禁用，已启用关联在运行时 matchChannelModel 查 entries 失败后静默从候选消失。无论能力表存储形态如何（Deferred），该行为语义是需求级缺口，不处理则声明与派生状态持续漂移。",
+      "evidence": "文档 Dependencies（触发点两处、不依赖定时任务）、R2、R3；internal/server/biz/channel_model_sync.go:21-28（60 分钟周期、auto_sync 筛选）、:101-120（removedModels 直接移除、事务内 SetSupportedModels 全量覆盖）；internal/ent/schema/channel.go:124（auto_sync_supported_models）；internal/server/biz/model_association_matcher.go:158-163（entries 查不到即静默丢弃）",
+      "suggested_fix": "在需求中明确 auto-sync 引起的模型增删语义：视为声明变更并继承协议、触发派生对账；或明示 auto-sync 只更新模型列表、需人工补声明并在渠道侧给出待声明/待清理提示，同时定义上游移除模型时已启用关联的处置。"
+    },
+    {
+      "title": "派生条目启用后是否转手动未定义，R6 可静默禁用正在服务的 auto 条目；R7 与 AE2/KTD9 状态转换规则紧张",
+      "severity": "high",
+      "category": "行为未定义/内部矛盾",
+      "description": "合并两条同类 finding。文档只在 R6a（撤销禁用后重新启用）路径定义「转为手动条目」。普通派生条目经 R9/R11（一键批量启用，主接入路径）启用后是保持 auto 还是转手动完全没有定义。若保持 auto：渠道任何一次保存（哪怕只改备注）触发 R6，即可把正在承载流量的已启用关联静默禁用——MatchAssociations 跳过 Disabled，禁用即立刻从运行时候选消失，流量瞬断无告警。若启用即转手动：又与 R7「恢复为普通派生状态」的措辞紧张——R7 把条目重置为普通派生态后，R6a 的前提（撤销禁用态）已不成立，但 AE2 明确断言该序列「重新启用成功、关联转为手动条目」，需求正文没有给出衔接两个状态的转换规则。实现者必须二选一且文档无依据，错误选择直接破坏生产流量。",
+      "evidence": "文档 R6、R6a、R7、R9、R11、KTD9、AE2；internal/server/biz/model_association_matcher.go:100-103（Disabled 即跳过，禁用立刻生效于运行时）",
+      "suggested_fix": "给出统一状态机：明确普通派生条目启用后是否转手动（建议任何用户启用操作都转手动，脱离 R6 对账处置范围）；明确 R7 恢复后的条目再启用适用哪条规则，消除 R7 与 AE2/KTD9 的措辞冲突；若 auto 条目可被 R6 禁用，要求批量禁用前给出确认或摘要提示。"
+    },
+    {
+      "title": "R10/F2「一键同步渠道」的刷新语义未定义，且与撤销对账规则（R6/R6a/R7）脱节",
+      "severity": "high",
+      "category": "跨功能交互缺口",
+      "description": "R10 说同步会\"生成/刷新派生关联（默认禁用）\"，但\"刷新\"对已存在条目的处置完全未定义，两个行为悬空：(a) 若某模型已有一条\"撤销禁用\"条目，而该渠道现在重新声明了它——渠道保存路径有 R7（清原因、恢复普通派生态），但 F2 的 Covers 列表只有 R10/R4/R5/R8，未引用 R7，同步路径是否同样清原因恢复未定义；(b) 若已存在一条已被启用的派生条目，\"刷新（默认禁用）\"是否把它重置回禁用？字面读会打断正在服务的流量，与 R8\"不改动手动条目\"也只保护了手动条目。此外同步只查询\"声明了该模型名的渠道\"，对不再声明的渠道不做任何撤销处置，与渠道保存触发的 R6 对账形成两套不一致的触发语义，文档未说明这是有意的。",
+      "evidence": "docs/plans/2026-08-05-001-feat-channel-protocol-capability-plan.md R10 与 F2（\"Covers R10, R4, R5, R8\"，无 R6/R6a/R7）；对照 R7/KTD6 只绑定\"渠道保存\"触发点（R3）。",
+      "suggested_fix": "在 R10 中明确：同步复用 R5/R7/R8 的既有实体处置规则（保留优先级、清除已重新声明条目的禁用原因）；明确\"刷新\"不得重置已启用条目的启用状态；明确同步路径是否执行撤销对账（建议明示撤销仅由渠道保存触发，同步只做增量）。并补一条覆盖 R10 与 R7 交互的 AE。"
+    },
+    {
+      "title": "启用校验只查渠道声明，不校验物理模型是否在渠道运行时模型条目内，启用的关联可能在运行时静默失配",
+      "severity": "high",
+      "category": "边界遗漏",
+      "description": "运行时 channel_model 关联匹配要求物理模型名存在于渠道 GetModelEntries() 结果（由 supported_models 加前缀/裁剪/mapping 派生），否则 matchChannelModel 直接返回 nil、候选静默消失。而能力声明与 supported_models 是两份清单：文档 Dependencies 只说声明交互\"可复用\"fetchModels/supported_models 同步结果，未要求二者一致；R6a/KTD9 的启用校验也只检查\"渠道当前声明了该模型且支持该协议\"，不检查渠道运行时条目。若声明模型因 auto_sync_model_pattern 过滤、manual_models 差异或声明手误不在 supported_models 中，派生条目可以成功启用却在运行时永不命中，表现为该渠道从候选中静默消失。能力表数据形态虽 Deferred to Planning，但该一致性/校验规则是需求层承诺（Success Criteria\"误配在配置阶段即不可能发生\"）的一部分，不能随数据形态一起悬空。注意这与已列清单中\"协议 vs 端点能力无校验\"是不同维度：此处是模型名成员维度。",
+      "evidence": "internal/server/biz/model_association_matcher.go:146-176（matchChannelModel 要求 entries[assoc.ChannelModel.ModelID] 存在，否则返回 nil）；internal/server/biz/channel_llm.go:1171-1240（GetModelEntries 以 SupportedModels 为基础构建）；文档 R6a/KTD9 校验条件仅含声明；internal/server/biz/channel_model_sync.go:95-115（auto_sync_model_pattern 会过滤拉取结果，声明与 supported_models 可合法分叉）。",
+      "suggested_fix": "在需求层补一条一致性规则：要么声明的模型名必须可被渠道运行时模型条目解析（纳入启用/派生校验），要么声明清单与 supported_models 的关系（包含/同步/覆盖）写成显式需求；并补一条 AE：声明模型不在渠道 supported_models 时启用被拒绝或给出明确告警。"
+    },
+    {
+      "title": "与 developer settings 继承机制的交互未定义：R5 判重范围、R13 存量范围、R6 撤销可见性",
+      "severity": "medium",
+      "category": "边界遗漏/歧义",
+      "description": "合并三条同类 finding。运行时有效协议池是 model.Settings.ProtocolPools 与 SystemModelSettings.DeveloperSettings 的合并（candidates.go 读 EffectiveModelProtocolPools），developer 层支持 channel_model/channel_tags_model 显式关联且 GraphQL 可配。文档通篇只有渠道/Model 两层（KTD1/KTD4），导致：①R5「已存在同 (模型,协议,渠道) 的手动关联则不派生」若只看 model.Settings，会为已继承同渠道关联的模型生成重复条目，有效池出现两条等价候选（运行时按 (channel,model) 去重不致路由错误，但优先级交互与配置语义混乱）；②R6 撤销渠道声明只禁用派生条目，developer 继承的同渠道关联仍生效，运维看到「撤销不生效」；③R13「存量显式关联」是否包含 developer 层存量（当前生效且属显式手配）未说明。派生写入层由 KTD2「写入各 Model 的 protocolPools」隐含为模型级，但判重与撤销基准仍缺。",
+      "evidence": "文档 KTD1、KTD2、KTD4、R5、R6、R13；internal/server/biz/model_settings_inheritance.go:133-155（EffectiveModelProtocolPools 合并 developer 继承，DisableDeveloperSettingsInheritance 可关闭）；internal/server/orchestrator/candidates.go:169（运行时读合并结果）；internal/server/biz/model_association_matcher.go:98-166（DuplicateKeyTracker 按 channel+model 去重，运行时不报错）",
+      "suggested_fix": "在需求中明确：R5 判重基于有效关联视图（含 developer 继承）还是仅模型级 settings；R13 明确 developer 层存量关联同样视为手动条目、不受派生触碰；R6 撤销时若 developer 层仍有同渠道关联生效，定义是否提示。"
+    },
+    {
+      "title": "渠道声明的模型名无对应逻辑模型时静默跳过，与接入承诺矛盾且无反馈",
+      "severity": "medium",
+      "category": "边界遗漏",
+      "description": "接新渠道时声明平台上尚不存在的模型名是常见场景。按 R4 精确匹配语义，无同名逻辑模型则派生被静默跳过；R11 的「新增 N 个模型关联」只统计成功派生数，运维无从得知部分声明未生效。而补全接入必须先创建逻辑模型（在模型页面），与 Success Criteria「无需进入任何模型编辑页即可完成接入」冲突。文档未定义未匹配声明的任何反馈（提示/列表/引导），流程在此断链但不报错。",
+      "evidence": "文档 R4、R11、Success Criteria 第1条；AE1 隐含假设逻辑模型已存在",
+      "suggested_fix": "定义渠道保存时未匹配声明模型名的行为：在 R11 提示中增加「M 个声明模型未匹配到逻辑模型」及后续操作指引（创建后走 R10），或明确静默跳过并修正 Success Criteria 的适用前提。"
+    },
+    {
+      "title": "派生条目被删除后是否会被重新派生未定义，运维无法永久去除不想要的派生关联",
+      "severity": "medium",
+      "category": "行为未定义",
+      "description": "R9 允许 Model 侧删除关联，但未区分能否删除 auto 派生条目。若可删：下次渠道保存或 R10 一键同步按 R4「不存在则生成」语义会重建该条目，运维永远无法去除不想要的派生关联（只能靠渠道撤销声明）；若不可删：需要 UI/API 限制，同样没有需求条目。KTD7 只约束派生不改手动条目，未覆盖「已删除的 auto 条目」状态。",
+      "evidence": "文档 R4、R5、R8、R9、KTD7",
+      "suggested_fix": "三选一并写明：派生条目不可删除（只能禁用）；或删除后对账会重建（明示该行为）；或定义「不再派生」标记及其归属。"
+    },
+    {
+      "title": "R6 撤销以保存时刻全量集合差集判定，未要求未改动声明 round-trip 保真",
+      "severity": "medium",
+      "category": "操作顺序/数据边界",
+      "description": "R3 规定每次渠道保存都触发对账，R6 把「保存的声明中缺少」定义为撤销，但未要求编辑表单完整回载既有声明（含逐模型协议例外）。复现：渠道存在逐模型例外 → 运维打开编辑页只改备注 → 保存时若表单只按 R2 默认继承重建声明（例外丢失）→ 例外模型被判定为撤销 → 批量禁用派生条目。能力声明数据形态虽 Deferred，但「保存即全量对账」由 R3/R6 在需求层定死，需求应显式声明未改动部分保存后不变。",
+      "evidence": "文档 R2、R3、R6、F1",
+      "suggested_fix": "在 R3/R6 增加约束：保存未触及的模型/协议声明（含逐模型例外）必须原样保留，撤销判定基于提交声明与既有声明的差异；对批量禁用给出确认或摘要提示（与 R11 的新增提示对称）。"
+    },
+    {
+      "title": "逻辑模型重命名（model_id 变更）后派生条目成孤儿，撤销对账永久失效",
+      "severity": "medium",
+      "category": "边界遗漏/归属丢失",
+      "description": "对账按「逻辑模型名与声明模型名精确相同」定位目标（R4/R6），派生条目物化在模型 settings 内。复现：逻辑模型 foo 从渠道 C 获得派生条目 → 重命名为 bar（model_id 可更新，唯一索引含 deleted_at 允许改名）→ 渠道 C 之后保存即使撤销 foo，对账按名找 foo 无匹配、不做处置；bar.settings 里的旧条目（指向 C/物理名 foo）永久逃脱 R6，且渠道仍支持 foo 时继续参与路由；此后新建逻辑模型 foo 又会得到一套新派生条目与旧条目并存。需求未定义条目归属随名称还是随模型实体。",
+      "evidence": "文档 R4、R6、R8；internal/server/biz/model.go:454（SetNillableModelID，model_id 可更新）；internal/ent/schema/model.go:31-34（models_by_model_id 唯一索引含 deleted_at）",
+      "suggested_fix": "明确派生条目归属：建议条目随模型实体存在、对账以 (渠道,条目) 为基准双向核对（声明侧缺失即撤销），而非单向按名查找；或明确重命名时需重新触发该模型的一键同步并对旧条目给出提示。"
+    },
+    {
+      "title": "渠道删除/归档不在对账范围，派生条目成为永久孤儿且 R6a 校验语义未定义",
+      "severity": "medium",
+      "category": "边界遗漏",
+      "description": "合并两条同类 finding。R6 只覆盖「渠道保存时撤销声明」，渠道被整体删除/归档时：DeleteChannel 不清理模型 protocolPools 中指向该渠道的关联；而 KTD6/KTD7 派生永不删除条目、对账只在渠道保存与一键同步时触发（已删渠道不会再保存），被删渠道留下的 auto 派生条目永久滞留。R6a 启用校验要求「渠道当前声明了该模型」，渠道不存在时永远校验失败且提示语义未定义——条目无法启用也无法被派生处置。运行时无实质危害（只遍历 GetEnabledChannels），但本功能会让派生条目批量出现，配置卫生问题被放大。",
+      "evidence": "文档 R6、R6a、KTD6、KTD7、Dependencies 触发点列表；internal/server/biz/channel.go:890（DeleteChannel 无 protocolPools 级联清理）；internal/ent/schema/channel.go（status 含 archived + SoftDeleteMixin）；internal/server/orchestrator/candidates.go:220（仅使用 enabled channels）",
+      "suggested_fix": "补充渠道删除/归档场景需求：派生条目随渠道删除清理，还是保留禁用+原因（并定义此时 R6a 校验对不存在渠道直接拒绝并提示）；若保留，说明 UI 如何呈现已不存在渠道的条目。"
+    },
+    {
+      "title": "启用校验适用范围未定义：普通派生条目首次启用与 R11 批量启用是否过校验悬空",
+      "severity": "medium",
+      "category": "规则边界缺口",
+      "description": "KTD9/R6a 只规定重新启用\"撤销禁用\"条目必须校验；普通派生条目（默认禁用）首次启用没有任何校验定义，R11 的一键批量启用也未定义是否逐条校验、部分条目校验失败时是整体拒绝还是部分成功及提示形态。同一条错误关联会因历史状态不同（是否经历过撤销）而得到不同的启用行为，操作者无法形成一致预期。结合上一条（声明与运行时条目可分叉），首次启用不校验意味着错误关联照样能进入生产。",
+      "evidence": "文档 KTD9（\"重新启用'撤销禁用'条目必须通过校验\"）、R6a（仅针对\"被撤销禁用的关联\"）、R11（\"一键批量启用入口\"，无校验与失败处置描述）；R4 规定普通派生条目默认禁用，其启用路径无任何规则。",
+      "suggested_fix": "统一定义校验适用范围：建议\"任何禁用派生条目的启用（含首次启用与批量启用）均执行同一声明/能力校验\"，并定义批量启用中单条失败的部分成功语义与提示；若有意豁免首次启用，写明理由。"
+    },
+    {
+      "title": "渠道新勾选协议族对已存在模型的传播语义未定义（与撤销方向不对称）",
+      "severity": "medium",
+      "category": "行为未定义",
+      "description": "R2 的继承只发生在\"渠道添加模型\"时刻；KTD8 描述了\"渠道级多选 → 模型继承\"的交互顺序，但未定义反向时序：渠道先添加了模型、之后才新勾选一个此前从未声明的协议族时，既有已声明模型是否自动获得新协议声明（从而批量触发派生），还是需要逐模型重新添加。撤销方向有明确规则（R6/AE2 对全部相关模型生效），新增方向没有，形成不对称缺口。该场景在分期接入协议（先 openai 后 anthropic）时必然出现。注意与已列清单\"取消/重勾后例外存续\"不同：本条针对首次新增协议族，不涉及例外记忆。",
+      "evidence": "文档 R2（\"渠道添加模型……新模型默认继承渠道当前勾选的全部协议\"——仅添加模型时刻）；KTD8（只定义单次编辑会话内的交互顺序）；R6/AE2 覆盖取消方向而新增方向无对应条目。",
+      "suggested_fix": "在 R2 或新增条目中明确：渠道新勾选协议族时既有模型是自动全量继承（并触发批量派生）、不传播需手动补勾，还是逐模型确认；补对应 AE。"
+    }
+  ],
+  "optional": [
+    {
+      "title": "逐模型协议例外在渠道级协议取消/重勾后的存续语义未定义",
+      "severity": "low",
+      "category": "行为未定义",
+      "description": "KTD8 交互是「继承全部→逐个去掉」。若模型 M 被单独去掉协议 X，渠道随后全局取消 X 再重新勾选 X：R7 只定义了派生条目状态恢复，未定义逐模型例外是否保留。「恢复为全部继承」与「保留历史例外」产生不同的声明结果，进而影响派生集合。",
+      "evidence": "文档 R1、R2、R7、KTD8",
+      "suggested_fix": "定义逐模型例外是否持久保存并跨越渠道级协议开关保留。"
+    },
+    {
+      "title": "同键派生条目（禁用）与手动条目可合法共存，再启用派生条目将被重复校验拒绝，行为未定义",
+      "severity": "low",
+      "category": "行为未定义",
+      "description": "ValidateProtocolPools 的重复检查跳过 Disabled 条目，因此「派生条目(disabled) + 手动新增同 (channel,model) 启用条目」可合法共存（R9 允许手动新增）。此后用户再启用那条派生条目 → 同协议池出现两条非禁用同键条目 → 校验报错。需求未定义该场景应阻止手动新增、阻止启用还是自动清理派生条目。",
+      "evidence": "文档 R5、R9；internal/objects/model.go:66-71（ValidateProtocolPools 对 Disabled 条目跳过 seen 去重）",
+      "suggested_fix": "定义冲突规则：手动新增同键关联时同时处置（删除或保持禁用并提示）对应派生条目，或启用派生条目前校验同键手动条目存在性。"
+    },
+    {
+      "title": "Acceptance Examples 未覆盖 R10（一键同步渠道）与 R11（批量启用提示）",
+      "severity": "low",
+      "category": "一致性/验收缺口",
+      "description": "R10 与 R11 各是独立需求且有独立流程（F2/F1），但 AE1-AE5 中没有对应验收样例；R12/R14 只靠 Success Criteria 一句话隐含覆盖。一键同步的幂等/去重表现（F2 声称 covers R5/R8）缺少可执行的验收锚点。",
+      "evidence": "文档 Acceptance Examples AE1-AE5 与 Requirements R10/R11/R12/R14 对照；F2 的 Covers 列表无对应 AE",
+      "suggested_fix": "补充至少两个 AE：一键同步渠道为已有派生/手动关联的模型刷新时不重复不覆盖（对应 R10/R5/R8）；渠道保存新增模型后出现「新增 N 个」提示且批量启用生效（对应 R11）。"
+    },
+    {
+      "title": "派生条目无法承载条件路由（When），与 KTD4\"Model 层管怎么选\"承诺紧张",
+      "severity": "low",
+      "category": "内部矛盾",
+      "description": "KTD4 承诺优先级、条件路由保留为 Model 侧覆盖项（\"怎么选\"归 Model 层），但 R9 把 Model 侧对派生条目的操作限定为启用/禁用、调整优先级、手动新增/删除——不包括编辑条件路由（When）。一条派生条目若需要按 prompt_tokens/stream 等条件分流，唯一出路是删除后手动重建（而删除后是否被重新派生本身未定义，见已列清单）。转手动只发生在撤销再启用路径，正常派生条目没有\"转手动并编辑\"的路径。",
+      "evidence": "文档 KTD4（\"优先级、条件路由保留为 Model 侧覆盖项\"）与 R9（操作限定清单无 When 编辑）；internal/objects/model.go:95-106（ModelAssociation.When 为关联级字段）。",
+      "suggested_fix": "在 R9 中补充：派生条目被编辑（含条件路由）即转手动条目，或明确条件路由仅对手动条目可用并说明派生条目的替代操作路径。"
+    },
+    {
+      "title": "派生条目初始优先级无规则，R5 优先级保留子句无 AE 覆盖",
+      "severity": "low",
+      "category": "AE 覆盖缺口",
+      "description": "R4/R5 未定义新派生条目的初始优先级取值规则（默认 0？按渠道 ordering_weight？）。R11 批量启用会一次性把多个渠道的派生条目置为启用，全部同优先级时同协议池内的渠道先后顺序不确定（虽是存量 tie 行为，但批量启用是该文档新引入的放大器）。同时 R5 的\"已存在的派生关联保留用户调整过的优先级\"是关键保留承诺，但 AE5 只验证同一配置重复保存的幂等，未验证声明变更后重派生对用户已调优先级的保留。",
+      "evidence": "文档 R4（未提初始优先级）、R5 第二子句、R11；AE5（\"同一渠道连续保存两次，关联数量不变、状态不变\"）；internal/objects/model.go:99（Priority 默认 0，Lower value = higher priority）。",
+      "suggested_fix": "明确派生条目初始优先级规则（建议默认 0 并说明并列时的运行时顺序语义），并补一条 AE：用户调高某派生条目优先级后，渠道声明变更触发对账，优先级保持不变。"
+    }
+  ],
+  "summary": "合并两组 findings 共 18 条，去重后无重复（两组间维度均不同：协议能力校验 vs 模型名成员校验、撤销对账 vs 同步刷新、例外存续 vs 新协议传播等均已确认为独立问题）。按 severity 排序：high 5 条、medium 8 条、low 5 条，无 blocker/info。must_fix 13 条（high+medium），optional 5 条（low）。所有条目保留原始 title/severity/category/description/evidence/suggested_fix，未新增任何 finding。"
+}

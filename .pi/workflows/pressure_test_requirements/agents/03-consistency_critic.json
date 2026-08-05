@@ -1,0 +1,45 @@
+{
+  "findings": [
+    {
+      "title": "派生写入与 developer settings 继承机制完全未定义（写哪层、R5 去重范围、R13 存量范围）",
+      "severity": "high",
+      "category": "coverage",
+      "description": "KTD2 只说\"派生结果物化写入各 Model 的 protocolPools\"，但系统存在两层协议池：model.Settings.ProtocolPools 与 SystemModelSettings.DeveloperSettings[].ProtocolPools（按 model.Developer 继承，可被 DisableDeveloperSettingsInheritance 关闭）。文档全文未提及继承机制，导致三个行为未定义：(a) 派生条目写入哪一层（写 developer 层会波及同 developer 的所有模型，写 model 层则与继承条目在 effective pools 中并存）；(b) R5 的\"已存在同 (模型, 协议, 渠道) 的手动关联\"是否包含从 developer 层继承来的关联——运行时看到的是合并后的 effective pools，若派生只查 model.Settings，会为已继承同渠道关联的模型生成重复条目；(c) R13 \"存量显式关联\"是否包含 developer 层的存量关联（它们当前就在生效且属显式手配）。",
+      "evidence": "internal/server/biz/model_settings_inheritance.go:133-155（EffectiveModelProtocolPools 合并 developer 继承与 model 级）；internal/server/orchestrator/candidates.go:164（运行时读 EffectiveModelProtocolPools 而非 model.Settings.ProtocolPools）；internal/server/biz/model.go:755,778,804 同样使用合并结果；文档 KTD2/R5/R13 均未提继承层。",
+      "suggested_fix": "在 Product Contract 中补充：派生条目固定写入模型级 settings（或明确指定层）；R5 的重复判定基于 effective pools（含 developer 继承关联）；R13 明确 developer 层存量关联同样视为手动条目、不受派生触碰；并说明 DisableDeveloperSettingsInheritance 模型无特殊处理。"
+    },
+    {
+      "title": "auto_sync_supported_models 后台同步与能力声明/派生的交互未定义，且不在派生触发点内",
+      "severity": "high",
+      "category": "coverage",
+      "description": "R3 把派生对账触发限定在\"渠道保存\"，Dependencies 又声明派生触发点只有渠道保存与一键同步（R10）。但开启 auto_sync_supported_models 的渠道每 60 分钟被后台任务重写 supported_models（含移除上游已下线模型）。文档的 Dependencies 明确说能力声明交互\"可复用其结果\"（channel_model_sync.go / fetchModels），却没有定义：上游列表移除某模型时，声明是否算撤销、是否走 R6 禁用+原因、后台同步路径是否触发对账。无论存储形态如何（该项已 Deferred），该行为语义都是需求级缺口：不处理则派生关联指向渠道已不再提供的模型（运行期失败）；处理则上游列表抖动可能批量禁用生产关联。",
+      "evidence": "internal/server/biz/channel_model_sync.go:21-28（60 分钟周期、auto_sync_supported_models=true 筛选）、:101-120（removedModels 直接从 supported_models 移除）；文档 R3、Dependencies/Assumptions（\"派生触发点在渠道保存与一键同步渠道两处\"）未覆盖此路径。",
+      "suggested_fix": "补充需求条目：定义后台 auto-sync 增删模型时对能力声明与派生关联的语义（视为声明变更并对账，或声明与 supported_models 解耦、auto-sync 不影响声明），并明确该路径是否/如何触发派生对账与提示。"
+    },
+    {
+      "title": "渠道删除时派生关联的生命周期未定义，会产生永久孤儿条目",
+      "severity": "medium",
+      "category": "coverage",
+      "description": "R6/KTD6 只覆盖\"渠道保存时撤销声明\"的场景。渠道被整体删除时：现状 DeleteChannel 不清理模型 protocolPools 中指向该渠道的关联；而按 KTD6/KTD7 派生逻辑永不删除条目、对账又只在渠道保存与一键同步时触发（已删渠道不会再保存），被删渠道留下的 auto 派生条目将永久滞留；且 R6a 校验要求\"渠道当前声明了该模型\"，渠道不存在则永远校验失败，条目无法启用也无法被派生处置。手配条目今天有同样问题，但本功能会让派生条目批量出现，文档的派生生命周期叙事对此完全沉默。",
+      "evidence": "internal/server/biz/channel.go:890（DeleteChannel 无 protocolPools 级联清理）；文档 R6/R6a/KTD6/KTD7 与 Dependencies 的触发点列表均未提渠道删除。",
+      "suggested_fix": "补充渠道删除场景的需求：派生条目是随渠道删除被清理，还是保留禁用+原因（并定义此时 R6a 校验语义）；若保留，说明 UI 如何呈现已不存在渠道的条目。"
+    },
+    {
+      "title": "启用普通派生条目是否转手动未定义，R6 可静默禁用正在服务的 auto 条目",
+      "severity": "low",
+      "category": "ambiguity",
+      "description": "状态机只在 R6a（撤销禁用后重新启用）路径定义\"转手动条目\"。用户通过 R9/R11（一键批量启用）启用一条从未被撤销的普通派生条目后，它是否仍为 auto 未说明。按字面推导：仍是 auto → 之后渠道撤销该协议时 R6 会把它禁用（可能正在承接生产流量），用户需再走 R6a 才能转手动。这个闭环逻辑上自洽，但文档没有一句话明确\"启用普通派生条目不改变其 auto 属性\"，实现者和配置者都容易误解（尤其 R11 的批量启用是主接入路径）。",
+      "evidence": "文档 R6（\"对应派生关联置为禁用\"未区分是否已被用户启用）、R6a、R9、R11 与 KTD9 的组合；转手动仅出现在撤销-重启用路径。",
+      "suggested_fix": "在 R9/R11 或状态机描述中明确：启用普通派生条目不转为手动，auto 条目始终受 R6/R7 对账处置；转手动仅发生在 R6a 路径。"
+    },
+    {
+      "title": "AE 未覆盖 R10（一键同步渠道）与 R11（批量启用提示），R12/R14 仅隐含",
+      "severity": "low",
+      "category": "consistency",
+      "description": "R10 与 R11 各是独立需求且有独立流程（F2/F1），但 Acceptance Examples 中没有对应验收样例；R12（运行期语义一致）与 R14（白名单约束）只靠 Success Criteria 一句话隐含覆盖。AE2 的\"渠道重新声明后重新启用成功转手动\"组合了 R7+R6a，覆盖良好，但一键同步的幂等/去重表现（F2 声称 covers R5/R8）缺少可执行的验收锚点。",
+      "evidence": "文档 Acceptance Examples AE1-AE5 与 Requirements R10/R11/R12/R14 的对照；F2 的 Covers 列表无对应 AE。",
+      "suggested_fix": "补充至少两个 AE：一键同步渠道为已有派生/手动关联的模型刷新时不重复不覆盖（对应 R10/R5/R8）；渠道保存新增模型后出现\"新增 N 个\"提示且批量启用生效（对应 R11）。"
+    }
+  ],
+  "summary": "文档内部 KTD/R/AE 基本自洽（KTD6/7/9 与 R6/R6a/R7 状态机闭环），但对照代码存在两个 high 级覆盖缺口：派生与 developer settings 继承机制（EffectiveModelProtocolPools）完全未定义、auto_sync_supported_models 后台同步与声明/派生交互未定义；另有渠道删除生命周期缺失（medium）与两处低级别歧义/验收覆盖问题。"
+}
