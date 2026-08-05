@@ -9,7 +9,7 @@ This file provides guidance to AI coding assistants when working with code in th
 1. Do NOT run lint or build commands unless explicitly requested by the user.
 2. Do NOT restart the development server — it's already started and managed.
 3. All summary files should be stored in `.agent/summary` directory if available.
-4. **dev / prod 启停、构建、部署、日志统一走 Makefile target**。禁止在 `scripts/` 下新增 `start.sh` / `stop.sh` / `dev-*.sh` 之类的包装脚本（这类脚本与 Makefile 二选一，不要两边都有）。需要直调 docker compose 时也走 `make` 包装的 target，不要裸调 `docker compose`。
+4. **dev / prod 启停、构建、部署、日志统一走 Makefile target**。禁止在 `scripts/` 下新增 `start.sh` / `stop.sh` / `dev-*.sh` 之类的包装脚本（这类脚本与 Makefile 二选一，不要两边都有）。需要直调 docker compose 时也走 `make` 包装的 target，不要裸调 `docker compose`。**所有 `start` / `dev-up` 都先停掉同名容器再启新容器**（幂等部署），不要假设之前未启动。
 
 ### 开发约定
 
@@ -107,11 +107,12 @@ llm-proxy 是基于原 AxonHub 核心能力维护的统一 AI 网关（前身名
 
 | 命令 | 说明 |
 |---|---|
-| `make start` | 构建 + 启动 prod 容器（端口 8090，使用 `docker-compose.yml`） |
+| `make start` | **幂等部署**：先停掉已有 `llm-proxy` 容器，再 build + up 新容器（端口 8090） |
 | `make stop` | 停止 prod 容器（保留镜像） |
 | `make restart` | 重新创建 prod 容器 |
 | `make logs` | tail prod 容器日志 |
-| `make dev-up` | 构建 + 启动 dev 容器（端口 18090，使用 `docker-compose.dev.yml` + `.env.dev`） |
+| `make status` | 查看 prod / dev 容器运行状态 |
+| `make dev-up` | **幂等部署**：先停掉已有 `llm-proxy-dev` 容器，再 build + up 新容器（端口 18090） |
 | `make dev-down` | 停止并删除 dev 容器 |
 | `make dev-logs` | tail dev 容器日志 |
 | `make dev-restart` | 重新创建 dev 容器 |

@@ -5,7 +5,7 @@
 	sync-faq sync-models filter-logs \
 	lint lint-privacy \
 	generate-schema \
-	start stop restart logs \
+	start stop restart logs status \
 	dev-up dev-down dev-logs dev-restart dev-clean dev-frontend dev
 
 # Generate GraphQL and Ent code
@@ -164,21 +164,35 @@ lint-all:
 generate-schema:
 
 # ── Production (docker-compose.yml, port 8090) ─────────────────
-start:        ## Build + start prod llm-proxy (port 8090)
+start:        ## Stop any running prod, then build + start fresh (port 8090)
+	@if docker ps --format '{{.Names}}' | grep -qx 'llm-proxy'; then \
+		echo "==> Stopping existing llm-proxy container..."; \
+		docker compose stop llm-proxy; \
+		docker compose rm -f llm-proxy; \
+	fi
 	docker compose build llm-proxy
 	docker compose up -d llm-proxy
 
 stop:         ## Stop prod container (keeps image)
 	docker compose stop llm-proxy
 
-restart:      ## Recreate prod container
+restart:      ## Force-recreate prod container
 	docker compose up -d --force-recreate llm-proxy
 
 logs:         ## Tail prod container logs
 	docker compose logs -f llm-proxy
 
+status:       ## Show prod + dev container status
+	@echo "== prod =="; docker ps -a --filter 'name=llm-proxy$$' --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' || true
+	@echo "== dev ==";  docker ps -a --filter 'name=llm-proxy-dev' --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' || true
+
 # ── Development (docker-compose.dev.yml, port 18090) ─────────
-dev-up:       ## Build + start dev llm-proxy (port 18090)
+dev-up:       ## Stop any running dev, then build + start fresh (port 18090)
+	@if docker ps --format '{{.Names}}' | grep -qx 'llm-proxy-dev'; then \
+		echo "==> Stopping existing llm-proxy-dev container..."; \
+		docker compose -f docker-compose.dev.yml stop llm-proxy; \
+		docker compose -f docker-compose.dev.yml rm -f llm-proxy; \
+	fi
 	docker compose -f docker-compose.dev.yml build llm-proxy
 	docker compose -f docker-compose.dev.yml up -d llm-proxy
 
@@ -188,7 +202,7 @@ dev-down:     ## Stop + remove dev container
 dev-logs:     ## Tail dev container logs
 	docker compose -f docker-compose.dev.yml logs -f llm-proxy
 
-dev-restart:  ## Recreate dev container
+dev-restart:  ## Force-recreate dev container
 	docker compose -f docker-compose.dev.yml up -d --force-recreate llm-proxy
 
 dev-clean:    ## Stop dev + remove dev image (drops dev DB manually: DROP DATABASE "llm-proxy-dev")
