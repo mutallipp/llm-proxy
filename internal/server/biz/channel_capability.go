@@ -152,22 +152,25 @@ func validateMergedProtocolCapabilities(ch *ent.Channel, capabilities objects.Ch
 
 // channelSupportsProtocolFamily 判断端点是否具备协议族的完整端点能力。
 func channelSupportsProtocolFamily(resolvedEndpoints []objects.ChannelEndpoint, family string) bool {
-	prefix, ok := protocolPoolEndpointAPIPrefixes[family]
+	prefixes, ok := protocolPoolEndpointAPIPrefixes[family]
 	if !ok {
 		return false
 	}
 	for _, endpoint := range resolvedEndpoints {
-		if strings.HasPrefix(endpoint.APIFormat, prefix) {
-			return true
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(endpoint.APIFormat, prefix) {
+				return true
+			}
 		}
 	}
 
 	return false
 }
 
-var protocolPoolEndpointAPIPrefixes = map[string]string{
-	"openai":    "openai/",
-	"anthropic": "anthropic/",
+var protocolPoolEndpointAPIPrefixes = map[string][]string{
+	"openai":           {"openai/chat_completions"},
+	"openai_responses": {"openai/responses"},
+	"anthropic":        {"anthropic/"},
 }
 
 func resolveChannelEndpoints(ch *ent.Channel) []objects.ChannelEndpoint {

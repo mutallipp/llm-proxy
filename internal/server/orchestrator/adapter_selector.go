@@ -92,11 +92,8 @@ func (s *AdapterCandidateSelector) resolveAdapter(ctx context.Context) (*objects
 // normalizeProtocolPoolKey 将完整 APIFormat 归一化为模型协议池 key。
 // 未知协议保持原值，避免误用其他协议池。
 func normalizeProtocolPoolKey(apiFormat string) string {
-	protocol, _, ok := strings.Cut(apiFormat, "/")
-	if ok {
-		if _, supported := objects.SupportedInboundAPIFormats[protocol]; supported {
-			return protocol
-		}
+	if protocol, ok := objects.ProtocolPoolKeyForAPIFormat(apiFormat); ok {
+		return protocol
 	}
 
 	return apiFormat

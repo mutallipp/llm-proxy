@@ -21,7 +21,7 @@ deepened: true
 
 ### Summary
 
-把"模型走哪个协议"的事实来源从 Model 侧人工配置改为渠道侧声明：渠道先多选支持的协议族（须与端点实际能力一致），添加的模型默认继承全部协议、可逐个去掉；保存后系统按同名精确匹配为逻辑模型派生协议池关联（默认禁用、带自动标记）。派生条目一经用户启用即转为手动条目，脱离自动对账处置；任何启用操作都须通过渠道能力校验。Model 侧只做启停、优先级和例外手动配置；存量显式关联零迁移继续生效。
+把"模型走哪个协议"的事实来源从 Model 侧人工配置改为渠道侧声明：渠道先多选支持的协议族（须与端点实际能力一致），添加的模型默认继承全部协议、可逐个去掉；保存后系统按同名精确匹配为逻辑模型派生协议池关联（默认禁用、带自动标记）。派生条目一经用户启用即转为手动条目，脱离自动对账处置；任何启用操作都须通过渠道能力校验。Model 侧只做启停、优先级和例外手动配置；旧 `openai` 协议池拆分为 Chat Completions 与 Responses 时，存量关联自动复制且不丢失既有路由。
 
 ### Problem Frame
 
@@ -52,7 +52,7 @@ deepened: true
 
 **渠道能力声明**
 
-- R1. 渠道编辑侧可多选该渠道支持的协议族；可选项限定为协议池 key 白名单（当前 openai/anthropic）。
+- R1. 渠道编辑侧可多选该渠道支持的协议族；可选项限定为协议池 key 白名单（当前 openai、openai_responses、anthropic）。
 - R1a. 声明与端点能力一致性：勾选协议族时校验渠道端点（含按类型推导的默认端点）具备该协议族的完整格式；不具备则拒绝勾选并提示原因。声明与端点冲突时以端点能力为准。
 - R1b. 端点变更复核：渠道端点配置单独保存后，对既有声明按新端点能力复核；不再被端点支持的声明自动按撤销处理（触发撤销对账，R6）并提示。
 - R2. 渠道添加模型（能力编辑器内：手动添加或拉取模型列表）时，新模型默认继承渠道当前勾选的全部协议；可对单个模型去掉某个协议。逐模型例外持久保存，渠道级协议取消后重新勾选不自动恢复曾有例外的模型的该协议。（实施层收窄见 KTD14：继承只发生在能力表写入面。）
@@ -84,8 +84,8 @@ deepened: true
 **运行时与兼容**
 
 - R15. 运行时路由读取 protocolPools 的逻辑不变；派生条目与手动条目在运行期语义完全一致。
-- R16. 存量显式关联（含 developer 继承层）全部视为手动条目，原样生效，零数据迁移；派生逻辑只写模型级 settings，不触碰其他层。
-- R17. 渠道协议声明与派生均受协议池 key 白名单约束（当前 openai/anthropic）；白名单本身本次不扩展。
+- R16. 存量显式关联（含 developer 继承层）全部视为手动条目，原样生效；协议池拆分迁移将旧 `openai` 关联复制到 `openai_responses`，不删除或重置原条目、不丢失既有 Responses 路由；后续派生逻辑仍只写模型级 settings，不触碰 developer 层。
+- R17. 渠道协议声明与派生均受协议池 key 白名单约束（当前 openai、openai_responses、anthropic）；Gemini、Ollama 等其他协议白名单本次不扩展。
 
 ### Key Flows
 
@@ -135,10 +135,10 @@ deepened: true
 **In scope:** 渠道协议能力声明与存储、声明/启用校验、派生对账服务（含 auto_sync 联动、渠道删除/归档、模型重命名语义）、Model 侧派生条目展示与启停/优先级/编辑转手动、一键同步渠道按钮、一键批量启用入口、撤销声明的禁用+原因提示。
 
 **Out of scope:**
-- 新增协议族（gemini/ollama 等进入协议池白名单）——另开任务。
+- 新增协议族（gemini/ollama 等进入协议池白名单）——另开任务；OpenAI Responses 已纳入本次协议池白名单。
 - Adapter 绑定结构变更（仍为 source_model_id -> model_id）。
 - Endpoints 配置界面重构（仅定位调整为高级覆盖）。
-- 存量显式关联的批量迁移或转换。
+- 除 OpenAI 协议池拆分兼容迁移外，其他存量显式关联的批量迁移或转换。
 - regex/tags 类高级关联类型的行为变化。
 - 事件驱动配置刷新（发布订阅）机制本身的建设——相邻独立工作，见 How This Work Fits Together。
 
@@ -199,8 +199,8 @@ deepened: true
 ### Technical Design（要点）
 
 - **数据流**：能力保存 → reconcile → 写各 model.settings.protocolPools（auto 条目）；请求路由链路（candidates.go:164）不修改（R15）。ModelService 无缓存，派生写入即时生效；ChannelService 运行时渠道缓存不含模型 settings，无需失效处理。
-- **端点族判断**：`channelSupportsProtocolFamily(resolvedEndpoints, family)` 按前缀语义与前端 `protocolPoolEndpointApiFormatPrefixes` 一致（openai→`openai/`，anthropic→`anthropic/`），R1a/R1b/R6a 共用。
-- **迁移**：新 JSON 字段由 ent 启动自动迁移处理（`internal/server/db/ent.go` 的 `client.Schema.Create`，WithDropColumn 已开），字段声明加 entgql.Skip 避免进入 ent.graphql 与 Create/UpdateChannelInput；旧渠道空能力即现状行为，无需数据回填、无需手写 SQL。
+- **端点族判断**：`channelSupportsProtocolFamily(resolvedEndpoints, family)` 按协议映射与前端 `protocolPoolEndpointApiFormatPrefixes` 一致（openai→`openai/chat_completions`，openai_responses→`openai/responses`/`openai/responses_compact`，anthropic→`anthropic/`），R1a/R1b/R6a 共用。
+- **迁移**：新 JSON 字段由 ent 启动自动迁移处理（`internal/server/db/ent.go` 的 `client.Schema.Create`，WithDropColumn 已开），字段声明加 entgql.Skip 避免进入 ent.graphql 与 Create/UpdateChannelInput；beta7 数据迁移将旧 `openai` 关联复制到 `openai_responses`，并按渠道实际端点拆分旧能力声明；不手写 SQL。
 - **渠道复制语义**：DuplicateChannel 不复制能力声明（能力是渠道账号×上游的客观事实，新渠道需重新声明），避免静默复制而无派生。
 - **并发**：事务内 read-modify-write merge；SQLite 单写者竞争窗口小；不引入乐观锁（已知限制：极端并发下后写覆盖，merge 只触碰 auto 条目降低损失面）。
 - **触发点装配**：saveChannelCapabilities（R3/R6/R7/R11）、SaveChannelEndpoints 后（R1b 复核，撤销统计经 payload 返回）、channel_model_sync.go 同步成功处（R12）、DeleteChannel 与 BulkDeleteChannels（R13 清理，共用 U4 清理函数）、deriveModelAssociations（R10 增量）。

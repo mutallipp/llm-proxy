@@ -15,6 +15,7 @@ import (
 
 func TestValidateProtocolCapabilities(t *testing.T) {
 	openAIChannel := (&entChannelForCapabilityTest{Type: channel.TypeOpenai}).Channel()
+	responsesChannel := (&entChannelForCapabilityTest{Type: channel.TypeOpenaiResponses}).Channel()
 	if err := validateProtocolCapabilities(openAIChannel, []string{"gemini"}, nil); err == nil {
 		t.Fatal("unsupported protocol should be rejected")
 	}
@@ -23,6 +24,12 @@ func TestValidateProtocolCapabilities(t *testing.T) {
 	}
 	if err := validateProtocolCapabilities(openAIChannel, []string{"openai"}, []objects.ChannelModelCapability{{ModelID: "model-a", Protocols: []string{"anthropic"}}}); err == nil {
 		t.Fatal("model protocol outside channel declaration should be rejected")
+	}
+	if err := validateProtocolCapabilities(responsesChannel, []string{"openai_responses"}, nil); err != nil {
+		t.Fatalf("openai responses protocol should be supported: %v", err)
+	}
+	if err := validateProtocolCapabilities(responsesChannel, []string{"openai"}, nil); err == nil {
+		t.Fatal("chat completions should not be declared without a chat endpoint")
 	}
 }
 
@@ -108,6 +115,42 @@ func TestSaveProtocolCapabilitiesDerivesMatchingModel(t *testing.T) {
 	association := updated.Settings.ProtocolPools["openai"][0]
 	if !association.Auto || !association.Disabled || association.ChannelModel.ModelID != "model-a" {
 		t.Fatalf("unexpected derived association: %#v", association)
+	}
+}
+
+func TestSaveProtocolCapabilitiesDerivesOpenAIResponsesAssociation(t *testing.T) {
+	client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=0")
+	defer client.Close()
+	ctx := authz.WithTestBypass(context.Background())
+	svc := NewChannelServiceForTest(client)
+
+	logicalModel := createLogicalModelForDerivationTest(t, client, ctx, "model-a")
+	ch, err := client.Channel.Create().
+		SetType(channel.TypeOpenaiResponses).
+		SetName("responses-channel").
+		SetCredentials(objects.ChannelCredentials{}).
+		SetSupportedModels([]string{"model-a"}).
+		SetDefaultTestModel("model-a").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("create channel: %v", err)
+	}
+
+	if _, err := svc.SaveProtocolCapabilities(ctx, SaveChannelCapabilitiesInput{
+		ChannelID:         objects.GUID{ID: ch.ID},
+		DeclaredProtocols: []string{"openai_responses"},
+		Models:            []objects.ChannelModelCapability{{ModelID: "model-a", Protocols: []string{"openai_responses"}}},
+	}); err != nil {
+		t.Fatalf("save capabilities: %v", err)
+	}
+
+	updated, err := client.Model.Get(ctx, logicalModel.ID)
+	if err != nil {
+		t.Fatalf("get model: %v", err)
+	}
+	associations := updated.Settings.ProtocolPools["openai_responses"]
+	if len(associations) != 1 || !associations[0].Auto || !associations[0].Disabled {
+		t.Fatalf("unexpected responses association: %#v", associations)
 	}
 }
 

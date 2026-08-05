@@ -16,7 +16,11 @@ import {
   type Channel,
   type SaveChannelCapabilitiesInput,
 } from '../data/schema';
-import { channelSupportsProtocolPool, protocolPoolFormats } from '@/features/models/data/protocol-pools';
+import {
+  channelSupportsProtocolPool,
+  protocolPoolFormats,
+  protocolPoolLabelKeys,
+} from '@/features/models/data/protocol-pools';
 
 type ProtocolPoolFormat = (typeof protocolPoolFormats)[number];
 
@@ -199,7 +203,7 @@ export function ChannelsCapabilityDialog({ channel, open, onOpenChange }: Props)
                         onCheckedChange={(checked) => handleProtocolChange(protocol, checked === true)}
                         disabled={!supported}
                       />
-                      <span>{protocol}</span>
+                      <span>{t(protocolPoolLabelKeys[protocol])}</span>
                       {!supported && <Badge variant='outline'>{t('channels.capability.protocols.endpointMissing')}</Badge>}
                     </label>
                   );

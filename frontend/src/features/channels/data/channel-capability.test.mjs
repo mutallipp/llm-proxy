@@ -11,10 +11,13 @@ function parseLocale(locale) {
   return JSON.parse(read(`locales/${locale}/channels.json`));
 }
 
-test('channel capability editor uses the protocol-pool whitelist and inherited exceptions', () => {
+test('channel capability editor uses the three protocol-pool keys and inherited exceptions', () => {
   const schema = read('features/channels/data/schema.ts');
   const dialog = read('features/channels/components/channels-capability-dialog.tsx');
+  const protocolPools = read('features/models/data/protocol-pools.ts');
 
+  assert.match(protocolPools, /\['openai', 'openai_responses', 'anthropic'\]/);
+  assert.match(protocolPools, /openai_responses: \['openai\/responses'\]/);
   assert.match(schema, /protocolPoolFormats/);
   assert.match(schema, /saveChannelCapabilitiesInputSchema/);
   assert.match(dialog, /protocolPoolFormats\.map/);
@@ -31,6 +34,9 @@ test('channel capability locales stay aligned for save results and endpoint revi
     'channels.capability.revoked.autoDisabled',
     'channels.capability.revoked.manualNotice',
     'channels.capability.bulkEnable.button',
+    'channels.capability.protocols.openai',
+    'channels.capability.protocols.openaiResponses',
+    'channels.capability.protocols.anthropic',
   ]) {
     assert.equal(typeof en[key], 'string');
     assert.equal(typeof zh[key], 'string');

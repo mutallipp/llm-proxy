@@ -45,8 +45,26 @@ type ModelSettings struct {
 
 // SupportedInboundAPIFormats 是协议池允许的入站协议。协议池 key 同时决定出站协议。
 var SupportedInboundAPIFormats = map[string]struct{}{
-	"openai":    {},
-	"anthropic": {},
+	"openai":           {},
+	"openai_responses": {},
+	"anthropic":        {},
+}
+
+// inboundAPIFormatProtocolPoolKeys 将完整入站 API 格式映射到协议池 key。
+// Responses 与 responses_compact 共用同一个协议池。
+var inboundAPIFormatProtocolPoolKeys = map[string]string{
+	"openai/chat_completions":  "openai",
+	"openai/chat/completions":  "openai",
+	"openai/responses":         "openai_responses",
+	"openai/responses_compact": "openai_responses",
+	"anthropic/messages":       "anthropic",
+}
+
+// ProtocolPoolKeyForAPIFormat 返回完整入站 API 格式对应的协议池 key。
+func ProtocolPoolKeyForAPIFormat(apiFormat string) (string, bool) {
+	protocol, ok := inboundAPIFormatProtocolPoolKeys[apiFormat]
+
+	return protocol, ok
 }
 
 // IsSupportedInboundAPIFormat 判断协议池 key 是否在当前支持的协议族白名单内。
