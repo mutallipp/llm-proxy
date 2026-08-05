@@ -180,7 +180,7 @@ export function ChannelsCapabilityDialog({ channel, open, onOpenChange }: Props)
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className='grid max-h-[90vh] min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-3xl'>
+      <DialogContent data-testid='capability-dialog' className='grid max-h-[90vh] min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-3xl'>
         <DialogHeader className='min-h-0 text-left'>
           <DialogTitle>{t('channels.capability.title')}</DialogTitle>
           <DialogDescription>{t('channels.capability.description')}</DialogDescription>
@@ -199,6 +199,8 @@ export function ChannelsCapabilityDialog({ channel, open, onOpenChange }: Props)
                   return (
                     <label key={protocol} className='flex items-center gap-2 rounded-md border px-3 py-2 text-sm'>
                       <Checkbox
+                        data-testid='capability-protocol-checkbox'
+                        data-protocol={protocol}
                         checked={declaredProtocols.includes(protocol)}
                         onCheckedChange={(checked) => handleProtocolChange(protocol, checked === true)}
                         disabled={!supported}
@@ -238,6 +240,9 @@ export function ChannelsCapabilityDialog({ channel, open, onOpenChange }: Props)
                         {protocolPoolFormats.map((protocol) => (
                           <label key={protocol} className='flex items-center gap-2 text-sm'>
                             <Checkbox
+                              data-testid='capability-model-protocol-checkbox'
+                              data-model={modelId}
+                              data-protocol={protocol}
                               checked={(modelProtocols[modelId] ?? []).includes(protocol)}
                               onCheckedChange={(checked) => handleModelProtocolChange(modelId, protocol, checked === true)}
                               disabled={!declaredProtocols.includes(protocol)}
@@ -253,20 +258,20 @@ export function ChannelsCapabilityDialog({ channel, open, onOpenChange }: Props)
             </section>
 
             {error && (
-              <div className='text-destructive bg-destructive/10 flex items-center gap-2 rounded-md px-3 py-2 text-sm'>
+              <div data-testid='capability-error' className='text-destructive bg-destructive/10 flex items-center gap-2 rounded-md px-3 py-2 text-sm'>
                 <AlertCircle className='h-4 w-4 shrink-0' />
                 {error}
               </div>
             )}
 
             {summary && (
-              <section className='space-y-2 rounded-md border border-green-500/30 bg-green-500/5 p-3 text-sm'>
+              <section data-testid='capability-summary' className='space-y-2 rounded-md border border-green-500/30 bg-green-500/5 p-3 text-sm'>
                 <p className='flex items-center gap-2 font-medium'><Check className='h-4 w-4 text-green-600' />{t('channels.capability.saved', { count: summary.addedCount })}</p>
                 {summary.unmatchedModels.length > 0 && <p>{t('channels.capability.unmatched', { models: summary.unmatchedModels.join(', ') })}</p>}
                 {summary.autoDisabledCount > 0 && <p>{t('channels.capability.revoked.autoDisabled', { count: summary.autoDisabledCount })}</p>}
                 {summary.manualNotices.map((notice) => <p key={notice}>{t('channels.capability.revoked.manualNotice', { notice })}</p>)}
                 {summary.addedCount > 0 && (
-                  <Button type='button' size='sm' variant='outline' onClick={handleBulkEnable} disabled={bulkEnable.isPending}>
+                  <Button data-testid='capability-bulk-enable' type='button' size='sm' variant='outline' onClick={handleBulkEnable} disabled={bulkEnable.isPending}>
                     {t('channels.capability.bulkEnable.button')}
                   </Button>
                 )}
@@ -279,7 +284,7 @@ export function ChannelsCapabilityDialog({ channel, open, onOpenChange }: Props)
 
         <DialogFooter className='min-h-0 border-t bg-background pt-4'>
           <Button variant='outline' onClick={() => onOpenChange(false)}>{t('common.buttons.cancel')}</Button>
-          <Button onClick={handleSave} disabled={saveCapabilities.isPending}>{t('common.buttons.save')}</Button>
+          <Button data-testid='capability-save' onClick={handleSave} disabled={saveCapabilities.isPending}>{t('common.buttons.save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -8,6 +8,18 @@ globs: "frontend/tests/**/*.ts, scripts/e2e/**/*.sh"
 1. 为稳定定位元素添加 `data-testid`。
 2. 本地前端登录优先从环境变量读取账号，不把真实凭据写入代码、文档、日志或提交。现有 Playwright 配置使用 `LLM_PROXY_ADMIN_EMAIL`、`LLM_PROXY_ADMIN_PASSWORD`；未配置时才使用测试夹具约定的本地默认值 `my@example.com` / `pwd123456`。
 
+## 变更必跑 E2E（2026-08-06）
+
+1. 任何新增功能或修改既有功能的提交，必须在 `frontend/tests/` 补上对应的 E2E 用例（创建/编辑/删除/状态切换/错误状态等关键路径），与单元/集成测试同步进入同一改动。未经 E2E 覆盖的功能不得宣称完成。
+2. 运行命令统一使用仓库内置脚本，不调用项目外的 `pnpm exec`/`npm exec`：
+
+```bash
+./scripts/e2e/e2e-test.sh --project=chromium <spec file>
+```
+
+3. 全局 Playwright 与浏览器由本机全局安装提供（`playwright --version` 应为 `1.58.2`）；不下载项目本地浏览器副本。脚本启动 Vite dev server（端口 9527）并清理后端，无需额外手动启动服务。
+4. E2E 中只允许使用项目白名单凭据（环境变量优先、夹具默认值兜底），不允许把真实凭据、测试账号密码硬编码到 spec、组件或 fixtures。
+
 ## Adapter Gateway 定向验证（2026-08-02）
 
 ### 定向测试命令
