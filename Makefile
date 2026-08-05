@@ -164,38 +164,37 @@ lint-all:
 generate-schema:
 
 # ── Production (docker-compose.yml, port 8090) ─────────────────
+# 底层逻辑在 scripts/*.sh 里；Makefile 只是便捷入口
 start:        ## Build + start prod llm-proxy (port 8090)
-	docker compose build llm-proxy
-	docker compose up -d llm-proxy
+	./scripts/start.sh
 
 stop:         ## Stop prod container (keeps image)
-	docker compose stop llm-proxy
+	./scripts/stop.sh
 
 restart:      ## Recreate prod container
-	docker compose up -d --force-recreate llm-proxy
+	./scripts/restart.sh
 
 logs:         ## Tail prod container logs
-	docker compose logs -f llm-proxy
+	./scripts/logs.sh
 
 # ── Development (docker-compose.dev.yml, port 18090) ─────────
 dev-up:       ## Build + start dev llm-proxy (port 18090)
-	docker compose -f docker-compose.dev.yml build llm-proxy
-	docker compose -f docker-compose.dev.yml up -d llm-proxy
+	./scripts/dev-up.sh
 
 dev-down:     ## Stop + remove dev container
-	docker compose -f docker-compose.dev.yml down
+	./scripts/dev-down.sh
 
 dev-logs:     ## Tail dev container logs
-	docker compose -f docker-compose.dev.yml logs -f llm-proxy
+	./scripts/dev-logs.sh
 
 dev-restart:  ## Recreate dev container
-	docker compose -f docker-compose.dev.yml up -d --force-recreate llm-proxy
+	./scripts/dev-restart.sh
 
-dev-clean:    ## Stop dev + remove dev image (drops dev DB manually: DROP DATABASE "llm-proxy-dev")
-	docker compose -f docker-compose.dev.yml down --rmi local
+dev-clean:    ## Stop dev + remove dev image
+	./scripts/dev-clean.sh
 
 dev-frontend: ## Run frontend Vite dev server (assumes dev backend on 18090)
-	cd frontend && VITE_API_URL=http://localhost:18090 pnpm dev --port 15173
+	./scripts/dev-frontend.sh
 
 dev:          ## Start dev backend, then run Vite dev in foreground (Ctrl+C exits frontend; run dev-down to stop backend)
 	@echo "Starting dev backend on :18090 (Ctrl+C exits frontend only, run 'make dev-down' to stop backend)..."

@@ -102,6 +102,10 @@ llm-proxy 是基于原 AxonHub 核心能力维护的统一 AI 网关（前身名
 
 ## 本地开发与部署脚本
 
+两层入口：**Makefile** 是便捷别名，**`scripts/*.sh`** 是实际逻辑（可被 CI 或其他工具直接调用）。
+
+### Makefile 入口
+
 | 命令 | 说明 |
 |---|---|
 | `make start` | 构建 + 启动 prod 容器（端口 8090，使用 `docker-compose.yml`） |
@@ -116,7 +120,28 @@ llm-proxy 是基于原 AxonHub 核心能力维护的统一 AI 网关（前身名
 | `make dev-frontend` | 本地起 Vite dev（端口 15173，代理到 18090） |
 | `make dev` | 一键：起 dev 后端 + 前台跑 Vite（Ctrl+C 退出前端后需 `make dev-down` 停后端） |
 
+### `scripts/` 脚本（被 Makefile 调用，也可独立运行）
+
+| 脚本 | 对应 make | 用途 |
+|---|---|---|
+| `scripts/start.sh` | `make start` | build + up prod 容器 |
+| `scripts/stop.sh` | `make stop` | stop prod 容器（保留镜像） |
+| `scripts/restart.sh` | `make restart` | 重建 prod 容器（不重 build） |
+| `scripts/logs.sh` | `make logs` | tail prod 容器日志 |
+| `scripts/dev-up.sh` | `make dev-up` | build + up dev 容器（需要 `.env.dev`） |
+| `scripts/dev-down.sh` | `make dev-down` | 销毁 dev 容器 |
+| `scripts/dev-logs.sh` | `make dev-logs` | tail dev 容器日志 |
+| `scripts/dev-restart.sh` | `make dev-restart` | 重建 dev 容器 |
+| `scripts/dev-clean.sh` | `make dev-clean` | 销毁 dev 容器 + 删 dev 镜像（不动 DB） |
+| `scripts/dev-frontend.sh` | `make dev-frontend` | 启动 Vite dev（端口 15173） |
+
+修改启动逻辑时改 `scripts/*.sh`，不要动 Makefile。
+
 dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。
+
+## 已知问题（不阻塞部署）
+
+- `internal/server/biz/webhook_notifier_test.go:93` — `TestWebhookNotifier_NotifyChannelAutoDisabled` 偶发失败，模板解析返回 `template: webhook:1: unexpected EOF`，与本次品牌改名无关（改名前已存在）。待后续修 webhook 渲染逻辑时同步处理。
 
 ## Rules Index
 
