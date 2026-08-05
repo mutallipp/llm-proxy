@@ -19,7 +19,7 @@
           "type": "function",
           "function": {
             "name": "shell_command",
-            "arguments": "{\"command\": \"git status\", \"workdir\": \"axonhub\"}"
+            "arguments": "{\"command\": \"git status\", \"workdir\": \"llm-proxy\"}"
           }
         }
       ]

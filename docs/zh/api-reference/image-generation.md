@@ -2,7 +2,7 @@
 
 ## 概述
 
-AxonHub 通过 OpenAI 兼容的 `/v1/images/generations` 端点支持图像生成功能。
+llm-proxy 通过 OpenAI 兼容的 `/v1/images/generations` 端点支持图像生成功能。
 
 **注意**：图像生成目前不支持流式传输。
 
@@ -16,7 +16,7 @@ AxonHub 通过 OpenAI 兼容的 `/v1/images/generations` 端点支持图像生�
 import requests
 import json
 
-url = "https://your-axonhub-instance/v1/images/generations"
+url = "https://your-llm-proxy-instance/v1/images/generations"
 headers = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
@@ -44,7 +44,7 @@ for image in result.get("data", []):
 ```
 
 ```typescript
-const response = await fetch("https://your-axonhub-instance/v1/images/generations", {
+const response = await fetch("https://your-llm-proxy-instance/v1/images/generations", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${API_KEY}`,
@@ -117,7 +117,7 @@ if (result.data) {
 ```python
 import requests
 
-url = "https://your-axonhub-instance/v1/images/edits"
+url = "https://your-llm-proxy-instance/v1/images/edits"
 headers = {
     "Authorization": f"Bearer {API_KEY}"
 }

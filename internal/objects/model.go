@@ -45,8 +45,33 @@ type ModelSettings struct {
 
 // SupportedInboundAPIFormats 是协议池允许的入站协议。协议池 key 同时决定出站协议。
 var SupportedInboundAPIFormats = map[string]struct{}{
-	"openai":    {},
-	"anthropic": {},
+	"openai":           {},
+	"openai_responses": {},
+	"anthropic":        {},
+}
+
+// inboundAPIFormatProtocolPoolKeys 将完整入站 API 格式映射到协议池 key。
+// Responses 与 responses_compact 共用同一个协议池。
+var inboundAPIFormatProtocolPoolKeys = map[string]string{
+	"openai/chat_completions":  "openai",
+	"openai/chat/completions":  "openai",
+	"openai/responses":         "openai_responses",
+	"openai/responses_compact": "openai_responses",
+	"anthropic/messages":       "anthropic",
+}
+
+// ProtocolPoolKeyForAPIFormat 返回完整入站 API 格式对应的协议池 key。
+func ProtocolPoolKeyForAPIFormat(apiFormat string) (string, bool) {
+	protocol, ok := inboundAPIFormatProtocolPoolKeys[apiFormat]
+
+	return protocol, ok
+}
+
+// IsSupportedInboundAPIFormat 判断协议池 key 是否在当前支持的协议族白名单内。
+func IsSupportedInboundAPIFormat(protocol string) bool {
+	_, ok := SupportedInboundAPIFormats[protocol]
+
+	return ok
 }
 
 // ValidateProtocolPools 校验协议池结构，避免旧 settings 被静默转换或写入非法协议。
@@ -102,6 +127,8 @@ type ModelAssociation struct {
 	Type             string                       `json:"type"`
 	Priority         int                          `json:"priority"` // Lower value = higher priority, default 0
 	Disabled         bool                         `json:"disabled"`
+	Auto             bool                         `json:"auto,omitempty"`
+	DisabledReason   string                       `json:"disabledReason,omitempty"`
 	When             *ModelAssociationWhen        `json:"when,omitempty"`
 	ChannelModel     *ChannelModelAssociation     `json:"channelModel"`
 	ChannelRegex     *ChannelRegexAssociation     `json:"channelRegex"`

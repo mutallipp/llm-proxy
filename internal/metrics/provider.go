@@ -24,7 +24,7 @@ func NewProvider(config Config) (*sdk.MeterProvider, error) {
 	if !config.Enabled {
 		meterProvider := sdk.NewMeterProvider()
 		otel.SetMeterProvider(meterProvider)
-		Meter = meterProvider.Meter("axonhub")
+		Meter = meterProvider.Meter("llm-proxy")
 
 		return meterProvider, nil
 	}
@@ -77,7 +77,7 @@ func NewProvider(config Config) (*sdk.MeterProvider, error) {
 	otel.SetMeterProvider(meterProvider)
 
 	// Create meter
-	Meter = meterProvider.Meter("axonhub")
+	Meter = meterProvider.Meter("llm-proxy")
 
 	return meterProvider, nil
 }

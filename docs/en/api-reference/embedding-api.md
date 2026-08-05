@@ -2,7 +2,7 @@
 
 ## Overview
 
-AxonHub provides comprehensive support for text and multimodal embedding generation through OpenAI-compatible and Jina AI-specific APIs.
+llm-proxy provides comprehensive support for text and multimodal embedding generation through OpenAI-compatible and Jina AI-specific APIs.
 
 ## Key Benefits
 
@@ -73,7 +73,7 @@ AxonHub provides comprehensive support for text and multimodal embedding generat
 import openai
 
 client = openai.OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -101,7 +101,7 @@ import (
 
 func main() {
     client := openai.NewClient(
-        option.WithAPIKey("your-axonhub-api-key"),
+        option.WithAPIKey("your-llm-proxy-api-key"),
         option.WithBaseURL("http://localhost:8090/v1"),
     )
 
@@ -140,7 +140,7 @@ import requests
 response = requests.post(
     "http://localhost:8090/jina/v1/embeddings",
     headers={
-        "Authorization": "Bearer your-axonhub-api-key",
+        "Authorization": "Bearer your-llm-proxy-api-key",
         "Content-Type": "application/json"
     },
     json={
@@ -160,7 +160,7 @@ The Embedding API uses Bearer token authentication:
 
 - **Header**: `Authorization: Bearer <your-api-key>`
 
-The API keys are managed through AxonHub's API Key management system.
+The API keys are managed through llm-proxy's API Key management system.
 
 ## Best Practices
 

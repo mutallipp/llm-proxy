@@ -204,8 +204,8 @@ func applyUserAgentPassThrough(outbound *PersistentOutboundTransformer, systemSe
 				}
 			}
 		} else {
-			// Pass-through disabled: use AxonHub's default User-Agent
-			request.Headers.Set("User-Agent", "axonhub/1.0")
+			// Pass-through disabled: use llm-proxy's default User-Agent
+			request.Headers.Set("User-Agent", "llm-proxy/1.0")
 		}
 
 		return request, nil

@@ -1,82 +1,82 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "axonhub.fullname" . }}
+  name: {{ include "llm-proxy.fullname" . }}
   labels:
-    {{- include "axonhub.labels" . | nindent 4 }}
-    app.kubernetes.io/component: axonhub
+    {{- include "llm-proxy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: llm-proxy
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.axonhub.replicaCount }}
+  replicas: {{ .Values.llm-proxy.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "axonhub.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: axonhub
+      {{- include "llm-proxy.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: llm-proxy
   template:
     metadata:
-      {{- with .Values.axonhub.podAnnotations }}
+      {{- with .Values.llm-proxy.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "axonhub.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: axonhub
+        {{- include "llm-proxy.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: llm-proxy
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "axonhub.serviceAccountName" . }}
+      serviceAccountName: {{ include "llm-proxy.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.axonhub.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.llm-proxy.podSecurityContext | nindent 8 }}
       {{- if .Values.postgresql.enabled }}
       initContainers:
         - name: wait-for-postgres
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z {{ include "axonhub.postgresql.serviceName" . }} 5432; do echo waiting for postgresql; sleep 2; done;']
+          command: ['sh', '-c', 'until nc -z {{ include "llm-proxy.postgresql.serviceName" . }} 5432; do echo waiting for postgresql; sleep 2; done;']
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            {{- toYaml .Values.axonhub.securityContext | nindent 12 }}
-          image: "{{ .Values.axonhub.image.repository }}:{{ .Values.axonhub.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.axonhub.image.pullPolicy }}
+            {{- toYaml .Values.llm-proxy.securityContext | nindent 12 }}
+          image: "{{ .Values.llm-proxy.image.repository }}:{{ .Values.llm-proxy.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.llm-proxy.image.pullPolicy }}
           env:
-            {{- range $key, $value := .Values.axonhub.env }}
+            {{- range $key, $value := .Values.llm-proxy.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.axonhub.service.port }}
+              containerPort: {{ .Values.llm-proxy.service.port }}
               protocol: TCP
           livenessProbe:
-            {{- toYaml .Values.axonhub.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.llm-proxy.livenessProbe | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.axonhub.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.llm-proxy.readinessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.axonhub.resources | nindent 12 }}
-          {{- if .Values.axonhub.persistence.enabled }}
+            {{- toYaml .Values.llm-proxy.resources | nindent 12 }}
+          {{- if .Values.llm-proxy.persistence.enabled }}
           volumeMounts:
             - name: data
               mountPath: /data
           {{- end }}
-      {{- with .Values.axonhub.nodeSelector }}
+      {{- with .Values.llm-proxy.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.axonhub.affinity }}
+      {{- with .Values.llm-proxy.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.axonhub.tolerations }}
+      {{- with .Values.llm-proxy.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.axonhub.persistence.enabled }}
+      {{- if .Values.llm-proxy.persistence.enabled }}
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: {{ include "axonhub.fullname" . }}-data
+            claimName: {{ include "llm-proxy.fullname" . }}-data
       {{- end }}

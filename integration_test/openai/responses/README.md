@@ -1,6 +1,6 @@
 # OpenAI Responses API Test Cases
 
-This directory contains comprehensive integration tests for the OpenAI **Responses API** using the `github.com/openai/openai-go/v3/responses` package against the AxonHub OpenAI-compatible `/v1/responses` endpoint.
+This directory contains comprehensive integration tests for the OpenAI **Responses API** using the `github.com/openai/openai-go/v3/responses` package against the llm-proxy OpenAI-compatible `/v1/responses` endpoint.
 
 ## Test Organization
 
@@ -100,7 +100,7 @@ go test -v ./integration_test/openai/responses -run "With(Temperature|TopP|MaxOu
 
 These tests rely on the same environment configuration as other OpenAI integration tests:
 
-- `TEST_AXONHUB_API_KEY` – AxonHub API key used by the OpenAI-compatible endpoints (required)
+- `TEST_LLM_PROXY_API_KEY` – llm-proxy API key used by the OpenAI-compatible endpoints (required)
 - `TEST_OPENAI_BASE_URL` – Base URL for the OpenAI-compatible API (defaults to `http://localhost:8090/v1`)
 - `TEST_MODEL` – Default model ID used for testing (defaults to `deepseek-chat`)
 - `TEST_TRACE_ID` – Optional trace ID for request tracing

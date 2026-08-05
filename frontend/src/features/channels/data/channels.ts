@@ -13,7 +13,11 @@ import {
   UpdateChannelInput,
   channelConnectionSchema,
   channelSchema,
-  channelEndpointsResponseSchema,
+  saveChannelEndpointsPayloadSchema,
+  saveChannelCapabilitiesPayloadSchema,
+  bulkEnableDerivedAssociationsResultSchema,
+  type SaveChannelCapabilitiesInput,
+  type BulkEnableDerivedAssociationsInput,
   BulkImportChannelsInput,
   BulkImportChannelsResult,
   bulkImportChannelsResultSchema,
@@ -422,21 +426,65 @@ const BULK_DELETE_CHANNELS_MUTATION = `
 const SAVE_CHANNEL_ENDPOINTS_MUTATION = `
   mutation SaveChannelEndpoints($input: SaveChannelEndpointsInput!) {
     saveChannelEndpoints(input: $input) {
-      id
-      type
-      name
-      defaultEndpoints {
-        apiFormat
-        path
-        baseURL
-        transport
+      channel {
+        id
+        type
+        name
+        defaultEndpoints {
+          apiFormat
+          path
+          baseURL
+          transport
+        }
+        endpoints {
+          apiFormat
+          path
+          baseURL
+          transport
+        }
       }
-      endpoints {
-        apiFormat
-        path
-        baseURL
-        transport
+      revoked {
+        autoDisabledCount
+        manualNotices
       }
+    }
+  }
+`;
+
+const SAVE_CHANNEL_CAPABILITIES_MUTATION = `
+  mutation SaveChannelCapabilities($input: SaveChannelCapabilitiesInput!) {
+    saveChannelCapabilities(input: $input) {
+      channel {
+        id
+        type
+        name
+        createdAt
+        updatedAt
+        baseURL
+        status
+        supportedModels
+        autoSyncSupportedModels
+        autoSyncModelPattern
+        manualModels
+        defaultTestModel
+        endpoints { apiFormat path baseURL transport }
+        defaultEndpoints { apiFormat path baseURL transport }
+        protocolCapabilities {
+          declaredProtocols
+          models { modelId protocols }
+        }
+      }
+      addedCount
+      unmatchedModels
+      revoked { autoDisabledCount manualNotices }
+    }
+  }
+`;
+
+const BULK_ENABLE_DERIVED_ASSOCIATIONS_MUTATION = `
+  mutation BulkEnableDerivedAssociations($input: BulkEnableDerivedAssociationsInput!) {
+    bulkEnableDerivedAssociations(input: $input) {
+      results { associationId success reason }
     }
   }
 `;
@@ -957,6 +1005,10 @@ const QUERY_CHANNELS_QUERY = `
             baseURL
             transport
           }
+          protocolCapabilities {
+            declaredProtocols
+            models { modelId protocols }
+          }
           disabledAPIKeys {
             key
             disabledAt
@@ -1238,16 +1290,65 @@ export function useSaveChannelEndpoints() {
 
   return useMutation({
     mutationFn: async (input: SaveChannelEndpointsInput) => {
-      const data = await graphqlRequest<{ saveChannelEndpoints: Channel }>(SAVE_CHANNEL_ENDPOINTS_MUTATION, { input });
-      return channelEndpointsResponseSchema.parse(data.saveChannelEndpoints);
+      const data = await graphqlRequest<{ saveChannelEndpoints: unknown }>(SAVE_CHANNEL_ENDPOINTS_MUTATION, { input });
+      return saveChannelEndpointsPayloadSchema.parse(data.saveChannelEndpoints);
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['channels'] });
       queryClient.invalidateQueries({ queryKey: ['channel', variables.channelID] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
       toast.success(t('channels.messages.updateSuccess'));
     },
     onError: (error) => {
       handleError(error, { context: t('channels.dialogs.edit.title') });
+    },
+  });
+}
+
+export function useSaveChannelCapabilities() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const { handleError } = useErrorHandler();
+
+  return useMutation({
+    mutationFn: async (input: SaveChannelCapabilitiesInput) => {
+      try {
+        const data = await graphqlRequest<{ saveChannelCapabilities: unknown }>(SAVE_CHANNEL_CAPABILITIES_MUTATION, { input });
+        return saveChannelCapabilitiesPayloadSchema.parse(data.saveChannelCapabilities);
+      } catch (error) {
+        handleError(error, { context: t('channels.capability.title') });
+        throw error;
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+      queryClient.invalidateQueries({ queryKey: ['channel', variables.channelID] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+    },
+  });
+}
+
+export function useBulkEnableDerivedAssociations() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const { handleError } = useErrorHandler();
+
+  return useMutation({
+    mutationFn: async (input: BulkEnableDerivedAssociationsInput) => {
+      try {
+        const data = await graphqlRequest<{ bulkEnableDerivedAssociations: unknown }>(
+          BULK_ENABLE_DERIVED_ASSOCIATIONS_MUTATION,
+          { input }
+        );
+        return bulkEnableDerivedAssociationsResultSchema.parse(data.bulkEnableDerivedAssociations);
+      } catch (error) {
+        handleError(error, { context: t('channels.capability.title') });
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+      queryClient.invalidateQueries({ queryKey: ['models'] });
     },
   });
 }

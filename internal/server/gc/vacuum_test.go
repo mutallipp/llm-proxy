@@ -46,12 +46,12 @@ func TestWorker_runVacuum_SQLite(t *testing.T) {
 }
 
 // TestWorker_runVacuum_Postgres exercises the real pgx code path that previously
-// failed with "mismatched param and argument count". Gated on AXONHUB_TEST_PG_DSN
+// failed with "mismatched param and argument count". Gated on LLM_PROXY_TEST_PG_DSN
 // because the project has no in-process Postgres harness.
 func TestWorker_runVacuum_Postgres(t *testing.T) {
-	dsn := os.Getenv("AXONHUB_TEST_PG_DSN")
+	dsn := os.Getenv("LLM_PROXY_TEST_PG_DSN")
 	if dsn == "" {
-		t.Skip("AXONHUB_TEST_PG_DSN not set; skipping real-Postgres VACUUM check")
+		t.Skip("LLM_PROXY_TEST_PG_DSN not set; skipping real-Postgres VACUUM check")
 	}
 
 	for _, full := range []bool{false, true} {

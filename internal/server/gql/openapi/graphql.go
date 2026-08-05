@@ -56,6 +56,6 @@ func NewGraphqlHandlers(deps Dependencies) *GraphqlHandler {
 
 	return &GraphqlHandler{
 		Graphql:    gqlSrv,
-		Playground: playground.Handler("AxonHub", "/openapi/v1/graphql"),
+		Playground: playground.Handler("llm-proxy", "/openapi/v1/graphql"),
 	}
 }

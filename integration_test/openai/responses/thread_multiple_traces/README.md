@@ -1,6 +1,6 @@
 # Thread Multiple Traces - Responses API
 
-This directory contains integration tests for testing multiple traces within a single thread using the Responses API in AxonHub.
+This directory contains integration tests for testing multiple traces within a single thread using the Responses API in llm-proxy.
 
 ## Test Overview
 

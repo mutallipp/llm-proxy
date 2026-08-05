@@ -11,23 +11,23 @@ function Write-Success([string]$m){ Write-Host "[SUCCESS] $m" -ForegroundColor G
 function Write-Warn([string]$m){ Write-Host "[WARNING] $m" -ForegroundColor Yellow }
 function Write-Err([string]$m){ Write-Host "[ERROR] $m" -ForegroundColor Red }
 
-$ServiceName = 'axonhub'
-$BaseDir = Join-Path $env:LOCALAPPDATA 'AxonHub'
-$BinaryPath = Join-Path $BaseDir 'axonhub.exe'
+$ServiceName = 'llm-proxy'
+$BaseDir = Join-Path $env:LOCALAPPDATA 'llm-proxy'
+$BinaryPath = Join-Path $BaseDir 'llm-proxy.exe'
 $StartupFolder = [Environment]::GetFolderPath('Startup')
-$ShortcutPath = Join-Path $StartupFolder 'AxonHub.lnk'
-$TaskName = 'AxonHubAutoStart'
+$ShortcutPath = Join-Path $StartupFolder 'llm-proxy.lnk'
+$TaskName = 'llm-proxyAutoStart'
 
 function Show-Usage {
   Write-Host @'
-AxonHub Setup (Windows)
+llm-proxy Setup (Windows)
 
 Usage:
   setup.bat [command] [options]
 
 Commands:
-  install-autostart    Install AxonHub to start automatically on boot
-  uninstall-autostart  Remove AxonHub from automatic startup
+  install-autostart    Install llm-proxy to start automatically on boot
+  uninstall-autostart  Remove llm-proxy from automatic startup
   status               Check autostart status
 
 Options:
@@ -73,8 +73,8 @@ function Install-StartupFolder {
     Write-Info "Installing startup shortcut..."
 
     if (-not (Test-Path $BinaryPath)) {
-        Write-Err "AxonHub binary not found at $BinaryPath"
-        Write-Info "Please run install.bat first to install AxonHub"
+        Write-Err "llm-proxy binary not found at $BinaryPath"
+        Write-Info "Please run install.bat first to install llm-proxy"
         return $false
     }
 
@@ -106,8 +106,8 @@ function Install-TaskScheduler {
     Write-Info "Installing scheduled task for auto-start..."
 
     if (-not (Test-Path $BinaryPath)) {
-        Write-Err "AxonHub binary not found at $BinaryPath"
-        Write-Info "Please run install.bat first to install AxonHub"
+        Write-Err "llm-proxy binary not found at $BinaryPath"
+        Write-Info "Please run install.bat first to install llm-proxy"
         return $false
     }
 
@@ -134,7 +134,7 @@ function Install-TaskScheduler {
     try {
         Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -Force | Out-Null
         Write-Success "Scheduled task '$TaskName' created successfully"
-        Write-Info "AxonHub will start automatically when you log in"
+        Write-Info "llm-proxy will start automatically when you log in"
         return $true
     } catch {
         Write-Err "Failed to create scheduled task: $_"
@@ -172,7 +172,7 @@ function Uninstall-TaskScheduler {
 }
 
 function Show-Status {
-    Write-Info "Checking AxonHub autostart status..."
+    Write-Info "Checking llm-proxy autostart status..."
 
     $status = Get-AutostartStatus
 
@@ -182,8 +182,8 @@ function Show-Status {
     Write-Host "  Task Scheduler:  $(if ($status.TaskScheduler) { if ($status.TaskEnabled) { 'ENABLED' } else { 'DISABLED (task exists but is disabled)' } } else { 'DISABLED' })"
     Write-Host ""
 
-    # Check if AxonHub is currently running
-    $procs = Get-Process -Name 'axonhub' -ErrorAction SilentlyContinue
+    # Check if llm-proxy is currently running
+    $procs = Get-Process -Name 'llm-proxy' -ErrorAction SilentlyContinue
     if ($procs) {
         Write-Host "Process Status:"
         foreach ($proc in $procs) {
@@ -199,7 +199,7 @@ function Show-Status {
 }
 
 function Install-Autostart {
-    Write-Info "Installing AxonHub auto-start..."
+    Write-Info "Installing llm-proxy auto-start..."
 
     # Try Task Scheduler first (more reliable), fallback to Startup Folder
     $result = Install-TaskScheduler
@@ -212,14 +212,14 @@ function Install-Autostart {
     if ($result) {
         Write-Host ""
         Write-Success "Auto-start installation completed!"
-        Write-Info "AxonHub will start automatically on next boot/login"
+        Write-Info "llm-proxy will start automatically on next boot/login"
     }
 
     return $result
 }
 
 function Uninstall-Autostart {
-    Write-Info "Uninstalling AxonHub auto-start..."
+    Write-Info "Uninstalling llm-proxy auto-start..."
 
     $result1 = Uninstall-TaskScheduler
     $result2 = Uninstall-StartupFolder
@@ -227,7 +227,7 @@ function Uninstall-Autostart {
     if ($result1 -or $result2) {
         Write-Host ""
         Write-Success "Auto-start removal completed!"
-        Write-Info "AxonHub will no longer start automatically on boot"
+        Write-Info "llm-proxy will no longer start automatically on boot"
     }
 }
 

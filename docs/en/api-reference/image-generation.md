@@ -2,7 +2,7 @@
 
 ## Overview
 
-AxonHub supports image generation via the OpenAI-compatible `/v1/images/generations` endpoint.
+llm-proxy supports image generation via the OpenAI-compatible `/v1/images/generations` endpoint.
 
 **Note**: Streaming is not currently supported for image generation.
 
@@ -16,7 +16,7 @@ To generate images, send a request to the `/v1/images/generations` endpoint.
 import requests
 import json
 
-url = "https://your-axonhub-instance/v1/images/generations"
+url = "https://your-llm-proxy-instance/v1/images/generations"
 headers = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
@@ -44,7 +44,7 @@ for image in result.get("data", []):
 ```
 
 ```typescript
-const response = await fetch("https://your-axonhub-instance/v1/images/generations", {
+const response = await fetch("https://your-llm-proxy-instance/v1/images/generations", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${API_KEY}`,
@@ -117,7 +117,7 @@ To edit an image, use the `/v1/images/edits` endpoint with multipart/form-data:
 ```python
 import requests
 
-url = "https://your-axonhub-instance/v1/images/edits"
+url = "https://your-llm-proxy-instance/v1/images/edits"
 headers = {
     "Authorization": f"Bearer {API_KEY}"
 }

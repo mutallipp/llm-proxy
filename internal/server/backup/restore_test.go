@@ -79,6 +79,73 @@ func TestBackupService_Restore(t *testing.T) {
 	require.Equal(t, existingPrice.ReferenceID, restoredPrice.ReferenceID)
 }
 
+func TestBackupService_Restore_ProtocolCapabilitiesAndDerivedAssociation(t *testing.T) {
+	client, service, ctx := setupBackupTest(t)
+	defer client.Close()
+
+	ch := createBackupTestChannel(t, client, ctx, "Protocol Channel", channel.TypeOpenai)
+	expectedCapabilities := objects.ChannelProtocolCapabilities{
+		DeclaredProtocols: []string{"openai"},
+		Models: []objects.ChannelModelCapability{
+			{ModelID: "gpt-4", Protocols: []string{"openai"}},
+		},
+	}
+	_, err := client.Channel.UpdateOneID(ch.ID).
+		SetProtocolCapabilities(expectedCapabilities).
+		Save(ctx)
+	require.NoError(t, err)
+
+	m := createBackupTestModel(t, client, ctx, "openai", "gpt-4")
+	expectedSettings := &objects.ModelSettings{
+		ProtocolPools: map[string][]*objects.ModelAssociation{
+			"openai": {
+				{
+					Type:           "channel_model",
+					Priority:       0,
+					Disabled:       true,
+					Auto:           true,
+					DisabledReason: "渠道协议声明已撤销",
+					ChannelModel: &objects.ChannelModelAssociation{
+						ChannelID: ch.ID,
+						ModelID:   "gpt-4",
+					},
+				},
+			},
+		},
+	}
+	_, err = client.Model.UpdateOneID(m.ID).SetSettings(expectedSettings).Save(ctx)
+	require.NoError(t, err)
+
+	data, err := service.Backup(ctx, BackupOptions{
+		IncludeChannels: true,
+		IncludeModels:   true,
+	})
+	require.NoError(t, err)
+
+	var backupData BackupData
+	require.NoError(t, json.Unmarshal(data, &backupData))
+	require.Len(t, backupData.Channels, 1)
+	require.Len(t, backupData.Models, 1)
+	require.Equal(t, expectedCapabilities, backupData.Channels[0].ProtocolCapabilities)
+	require.Equal(t, expectedSettings, backupData.Models[0].Settings)
+
+	err = service.Restore(ctx, data, RestoreOptions{
+		IncludeChannels:         true,
+		IncludeModels:           true,
+		ChannelConflictStrategy: ConflictStrategyOverwrite,
+		ModelConflictStrategy:   ConflictStrategyOverwrite,
+	})
+	require.NoError(t, err)
+
+	restoredChannel, err := client.Channel.Query().Where(channel.Name(ch.Name)).First(ctx)
+	require.NoError(t, err)
+	require.Equal(t, expectedCapabilities, restoredChannel.ProtocolCapabilities)
+
+	restoredModel, err := client.Model.Query().Where(model.ModelID(m.ModelID)).First(ctx)
+	require.NoError(t, err)
+	require.Equal(t, expectedSettings, restoredModel.Settings)
+}
+
 func TestBackupService_Restore_ModelPricesOnly(t *testing.T) {
 	client, service, ctx := setupBackupTest(t)
 	defer client.Close()

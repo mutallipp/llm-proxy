@@ -1,6 +1,6 @@
-# AxonHub 中文文档索引
+# llm-proxy 中文文档索引
 
-欢迎来到 AxonHub 中文文档中心！本文档索引将帮助您快速找到所需的指南和参考资料。
+欢迎来到 llm-proxy 中文文档中心！本文档索引将帮助您快速找到所需的指南和参考资料。
 
 ## 📚 文档导航
 
@@ -8,8 +8,8 @@
 
 | 文档 | 描述 |
 |------|------|
-| [快速入门指南](getting-started/quick-start.md) | 在几分钟内启动并运行 AxonHub |
-| [请求处理流程](getting-started/request-processing.md) | 了解 AxonHub 如何处理 API 请求 |
+| [快速入门指南](getting-started/quick-start.md) | 在几分钟内启动并运行 llm-proxy |
+| [请求处理流程](getting-started/request-processing.md) | 了解 llm-proxy 如何处理 API 请求 |
 
 ### 📖 使用指南
 
@@ -30,9 +30,9 @@
 
 | 文档 | 描述 |
 |------|------|
-| [Claude Code 集成](guides/claude-code-integration.md) | 配置 Claude Code 使用 AxonHub |
-| [Codex 集成](guides/codex-integration.md) | 配置 Codex 使用 AxonHub |
-| [OpenCode 集成](guides/opencode-integration.md) | 配置 OpenCode 使用 AxonHub |
+| [Claude Code 集成](guides/claude-code-integration.md) | 配置 Claude Code 使用 llm-proxy |
+| [Codex 集成](guides/codex-integration.md) | 配置 Codex 使用 llm-proxy |
+| [OpenCode 集成](guides/opencode-integration.md) | 配置 OpenCode 使用 llm-proxy |
 
 ### 🔌 API 参考
 

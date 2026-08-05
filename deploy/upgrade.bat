@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-REM AxonHub Windows upgrade wrapper (.bat)
+REM llm-proxy Windows upgrade wrapper (.bat)
 
 where powershell >NUL 2>NUL
 if %ERRORLEVEL% NEQ 0 (

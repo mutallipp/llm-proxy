@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AxonHub Migration Test Script
+# llm-proxy Migration Test Script
 # Tests database migration from a specified tag to current branch
 # Usage: ./migration-test.sh <from-tag> [options]
 
@@ -27,25 +27,25 @@ E2E_PORT=8099
 
 # Database configuration
 DB_TYPE="sqlite"  # Default: sqlite, mysql, postgres
-MYSQL_CONTAINER="axonhub-migration-mysql"
+MYSQL_CONTAINER="llm-proxy-migration-mysql"
 MYSQL_PORT=13306
 MYSQL_ROOT_PASSWORD="axonhub_test_root"
 MYSQL_DATABASE="axonhub_e2e"
-MYSQL_USER="axonhub"
+MYSQL_USER="llm-proxy"
 MYSQL_PASSWORD="axonhub_test"
 
-POSTGRES_CONTAINER="axonhub-migration-postgres"
+POSTGRES_CONTAINER="llm-proxy-migration-postgres"
 POSTGRES_PORT=15432
 POSTGRES_DATABASE="axonhub_e2e"
-POSTGRES_USER="axonhub"
+POSTGRES_USER="llm-proxy"
 POSTGRES_PASSWORD="axonhub_test"
 
-# System initialization defaults (override via AXONHUB_INIT_* env vars)
-INIT_OWNER_EMAIL="${AXONHUB_INIT_OWNER_EMAIL:-owner@example.com}"
-INIT_OWNER_PASSWORD="${AXONHUB_INIT_OWNER_PASSWORD:-InitPassword123!}"
-INIT_OWNER_FIRST_NAME="${AXONHUB_INIT_OWNER_FIRST_NAME:-System}"
-INIT_OWNER_LAST_NAME="${AXONHUB_INIT_OWNER_LAST_NAME:-Owner}"
-INIT_BRAND_NAME="${AXONHUB_INIT_BRAND_NAME:-AxonHub Migration Test}"
+# System initialization defaults (override via LLM_PROXY_INIT_* env vars)
+INIT_OWNER_EMAIL="${LLM_PROXY_INIT_OWNER_EMAIL:-owner@example.com}"
+INIT_OWNER_PASSWORD="${LLM_PROXY_INIT_OWNER_PASSWORD:-InitPassword123!}"
+INIT_OWNER_FIRST_NAME="${LLM_PROXY_INIT_OWNER_FIRST_NAME:-System}"
+INIT_OWNER_LAST_NAME="${LLM_PROXY_INIT_OWNER_LAST_NAME:-Owner}"
+INIT_BRAND_NAME="${LLM_PROXY_INIT_BRAND_NAME:-llm-proxy Migration Test}"
 
 # GitHub repository
 REPO="mutallipp/llm-proxy"
@@ -74,7 +74,7 @@ print_step() {
 
 usage() {
     cat <<EOF
-AxonHub Migration Test Script
+llm-proxy Migration Test Script
 
 Usage:
   ./migration-test.sh <from-tag> [options]
@@ -304,7 +304,7 @@ curl_gh() {
     local headers=(
         -H "Accept: application/vnd.github+json"
         -H "X-GitHub-Api-Version: 2022-11-28"
-        -H "User-Agent: axonhub-migration-test"
+        -H "User-Agent: llm-proxy-migration-test"
     )
     if [[ -n "$GITHUB_TOKEN" ]]; then
         headers+=( -H "Authorization: Bearer $GITHUB_TOKEN" )
@@ -354,7 +354,7 @@ get_asset_download_url() {
 download_binary() {
     local version=$1
     local platform=$2
-    local cache_path="${CACHE_DIR}/${version}/axonhub"
+    local cache_path="${CACHE_DIR}/${version}/llm-proxy"
     
     # Check if cached
     if [[ -f "$cache_path" && "$SKIP_DOWNLOAD" == "true" ]]; then
@@ -368,7 +368,7 @@ download_binary() {
     
     # Download if not cached
     if [[ ! -f "$cache_path" ]]; then
-        print_info "Downloading AxonHub ${version} for ${platform}..." >&2
+        print_info "Downloading llm-proxy ${version} for ${platform}..." >&2
         
         local download_url
         download_url=$(get_asset_download_url "$version" "$platform")
@@ -376,7 +376,7 @@ download_binary() {
         local temp_dir=$(mktemp -d)
         
         if ! curl -fSL -o "${temp_dir}/${filename}" "$download_url"; then
-            print_error "Failed to download AxonHub asset" >&2
+            print_error "Failed to download llm-proxy asset" >&2
             rm -rf "$temp_dir"
             exit 1
         fi
@@ -397,10 +397,10 @@ download_binary() {
         
         # Find and copy binary
         local binary_path
-        binary_path=$(find "$temp_dir" -name "axonhub" -type f | head -1)
+        binary_path=$(find "$temp_dir" -name "llm-proxy" -type f | head -1)
         
         if [[ -z "$binary_path" ]]; then
-            print_error "Could not find axonhub binary in archive" >&2
+            print_error "Could not find llm-proxy binary in archive" >&2
             rm -rf "$temp_dir"
             exit 1
         fi
@@ -418,12 +418,12 @@ download_binary() {
 }
 
 build_current_binary() {
-    local binary_path="${WORK_DIR}/axonhub-current"
+    local binary_path="${WORK_DIR}/llm-proxy-current"
     
     print_info "Building current branch binary..." >&2
     cd "$PROJECT_ROOT"
     
-    if ! go build -o "$binary_path" ./cmd/axonhub; then
+    if ! go build -o "$binary_path" ./cmd/llm-proxy; then
         print_error "Failed to build current branch binary" >&2
         exit 1
     fi
@@ -468,12 +468,12 @@ initialize_database() {
     
     # Start server to initialize database
     print_info "Starting server for initialization (PID will be captured)..." >&2
-    AXONHUB_SERVER_PORT=$E2E_PORT \
-    AXONHUB_DB_DIALECT="$db_dialect" \
-    AXONHUB_DB_DSN="$db_dsn" \
-    AXONHUB_LOG_OUTPUT="file" \
-    AXONHUB_LOG_FILE_PATH="$LOG_FILE" \
-    AXONHUB_LOG_LEVEL="info" \
+    LLM_PROXY_SERVER_PORT=$E2E_PORT \
+    LLM_PROXY_DB_DIALECT="$db_dialect" \
+    LLM_PROXY_DB_DSN="$db_dsn" \
+    LLM_PROXY_LOG_OUTPUT="file" \
+    LLM_PROXY_LOG_FILE_PATH="$LOG_FILE" \
+    LLM_PROXY_LOG_LEVEL="info" \
     "$binary_path" > /dev/null 2>&1 &
 
     local pid=$!
@@ -530,12 +530,12 @@ run_migration() {
     
     # Run migration by starting and stopping the server
     print_info "Starting server for migration (PID will be captured)..." >&2
-    AXONHUB_SERVER_PORT=$E2E_PORT \
-    AXONHUB_DB_DIALECT="$db_dialect" \
-    AXONHUB_DB_DSN="$db_dsn" \
-    AXONHUB_LOG_OUTPUT="file" \
-    AXONHUB_LOG_FILE_PATH="$LOG_FILE" \
-    AXONHUB_LOG_LEVEL="debug" \
+    LLM_PROXY_SERVER_PORT=$E2E_PORT \
+    LLM_PROXY_DB_DIALECT="$db_dialect" \
+    LLM_PROXY_DB_DSN="$db_dsn" \
+    LLM_PROXY_LOG_OUTPUT="file" \
+    LLM_PROXY_LOG_FILE_PATH="$LOG_FILE" \
+    LLM_PROXY_LOG_LEVEL="debug" \
     "$binary_path" > /dev/null 2>&1 &
     
     local pid=$!
@@ -801,13 +801,13 @@ run_e2e_tests() {
     db_dialect=$(get_db_dialect)
 
     if [[ "$DB_TYPE" == "sqlite" ]]; then
-        local e2e_db="${SCRIPT_DIR}/../e2e/axonhub-e2e.db"
+        local e2e_db="${SCRIPT_DIR}/../e2e/llm-proxy-e2e.db"
         cp "$DB_FILE" "$e2e_db"
         print_info "Database copied to e2e location: $e2e_db" >&2
         cd "$PROJECT_ROOT"
         if env \
-            AXONHUB_E2E_DB_TYPE="$DB_TYPE" \
-            AXONHUB_E2E_DB_DIALECT="$db_dialect" \
+            LLM_PROXY_E2E_DB_TYPE="$DB_TYPE" \
+            LLM_PROXY_E2E_DB_DIALECT="$db_dialect" \
             ./scripts/e2e/e2e-test.sh; then
             print_success "E2E tests passed!" >&2
             return 0
@@ -821,10 +821,10 @@ run_e2e_tests() {
 
     cd "$PROJECT_ROOT"
     if env \
-        AXONHUB_E2E_DB_TYPE="$DB_TYPE" \
-        AXONHUB_E2E_DB_DIALECT="$db_dialect" \
-        AXONHUB_E2E_DB_DSN="$db_dsn" \
-        AXONHUB_E2E_USE_EXISTING_DB="true" \
+        LLM_PROXY_E2E_DB_TYPE="$DB_TYPE" \
+        LLM_PROXY_E2E_DB_DIALECT="$db_dialect" \
+        LLM_PROXY_E2E_DB_DSN="$db_dsn" \
+        LLM_PROXY_E2E_USE_EXISTING_DB="true" \
         ./scripts/e2e/e2e-test.sh; then
         print_success "E2E tests passed!" >&2
         return 0
@@ -848,7 +848,7 @@ cleanup() {
 }
 
 main() {
-    print_info "AxonHub Migration Test Script" >&2
+    print_info "llm-proxy Migration Test Script" >&2
     echo "" >&2
     
     # Parse arguments

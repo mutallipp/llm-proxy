@@ -17,11 +17,11 @@ $Api = "https://api.github.com/repos/$Repo"
 $IncludeBeta = $false
 $IncludeRC   = $false
 $VerboseFlag = $false
-$Version     = $env:AXONHUB_VERSION
+$Version     = $env:LLM_PROXY_VERSION
 
 function Show-Usage {
   Write-Host @'
-AxonHub Installer (Windows)
+llm-proxy Installer (Windows)
 
 Usage:
   install.bat [options] [version]
@@ -58,7 +58,7 @@ function Invoke-GHApi([string]$url){
   $headers = @{
     'Accept'='application/vnd.github+json'
     'X-GitHub-Api-Version'='2022-11-28'
-    'User-Agent'='axonhub-installer'
+    'User-Agent'='llm-proxy-installer'
   }
   if($env:GITHUB_TOKEN){ $headers['Authorization'] = "Bearer $($env:GITHUB_TOKEN)" }
   return Invoke-RestMethod -Method GET -Uri $url -Headers $headers -ErrorAction Stop
@@ -72,7 +72,7 @@ function Get-LatestReleaseTag {
     # Fallback to HTML redirect (best-effort)
     Write-Warn "API failed or rate-limited, falling back to HTML redirect..."
     try {
-      $resp = Invoke-WebRequest -Uri "https://github.com/$Repo/releases/latest" -Headers @{ 'User-Agent'='axonhub-installer' } -MaximumRedirection 0 -ErrorAction Stop
+      $resp = Invoke-WebRequest -Uri "https://github.com/$Repo/releases/latest" -Headers @{ 'User-Agent'='llm-proxy-installer' } -MaximumRedirection 0 -ErrorAction Stop
     } catch { $resp = $_.Exception.Response }
     if($resp -and $resp.Headers['Location']){
       $loc = $resp.Headers['Location']
@@ -132,7 +132,7 @@ function Get-AssetUrl([string]$version,[string]$platform){
 function Ensure-Dirs([string]$path){ if(-not (Test-Path $path)){ New-Item -ItemType Directory -Force -Path $path | Out-Null } }
 
 # Main
-Write-Info 'Starting AxonHub installation...'
+Write-Info 'Starting llm-proxy installation...'
 
 $Platform = Get-Platform
 Write-Info "Detected platform: $Platform"
@@ -140,7 +140,7 @@ Write-Info "Detected platform: $Platform"
 if(-not $Version){ $Version = Get-LatestVersion $IncludeBeta $IncludeRC }
 Write-Info "Using version: $Version"
 
-$BaseDir   = Join-Path $env:LOCALAPPDATA 'AxonHub'
+$BaseDir   = Join-Path $env:LOCALAPPDATA 'llm-proxy'
 $ConfigDir = $BaseDir
 $DataDir   = $BaseDir
 $LogDir    = $BaseDir
@@ -149,17 +149,17 @@ Ensure-Dirs (Join-Path $BaseDir 'logs')
 
 $AssetUrl = Get-AssetUrl $Version $Platform
 $TempDir = New-Item -ItemType Directory -Path (Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())) -Force
-$ZipPath = Join-Path $TempDir 'axonhub.zip'
+$ZipPath = Join-Path $TempDir 'llm-proxy.zip'
 Write-Info "Downloading: $AssetUrl"
 Invoke-WebRequest -Uri $AssetUrl -OutFile $ZipPath -UseBasicParsing
 
 Write-Info 'Extracting archive...'
 Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
 
-$BinaryPath = Get-ChildItem -Path $TempDir -Recurse -Filter 'axonhub.exe' -File | Select-Object -First 1 | ForEach-Object { $_.FullName }
-if(-not $BinaryPath){ Write-Err 'axonhub.exe not found in archive'; exit 1 }
+$BinaryPath = Get-ChildItem -Path $TempDir -Recurse -Filter 'llm-proxy.exe' -File | Select-Object -First 1 | ForEach-Object { $_.FullName }
+if(-not $BinaryPath){ Write-Err 'llm-proxy.exe not found in archive'; exit 1 }
 
-$TargetBinary = Join-Path $BaseDir 'axonhub.exe'
+$TargetBinary = Join-Path $BaseDir 'llm-proxy.exe'
 Copy-Item -Path $BinaryPath -Destination $TargetBinary -Force
 
 # Create default config if missing
@@ -170,12 +170,12 @@ if(-not (Test-Path $ConfigFile)){
   @"
 server:
   port: 8090
-  name: "AxonHub"
+  name: "llm-proxy"
   debug: false
 
 db:
   dialect: "sqlite3"
-  dsn: "$baseForDSN/axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+  dsn: "$baseForDSN/llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
 
 cache:
   mode: "memory"
@@ -188,7 +188,7 @@ log:
   encoding: "json"
   output: "file"
   file:
-    path: "$baseForDSN/logs/axonhub.log"
+    path: "$baseForDSN/logs/llm-proxy.log"
     max_size: 100
     max_age: 30
     max_backups: 10
@@ -196,7 +196,7 @@ log:
 "@ | Set-Content -Path $ConfigFile -Encoding UTF8
 }
 
-Write-Success 'AxonHub installation completed!'
+Write-Success 'llm-proxy installation completed!'
 
 # Get configured port for display
 $port = 8090
@@ -211,8 +211,8 @@ if(Test-Path $TargetBinary){
 
 Write-Info "Next steps:"
 Write-Host "  1. Edit configuration: $ConfigFile"
-Write-Host "  2. Start AxonHub: start.bat"
-Write-Host "  3. Stop AxonHub: stop.bat"
-Write-Host "  4. View logs: $BaseDir\axonhub.log (or logs\axonhub.log in config)"
+Write-Host "  2. Start llm-proxy: start.bat"
+Write-Host "  3. Stop llm-proxy: stop.bat"
+Write-Host "  4. View logs: $BaseDir\llm-proxy.log (or logs\llm-proxy.log in config)"
 Write-Host "  5. Access web interface: http://localhost:$port"
 Write-Host "  6. Setup auto-start: setup.bat install-autostart"

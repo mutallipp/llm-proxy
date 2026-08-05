@@ -26,7 +26,7 @@
     {
       "type": "function_call",
       "name": "shell_command",
-      "arguments": "{\"command\": \"git status\", \"workdir\": \"axonhub\"}",
+      "arguments": "{\"command\": \"git status\", \"workdir\": \"llm-proxy\"}",
       "call_id": "call_00_bVbIarCdMYjXCUsTd9MEJVia"
     },
     {

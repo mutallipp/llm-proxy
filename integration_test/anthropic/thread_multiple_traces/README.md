@@ -1,6 +1,6 @@
 # Thread Multiple Traces Integration Test
 
-This directory contains integration tests for testing multiple traces within a single thread in AxonHub using the Anthropic SDK.
+This directory contains integration tests for testing multiple traces within a single thread in llm-proxy using the Anthropic SDK.
 
 ## Test Overview
 
@@ -42,7 +42,7 @@ This test validates the ability to perform multiple traces within the same threa
 
 - **Cost Calculator Function** - Estimates project costs based on team size, duration, and hourly rates
 - **Anthropic Messages API** - For AI interactions
-- **AxonHub Test Utilities** - For trace and thread management
+- **llm-proxy Test Utilities** - For trace and thread management
 
 ## Running the Test
 

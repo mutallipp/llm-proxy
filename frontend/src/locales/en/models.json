@@ -256,5 +256,10 @@
   "models.groupedView.collapseAll": "Collapse All",
   "models.groupedView.summary": "{{groups}} developers · {{models}} models",
   "models.onboarding.steps.settingsButton.title": "Model Settings",
-  "models.onboarding.steps.settingsButton.description": "Click here to access global model settings. Let's explore what you can configure."
+  "models.onboarding.steps.settingsButton.description": "Click here to access global model settings. Let's explore what you can configure.",
+  "models.dialogs.protocolPool.title": "Protocol pools",
+  "models.dialogs.protocolPool.syncChannels": "Sync channels",
+  "models.dialogs.protocolPool.auto": "Auto",
+  "models.messages.deriveAssociationsSuccess": "Channel associations synced. {{count}} new associations added.",
+  "models.messages.enableAssociationFailed": "Failed to enable the association. Please review the channel capability and endpoint configuration."
 }

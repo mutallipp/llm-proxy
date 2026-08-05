@@ -60,8 +60,8 @@ func TestCodexOutbound_MinimalIdentityHeaders(t *testing.T) {
 
 	assert.Equal(t, codexAPIURL, finalReq.URL.String())
 	assert.Equal(t, "application/json", finalReq.Header.Get("Content-Type"))
-	assert.Equal(t, AxonHubOriginator, finalReq.Header.Get("Originator"))
-	assert.Equal(t, "axonhub/1.0", finalReq.Header.Get("User-Agent"))
+	assert.Equal(t, LLMProxyOriginator, finalReq.Header.Get("Originator"))
+	assert.Equal(t, "llm-proxy/1.0", finalReq.Header.Get("User-Agent"))
 	assert.Equal(t, "provided-session", finalReq.Header.Get("Session-Id"))
 	assert.Empty(t, finalReq.Header.Get("Session_id"))
 	assert.Equal(t, testChatAccountID, finalReq.Header.Get("Chatgpt-Account-Id"))

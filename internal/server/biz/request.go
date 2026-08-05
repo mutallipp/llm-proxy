@@ -1491,9 +1491,9 @@ func (s *RequestService) setPreviousChannelCache(ctx context.Context, cacheKey s
 }
 
 func buildPreviousTraceChannelCacheKey(traceID int) string {
-	return fmt.Sprintf("axonhub:routing:previous-channel:v1:trace:%d", traceID)
+	return fmt.Sprintf("llm-proxy:routing:previous-channel:v1:trace:%d", traceID)
 }
 
 func buildPreviousThreadChannelCacheKey(threadID int) string {
-	return fmt.Sprintf("axonhub:routing:previous-channel:v1:thread:%d", threadID)
+	return fmt.Sprintf("llm-proxy:routing:previous-channel:v1:thread:%d", threadID)
 }

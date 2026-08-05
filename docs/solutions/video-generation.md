@@ -2,7 +2,7 @@
 
 ## 1. 背景
 
-AxonHub 需要支持视频生成能力，接入 OpenAI Sora 和火山引擎 Seedance 两个视频生成服务。与现有的 chat/embedding/image 等同步请求不同，视频生成是**异步任务**模型：客户端提交任务后获得 task ID，再通过轮询或回调获取最终结果。
+llm-proxy 需要支持视频生成能力，接入 OpenAI Sora 和火山引擎 Seedance 两个视频生成服务。与现有的 chat/embedding/image 等同步请求不同，视频生成是**异步任务**模型：客户端提交任务后获得 task ID，再通过轮询或回调获取最终结果。
 
 ## 2. 供应商 API 对比
 
@@ -246,7 +246,7 @@ Client POST /v1/videos
   → Outbound Transformer 转换为 provider 格式
   → Provider 返回 task_id (e.g. "cgt-2025xxxx")
   → 将 provider task_id 存入 request.external_id
-  → 对外返回 AxonHub request_id 作为任务 ID
+  → 对外返回 llm-proxy request_id 作为任务 ID
 ```
 
 **查询进度流程** (绕过 pipeline，直接转发):
@@ -279,13 +279,13 @@ Client DELETE /v1/videos/:id
 - `request.channel_id` → 确定下游 provider channel
 - `request.model_id` → 请求的模型
 - `request.status` → 任务状态 (pending/processing/completed/failed)
-- `request.id` → 对外暴露的 AxonHub 任务 ID
+- `request.id` → 对外暴露的 llm-proxy 任务 ID
 
 `UpdateRequestCompleted` 和 `UpdateRequestExecutionCompleted` 已支持写入 `external_id`，创建任务完成时自然写入 provider task_id。
 
 ### 4.3 任务 ID 策略
 
-- 对外: 使用 AxonHub 的 `request.id` (或其 GUID)
+- 对外: 使用 llm-proxy 的 `request.id` (或其 GUID)
 - 内部: 通过 `request.external_id` 查找 provider 原始 task_id
 - 查询时根据 `request.id` + `request.channel_id` 定位 channel 并转发
 
@@ -631,7 +631,7 @@ MVP 采用透传模式 (客户端轮询)，后续迭代为服务端主动轮询 
 
 ### 11.1 服务端主动轮询
 
-MVP 中每次查询都透传到 provider，后续改为 AxonHub 后台 worker 主动轮询:
+MVP 中每次查询都透传到 provider，后续改为 llm-proxy 后台 worker 主动轮询:
 
 ```
 创建任务 → request.status = processing
@@ -655,13 +655,13 @@ MVP 中每次查询都透传到 provider，后续改为 AxonHub 后台 worker �
 任务完成后主动回调客户端:
 
 - 客户端创建任务时可指定 `webhook_url`
-- AxonHub 检测到任务完成后，POST 结果到 `webhook_url`
+- llm-proxy 检测到任务完成后，POST 结果到 `webhook_url`
 - 支持重试和签名验证
 
 ### 11.4 视频托管
 
 - Provider 返回的 video_url 通常有过期时间
-- AxonHub 可通过「视频存储(Video Storage)」定时扫描已完成的视频请求，将视频下载并保存到非数据库存储（FS/S3/GCS/WebDAV），避免链接过期
+- llm-proxy 可通过「视频存储(Video Storage)」定时扫描已完成的视频请求，将视频下载并保存到非数据库存储（FS/S3/GCS/WebDAV），避免链接过期
 - 去重方式：使用 `Request.content_saved` / `Request.content_storage_id` / `Request.content_storage_key` / `Request.content_saved_at` 标记已落盘的任务；worker 每次只扫描 `content_saved=false` 的记录，保存成功后置为 `true`，从而不会重复下载
 - 扫描范围：仅处理 `format in (openai/video, seedance/video)` 且 `status in (processing, completed)` 的请求；如果 `response_body` 里已缓存 `video_url` 则直接下载，否则最多向下游 provider 查询一次刷新快照，再按 `status=succeeded` 决定是否下载
 - 对外提供持久化的下载链接

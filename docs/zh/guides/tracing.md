@@ -3,16 +3,16 @@
 ---
 
 ### 概览
-AxonHub 可以在不引入额外 SDK 的情况下，为每一次请求构建线程感知的追踪。只要客户端已经兼容 OpenAI 协议，您就可以通过传递追踪与线程请求头，或直接让 AxonHub 自动生成，实现低侵入的可观测能力。
+llm-proxy 可以在不引入额外 SDK 的情况下，为每一次请求构建线程感知的追踪。只要客户端已经兼容 OpenAI 协议，您就可以通过传递追踪与线程请求头，或直接让 llm-proxy 自动生成，实现低侵入的可观测能力。
 
 使用追踪的主要优势包括：
 - **可观测性**：清晰地查看每一条用户消息及其触发的所有 agent 请求。
-- **性能优化**：AxonHub 会将同一个 Trace 的请求优先转发到同一个上游渠道，从而大幅提高提供商端的缓存命中率（例如 Anthropic 的 Prompt Caching），降低响应延迟并减少成本。
+- **性能优化**：llm-proxy 会将同一个 Trace 的请求优先转发到同一个上游渠道，从而大幅提高提供商端的缓存命中率（例如 Anthropic 的 Prompt Caching），降低响应延迟并减少成本。
 - **调试便捷**：结合线程 ID 还原完整的会话上下文，快速定位多轮对话中的问题。
 
 ### 关键概念
 - **Thread ID（`AH-Thread-Id`）** – 代表用户的一个完整对话会话，将多条追踪关联起来，帮助重现完整的用户旅程。
-- **Trace ID（`AH-Trace-Id`）** – 代表用户发出的一条消息以及该消息触发的所有 agent 请求。需要在需要串联多次调用时显式提供；未携带该请求头时，AxonHub 会为单次调用生成 ID 但无法自动关联其他请求。
+- **Trace ID（`AH-Trace-Id`）** – 代表用户发出的一条消息以及该消息触发的所有 agent 请求。需要在需要串联多次调用时显式提供；未携带该请求头时，llm-proxy 会为单次调用生成 ID 但无法自动关联其他请求。
 - **Request（请求）** – 单次 API 调用的最小单元，包含完整的请求/响应数据、耗时、Token 使用量等信息。
 - **额外追踪请求头** – 可配置备用请求头（如 `Sentry-Trace`），以复用已有的可观测工具链。
 
@@ -60,8 +60,8 @@ server:
 
 ### 在 OpenAI 兼容客户端中使用追踪
 ```bash
-curl https://your-axonhub-instance/v1/chat/completions \
-  -H "Authorization: Bearer ${AXONHUB_API_KEY}" \
+curl https://your-llm-proxy-instance/v1/chat/completions \
+  -H "Authorization: Bearer ${LLM_PROXY_API_KEY}" \
   -H "Content-Type: application/json" \
   -H "AH-Trace-Id: at-demo-123" \
   -H "AH-Thread-Id: thread-abc" \
@@ -73,7 +73,7 @@ curl https://your-axonhub-instance/v1/chat/completions \
   }'
 ```
 
-- 当需要让多次请求落在同一追踪中时，请显式提供 `AH-Trace-Id`；若缺失该请求头，AxonHub 会分别记录这些调用，即便会为单次请求生成 ID。
+- 当需要让多次请求落在同一追踪中时，请显式提供 `AH-Trace-Id`；若缺失该请求头，llm-proxy 会分别记录这些调用，即便会为单次请求生成 ID。
 - 任何 OpenAI 兼容 SDK 均可直接使用，只需根据需要添加请求头即可。
 
 ### SDK 示例
@@ -93,7 +93,7 @@ import (
 func sendTracedChat(ctx context.Context, apiKey string) (*openai.ChatCompletion, error) {
     client := openai.NewClient(
         option.WithAPIKey(apiKey),
-        option.WithBaseURL("https://your-axonhub-instance/v1"),
+        option.WithBaseURL("https://your-llm-proxy-instance/v1"),
     )
 
     params := openai.ChatCompletionNewParams{
@@ -125,7 +125,7 @@ import (
 func sendTracedMessage(ctx context.Context, apiKey string) (*anthropic.Message, error) {
     client := anthropic.NewClient(
         option.WithAPIKey(apiKey),
-        option.WithBaseURL("https://your-axonhub-instance/anthropic"),
+        option.WithBaseURL("https://your-llm-proxy-instance/anthropic"),
     )
 
     params := anthropic.MessageNewParams{
@@ -151,16 +151,16 @@ func sendTracedMessage(ctx context.Context, apiKey string) (*anthropic.Message, 
 - 大体量内容可放在外部存储（本地磁盘、S3、GCS），追踪页面仍能快速加载。
 
 ### Claude Code 追踪支持
-- 将 `server.trace.claude_code_trace_enabled` 设为 `true`，AxonHub 会自动读取 Claude Code 产生的追踪 ID。
+- 将 `server.trace.claude_code_trace_enabled` 设为 `true`，llm-proxy 会自动读取 Claude Code 产生的追踪 ID。
 - `/anthropic/v1/messages` (及 `/v1/messages`) 的 `metadata.user_id` 会作为追踪 ID 使用，同时不会影响请求体给后续逻辑的读取。
 - 如果请求已经带有追踪请求头，系统会优先使用该值，与自动提取机制兼容。
 
 ### Codex 追踪支持
-- 将 `server.trace.codex_trace_enabled` 设为 `true`，AxonHub 会将 `Session_id` header 作为追踪 ID 使用。
+- 将 `server.trace.codex_trace_enabled` 设为 `true`，llm-proxy 会将 `Session_id` header 作为追踪 ID 使用。
 - 如果请求已经带有追踪请求头，系统会优先使用该值，与自动提取机制兼容。
 
 ### 在控制台中探索追踪
-1. 在 AxonHub 管理后台进入 **Traces** 页面。
+1. 在 llm-proxy 管理后台进入 **Traces** 页面。
 2. 按项目、模型或时间范围筛选目标追踪。
 3. 展开追踪查看 span、提示/回复内容、耗时及渠道元数据。
 4. 跳转关联的线程，结合追踪细节还原完整会话。
@@ -168,8 +168,8 @@ func sendTracedMessage(ctx context.Context, apiKey string) (*anthropic.Message, 
 <table>
   <tr align="center">
     <td align="center">
-      <a href="../../screenshots/axonhub-trace.png">
-        <img src="../../screenshots/axonhub-trace.png" alt="Trace Details" width="600"/>
+      <a href="../../screenshots/llm-proxy-trace.png">
+        <img src="../../screenshots/llm-proxy-trace.png" alt="Trace Details" width="600"/>
       </a>
       <br/>
       Trace 详情页面展示了请求的时间线、Token 使用量及缓存命中情况
@@ -183,7 +183,7 @@ func sendTracedMessage(ctx context.Context, apiKey string) (*anthropic.Message, 
 
 **单个 Trace 应包含合理数量的 Request**
 
-虽然 AxonHub 理论上支持单个 Trace 包含无限数量的 Request，但在实际生产环境中，我们建议：
+虽然 llm-proxy 理论上支持单个 Trace 包含无限数量的 Request，但在实际生产环境中，我们建议：
 
 - **推荐范围**：单个 Trace 包含 10-50 个 Request
 - **可接受范围**：最多 100 个 Request

@@ -112,7 +112,7 @@ func TestGUID_UnmarshalGQL(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "missing axonhub namespace",
+			name: "missing llm-proxy namespace",
 			fields: fields{
 				Type: "type",
 				ID:   0,

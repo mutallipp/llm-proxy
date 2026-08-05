@@ -1,6 +1,6 @@
 # 请求重写 (Request Override) 指南
 
-请求重写是 AxonHub 的一项强大功能，允许你在请求发送到 AI 提供商之前，动态地修改请求体 (Body) 和请求头 (Headers)。这在处理特定模型的参数调整、功能映射（如 `reasoning_effort`）或注入自定义元数据时非常有用。
+请求重写是 llm-proxy 的一项强大功能，允许你在请求发送到 AI 提供商之前，动态地修改请求体 (Body) 和请求头 (Headers)。这在处理特定模型的参数调整、功能映射（如 `reasoning_effort`）或注入自定义元数据时非常有用。
 
 ## 核心概念
 
@@ -10,7 +10,7 @@
 
 ### 模板渲染
 
-AxonHub 使用 Go 模板 (Go templates) 进行动态值渲染。你可以在模板中使用以下变量：
+llm-proxy 使用 Go 模板 (Go templates) 进行动态值渲染。你可以在模板中使用以下变量：
 
 | 变量 | 描述 | 示例 |
 | :--- | :--- | :--- |
@@ -25,7 +25,7 @@ AxonHub 使用 Go 模板 (Go templates) 进行动态值渲染。你可以在模�
 
 ## 重写操作类型
 
-AxonHub 支持以下重写操作：
+llm-proxy 支持以下重写操作：
 
 | 操作类型 | 描述 | 适用场景 |
 | :--- | :--- | :--- |
@@ -92,7 +92,7 @@ AxonHub 支持以下重写操作：
 ]
 ```
 
-当请求未携带 `max_output_tokens` 时，AxonHub 会追加 `"max_output_tokens": 32000`；客户端已提供该字段时则保留原值。是否存在按 JSON path 判断，因此 `0`、`false`、空字符串和显式 `null` 都视为已存在。
+当请求未携带 `max_output_tokens` 时，llm-proxy 会追加 `"max_output_tokens": 32000`；客户端已提供该字段时则保留原值。是否存在按 JSON path 判断，因此 `0`、`false`、空字符串和显式 `null` 都视为已存在。
 
 ### 使用模板
 
@@ -261,7 +261,7 @@ AxonHub 支持以下重写操作：
 
 ### 动态 JSON 对象
 
-如果渲染后的模板字符串是一个有效的 JSON 对象或数组，AxonHub 会自动解析它，并将其作为结构化的 JSON 对象插入，而不是作为字符串：
+如果渲染后的模板字符串是一个有效的 JSON 对象或数组，llm-proxy 会自动解析它，并将其作为结构化的 JSON 对象插入，而不是作为字符串：
 
 ```json
 [
@@ -374,7 +374,7 @@ AxonHub 支持以下重写操作：
   {
     "op": "set",
     "path": "X-Request-Source",
-    "value": "axonhub-gateway"
+    "value": "llm-proxy-gateway"
   },
   {
     "op": "set",
@@ -386,7 +386,7 @@ AxonHub 支持以下重写操作：
 
 ## 向后兼容
 
-AxonHub 仍然支持旧版的重写参数格式（JSON 对象），系统会自动将其转换为新的操作格式：
+llm-proxy 仍然支持旧版的重写参数格式（JSON 对象），系统会自动将其转换为新的操作格式：
 
 **旧版格式（仍支持）：**
 ```json
@@ -406,7 +406,7 @@ AxonHub 仍然支持旧版的重写参数格式（JSON 对象），系统会自�
 
 ## 注意事项与限制
 
-- **Stream 参数**: 请求体中的 `stream` 参数无法被重写，因为它由 AxonHub 的流水线统一管理。
+- **Stream 参数**: 请求体中的 `stream` 参数无法被重写，因为它由 llm-proxy 的流水线统一管理。
 - **请求头安全**: 在重写 `Authorization` 等安全敏感的请求头时请务必小心。
 - **无效模板**: 如果模板解析或执行失败，将使用原始值，并记录警告日志。
 - **执行顺序**: 操作按数组顺序执行，后续操作可以覆盖前面的操作结果。

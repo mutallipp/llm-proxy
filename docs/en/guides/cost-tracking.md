@@ -1,16 +1,16 @@
 # Cost Tracking
 
-AxonHub provides real-time cost calculation and usage tracking for every request.
+llm-proxy provides real-time cost calculation and usage tracking for every request.
 
 ## Overview
 
-Cost tracking in AxonHub helps you monitor and control your AI spending across all providers and models. Each request is automatically analyzed and cost is calculated based on configurable pricing.
+Cost tracking in llm-proxy helps you monitor and control your AI spending across all providers and models. Each request is automatically analyzed and cost is calculated based on configurable pricing.
 
 ## Features
 
 ### Token Type Tracking
 
-AxonHub tracks the following token types:
+llm-proxy tracks the following token types:
 
 | Token Type | Description | Code |
 |------------|-------------|------|
@@ -24,7 +24,7 @@ AxonHub tracks the following token types:
 
 ### Pricing Modes
 
-AxonHub supports three pricing modes:
+llm-proxy supports three pricing modes:
 
 | Mode | Description | Use Case |
 |------|-------------|----------|
@@ -92,7 +92,7 @@ Configure pricing for each channel and model in the admin dashboard:
 1. Go to **Channels** → **Model Prices**
 2. Set pricing items for each model:
 
-![Model Pricing](../../screenshots/axonhub-model-price.png)
+![Model Pricing](../../screenshots/llm-proxy-model-price.png)
 
    - Input price (`prompt_tokens`)
    - Output price (`completion_tokens`)

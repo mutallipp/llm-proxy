@@ -2,13 +2,13 @@
 
 ## Overview
 
-AxonHub provides native support for the Gemini API, enabling access to Gemini's powerful multi-modal capabilities. You can use the Gemini SDK to access not only Gemini models but also OpenAI, Anthropic, and other supported models.
+llm-proxy provides native support for the Gemini API, enabling access to Gemini's powerful multi-modal capabilities. You can use the Gemini SDK to access not only Gemini models but also OpenAI, Anthropic, and other supported models.
 
 ## Key Benefits
 
 - **API Interoperability**: Use Gemini API to call OpenAI, Anthropic, and other supported models
 - **Zero Code Changes**: Continue using your existing Gemini client SDK without modification
-- **Automatic Translation**: AxonHub automatically converts between API formats when needed
+- **Automatic Translation**: llm-proxy automatically converts between API formats when needed
 - **Multi-modal Support**: Access text and image capabilities through the Gemini API format
 
 ## Supported Endpoints
@@ -26,10 +26,10 @@ import (
     "google.golang.org/genai"
 )
 
-// Create Gemini client with AxonHub configuration
+// Create Gemini client with llm-proxy configuration
 ctx := context.Background()
 client, err := genai.NewClient(ctx, &genai.ClientConfig{
-    APIKey:  "your-axonhub-api-key",
+    APIKey:  "your-llm-proxy-api-key",
     Backend: genai.Backend(genai.APIBackendUnspecified), // Use default backend
     HTTPOptions: genai.HTTPOptions{
 			BaseURL: "http://localhost:8090/gemini",
@@ -102,7 +102,7 @@ if len(response2.Candidates) > 0 {
 
 ## API Translation Capabilities
 
-AxonHub automatically translates between API formats, enabling powerful scenarios:
+llm-proxy automatically translates between API formats, enabling powerful scenarios:
 
 ### Use Gemini SDK with OpenAI Models
 ```go
@@ -126,7 +126,7 @@ if len(response.Candidates) > 0 &&
     text := response.Candidates[0].Content.Parts[0].Text
     fmt.Println(*text)
 }
-// AxonHub automatically translates Gemini format → OpenAI format
+// llm-proxy automatically translates Gemini format → OpenAI format
 ```
 
 ### Use Gemini SDK with Anthropic Models
@@ -151,7 +151,7 @@ if len(response.Candidates) > 0 &&
     text := response.Candidates[0].Content.Parts[0].Text
     fmt.Println(*text)
 }
-// AxonHub automatically translates Gemini format → Anthropic format
+// llm-proxy automatically translates Gemini format → Anthropic format
 ```
 
 ## Authentication
@@ -160,7 +160,7 @@ The Gemini API format uses the following authentication:
 
 - **Header**: `X-Goog-API-Key: <your-api-key>`
 
-The API keys are managed through AxonHub's API Key management system and provide the same permissions regardless of which API format you use.
+The API keys are managed through llm-proxy's API Key management system and provide the same permissions regardless of which API format you use.
 
 ## Streaming Support
 
@@ -172,7 +172,7 @@ Gemini format error responses follow the standard Gemini API error format.
 
 ## Tool Support
 
-AxonHub supports **function tools** (custom function calling) through the Gemini API format. However, provider-specific tools are **not supported**:
+llm-proxy supports **function tools** (custom function calling) through the Gemini API format. However, provider-specific tools are **not supported**:
 
 | Tool Type | Support Status | Notes |
 | --------- | -------------- | ----- |
@@ -182,7 +182,7 @@ AxonHub supports **function tools** (custom function calling) through the Gemini
 | **File Search** | ❌ Not Supported | Provider-specific |
 | **Computer Use** | ❌ Not Supported | Anthropic-specific |
 
-> **Note**: Only generic function tools that can be translated across providers are supported. Provider-specific tools require direct access to the provider's infrastructure and cannot be proxied through AxonHub.
+> **Note**: Only generic function tools that can be translated across providers are supported. Provider-specific tools require direct access to the provider's infrastructure and cannot be proxied through llm-proxy.
 
 ## Best Practices
 
@@ -194,7 +194,7 @@ AxonHub supports **function tools** (custom function calling) through the Gemini
 
 ## Migration Guide
 
-### From Gemini to AxonHub
+### From Gemini to llm-proxy
 ```go
 // Before: Direct Gemini
 ctx := context.Background()
@@ -202,10 +202,10 @@ client, err := genai.NewClient(ctx, &genai.ClientConfig{
     APIKey: "gemini-api-key",
 })
 
-// After: AxonHub with Gemini API
+// After: llm-proxy with Gemini API
 ctx := context.Background()
 client, err := genai.NewClient(ctx, &genai.ClientConfig{
-    APIKey: "your-axonhub-api-key",
+    APIKey: "your-llm-proxy-api-key",
     HTTPOptions: genai.HTTPOptions{
         BaseURL: "http://localhost:8090/gemini",
     },

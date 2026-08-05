@@ -2,15 +2,15 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "axonhub.fullname" . }}
+  name: {{ include "llm-proxy.fullname" . }}
   labels:
-    {{- include "axonhub.labels" . | nindent 4 }}
-    app.kubernetes.io/component: axonhub
+    {{- include "llm-proxy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: llm-proxy
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "axonhub.fullname" . }}
+    name: {{ include "llm-proxy.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

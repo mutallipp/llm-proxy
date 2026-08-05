@@ -1,6 +1,6 @@
-# AxonHub Documentation Index
+# llm-proxy Documentation Index
 
-Welcome to the AxonHub documentation center! This index will help you quickly find the guides and reference materials you need.
+Welcome to the llm-proxy documentation center! This index will help you quickly find the guides and reference materials you need.
 
 ## 📚 Documentation Navigation
 
@@ -8,8 +8,8 @@ Welcome to the AxonHub documentation center! This index will help you quickly fi
 
 | Document | Description |
 |----------|-------------|
-| [Quick Start Guide](getting-started/quick-start.md) | Get AxonHub up and running in minutes |
-| [Request Processing](getting-started/request-processing.md) | Understand how AxonHub processes API requests |
+| [Quick Start Guide](getting-started/quick-start.md) | Get llm-proxy up and running in minutes |
+| [Request Processing](getting-started/request-processing.md) | Understand how llm-proxy processes API requests |
 
 ### 📖 User Guides
 
@@ -31,9 +31,9 @@ Welcome to the AxonHub documentation center! This index will help you quickly fi
 
 | Document | Description |
 |----------|-------------|
-| [Claude Code Integration](guides/claude-code-integration.md) | Configure Claude Code to use AxonHub |
-| [Codex Integration](guides/codex-integration.md) | Configure Codex to use AxonHub |
-| [OpenCode Integration](guides/opencode-integration.md) | Configure OpenCode to use AxonHub |
+| [Claude Code Integration](guides/claude-code-integration.md) | Configure Claude Code to use llm-proxy |
+| [Codex Integration](guides/codex-integration.md) | Configure Codex to use llm-proxy |
+| [OpenCode Integration](guides/opencode-integration.md) | Configure OpenCode to use llm-proxy |
 
 ### 🔌 API Reference
 
@@ -83,4 +83,4 @@ Welcome to the AxonHub documentation center! This index will help you quickly fi
 
 ---
 
-> 💡 **Tip**: If you're new to AxonHub, we recommend starting with the [Quick Start Guide](getting-started/quick-start.md), then reading [Channel Management](guides/channel-management.md) and [Model Management](guides/model-management.md) to understand the core features.
+> 💡 **Tip**: If you're new to llm-proxy, we recommend starting with the [Quick Start Guide](getting-started/quick-start.md), then reading [Channel Management](guides/channel-management.md) and [Model Management](guides/model-management.md) to understand the core features.

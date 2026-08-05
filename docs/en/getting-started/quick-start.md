@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide will help you get started with AxonHub quickly. In just a few minutes, you'll have AxonHub running and be able to make your first API call.
+This guide will help you get started with llm-proxy quickly. In just a few minutes, you'll have llm-proxy running and be able to make your first API call.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ This guide will help you get started with AxonHub quickly. In just a few minutes
 2. **Configure environment variables**
    ```bash
    cp .env.example .env
-   # Edit .env and set AXONHUB_DB_DSN and other local settings
+   # Edit .env and set LLM_PROXY_DB_DSN and other local settings
    ```
 
 3. **Build and start services**
@@ -49,10 +49,10 @@ cp .env.example .env
 set -a && source .env && set +a
 cd frontend && pnpm install --frozen-lockfile && cd ..
 make build
-./axonhub
+./llm-proxy
 ```
 
-Do not run only `go run ./cmd/axonhub`; a fresh clone does not contain generated frontend dist files.
+Do not run only `go run ./cmd/llm-proxy`; a fresh clone does not contain generated frontend dist files.
 
 ### Method 3: Binary Download
 
@@ -64,8 +64,8 @@ Do not run only `go run ./cmd/axonhub`; a fresh clone does not contain generated
    ```bash
    unzip axonhub_*.zip
    cd axonhub_*
-   chmod +x axonhub
-   ./axonhub
+   chmod +x llm-proxy
+   ./llm-proxy
    ```
 
 3. **Access the application**
@@ -93,7 +93,7 @@ Do not run only `go run ./cmd/axonhub`; a fresh clone does not contain generated
 
 ### 3. Make Your First API Call
 
-AxonHub supports both OpenAI Chat Completions and Anthropic Messages APIs, allowing you to use your preferred API format to access any supported model.
+llm-proxy supports both OpenAI Chat Completions and Anthropic Messages APIs, allowing you to use your preferred API format to access any supported model.
 
 #### Using OpenAI API Format
 
@@ -101,7 +101,7 @@ AxonHub supports both OpenAI Chat Completions and Anthropic Messages APIs, allow
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -109,7 +109,7 @@ client = OpenAI(
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=[
-        {"role": "user", "content": "Hello, AxonHub!"}
+        {"role": "user", "content": "Hello, llm-proxy!"}
     ]
 )
 print(response.choices[0].message.content)
@@ -134,7 +134,7 @@ response = requests.post(
     "http://localhost:8090/anthropic/v1/messages",
     headers={
         "Content-Type": "application/json",
-        "X-API-Key": "your-axonhub-api-key"
+        "X-API-Key": "your-llm-proxy-api-key"
     },
     json={
         "model": "claude-3-5-sonnet",
@@ -154,7 +154,7 @@ response = requests.post(
     "http://localhost:8090/anthropic/v1/messages",
     headers={
         "Content-Type": "application/json",
-        "X-API-Key": "your-axonhub-api-key"
+        "X-API-Key": "your-llm-proxy-api-key"
     },
     json={
         "model": "gpt-4o",
@@ -174,7 +174,7 @@ print(response.json()["content"][0]["text"])
 
 - **API Interoperability**: Use OpenAI API to call Anthropic models, or Anthropic API to call OpenAI models
 - **Zero Code Changes**: Keep using your existing OpenAI or Anthropic client SDKs
-- **Automatic Translation**: AxonHub handles API format conversion automatically
+- **Automatic Translation**: llm-proxy handles API format conversion automatically
 - **Provider Flexibility**: Access any supported AI provider with your preferred API format
 
 ### 4. Advanced Channel Configuration
@@ -339,11 +339,11 @@ settings:
 # config.yml
 server:
   port: 8090
-  name: "AxonHub"
+  name: "llm-proxy"
 
 db:
   dialect: "sqlite3"
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+  dsn: "file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
 
 log:
   level: "info"
@@ -355,19 +355,19 @@ log:
 ```yaml
 server:
   port: 8090
-  name: "AxonHub Production"
+  name: "llm-proxy Production"
   debug: false
 
 db:
   dialect: "postgres"
-  dsn: "postgres://user:pass@localhost/axonhub?sslmode=disable"
+  dsn: "postgres://user:pass@localhost/llm-proxy?sslmode=disable"
 
 log:
   level: "warn"
   encoding: "json"
   output: "file"
   file:
-    path: "/var/log/axonhub/axonhub.log"
+    path: "/var/log/llm-proxy/llm-proxy.log"
 ```
 
 ## Next Steps
@@ -392,7 +392,7 @@ log:
 
 ### Common Issues
 
-**Cannot connect to AxonHub**
+**Cannot connect to llm-proxy**
 - Check if the service is running: `docker compose ps`
 - Verify port 8090 is available
 - Check firewall settings
@@ -414,7 +414,7 @@ log:
 
 ## What's Next?
 
-Now that you have AxonHub running, explore these advanced features:
+Now that you have llm-proxy running, explore these advanced features:
 
 - Set up multiple channels for failover
 - Configure model mappings for cost optimization

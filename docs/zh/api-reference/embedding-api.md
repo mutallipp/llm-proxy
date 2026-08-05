@@ -2,7 +2,7 @@
 
 ## 概述
 
-AxonHub 通过 OpenAI 兼容和 Jina AI 专用 API 提供全面的文本和多模态嵌入生成支持。
+llm-proxy 通过 OpenAI 兼容和 Jina AI 专用 API 提供全面的文本和多模态嵌入生成支持。
 
 ## 主要优势
 
@@ -73,7 +73,7 @@ AxonHub 通过 OpenAI 兼容和 Jina AI 专用 API 提供全面的文本和多�
 import openai
 
 client = openai.OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -101,7 +101,7 @@ import (
 
 func main() {
     client := openai.NewClient(
-        option.WithAPIKey("your-axonhub-api-key"),
+        option.WithAPIKey("your-llm-proxy-api-key"),
         option.WithBaseURL("http://localhost:8090/v1"),
     )
 
@@ -140,7 +140,7 @@ import requests
 response = requests.post(
     "http://localhost:8090/jina/v1/embeddings",
     headers={
-        "Authorization": "Bearer your-axonhub-api-key",
+        "Authorization": "Bearer your-llm-proxy-api-key",
         "Content-Type": "application/json"
     },
     json={
@@ -160,7 +160,7 @@ Embedding API 使用 Bearer Token 认证：
 
 - **请求头**: `Authorization: Bearer <your-api-key>`
 
-API 密钥通过 AxonHub 的 API 密钥管理系统进行管理。
+API 密钥通过 llm-proxy 的 API 密钥管理系统进行管理。
 
 ## 最佳实践
 

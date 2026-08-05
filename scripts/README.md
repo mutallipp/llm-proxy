@@ -1,4 +1,4 @@
-# AxonHub Scripts
+# llm-proxy Scripts
 
 项目脚本工具集，包含测试、部署和开发辅助脚本。
 
@@ -44,7 +44,7 @@
 
 **配置：**
 - 端口: 8099
-- 数据库: `scripts/e2e/axonhub-e2e.db`
+- 数据库: `scripts/e2e/llm-proxy-e2e.db`
 - 日志: `scripts/e2e/e2e-backend.log`
 
 ### 数据库迁移测试脚本
@@ -176,19 +176,19 @@ scripts/
 ├── migration-test.sh            # 单版本迁移测试
 ├── migration-test-all.sh        # 批量迁移测试
 │
-├── axonhub-e2e                  # E2E 测试二进制文件（自动生成）
-├── axonhub-e2e.db               # E2E 测试数据库（自动生成）
+├── llm-proxy-e2e                  # E2E 测试二进制文件（自动生成）
+├── llm-proxy-e2e.db               # E2E 测试数据库（自动生成）
 ├── e2e-backend.log              # E2E 后端日志（自动生成）
 ├── .e2e-backend.pid             # E2E 后端进程 ID（自动生成）
 │
 └── migration-test/              # 迁移测试工作目录（自动生成）
     ├── cache/                   # 二进制文件缓存
     │   ├── v0.1.0/
-    │   │   └── axonhub
+    │   │   └── llm-proxy
     │   └── v0.2.0/
-    │       └── axonhub
+    │       └── llm-proxy
     └── work/                    # 临时工作目录
-        ├── axonhub-current
+        ├── llm-proxy-current
         ├── migration-test.db
         ├── migration-test.log
         └── migration-plan.json
@@ -311,11 +311,11 @@ cat scripts/MIGRATION_TEST.md
 
 ### E2E 测试
 ```bash
-AXONHUB_SERVER_PORT=8099              # 后端端口
-AXONHUB_DB_DSN="file:..."             # 数据库连接
-AXONHUB_LOG_OUTPUT="stdio"            # 日志输出
-AXONHUB_LOG_LEVEL="debug"             # 日志级别
-AXONHUB_LOG_ENCODING="console"        # 日志格式
+LLM_PROXY_SERVER_PORT=8099              # 后端端口
+LLM_PROXY_DB_DSN="file:..."             # 数据库连接
+LLM_PROXY_LOG_OUTPUT="stdio"            # 日志输出
+LLM_PROXY_LOG_LEVEL="debug"             # 日志级别
+LLM_PROXY_LOG_ENCODING="console"        # 日志格式
 ```
 
 ### 迁移测试

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="70 0 536 360" role="img" aria-labelledby="auto-router-title" preserveAspectRatio="xMinYMid meet">
-  <title id="auto-router-title">AxonHub Architecture Diagram</title>
+  <title id="auto-router-title">llm-proxy Architecture Diagram</title>
 
   <!-- CSS Animations -->
   <style>
@@ -82,7 +82,7 @@
     <circle cx="360" cy="180" r="30" fill="rgba(34,211,238,0.06)" stroke="#99f6e4" stroke-width="1.5" class="glow" />
   </g>
 
-  <!-- Curved text: AxonHub -->
+  <!-- Curved text: llm-proxy -->
   <defs>
     <path id="ar-curve" d="M 360 180 m -60 0 a 60 60 0 1 1 120 0" fill="none"/>
     <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
@@ -90,7 +90,7 @@
     </marker>
   </defs>
   <text font-family="ui-sans-serif, system-ui, -apple-system" font-size="18" fill="#e2e8f0">
-    <textPath href="#ar-curve" startOffset="30%">AxonHub</textPath>
+    <textPath href="#ar-curve" startOffset="30%">llm-proxy</textPath>
   </text>
 
   <!-- Center icon placeholder (Axon monogram) -->

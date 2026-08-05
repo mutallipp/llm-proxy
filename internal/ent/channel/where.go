@@ -420,6 +420,16 @@ func DisabledAPIKeysNotNil() predicate.Channel {
 	return predicate.Channel(sql.FieldNotNull(FieldDisabledAPIKeys))
 }
 
+// ProtocolCapabilitiesIsNil applies the IsNil predicate on the "protocol_capabilities" field.
+func ProtocolCapabilitiesIsNil() predicate.Channel {
+	return predicate.Channel(sql.FieldIsNull(FieldProtocolCapabilities))
+}
+
+// ProtocolCapabilitiesNotNil applies the NotNil predicate on the "protocol_capabilities" field.
+func ProtocolCapabilitiesNotNil() predicate.Channel {
+	return predicate.Channel(sql.FieldNotNull(FieldProtocolCapabilities))
+}
+
 // ManualModelsIsNil applies the IsNil predicate on the "manual_models" field.
 func ManualModelsIsNil() predicate.Channel {
 	return predicate.Channel(sql.FieldIsNull(FieldManualModels))

@@ -1,0 +1,37 @@
+{
+  "findings": [
+    {
+      "title": "U5 引用行号错误：CreateModel 实际在 model.go:347 而非 :61",
+      "severity": "medium",
+      "category": "错误代码引用",
+      "description": "U5 写 \"Modify: internal/server/biz/model.go（validateModelSettings/UpdateModel:444/CreateModel:61 接入启用校验）\"。经核实 UpdateModel:444 准确，但 CreateModel 位于 internal/server/biz/model.go:347（其中 validateModelSettings 调用在 :350）；第 61 行是 validateModelSettings 函数体内部（ValidateProtocolPools 调用处）。行号偏差约 286 行，按行号跳转的实现者会落到错误位置。",
+      "evidence": "grep 结果：internal/server/biz/model.go:347: func (svc *ModelService) CreateModel(...)；:350: if err := svc.validateModelSettings(input.Settings)；sed -n 53,70 显示 :61 在 validateModelSettings 函数体内。",
+      "suggested_fix": "将 U5 的 \"CreateModel:61\" 改为 \"CreateModel:347（validate 调用 :350）\"，或仅保留函数名不写行号。"
+    },
+    {
+      "title": "U7 与 Verification Contract 声称的 vitest 不存在，实际单测框架是 node:test",
+      "severity": "medium",
+      "category": "测试策略缺口/不实引用",
+      "description": "U7 写 \"Test: channels-capability-dialog.test.mjs（vitest，参照 protocol-pools.test.mjs）\"，Verification Contract 写 \"前端：vitest 通过\"。经核实 frontend 未安装 vitest（package.json 无 vitest/jsdom 依赖，无 vitest 配置），单测脚本是 \"test:unit\": \"node --test src/**/*.test.mjs\"（package.json:16），全部现存 *.test.mjs（含被参照的 protocol-pools.test.mjs、channel-config.test.mjs）均用 node:test + node:assert/strict。两处 vitest 表述自相矛盾且验收门禁不可执行；若实现者按 vitest 引入依赖或写 import { describe } from 'vitest' 的测试，将无法被 test:unit 运行。",
+      "evidence": "frontend/package.json:16 \"test:unit\": \"node --test src/**/*.test.mjs\"；grep vitest package.json 无结果（NO_VITEST）；protocol-pools.test.mjs 头部：import assert from 'node:assert/strict'; import test from 'node:test'。",
+      "suggested_fix": "将 U7 的 \"vitest\" 改为 \"node:test（node --test，沿用 protocol-pools.test.mjs 模式）\"；Verification Contract 改为 \"npm run test:unit 全绿\"。"
+    },
+    {
+      "title": "U1 引用的 internal/objects/model_test.go 不存在（应为新建而非扩展）",
+      "severity": "low",
+      "category": "错误代码引用",
+      "description": "U1 写 \"Test: internal/objects/model_test.go 扩展（JSON round-trip、auto 缺省 false）\"。该文件不存在，internal/objects 现有测试仅 GUID_test.go、condition_test.go、price_test.go、price_schedule_test.go。措辞 \"扩展\" 会误导实现者寻找不存在的文件，实际需新建。",
+      "evidence": "ls internal/objects/model_test.go → No such file or directory；find internal/objects -name \"*_test.go\" 仅列出上述 4 个测试文件。",
+      "suggested_fix": "改为 \"新建 internal/objects/model_test.go（参照 condition_test.go 模式）\"。"
+    },
+    {
+      "title": "迁移引用不精确：\"db/ent.go schema.Migrate\" 实际为 internal/server/db/ent.go 的 client.Schema.Create",
+      "severity": "low",
+      "category": "不精确引用",
+      "description": "Technical Design 写 \"新 JSON 字段由 ent 启动自动迁移处理（db/ent.go schema.Migrate，WithDropColumn 已开）\"。实际路径是 internal/server/db/ent.go（仓库无顶层 db/ 目录），迁移调用是 client.Schema.Create(ctx, migrate.WithDropIndex(true), migrate.WithDropColumn(true), ...)（:66-77）。WithDropColumn(true) 的事实正确，但路径缩写与 API 名（schema.Migrate 不存在）不准确。",
+      "evidence": "find . -name ent.go → internal/server/db/ent.go；该文件 :66-72 为 client.Schema.Create(..., migrate.WithDropColumn(true), ...)。",
+      "suggested_fix": "改为 \"internal/server/db/ent.go 的 client.Schema.Create 自动迁移（WithDropColumn(true) 已开）\"。"
+    }
+  ],
+  "summary": "计划中绝大多数代码引用经 grep/read 核实准确（objects/model.go:47-50/:95-106、ent schema channel.go:122-124/:153、channel_endpoint.go:206/:260、select_endpoints.go:71、candidates.go:164、model_settings_inheritance.go:133、channel.go SaveChannelEndpoints:867/DeleteChannel:890、model.go UpdateModel:444、model_fetcher.go:237、model.graphql:224 fetchModels、channel_llm.go GetModelEntries:1171、adapter.go UpdateAdapter 无 Refresh、Makefile generate、enttest/forceResolver/fx.Provide、GraphQL ModelAssociation/Input 与 llm-proxy.graphql extend Channel、前端 channelSupportsProtocolPool:32、useSaveChannelEndpoints:1213、locales/{en,zh-CN}/*.json、.agent/rules 与架构文档均属实）；共发现 4 条不实/不精确引用：CreateModel 行号错误（:61 应为 :347）、vitest 不存在（实际 node --test/node:test）、objects/model_test.go 不存在需新建、迁移路径/API 名缩写不精确，均不构成 blocker。"
+}

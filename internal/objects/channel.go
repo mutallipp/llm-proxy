@@ -21,6 +21,18 @@ type ChannelEndpoint struct {
 	Transport string `json:"transport,omitempty"`
 }
 
+// ChannelProtocolCapabilities 描述渠道声明的协议族与逐模型协议例外。
+type ChannelProtocolCapabilities struct {
+	DeclaredProtocols []string                 `json:"declaredProtocols"`
+	Models            []ChannelModelCapability `json:"models"`
+}
+
+// ChannelModelCapability 描述渠道上单个物理模型支持的协议族。
+type ChannelModelCapability struct {
+	ModelID   string   `json:"modelId"`
+	Protocols []string `json:"protocols"`
+}
+
 const (
 	ChannelEndpointTransportHTTP      = "http"
 	ChannelEndpointTransportWebSocket = "websocket"
@@ -91,7 +103,7 @@ func HeaderEntriesToOverrideOperations(headers []HeaderEntry) []OverrideOperatio
 
 	ops := make([]OverrideOperation, 0, len(headers))
 	for _, header := range headers {
-		if header.Value == "__AXONHUB_CLEAR__" {
+		if header.Value == "__LLM_PROXY_CLEAR__" {
 			ops = append(ops, OverrideOperation{Op: OverrideOpDelete, Path: header.Key})
 			continue
 		}
@@ -167,7 +179,7 @@ type ChannelSettings struct {
 	BodyOverrideOperations []OverrideOperation `json:"bodyOverrideOperations,omitempty"`
 
 	// OverrideHeaders sets the channel override the request headers.
-	// e.g. [{"key": "User-Agent", "value": "AxonHub"}]
+	// e.g. [{"key": "User-Agent", "value": "llm-proxy"}]
 	// Supported ops: set (default), delete, rename, copy.
 	// Deprecated Use headerOverrideOperations instead.
 	OverrideHeaders []HeaderEntry `json:"overrideHeaders"`
@@ -416,7 +428,7 @@ func ParseOverrideOperations(raw string) ([]OverrideOperation, error) {
 
 	ops := make([]OverrideOperation, 0, len(legacy))
 	for key, value := range legacy {
-		if strVal, ok := value.(string); ok && strVal == "__AXONHUB_CLEAR__" {
+		if strVal, ok := value.(string); ok && strVal == "__LLM_PROXY_CLEAR__" {
 			ops = append(ops, OverrideOperation{Op: OverrideOpDelete, Path: key})
 		} else {
 			// Convert value to string

@@ -20,7 +20,7 @@ var (
 	}
 )
 
-// Request is the unified llm request model for AxonHub, to keep compatibility with major app and framework.
+// Request is the unified llm request model for llm-proxy, to keep compatibility with major app and framework.
 // It choose to base on the OpenAI chat completion request, but add some extra fields to support more features.
 // All the fields except `Embedding`, `Rerank`, and other helper fields is for chat type request.
 //

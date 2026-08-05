@@ -53,7 +53,7 @@
         感谢 Krill AI 赞助本项目。Krill 提供 GPT、Claude、Gemini 及多款国产模型的官方稳定极速 API 中转服务，支持企业级定制、报销开票和 7x16 小时专属技术支持。其独家适配的 WebSocket 连接方式可带来更快的首字速度。
       </p>
       <p align="left">
-        使用 <a href="https://lj.s.gy/jKk8uU" target="_blank">此链接</a> 注册，并在充值时填写 <code>AxonHub</code> 优惠码，首次购买 Codex 套餐可享 77 折优惠。
+        使用 <a href="https://lj.s.gy/jKk8uU" target="_blank">此链接</a> 注册，并在充值时填写 <code>llm-proxy</code> 优惠码，首次购买 Codex 套餐可享 77 折优惠。
       </p>
     </td>
   </tr>
@@ -73,15 +73,15 @@
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <a href="https://bloome.im/app?ref=MjgMzmCY&utm_medium=github&utm_source=looplj-axonhub-ivor-202606" target="_blank">
+        <a href="https://bloome.im/app?ref=MjgMzmCY&utm_medium=github&utm_source=looplj-llm-proxy-ivor-202606" target="_blank">
           <img src="docs/sponsors/bloome.png" alt="Bloome" height="90"/>
           <br/>
           <strong>Bloome</strong>
         </a>
       </td>
       <td valign="middle">
-        想试用 AxonHub，但不想在本地配置环境？可以在 Bloome 上运行：
-        <a href="https://bloome.im/app?ref=MjgMzmCY&utm_medium=github&utm_source=looplj-axonhub-ivor-202606" target="_blank">快速使用</a>，
+        想试用 llm-proxy，但不想在本地配置环境？可以在 Bloome 上运行：
+        <a href="https://bloome.im/app?ref=MjgMzmCY&utm_medium=github&utm_source=looplj-llm-proxy-ivor-202606" target="_blank">快速使用</a>，
         通过浏览器或手机一键启动，也可以轻松分享给你的团队。
       </td>
     </tr>
@@ -107,7 +107,7 @@
 - 💸 **成本控制** - 实时用量追踪和预算管理
 
 <div align="center">
-  <img src="docs/axonhub-architecture-light.svg" alt="AxonHub Architecture" width="700"/>
+  <img src="docs/llm-proxy-architecture-light.svg" alt="llm-proxy Architecture" width="700"/>
 </div>
 
 ---
@@ -142,7 +142,7 @@
 
 ## 🎯 演示 | Demo
 
-在我们的 [演示实例](https://axonhub.onrender.com) 上体验 AxonHub！
+在我们的 [演示实例](https://llm-proxy.onrender.com) 上体验 llm-proxy！
 
 **注意**：演示网站目前配置了 Zhipu 和 OpenRouter 的免费模型。
 
@@ -156,27 +156,27 @@
 
 ### 📸 截图 | Screenshots
 
-以下是 AxonHub 的实际运行截图：
+以下是 llm-proxy 的实际运行截图：
 
 <table>
   <tr>
     <td align="center">
-      <a href="docs/screenshots/axonhub-dashboard.png">
-        <img src="docs/screenshots/axonhub-dashboard.png" alt="系统仪表板" width="250"/>
+      <a href="docs/screenshots/llm-proxy-dashboard.png">
+        <img src="docs/screenshots/llm-proxy-dashboard.png" alt="系统仪表板" width="250"/>
       </a>
       <br/>
       系统仪表板
     </td>
     <td align="center">
-      <a href="docs/screenshots/axonhub-channels.png">
-        <img src="docs/screenshots/axonhub-channels.png" alt="渠道管理" width="250"/>
+      <a href="docs/screenshots/llm-proxy-channels.png">
+        <img src="docs/screenshots/llm-proxy-channels.png" alt="渠道管理" width="250"/>
       </a>
       <br/>
       渠道管理
     </td>
     <td align="center">
-      <a href="docs/screenshots/axonhub-model-price.png">
-        <img src="docs/screenshots/axonhub-model-price.png" alt="模型价格" width="250"/>
+      <a href="docs/screenshots/llm-proxy-model-price.png">
+        <img src="docs/screenshots/llm-proxy-model-price.png" alt="模型价格" width="250"/>
       </a>
       <br/>
       模型价格
@@ -184,22 +184,22 @@
   </tr>
   <tr>
    <td align="center">
-      <a href="docs/screenshots/axonhub-models.png">
-        <img src="docs/screenshots/axonhub-models.png" alt="模型" width="250"/>
+      <a href="docs/screenshots/llm-proxy-models.png">
+        <img src="docs/screenshots/llm-proxy-models.png" alt="模型" width="250"/>
       </a>
       <br/>
       模型
     </td>
     <td align="center">
-      <a href="docs/screenshots/axonhub-trace.png">
-        <img src="docs/screenshots/axonhub-trace.png" alt="追踪查看" width="250"/>
+      <a href="docs/screenshots/llm-proxy-trace.png">
+        <img src="docs/screenshots/llm-proxy-trace.png" alt="追踪查看" width="250"/>
       </a>
       <br/>
       追踪查看
     </td>
     <td align="center">
-      <a href="docs/screenshots/axonhub-requests.png">
-        <img src="docs/screenshots/axonhub-requests.png" alt="请求监控" width="250"/>
+      <a href="docs/screenshots/llm-proxy-requests.png">
+        <img src="docs/screenshots/llm-proxy-requests.png" alt="请求监控" width="250"/>
       </a>
       <br/>
       请求监控
@@ -249,28 +249,28 @@
 
 ```bash
 # 下载并解压（以 macOS ARM64 为例）
-curl -sSL https://github.com/mutallipp/llm-proxy/releases/latest/download/axonhub_darwin_arm64.tar.gz | tar xz
-cd axonhub_*
+curl -sSL https://github.com/mutallipp/llm-proxy/releases/latest/download/llm-proxy_darwin_arm64.tar.gz | tar xz
+cd llm-proxy_*
 
 # 使用 SQLite 运行（默认）
-./axonhub
+./llm-proxy
 
 # 打开 http://localhost:8090
 # 首次运行：按照初始化向导设置系统（创建管理员账号，密码至少需要 6 位）
 ```
 
-就这样！现在配置你的第一个 AI 渠道，开始通过 AxonHub 调用模型。
+就这样！现在配置你的第一个 AI 渠道，开始通过 llm-proxy 调用模型。
 
 ### 零代码迁移示例 | Zero-Code Migration Example
 
-**你的现有代码无需任何改动。** 只需将 SDK 指向 AxonHub：
+**你的现有代码无需任何改动。** 只需将 SDK 指向 llm-proxy：
 
 ```python
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://localhost:8090/v1",  # 指向 AxonHub
-    api_key="your-axonhub-api-key"        # 使用 AxonHub API 密钥
+    base_url="http://localhost:8090/v1",  # 指向 llm-proxy
+    api_key="your-llm-proxy-api-key"        # 使用 llm-proxy API 密钥
 )
 
 # 用 OpenAI SDK 调用 Claude！
@@ -298,20 +298,20 @@ response = client.chat.completions.create(
 2. **解压并运行**
    ```bash
    # 解压下载的文件
-   unzip axonhub_*.zip
-   cd axonhub_*
+   unzip llm-proxy_*.zip
+   cd llm-proxy_*
    
    # 添加执行权限 (仅限 Linux/macOS)
-   chmod +x axonhub
+   chmod +x llm-proxy
    
    # 直接运行 - 默认使用 SQLite 数据库
-   # 安装 AxonHub 到系统
+   # 安装 llm-proxy 到系统
    ./install.sh
 
-   # 启动 AxonHub 服务
+   # 启动 llm-proxy 服务
    ./start.sh
 
-   # 停止 AxonHub 服务
+   # 停止 llm-proxy 服务
    ./stop.sh
    ```
 
@@ -328,7 +328,7 @@ response = client.chat.completions.create(
 
 #### 数据库支持 | Database Support
 
-AxonHub 支持多种数据库，满足不同规模的部署需求：
+llm-proxy 支持多种数据库，满足不同规模的部署需求：
 
 | 数据库 | 支持版本 | 推荐场景 | 自动迁移 | 链接 |
 |--------|----------|----------|----------|------|
@@ -342,18 +342,18 @@ AxonHub 支持多种数据库，满足不同规模的部署需求：
 
 #### 配置文件 | Configuration
 
-AxonHub 使用 YAML 配置文件，支持环境变量覆盖：
+llm-proxy 使用 YAML 配置文件，支持环境变量覆盖：
 
 ```yaml
 # config.yml
 server:
   port: 8090
-  name: "AxonHub"
+  name: "llm-proxy"
   debug: false
 
 db:
   dialect: "tidb"
-  dsn: "<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
+  dsn: "<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/llm-proxy?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
 
 log:
   level: "info"
@@ -362,10 +362,10 @@ log:
 
 环境变量：
 ```bash
-AXONHUB_SERVER_PORT=8090
-AXONHUB_DB_DIALECT="tidb"
-AXONHUB_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
-AXONHUB_LOG_LEVEL=info
+LLM_PROXY_SERVER_PORT=8090
+LLM_PROXY_DB_DIALECT="tidb"
+LLM_PROXY_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/llm-proxy?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
+LLM_PROXY_LOG_LEVEL=info
 ```
 
 详细配置说明请参考 [配置文档](config.example.yml)。
@@ -379,7 +379,7 @@ cd llm-proxy
 
 # Compose 自动读取同目录 .env
 cp .env.example .env
-# 编辑 .env，填写 AXONHUB_DB_DIALECT 和 AXONHUB_DB_DSN
+# 编辑 .env，填写 LLM_PROXY_DB_DIALECT 和 LLM_PROXY_DB_DSN
 
 # 首次启动或代码更新后，必须重新构建镜像
 docker compose up -d --build --force-recreate
@@ -393,19 +393,19 @@ Dockerfile 会自动构建前端并将最新 Adapter 页面嵌入后端。
 
 #### Helm Kubernetes 部署 | Helm Kubernetes Deployment
 
-使用官方 Helm Chart 在 Kubernetes 上部署 AxonHub：
+使用官方 Helm Chart 在 Kubernetes 上部署 llm-proxy：
 
 ```bash
 # Quick installation
 git clone https://github.com/mutallipp/llm-proxy.git
 cd llm-proxy
-helm install axonhub ./deploy/helm
+helm install llm-proxy ./deploy/helm
 
 # Production deployment
-helm install axonhub ./deploy/helm -f ./deploy/helm/values-production.yaml
+helm install llm-proxy ./deploy/helm -f ./deploy/helm/values-production.yaml
 
-# Access AxonHub
-kubectl port-forward svc/axonhub 8090:8090
+# Access llm-proxy
+kubectl port-forward svc/llm-proxy 8090:8090
 # Visit http://localhost:8090
 ```
 
@@ -413,8 +413,8 @@ kubectl port-forward svc/axonhub 8090:8090
 
 | 参数 | 描述 | 默认 |
 |-----------|-------------|---------|
-| `axonhub.replicaCount` | 副本数 | `1` |
-| `axonhub.dbPassword` | 数据库密码 | `axonhub_password` |
+| `llm-proxy.replicaCount` | 副本数 | `1` |
+| `llm-proxy.dbPassword` | 数据库密码 | `llm-proxy_password` |
 | `postgresql.enabled` | 是否启用内嵌 PostgreSQL | `true` |
 | `ingress.enabled` | 是否启用 Ingress | `false` |
 | `persistence.enabled` | 是否启用持久化存储 | `false` |
@@ -431,16 +431,16 @@ git clone https://github.com/mutallipp/llm-proxy.git
 cd llm-proxy
 
 # 设置环境变量
-export AXONHUB_DB_DIALECT="tidb"
-export AXONHUB_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
+export LLM_PROXY_DB_DIALECT="tidb"
+export LLM_PROXY_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/llm-proxy?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
 
 # 安装
 sudo ./install.sh
 
 # 配置文件检查
-axonhub config check
+llm-proxy config check
 
-# 使用管理脚本管理 AxonHub
+# 使用管理脚本管理 llm-proxy
 
 # 启动
 ./start.sh
@@ -474,7 +474,7 @@ axonhub config check
 
 ### 3. 模型管理 | Model Management
 
-AxonHub 提供灵活的模型管理系统，支持通过模型关联将抽象模型映射到特定渠道和模型实现。这使您能够：
+llm-proxy 提供灵活的模型管理系统，支持通过模型关联将抽象模型映射到特定渠道和模型实现。这使您能够：
 
 - **统一模型接口** - 使用抽象模型 ID（如 `gpt-4`、`claude-3-opus`）替代渠道特定的名称
 - **智能渠道选择** - 基于关联规则和负载均衡自动将请求路由到最优渠道
@@ -485,7 +485,7 @@ AxonHub 提供灵活的模型管理系统，支持通过模型关联将抽象模
 
 ### 4. 创建 API Key | Create API Keys
 
-创建 API 密钥以验证您的应用程序与 AxonHub 的连接。每个 API 密钥可以配置多个配置文件（Profile），用于定义：
+创建 API 密钥以验证您的应用程序与 llm-proxy 的连接。每个 API 密钥可以配置多个配置文件（Profile），用于定义：
 
 - **模型映射** - 使用精确匹配或正则表达式模式将用户请求的模型转换为实际可用的模型
 - **渠道限制** - 通过渠道 ID 或标签限制 API 密钥可以使用的渠道
@@ -496,7 +496,7 @@ AxonHub 提供灵活的模型管理系统，支持通过模型关联将抽象模
 
 ### 5. AI 编程工具集成 | AI Coding Tools Integration
 
-关于如何在 OpenCode、Claude Code 与 Claude Codex 中配置与 AxonHub 的集成、排查常见问题以及结合模型配置文件工作流的最佳实践，请参阅专门的集成指南：
+关于如何在 OpenCode、Claude Code 与 Claude Codex 中配置与 llm-proxy 的集成、排查常见问题以及结合模型配置文件工作流的最佳实践，请参阅专门的集成指南：
 - [OpenCode 集成指南](docs/zh/guides/opencode-integration.md)
 - [Claude Code 集成指南](docs/zh/guides/claude-code-integration.md)
 - [Codex 集成指南](docs/zh/guides/codex-integration.md)
@@ -539,10 +539,10 @@ AxonHub 提供灵活的模型管理系统，支持通过模型关联将抽象模
 
 <div align="center">
 
-**AxonHub** - All-in-one AI 开发平台，让 AI 开发更简单
+**llm-proxy** - All-in-one AI 开发平台，让 AI 开发更简单
 
 [🏠 官网](https://github.com/mutallipp/llm-proxy) • [📚 文档](https://deepwiki.com/mutallipp/llm-proxy) • [🐛 问题反馈](https://github.com/mutallipp/llm-proxy/issues)
 
-Built with ❤️ by the AxonHub team
+Built with ❤️ by the llm-proxy team
 
 </div>

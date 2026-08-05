@@ -56,7 +56,7 @@ Many AI tools use fixed model names internally. If you want them to use other mo
 
 ### Step 1: Open the profile UI
 
-1. Log in to the AxonHub management interface
+1. Log in to the llm-proxy management interface
 2. Go to **API Keys**
 3. Find the API Key you want to configure
 4. Open the **Actions** menu
@@ -72,7 +72,7 @@ Many AI tools use fixed model names internally. If you want them to use other mo
 
 Each mapping has:
 - **From**: the model name in the client request
-- **To**: the model name that AxonHub should use
+- **To**: the model name that llm-proxy should use
 
 Supported matching methods:
 

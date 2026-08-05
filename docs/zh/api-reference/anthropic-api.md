@@ -2,13 +2,13 @@
 
 ## 概述
 
-AxonHub 支持原生 Anthropic Messages API，适用于偏好 Anthropic 特定功能和响应格式的应用程序。您可以使用 Anthropic SDK 访问 Claude 模型，也可以访问 OpenAI、Gemini 和其他支持的模型。
+llm-proxy 支持原生 Anthropic Messages API，适用于偏好 Anthropic 特定功能和响应格式的应用程序。您可以使用 Anthropic SDK 访问 Claude 模型，也可以访问 OpenAI、Gemini 和其他支持的模型。
 
 ## 核心优势
 
 - **API 互操作性**：使用 Anthropic Messages API 调用 OpenAI、Gemini 和其他支持的模型
 - **零代码变更**：继续使用现有的 Anthropic 客户端 SDK，无需修改
-- **自动转换**：AxonHub 在需要时自动在 API 格式之间进行转换
+- **自动转换**：llm-proxy 在需要时自动在 API 格式之间进行转换
 - **提供商灵活性**：使用 Anthropic API 格式访问任何支持的 AI 提供商
 
 ## 支持的端点
@@ -25,9 +25,9 @@ import (
     "github.com/anthropics/anthropic-sdk-go/option"
 )
 
-// 使用 AxonHub 配置创建 Anthropic 客户端
+// 使用 llm-proxy 配置创建 Anthropic 客户端
 client := anthropic.NewClient(
-    option.WithAPIKey("your-axonhub-api-key"),
+    option.WithAPIKey("your-llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/anthropic"),
     
 )
@@ -59,7 +59,7 @@ fmt.Println(responseText)
 
 ## API 转换能力
 
-AxonHub 自动在 API 格式之间进行转换，实现以下强大场景：
+llm-proxy 自动在 API 格式之间进行转换，实现以下强大场景：
 
 ### 使用 Anthropic SDK 调用 OpenAI 模型
 ```go
@@ -80,7 +80,7 @@ for _, block := range response.Content {
         fmt.Println(textBlock.Text)
     }
 }
-// AxonHub 自动转换 Anthropic 格式 → OpenAI 格式
+// llm-proxy 自动转换 Anthropic 格式 → OpenAI 格式
 ```
 
 ### 使用 Anthropic SDK 调用 Gemini 模型
@@ -102,7 +102,7 @@ for _, block := range response.Content {
         fmt.Println(textBlock.Text)
     }
 }
-// AxonHub 自动转换 Anthropic 格式 → Gemini 格式
+// llm-proxy 自动转换 Anthropic 格式 → Gemini 格式
 ```
 
 ## 认证
@@ -111,7 +111,7 @@ Anthropic API 格式使用以下认证方式：
 
 - **头部**：`X-API-Key: <your-api-key>`
 
-API 密钥通过 AxonHub 的 API 密钥管理系统进行管理，无论使用哪种 API 格式，都提供相同的权限。
+API 密钥通过 llm-proxy 的 API 密钥管理系统进行管理，无论使用哪种 API 格式，都提供相同的权限。
 
 ## 流式支持
 
@@ -165,7 +165,7 @@ Anthropic 格式错误响应：
 
 ## 工具支持
 
-AxonHub 通过 Anthropic API 格式支持**函数工具**（自定义函数调用）。但是，**不支持**各提供商特有的工具：
+llm-proxy 通过 Anthropic API 格式支持**函数工具**（自定义函数调用）。但是，**不支持**各提供商特有的工具：
 
 | 工具类型 | 支持状态 | 说明 |
 | -------- | -------- | ---- |
@@ -175,7 +175,7 @@ AxonHub 通过 Anthropic API 格式支持**函数工具**（自定义函数调�
 | **文件搜索（File Search）** | ❌ 不支持 | 提供商特有功能 |
 | **计算机使用（Computer Use）** | ❌ 不支持 | Anthropic 特有功能 |
 
-> **注意**：仅支持可跨提供商转换的通用函数工具。网页搜索、代码解释器、计算机使用等提供商特有工具需要直接访问提供商的基础设施，无法通过 AxonHub 代理。
+> **注意**：仅支持可跨提供商转换的通用函数工具。网页搜索、代码解释器、计算机使用等提供商特有工具需要直接访问提供商的基础设施，无法通过 llm-proxy 代理。
 
 ## 最佳实践
 
@@ -187,16 +187,16 @@ AxonHub 通过 Anthropic API 格式支持**函数工具**（自定义函数调�
 
 ## 迁移指南
 
-### 从 Anthropic 迁移到 AxonHub
+### 从 Anthropic 迁移到 llm-proxy
 ```go
 // 之前：直接 Anthropic
 client := anthropic.NewClient(
     option.WithAPIKey("anthropic-key"),
 )
 
-// 之后：使用 Anthropic API 的 AxonHub
+// 之后：使用 Anthropic API 的 llm-proxy
 client := anthropic.NewClient(
-    option.WithAPIKey("axonhub-api-key"),
+    option.WithAPIKey("llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/anthropic"),
 )
 // 您的现有代码继续工作！

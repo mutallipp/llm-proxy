@@ -52,8 +52,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     GOTOOLCHAIN=auto go build \
     -tags=nomsgpack \
     -ldflags "-s -w -X 'github.com/mutallipp/llm-proxy/internal/build.Version=$(cat internal/build/VERSION 2>/dev/null || echo dev)' -X 'github.com/mutallipp/llm-proxy/internal/build.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)'" \
-    -o axonhub \
-    ./cmd/axonhub
+    -o llm-proxy \
+    ./cmd/llm-proxy
 
 FROM alpine:3.20
 
@@ -63,7 +63,7 @@ RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories
 RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
-COPY --from=backend-builder /build/axonhub /app/axonhub
+COPY --from=backend-builder /build/llm-proxy /app/llm-proxy
 
 EXPOSE 8090
-ENTRYPOINT ["/app/axonhub"]
+ENTRYPOINT ["/app/llm-proxy"]

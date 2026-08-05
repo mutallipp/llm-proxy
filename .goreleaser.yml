@@ -1,6 +1,6 @@
 version: 2
 
-project_name: axonhub
+project_name: llm-proxy
 
 dist: .builds
 
@@ -13,8 +13,8 @@ before:
 
 builds:
   - id: build
-    main: ./cmd/axonhub
-    binary: axonhub
+    main: ./cmd/llm-proxy
+    binary: llm-proxy
     flags:
       - -tags=nomsgpack
     ldflags:
@@ -100,11 +100,11 @@ archives:
         dst: upgrade.bat
 
 brews:
-  - name: axonhub
+  - name: llm-proxy
     ids: [archive]
     repository:
       owner: looplj
-      name: homebrew-axonhub
+      name: homebrew-llm-proxy
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     directory: Formula
     homepage: "https://github.com/mutallipp/llm-proxy"
@@ -115,26 +115,26 @@ brews:
       name: "github-actions[bot]"
       email: "github-actions[bot]@users.noreply.github.com"
     install: |
-      libexec.install "axonhub"
-      (etc/"axonhub").mkpath
-      (bin/"axonhub").write <<~SH
+      libexec.install "llm-proxy"
+      (etc/"llm-proxy").mkpath
+      (bin/"llm-proxy").write <<~SH
         #!/bin/sh
-        cd "#{etc}/axonhub" || exit 1
-        exec "#{libexec}/axonhub" "$@"
+        cd "#{etc}/llm-proxy" || exit 1
+        exec "#{libexec}/llm-proxy" "$@"
       SH
     service: |
-      run [opt_bin/"axonhub"]
+      run [opt_bin/"llm-proxy"]
       keep_alive true
     test: |
-      system "#{bin}/axonhub", "version"
+      system "#{bin}/llm-proxy", "version"
     caveats: |
-      AxonHub runs with default configuration.
-      To customize, create a config file at: #{etc}/axonhub/config.yml
+      llm-proxy runs with default configuration.
+      To customize, create a config file at: #{etc}/llm-proxy/config.yml
 
       View current configuration:
-        axonhub config preview
+        llm-proxy config preview
 
-      The wrapper starts AxonHub from #{etc}/axonhub automatically.
+      The wrapper starts llm-proxy from #{etc}/llm-proxy automatically.
 
 checksum:
   name_template: 'checksums.txt'

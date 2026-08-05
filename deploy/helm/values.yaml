@@ -1,4 +1,4 @@
-# Default values for axonhub.
+# Default values for llm-proxy.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -6,8 +6,8 @@ global:
   # Global image pull secrets
   imagePullSecrets: []
 
-# AxonHub application configuration
-axonhub:
+# llm-proxy application configuration
+llm-proxy:
   replicaCount: 1
   
   image:
@@ -16,13 +16,13 @@ axonhub:
     # Overrides the image tag. Defaults to the chart appVersion when empty.
     tag: ""
   
-  # Environment variables for AxonHub
+  # Environment variables for llm-proxy
   env:
-    AXONHUB_DB_DIALECT: postgres
+    LLM_PROXY_DB_DIALECT: postgres
     # Full database connection string - customize this for your environment
-    AXONHUB_DB_DSN: postgres://axonhub:axonhub_password@axonhub-postgresql:5432/axonhub?sslmode=disable
-    # Read replica DSN - leave empty to disable read-write separation (env: AXONHUB_DB_READ_REPLICA_READ_DSN)
-    # AXONHUB_DB_READ_REPLICA_READ_DSN: postgres://axonhub:axonhub_password@axonhub-postgresql:5432/axonhub?sslmode=disable
+    LLM_PROXY_DB_DSN: postgres://llm-proxy:llm-proxy_password@llm-proxy-postgresql:5432/llm-proxy?sslmode=disable
+    # Read replica DSN - leave empty to disable read-write separation (env: LLM_PROXY_DB_READ_REPLICA_READ_DSN)
+    # LLM_PROXY_DB_READ_REPLICA_READ_DSN: postgres://llm-proxy:llm-proxy_password@llm-proxy-postgresql:5432/llm-proxy?sslmode=disable
   
   # Service configuration
   service:
@@ -91,10 +91,10 @@ postgresql:
   
   # Database credentials
   auth:
-    postgresPassword: "axonhub_password"  # Should be overridden in production
-    username: "axonhub"
-    password: "axonhub_password"  # Should be overridden in production
-    database: "axonhub"
+    postgresPassword: "llm-proxy_password"  # Should be overridden in production
+    username: "llm-proxy"
+    password: "llm-proxy_password"  # Should be overridden in production
+    database: "llm-proxy"
   
   # Service configuration
   service:
@@ -125,7 +125,7 @@ postgresql:
       command:
         - pg_isready
         - -U
-        - axonhub
+        - llm-proxy
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
@@ -136,7 +136,7 @@ postgresql:
       command:
         - pg_isready
         - -U
-        - axonhub
+        - llm-proxy
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
@@ -148,7 +148,7 @@ ingress:
   className: ""
   annotations: {}
   hosts:
-    - host: axonhub.local
+    - host: llm-proxy.local
       paths:
         - path: /
           pathType: Prefix

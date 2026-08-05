@@ -16,7 +16,8 @@ test('adapter model initialization keeps query-derived arrays stable', () => {
   const dialog = source.slice(dialogStart, dialogEnd);
 
   assert.match(source, /const EMPTY_MODELS: Model\[\] = \[\];/);
-  assert.equal((source.match(/const models = useMemo\(/g) ?? []).length, 3);
+  // 列表页绑定详情区块已移除，当前仅两个弹窗需要派生模型数组。
+  assert.equal((source.match(/const models = useMemo\(/g) ?? []).length, 2);
   assert.doesNotMatch(source, /const models = modelsData\?\.edges\.map/);
 
   const initializationEffectStart = dialog.indexOf('useEffect(() => {');

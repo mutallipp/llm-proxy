@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AxonHub SQLite Database Cleanup Script
+# llm-proxy SQLite Database Cleanup Script
 # Issue: https://github.com/mutallipp/llm-proxy/issues/1905
 #
 # Usage:
@@ -7,12 +7,12 @@
 #
 # Examples:
 #   ./scripts/cleanup-sqlite.sh                          # uses default path, 30 days
-#   ./scripts/cleanup-sqlite.sh ./axonhub.db 7           # custom path, keep 7 days
-#   ./scripts/cleanup-sqlite.sh ./axonhub.db 0           # delete ALL historical data
+#   ./scripts/cleanup-sqlite.sh ./llm-proxy.db 7           # custom path, keep 7 days
+#   ./scripts/cleanup-sqlite.sh ./llm-proxy.db 0           # delete ALL historical data
 
 set -euo pipefail
 
-DB_PATH="${1:-axonhub.db}"
+DB_PATH="${1:-llm-proxy.db}"
 RETENTION_DAYS="${2:-30}"
 BATCH_SIZE=5000
 
@@ -35,7 +35,7 @@ if ! command -v sqlite3 &>/dev/null; then
 fi
 
 echo "============================================"
-echo "  AxonHub SQLite Cleanup"
+echo "  llm-proxy SQLite Cleanup"
 echo "============================================"
 echo "Database:  $DB_PATH"
 echo "Retention: ${RETENTION_DAYS} days"
@@ -204,7 +204,7 @@ echo " done (${TOTAL} rows)"
 echo ""
 echo "--- Running VACUUM to reclaim disk space ---"
 echo "  WARNING: VACUUM requires exclusive access to the database."
-echo "  If AxonHub is running, stop it first to avoid lock contention."
+echo "  If llm-proxy is running, stop it first to avoid lock contention."
 read -p "  Continue with VACUUM? (y/N) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -236,7 +236,7 @@ echo "============================================"
 echo "  Cleanup complete!"
 echo "============================================"
 echo ""
-echo "IMPORTANT: Enable auto-cleanup in AxonHub to prevent this from happening again:"
+echo "IMPORTANT: Enable auto-cleanup in llm-proxy to prevent this from happening again:"
 echo "  1. Go to Settings > Storage Policy"
 echo "  2. Enable cleanup for 'requests' (recommended: 7-30 days)"
 echo "  3. Enable cleanup for 'usage_logs' (recommended: 30-90 days)"

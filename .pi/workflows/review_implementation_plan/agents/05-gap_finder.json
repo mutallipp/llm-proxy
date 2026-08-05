@@ -1,0 +1,53 @@
+{
+  "findings": [
+    {
+      "title": "R13 渠道删除清理被批量删除路径（bulkDeleteChannels）完全绕过",
+      "severity": "high",
+      "category": "集成点遗漏",
+      "description": "计划 Technical Design 的触发点装配与 U3 修改清单只把 R13 清理挂到 DeleteChannel（channel.go:890）。但批量删除是独立代码路径：GraphQL mutation bulkDeleteChannels → resolver → BulkDeleteChannels，后者直接执行 ent Channel.Delete，不经过 DeleteChannel。按此实施，批量删除渠道后：指向该渠道的 auto 派生条目永不清理（成为孤儿条目），手动条目也不会被置为禁用并附原因『渠道已删除』，R13/AE10 语义在真实 UI 路径（channels-bulk-delete-dialog）上失效。",
+      "evidence": "internal/server/biz/channel_bulk.go:214-230（BulkDeleteChannels 直接 svc.entFromContext(ctx).Channel.Delete().Where(channel.IDIn(ids...)).Exec(ctx)，仅 forgetLimiter+asyncReloadChannels）；internal/server/gql/llm-proxy.resolvers.go:239-244（BulkDeleteChannels resolver）；internal/server/gql/llm-proxy.graphql:837（bulkDeleteChannels(ids:[ID!]!): Boolean!）；frontend/src/features/channels/data/channels.ts:1414 前端已在使用该 mutation。计划 U3 Modify 清单仅列 channel.go 的 DeleteChannel。",
+      "suggested_fix": "把 R13 清理抽成可复用函数（或并入 U4 reconcile 引擎的清理操作），在 DeleteChannel 与 BulkDeleteChannels 两处接线；U3/U4 测试与 AE10 增加批量删除场景。"
+    },
+    {
+      "title": "KTD19 校验范围表述过宽，与 R6a/AE3/KTD4 矛盾：按字面实施会拦截所有手动关联的启用",
+      "severity": "high",
+      "category": "KTD↔R↔AE 追溯断链/契约内部矛盾",
+      "description": "KTD19 写『任何从禁用变为启用（或新增即启用）的关联都过校验，失败整体拒绝保存』；但产品契约 R6a 的校验对象仅限『禁用态派生关联』。AE3 明确要求自定义名称模型手动新增关联『行为与现状一致』，KTD4 保留 Model 侧例外覆盖。若 U5 按 KTD19 字面实现，手动新增启用态关联、重新启用手动条目都会因『渠道未声明该模型名』被拒绝——直接造成存量行为回归，与 Verification Contract『存量行为不变』冲突。此外 U1 之前 ModelAssociation 无 auto 标记，校验链必须先能区分条目来源，这一点在 KTD19/U5 中未说明。",
+      "evidence": "计划 KTD19（『任何从禁用变为启用（或新增即启用）的关联都过校验』）vs R6a（『任何禁用态派生关联的启用』）、AE3（手动新增行为与现状一致）、KTD4（Model 层管例外）；internal/objects/model.go:95-106 现 ModelAssociation 无 auto/disabledReason 字段（U1 才新增），校验时机上需要在写入前识别条目是否为派生条目。",
+      "suggested_fix": "KTD19 收窄为『仅 auto 派生条目的启用（含撤销禁用后重启用）执行 R6a 校验，手动条目与新增手动关联豁免』，并在 U5 明确识别校验对象的方式；同时明确 developer settings 写路径（SystemService，不经 ModelService）不在该闸门内，避免歧义。"
+    },
+    {
+      "title": "protocol_capabilities 未声明 entgql.Skip，将自动进入 Create/UpdateChannelInput 形成绕过写入面；DuplicateChannel 复制语义未定义",
+      "severity": "medium",
+      "category": "集成点遗漏",
+      "description": "U2 只写了 field.JSON(...).Default(...).Optional()，未提 entgql.Skip。按 entgql 默认生成行为，新字段会出现在 CreateChannelInput 与 UpdateChannelInput（ent.graphql）中：updateChannel/createChannel 可直接写能力声明，绕过 KTD18 唯一保存面 saveChannelCapabilities 的 R1a 端点校验、R17 白名单与派生对账触发。同时 DuplicateChannel 基于 CreateChannelInput 复制渠道，计划未定义能力是否随复制、复制后新渠道是否派生——两种结果（静默复制而无派生条目 / 静默丢失声明）都未声明。",
+      "evidence": "internal/server/gql/ent.graphql:6024 起 UpdateChannelInput 已自动包含 supportedModels/manualModels/endpoints 等未 Skip 字段，证明 entgql 会为新字段生成 input 面；internal/server/biz/channel_duplicate.go:16-66 DuplicateChannel 走 svc.createChannel(input)；计划 U2 字段描述无 Skip；KTD18 将 saveChannelCapabilities 定义为能力保存入口。",
+      "suggested_fix": "U2 为 protocol_capabilities 增加 entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput)，与 KTD18 唯一写入面对齐；Technical Design 明确 DuplicateChannel 的能力语义（推荐：复制能力并在复制事务内触发一次派生对账，或明确不复制并说明理由）。"
+    },
+    {
+      "title": "U7/U8 未声明任何 query invalidation 接线，跨实体写入后前端必然展示陈旧数据",
+      "severity": "medium",
+      "category": "前端集成点遗漏",
+      "description": "仓库约定：data 层每个 mutation 的 onSuccess 显式 invalidate 对应 query key（channels.ts 25 处 invalidate ['channels']/['channel', id]，models.ts invalidate ['models']）。本功能的关键跨实体效应是：saveChannelCapabilities/bulkEnableDerivedAssociations 注册在渠道页，但派生写入的是各 Model 的 settings；deriveModelAssociations 在模型页，也改变 model settings。计划 U7/U8 文件清单与 KTD20 完全未提 invalidation：漏掉 ['models'] 失效会使渠道保存/批量启用后模型协议池显示陈旧关联，漏掉 ['channels'] 失效会使能力状态不刷新。",
+      "evidence": "frontend/src/features/channels/data/channels.ts（invalidateQueries 25 处，如 1121/1198-1199/1224-1225/1253-1255）；frontend/src/features/models/data/models.ts:363-497（各 mutation 均 invalidate ['models']）；计划 U7 Modify 清单（channels-columns.tsx、data/channels.ts、schema.ts、locales）与 U8 清单均无 invalidation 语义描述。",
+      "suggested_fix": "U7 明确：saveChannelCapabilities 与 bulkEnableDerivedAssociations 成功后 invalidate ['channels']、['channel', id] 与 ['models']；U8 明确：deriveModelAssociations 成功后 invalidate ['models']（及模型详情相关 key）。"
+    },
+    {
+      "title": "U10 无持久验收产物且缺 Docker 静态资源重建步骤，与仓库 E2E 约定脱节",
+      "severity": "low",
+      "category": "测试策略缺口",
+      "description": "仓库 E2E 回归由 Playwright spec 承载（frontend/tests/ 下已有 channels.spec.ts、models.spec.ts 等按功能域组织的 spec），且 e2e.md 明确要求修改前后端后按 Docker 静态资源验收流程重建容器再验证。U10 仅写『按 e2e.md 用 curl/浏览器验收 AE1-AE12』并写总结，未指定新增/扩展任何 spec，也未提 Docker 重建步骤：本功能验收后不留下任何自动化回归覆盖，后续全量 E2E 不会覆盖渠道能力声明与派生流程。",
+      "evidence": "frontend/tests/ 目录含 channels.spec.ts、models.spec.ts 等 14 个 spec 文件；.agent/rules/e2e.md『Docker 静态资源验收』节要求 docker compose build/up --force-recreate 后验证；计划 U10 全文无 spec 交付物与 Docker 步骤。",
+      "suggested_fix": "U10 交付物增加：frontend/tests/channels.spec.ts（能力声明、AE1/AE2 主链路）与 models.spec.ts（同步渠道、auto 徽章）的 Playwright 覆盖，或明确声明本次不新增 spec 的理由；纳入 e2e.md 的 Docker 重建验收步骤。"
+    },
+    {
+      "title": "U7 测试文件定位与仓库 node:test 单测形态不匹配（组件无法被测试）",
+      "severity": "info",
+      "category": "测试策略缺口",
+      "description": "U7 写『Test: channels-capability-dialog.test.mjs（参照 protocol-pools.test.mjs）』。除已知的 vitest 误称外还有形态问题：仓库现有 5 个 .test.mjs 全部是 node:test 下的纯函数/源码文本断言测试，且都位于 data 层或 feature 根目录，没有任何组件渲染能力（无 jsdom/testing-library）。以对话框组件命名的测试文件若意图测组件交互则无法落地；可测的只能是抽到 data 层的纯逻辑。",
+      "evidence": "frontend/package.json:16 test:unit = node --test src/**/*.test.mjs；现有测试文件：frontend/src/gql/graphql.test.mjs、features/channels-override-merge.test.mjs、features/models/data/protocol-pools.test.mjs（读 TS 源码做文本断言）、features/adapters/adapter-regression.test.mjs、features/channels/data/channel-config.test.mjs，均在 data/ 或 feature 根，无组件级测试。",
+      "suggested_fix": "把能力继承/例外集合计算、协议白名单校验、候选模型合并等纯函数抽到 frontend/src/features/channels/data/ 层，测试文件按 data 层惯例命名放置（如 capability.test.mjs），并在 U7 中列明被测函数清单。"
+    }
+  ],
+  "summary": "第 4 镜头（缺口扫描）在已确认清单之外发现 6 个实施层缺口：批量删除渠道绕过 R13 清理（high）、KTD19 校验范围过宽与 R6a/AE3 矛盾将拦截手动关联启用（high）、protocol_capabilities 未声明 entgql.Skip 导致自动生成 input 绕过校验面且 DuplicateChannel 语义未定义（medium）、U7/U8 缺跨实体 query invalidation 接线（medium）、U10 无 Playwright spec 持久产物且缺 Docker 重建步骤（low）、U7 组件级测试文件与 node:test 纯函数测试形态不匹配（info）；另核实排除：GraphQL scope/审计无独立体系、前端 GraphQL 无代码生成、ModelService 无缓存（运行时即查 DB），这些方向无缺口。"
+}

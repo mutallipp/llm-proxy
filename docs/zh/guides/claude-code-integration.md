@@ -3,28 +3,28 @@
 ---
 
 ## 概览
-AxonHub 可以作为 Anthropic 接口的直接替代方案，使 Claude Code 能够通过您自己的基础设施连接。本文将介绍配置方法，并说明如何结合 AxonHub 的模型配置文件功能实现灵活路由。
+llm-proxy 可以作为 Anthropic 接口的直接替代方案，使 Claude Code 能够通过您自己的基础设施连接。本文将介绍配置方法，并说明如何结合 llm-proxy 的模型配置文件功能实现灵活路由。
 
 ### 关键点
-- AxonHub 支持多种 AI 协议/格式转换。你可以配置多个上游渠道（provider/channel），对外提供统一的 Anthropic 兼容接口，供 Claude Code 使用。
+- llm-proxy 支持多种 AI 协议/格式转换。你可以配置多个上游渠道（provider/channel），对外提供统一的 Anthropic 兼容接口，供 Claude Code 使用。
 - 你可以开启 Claude Code trace 聚合，将 Claude Code 同一次会话中的请求自动归并到同一条 Trace（见"配置 Claude Code"）。
 
 ### 前置要求
-- 可访问的 AxonHub 实例。
-- 拥有项目访问权限的 AxonHub API Key。
+- 可访问的 llm-proxy 实例。
+- 拥有项目访问权限的 llm-proxy API Key。
 - Claude Code（Anthropic）的使用权限。
-- （可选）已在 AxonHub 控制台配置好的一个或多个模型配置文件。
+- （可选）已在 llm-proxy 控制台配置好的一个或多个模型配置文件。
 
 ### 配置 Claude Code
-1. 在 Shell 环境变量中写入 AxonHub 凭证：
+1. 在 Shell 环境变量中写入 llm-proxy 凭证：
    ```bash
-   export ANTHROPIC_AUTH_TOKEN="<your-axonhub-api-key>"
+   export ANTHROPIC_AUTH_TOKEN="<your-llm-proxy-api-key>"
    export ANTHROPIC_BASE_URL="http://localhost:8090/anthropic"
    # 或者使用根路径：
    # export ANTHROPIC_BASE_URL="http://localhost:8090"
    ```
-2. 启动 Claude Code，程序会自动读取上述变量并将所有 Anthropic 请求代理到 AxonHub。
-3. （可选）触发一次对话并在 AxonHub 的 Traces 页面确认流量已成功记录。
+2. 启动 Claude Code，程序会自动读取上述变量并将所有 Anthropic 请求代理到 llm-proxy。
+3. （可选）触发一次对话并在 llm-proxy 的 Traces 页面确认流量已成功记录。
 
 #### Trace 聚合（重要）
 若希望将 Claude Code 同一次会话的请求聚合到同一条 Trace，可在 `config.yml` 中开启：
@@ -35,23 +35,23 @@ server:
     claude_code_trace_enabled: true
 ```
 
-**提示**：开启此功能后，AxonHub 会将同一个 Trace 的请求优先转发到同一个上游渠道，从而大幅提高提供商端的缓存命中率（例如 Anthropic 的 Prompt Caching）。
+**提示**：开启此功能后，llm-proxy 会将同一个 Trace 的请求优先转发到同一个上游渠道，从而大幅提高提供商端的缓存命中率（例如 Anthropic 的 Prompt Caching）。
 
 #### 提示
 - 请务必保密 API Key，可写入 shell profile 或使用密钥管理工具。
-- 若 AxonHub 使用自签名证书，请在操作系统内添加信任配置。
+- 若 llm-proxy 使用自签名证书，请在操作系统内添加信任配置。
 
 ### 使用模型配置文件
-AxonHub 的模型配置文件支持将请求模型映射到具体提供商模型：
-- 在 AxonHub 控制台创建配置文件并添加映射规则（精确名称或正则）。
+llm-proxy 的模型配置文件支持将请求模型映射到具体提供商模型：
+- 在 llm-proxy 控制台创建配置文件并添加映射规则（精确名称或正则）。
 - 将配置文件绑定到 API Key。
 - 切换活动配置文件即可更改 Claude Code/Codex 的行为，无需调整本地工具设置。
 
 <table>
   <tr align="center">
     <td align="center">
-      <a href="../../screenshots/axonhub-profiles.png">
-        <img src="../../screenshots/axonhub-profiles.png" alt="Model Profiles" width="250"/>
+      <a href="../../screenshots/llm-proxy-profiles.png">
+        <img src="../../screenshots/llm-proxy-profiles.png" alt="Model Profiles" width="250"/>
       </a>
       <br/>
       Model Profiles
@@ -65,7 +65,7 @@ AxonHub 的模型配置文件支持将请求模型映射到具体提供商模型
 
 ### 常见问题
 - **Claude Code 无法连接**：确认 `ANTHROPIC_BASE_URL` 指向 `/anthropic` 路径，且本地防火墙允许外部请求。
-- **模型结果异常**：检查 AxonHub 控制台中当前启用的配置文件映射，必要时禁用或调整规则。
+- **模型结果异常**：检查 llm-proxy 控制台中当前启用的配置文件映射，必要时禁用或调整规则。
 
 ---
 
@@ -75,12 +75,12 @@ AxonHub 的模型配置文件支持将请求模型映射到具体提供商模型
 > 
 > 由于 Claude Code 的风控机制复杂，且本项目定位与 Claude Code 渠道的使用场景存在差异，后续将不再重点维护此渠道。如有需要，建议使用 CLIProxyAPI、sub2api 等项目。现有功能可能不再更新或优化，请谨慎使用。
 
-AxonHub 还可以将您的 Claude Code 订阅作为后端提供商，允许非 Claude Code 工具利用 Claude Code 的能力。当您希望将其他应用程序（OpenAI 兼容客户端、自定义工具等）的请求通过 Claude Code 路由时，这非常有用。
+llm-proxy 还可以将您的 Claude Code 订阅作为后端提供商，允许非 Claude Code 工具利用 Claude Code 的能力。当您希望将其他应用程序（OpenAI 兼容客户端、自定义工具等）的请求通过 Claude Code 路由时，这非常有用。
 
 ### 前置要求
 - 已安装 Claude Code CLI (https://claude.com/claude-code)
 - 拥有 Claude Code 订阅的有效 Anthropic 账户
-- 具有渠道管理访问权限的 AxonHub 实例
+- 具有渠道管理访问权限的 llm-proxy 实例
 
 ### 获取认证令牌
 
@@ -98,16 +98,16 @@ AxonHub 还可以将您的 Claude Code 订阅作为后端提供商，允许非 C
    Your authentication token: sk-ant-api03-xyz...
    ```
 
-4. 复制此令牌 - 您将在 AxonHub 渠道配置中使用它
+4. 复制此令牌 - 您将在 llm-proxy 渠道配置中使用它
 
 ### 配置渠道
 
-1. 在 AxonHub 管理界面中导航到 **渠道（Channels）** 部分
+1. 在 llm-proxy 管理界面中导航到 **渠道（Channels）** 部分
 
 2. 创建新渠道并进行以下配置：
    - **类型（Type）**：`claude-code`
    - **名称（Name）**：描述性名称（例如 "Claude Code Provider"）
-   - **基础 URL（Base URL）**：默认是 `https://api.anthropic.com/v1`。你也可以填反向代理或兼容网关的地址；AxonHub 会将请求发送到 `{baseURL}/messages`（或当 baseURL 以 `/v1` 结尾时发送到 `{baseURL}/messages`，否则发送到 `{baseURL}/v1/messages`）。
+   - **基础 URL（Base URL）**：默认是 `https://api.anthropic.com/v1`。你也可以填反向代理或兼容网关的地址；llm-proxy 会将请求发送到 `{baseURL}/messages`（或当 baseURL 以 `/v1` 结尾时发送到 `{baseURL}/messages`，否则发送到 `{baseURL}/v1/messages`）。
    - **API 密钥（API Key）**：从 `claude setup-token` 获取的令牌（以 `sk-ant` 开头）
    - **支持的模型（Supported Models）**：添加您想要公开的 Claude 模型：
      - `claude-haiku-4-5`
@@ -122,7 +122,7 @@ AxonHub 还可以将您的 Claude Code 订阅作为后端提供商，允许非 C
 
 ### 使用场景
 
-- **多工具访问**：允许多个应用程序通过 AxonHub 共享您的 Claude Code 订阅
+- **多工具访问**：允许多个应用程序通过 llm-proxy 共享您的 Claude Code 订阅
 - **成本管理**：将 Claude Code 与其他提供商结合使用，实现负载均衡和故障转移
 - **扩展上下文**：通过 Claude Code 路由需要大上下文窗口的请求
 - **模型灵活性**：使用模型配置文件将 Claude Code 与其他提供商组合，实现智能路由

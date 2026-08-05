@@ -2,7 +2,7 @@
 
 ## Overview
 
-AxonHub implements a sophisticated bidirectional data transformation pipeline that ensures seamless communication between clients and AI providers. This document explains the architectural components and data flow within the system.
+llm-proxy implements a sophisticated bidirectional data transformation pipeline that ensures seamless communication between clients and AI providers. This document explains the architectural components and data flow within the system.
 
 ## Architecture Diagram
 
@@ -14,7 +14,7 @@ graph TB
         C[API Client]
     end
 
-    subgraph "AxonHub Gateway"
+    subgraph "llm-proxy Gateway"
         subgraph "Inbound Processing"
             D[Request Parser]
             E[Request Validator]
@@ -85,8 +85,8 @@ graph TB
 ### Client Layer
 
 **Components:**
-- **Web Applications**: Browser-based applications using AxonHub API
-- **Mobile Applications**: Native mobile apps consuming AxonHub services
+- **Web Applications**: Browser-based applications using llm-proxy API
+- **Mobile Applications**: Native mobile apps consuming llm-proxy services
 - **API Clients**: Programmatic clients using SDKs or direct HTTP calls
 
 **Responsibilities:**
@@ -204,7 +204,7 @@ graph TB
 
 1. **Client Request**
    ```
-   Client → HTTP Request → AxonHub Gateway
+   Client → HTTP Request → llm-proxy Gateway
    ```
 
 2. **Inbound Processing**
@@ -224,7 +224,7 @@ graph TB
 
 5. **Provider Call**
    ```
-   AxonHub → Provider API → Provider Response
+   llm-proxy → Provider API → Provider Response
    ```
 
 6. **Response Processing**
@@ -234,7 +234,7 @@ graph TB
 
 7. **Client Response**
    ```
-   AxonHub → HTTP Response → Client
+   llm-proxy → HTTP Response → Client
    ```
 
 ### Streaming Flow
@@ -243,17 +243,17 @@ For streaming requests, the flow is similar but maintains persistent connections
 
 1. **Stream Setup**
    ```
-   Client → Stream Request → AxonHub → Provider Stream
+   Client → Stream Request → llm-proxy → Provider Stream
    ```
 
 2. **Data Flow**
    ```
-   Provider Chunks → AxonHub Processing → Client Chunks
+   Provider Chunks → llm-proxy Processing → Client Chunks
    ```
 
 3. **Stream Completion**
    ```
-   Provider End → AxonHub Cleanup → Client Completion
+   Provider End → llm-proxy Cleanup → Client Completion
    ```
 
 ## Key Architectural Patterns

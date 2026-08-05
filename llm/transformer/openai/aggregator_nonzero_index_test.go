@@ -55,7 +55,7 @@ func TestAggregateStreamChunksNonZeroToolCallIndex(t *testing.T) {
 		},
 		{
 			Data: []byte(`{"id":"chatcmpl-1","model":"gpt-4o-mini","object":"chat.completion.chunk","created":1,` +
-				`"choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"function":{"arguments":"\"axonhub\"}"}}]},"finish_reason":"tool_calls"}]}`),
+				`"choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"function":{"arguments":"\"llm-proxy\"}"}}]},"finish_reason":"tool_calls"}]}`),
 		},
 	}
 
@@ -69,5 +69,5 @@ func TestAggregateStreamChunksNonZeroToolCallIndex(t *testing.T) {
 	require.Equal(t, 1, got.Choices[0].Message.ToolCalls[0].Index)
 	require.Equal(t, "call_1", got.Choices[0].Message.ToolCalls[0].ID)
 	require.Equal(t, "search", got.Choices[0].Message.ToolCalls[0].Function.Name)
-	require.Equal(t, `{"q":"axonhub"}`, got.Choices[0].Message.ToolCalls[0].Function.Arguments)
+	require.Equal(t, `{"q":"llm-proxy"}`, got.Choices[0].Message.ToolCalls[0].Function.Arguments)
 }

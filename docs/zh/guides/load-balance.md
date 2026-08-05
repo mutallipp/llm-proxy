@@ -1,6 +1,6 @@
 # 自适应负载均衡指南
 
-AxonHub 提供智能的自适应负载均衡系统，能够根据多个维度自动选择最优的 AI 渠道，确保高可用性和最佳性能。
+llm-proxy 提供智能的自适应负载均衡系统，能够根据多个维度自动选择最优的 AI 渠道，确保高可用性和最佳性能。
 
 ## 🎯 核心特性
 
@@ -64,7 +64,7 @@ base_url: "https://api.example.com/v1"
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -130,18 +130,18 @@ response = client.chat.completions.create(
 
 ```bash
 # 设置环境变量
-export AXONHUB_DEBUG_LOAD_BALANCER_ENABLED=true
+export LLM_PROXY_DEBUG_LOAD_BALANCER_ENABLED=true
 ```
 
 ```bash
 # 查看负载均衡决策
-tail -f axonhub.log | grep "Load balancing decision"
+tail -f llm-proxy.log | grep "Load balancing decision"
 
 # 查看具体渠道评分
-tail -f axonhub.log | grep "Channel load balancing details"
+tail -f llm-proxy.log | grep "Channel load balancing details"
 
 # 使用 jq 格式化 JSON 日志
-tail -f axonhub.log | jq 'select(.msg | contains("Load balancing"))'
+tail -f llm-proxy.log | jq 'select(.msg | contains("Load balancing"))'
 ```
 
 ## 📈 监控和故障排查

@@ -71,10 +71,10 @@ fmt:
 # Check if environment is properly configured
 check-env:
 	@echo "Checking environment configuration..."
-	@if [ -z "$$TEST_AXONHUB_API_KEY" ]; then \
-		echo "WARNING: TEST_AXONHUB_API_KEY not set"; \
+	@if [ -z "$$TEST_LLM_PROXY_API_KEY" ]; then \
+		echo "WARNING: TEST_LLM_PROXY_API_KEY not set"; \
 	else \
-		echo "✓ TEST_AXONHUB_API_KEY is set"; \
+		echo "✓ TEST_LLM_PROXY_API_KEY is set"; \
 	fi
 	@echo "TEST_GEMINI_BASE_URL: $${TEST_GEMINI_BASE_URL:-http://localhost:8090/gemini}"
 	@echo "TEST_TRACE_ID: $${TEST_TRACE_ID:-test-trace-123}"
@@ -116,7 +116,7 @@ help:
 env-reminder:
 	@echo "=== Environment Setup Reminder ==="
 	@echo "Make sure you have set the following environment variables:"
-	@echo "  export TEST_AXONHUB_API_KEY='your-axonhub-api-key'"
+	@echo "  export TEST_LLM_PROXY_API_KEY='your-llm-proxy-api-key'"
 	@echo "  export TEST_GEMINI_BASE_URL='http://localhost:8090/gemini'  # Optional"
 	@echo "  export TEST_TRACE_ID='test-trace-123'                       # Optional"
 	@echo "  export TEST_THREAD_ID='test-thread-456'                     # Optional"

@@ -7,9 +7,9 @@ const path = require('path');
 // --- Configuration ---
 const GITHUB_REPO = process.env.GITHUB_REPO || 'mutallipp/llm-proxy';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const AXONHUB_BASE_URL = process.env.AXONHUB_BASE_URL || 'http://localhost:8090/v1';
-const AXONHUB_API_KEY = process.env.AXONHUB_API_KEY;
-const AXONHUB_MODEL = process.env.AXONHUB_MODEL || 'deepseek-chat';
+const LLM_PROXY_BASE_URL = process.env.LLM_PROXY_BASE_URL || 'http://localhost:8090/v1';
+const LLM_PROXY_API_KEY = process.env.LLM_PROXY_API_KEY;
+const LLM_PROXY_MODEL = process.env.LLM_PROXY_MODEL || 'deepseek-chat';
 
 const STATE_FILE = path.join(__dirname, '.github_faq_state.json');
 const DOCS_DIR = path.join(__dirname, '../../docs');
@@ -75,7 +75,7 @@ async function fetchGithubIssues(since) {
   const options = {
     method: 'GET',
     headers: {
-      'User-Agent': 'AxonHub-FAQ-Sync',
+      'User-Agent': 'llm-proxy-FAQ-Sync',
       'Accept': 'application/vnd.github.v3+json',
       ...(GITHUB_TOKEN ? { 'Authorization': `token ${GITHUB_TOKEN}` } : {})
     }
@@ -88,7 +88,7 @@ async function fetchIssueComments(issueNumber) {
   const options = {
     method: 'GET',
     headers: {
-      'User-Agent': 'AxonHub-FAQ-Sync',
+      'User-Agent': 'llm-proxy-FAQ-Sync',
       'Accept': 'application/vnd.github.v3+json',
       ...(GITHUB_TOKEN ? { 'Authorization': `token ${GITHUB_TOKEN}` } : {})
     }
@@ -97,8 +97,8 @@ async function fetchIssueComments(issueNumber) {
 }
 
 async function analyzeIssue(issue, comments, existingFaqs) {
-  if (!AXONHUB_API_KEY) {
-    throw new Error('AXONHUB_API_KEY is not set');
+  if (!LLM_PROXY_API_KEY) {
+    throw new Error('LLM_PROXY_API_KEY is not set');
   }
 
   const content = `
@@ -109,13 +109,13 @@ ${comments.map(c => `- ${c.body}`).join('\n')}
   `.trim();
 
   const prompt = `
-You are a technical documentation assistant for AxonHub.
-AxonHub is an all-in-one AI development platform that serves as a unified API gateway for multiple AI providers.
+You are a technical documentation assistant for llm-proxy.
+llm-proxy is an all-in-one AI development platform that serves as a unified API gateway for multiple AI providers.
 
 First, classify the following GitHub issue into one of these categories:
 - feature: A request for a new feature or enhancement.
 - bug: A report of a bug or unexpected behavior.
-- question: A question about how to use AxonHub or technical clarification.
+- question: A question about how to use llm-proxy or technical clarification.
 
 If the category is "question", determine if it contains a common question and its corresponding clear answer that should be added to the FAQ.
 Check if the question is already covered in the existing FAQs provided below. If it is already covered or redundant, set "is_candidate" to false.
@@ -138,16 +138,16 @@ Issue Content:
 ${content}
   `.trim();
 
-  const url = `${AXONHUB_BASE_URL}/chat/completions`;
+  const url = `${LLM_PROXY_BASE_URL}/chat/completions`;
   const options = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${AXONHUB_API_KEY}`
+      'Authorization': `Bearer ${LLM_PROXY_API_KEY}`
     }
   };
   const body = {
-    model: AXONHUB_MODEL,
+    model: LLM_PROXY_MODEL,
     messages: [
       { role: 'system', content: 'You are a helpful assistant that outputs JSON.' },
       { role: 'user', content: prompt }
@@ -204,9 +204,9 @@ function saveState(state) {
 // --- Main ---
 
 async function main() {
-  if (!AXONHUB_API_KEY) {
-    console.error('Error: AXONHUB_API_KEY environment variable is not set.');
-    console.log('Please set it using: export AXONHUB_API_KEY=your_key');
+  if (!LLM_PROXY_API_KEY) {
+    console.error('Error: LLM_PROXY_API_KEY environment variable is not set.');
+    console.log('Please set it using: export LLM_PROXY_API_KEY=your_key');
     process.exit(1);
   }
 

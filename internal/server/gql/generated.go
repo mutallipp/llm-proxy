@@ -323,6 +323,16 @@ type ComplexityRoot struct {
 		Title     func(childComplexity int) int
 	}
 
+	BulkEnableDerivedAssociationResult struct {
+		AssociationID func(childComplexity int) int
+		Reason        func(childComplexity int) int
+		Success       func(childComplexity int) int
+	}
+
+	BulkEnableDerivedAssociationsResult struct {
+		Results func(childComplexity int) int
+	}
+
 	BulkImportChannelsResult struct {
 		Channels func(childComplexity int) int
 		Created  func(childComplexity int) int
@@ -358,6 +368,7 @@ type ComplexityRoot struct {
 		Name                    func(childComplexity int) int
 		OrderingWeight          func(childComplexity int) int
 		Policies                func(childComplexity int) int
+		ProtocolCapabilities    func(childComplexity int) int
 		ProviderQuotaStatus     func(childComplexity int) int
 		Remark                  func(childComplexity int) int
 		Requests                func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RequestOrder, where *ent.RequestWhereInput) int
@@ -409,6 +420,11 @@ type ComplexityRoot struct {
 
 	ChannelModelAutoSyncSetting struct {
 		Frequency func(childComplexity int) int
+	}
+
+	ChannelModelCapability struct {
+		ModelID   func(childComplexity int) int
+		Protocols func(childComplexity int) int
 	}
 
 	ChannelModelEntry struct {
@@ -531,6 +547,11 @@ type ComplexityRoot struct {
 	ChannelProbeSetting struct {
 		Enabled   func(childComplexity int) int
 		Frequency func(childComplexity int) int
+	}
+
+	ChannelProtocolCapabilities struct {
+		DeclaredProtocols func(childComplexity int) int
+		Models            func(childComplexity int) int
 	}
 
 	ChannelProviderQuotaSettings struct {
@@ -699,6 +720,10 @@ type ComplexityRoot struct {
 		Success func(childComplexity int) int
 	}
 
+	DeriveModelAssociationsPayload struct {
+		AddedCount func(childComplexity int) int
+	}
+
 	DeveloperModelSettings struct {
 		Developer     func(childComplexity int) int
 		ProtocolPools func(childComplexity int) int
@@ -810,11 +835,13 @@ type ComplexityRoot struct {
 	}
 
 	ModelAssociation struct {
+		Auto             func(childComplexity int) int
 		ChannelModel     func(childComplexity int) int
 		ChannelRegex     func(childComplexity int) int
 		ChannelTagsModel func(childComplexity int) int
 		ChannelTagsRegex func(childComplexity int) int
 		Disabled         func(childComplexity int) int
+		DisabledReason   func(childComplexity int) int
 		ModelID          func(childComplexity int) int
 		Priority         func(childComplexity int) int
 		Regex            func(childComplexity int) int
@@ -958,6 +985,7 @@ type ComplexityRoot struct {
 		BulkDisablePrompts                   func(childComplexity int, ids []*objects.GUID) int
 		BulkEnableAPIKeys                    func(childComplexity int, ids []*objects.GUID) int
 		BulkEnableChannels                   func(childComplexity int, ids []*objects.GUID) int
+		BulkEnableDerivedAssociations        func(childComplexity int, input biz.BulkEnableDerivedAssociationsInput) int
 		BulkEnableModels                     func(childComplexity int, ids []*objects.GUID) int
 		BulkEnablePromptProtectionRules      func(childComplexity int, ids []*objects.GUID) int
 		BulkEnablePrompts                    func(childComplexity int, ids []*objects.GUID) int
@@ -992,6 +1020,7 @@ type ComplexityRoot struct {
 		DeleteProxyPreset                    func(childComplexity int, url string) int
 		DeleteRole                           func(childComplexity int, id objects.GUID) int
 		DeleteUser                           func(childComplexity int, id objects.GUID) int
+		DeriveModelAssociations              func(childComplexity int, modelID objects.GUID) int
 		DisableChannelAPIKey                 func(childComplexity int, channelID objects.GUID, key string) int
 		DuplicateChannel                     func(childComplexity int, sourceID objects.GUID, input ent.CreateChannelInput) int
 		EnableAllChannelAPIKeys              func(childComplexity int, channelID objects.GUID) int
@@ -1005,6 +1034,7 @@ type ComplexityRoot struct {
 		RetainThread                         func(childComplexity int, id objects.GUID) int
 		RetainTrace                          func(childComplexity int, id objects.GUID) int
 		RotateAPIKey                         func(childComplexity int, id objects.GUID) int
+		SaveChannelCapabilities              func(childComplexity int, input biz.SaveChannelCapabilitiesInput) int
 		SaveChannelEndpoints                 func(childComplexity int, input biz.SaveChannelEndpointsInput) int
 		SaveChannelModelPrices               func(childComplexity int, channelID objects.GUID, input []*biz.SaveChannelModelPriceInput) int
 		SaveProxyPreset                      func(childComplexity int, input biz.ProxyPreset) int
@@ -1568,6 +1598,11 @@ type ComplexityRoot struct {
 		Regex   func(childComplexity int) int
 	}
 
+	RevokedChannelCapabilitiesPayload struct {
+		AutoDisabledCount func(childComplexity int) int
+		ManualNotices     func(childComplexity int) int
+	}
+
 	Role struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -1601,6 +1636,18 @@ type ComplexityRoot struct {
 		Endpoint   func(childComplexity int) int
 		PathStyle  func(childComplexity int) int
 		Region     func(childComplexity int) int
+	}
+
+	SaveChannelCapabilitiesPayload struct {
+		AddedCount      func(childComplexity int) int
+		Channel         func(childComplexity int) int
+		Revoked         func(childComplexity int) int
+		UnmatchedModels func(childComplexity int) int
+	}
+
+	SaveChannelEndpointsPayload struct {
+		Channel func(childComplexity int) int
+		Revoked func(childComplexity int) int
 	}
 
 	ScopeInfo struct {
@@ -2120,6 +2167,7 @@ type ChannelResolver interface {
 
 	ProviderQuotaStatus(ctx context.Context, obj *ent.Channel) (*ent.ProviderQuotaStatus, error)
 	DefaultEndpoints(ctx context.Context, obj *ent.Channel) ([]*objects.ChannelEndpoint, error)
+	ProtocolCapabilities(ctx context.Context, obj *ent.Channel) (*objects.ChannelProtocolCapabilities, error)
 	AllModelEntries(ctx context.Context, obj *ent.Channel) ([]*biz.ChannelModelEntry, error)
 	Credentials(ctx context.Context, obj *ent.Channel) (*objects.ChannelCredentials, error)
 	DisabledAPIKeys(ctx context.Context, obj *ent.Channel) ([]*objects.DisabledAPIKey, error)
@@ -2174,7 +2222,10 @@ type MutationResolver interface {
 	DuplicateChannel(ctx context.Context, sourceID objects.GUID, input ent.CreateChannelInput) (*ent.Channel, error)
 	BulkCreateChannels(ctx context.Context, input biz.BulkCreateChannelsInput) ([]*ent.Channel, error)
 	UpdateChannel(ctx context.Context, id objects.GUID, input ent.UpdateChannelInput) (*ent.Channel, error)
-	SaveChannelEndpoints(ctx context.Context, input biz.SaveChannelEndpointsInput) (*ent.Channel, error)
+	SaveChannelEndpoints(ctx context.Context, input biz.SaveChannelEndpointsInput) (*biz.SaveChannelEndpointsPayload, error)
+	SaveChannelCapabilities(ctx context.Context, input biz.SaveChannelCapabilitiesInput) (*biz.SaveChannelCapabilitiesPayload, error)
+	BulkEnableDerivedAssociations(ctx context.Context, input biz.BulkEnableDerivedAssociationsInput) (*biz.BulkEnableDerivedAssociationsResult, error)
+	DeriveModelAssociations(ctx context.Context, modelID objects.GUID) (*biz.DeriveModelAssociationsPayload, error)
 	UpdateChannelStatus(ctx context.Context, id objects.GUID, status channel.Status) (*ent.Channel, error)
 	DeleteChannel(ctx context.Context, id objects.GUID) (bool, error)
 	BulkArchiveChannels(ctx context.Context, ids []*objects.GUID) (bool, error)
@@ -3312,6 +3363,32 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.BrandSettings.Title(childComplexity), true
 
+	case "BulkEnableDerivedAssociationResult.associationId":
+		if e.complexity.BulkEnableDerivedAssociationResult.AssociationID == nil {
+			break
+		}
+
+		return e.complexity.BulkEnableDerivedAssociationResult.AssociationID(childComplexity), true
+	case "BulkEnableDerivedAssociationResult.reason":
+		if e.complexity.BulkEnableDerivedAssociationResult.Reason == nil {
+			break
+		}
+
+		return e.complexity.BulkEnableDerivedAssociationResult.Reason(childComplexity), true
+	case "BulkEnableDerivedAssociationResult.success":
+		if e.complexity.BulkEnableDerivedAssociationResult.Success == nil {
+			break
+		}
+
+		return e.complexity.BulkEnableDerivedAssociationResult.Success(childComplexity), true
+
+	case "BulkEnableDerivedAssociationsResult.results":
+		if e.complexity.BulkEnableDerivedAssociationsResult.Results == nil {
+			break
+		}
+
+		return e.complexity.BulkEnableDerivedAssociationsResult.Results(childComplexity), true
+
 	case "BulkImportChannelsResult.channels":
 		if e.complexity.BulkImportChannelsResult.Channels == nil {
 			break
@@ -3487,6 +3564,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Channel.Policies(childComplexity), true
+	case "Channel.protocolCapabilities":
+		if e.complexity.Channel.ProtocolCapabilities == nil {
+			break
+		}
+
+		return e.complexity.Channel.ProtocolCapabilities(childComplexity), true
 	case "Channel.providerQuotaStatus":
 		if e.complexity.Channel.ProviderQuotaStatus == nil {
 			break
@@ -3684,6 +3767,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ChannelModelAutoSyncSetting.Frequency(childComplexity), true
+
+	case "ChannelModelCapability.modelId":
+		if e.complexity.ChannelModelCapability.ModelID == nil {
+			break
+		}
+
+		return e.complexity.ChannelModelCapability.ModelID(childComplexity), true
+	case "ChannelModelCapability.protocols":
+		if e.complexity.ChannelModelCapability.Protocols == nil {
+			break
+		}
+
+		return e.complexity.ChannelModelCapability.Protocols(childComplexity), true
 
 	case "ChannelModelEntry.actualModel":
 		if e.complexity.ChannelModelEntry.ActualModel == nil {
@@ -4144,6 +4240,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ChannelProbeSetting.Frequency(childComplexity), true
+
+	case "ChannelProtocolCapabilities.declaredProtocols":
+		if e.complexity.ChannelProtocolCapabilities.DeclaredProtocols == nil {
+			break
+		}
+
+		return e.complexity.ChannelProtocolCapabilities.DeclaredProtocols(childComplexity), true
+	case "ChannelProtocolCapabilities.models":
+		if e.complexity.ChannelProtocolCapabilities.Models == nil {
+			break
+		}
+
+		return e.complexity.ChannelProtocolCapabilities.Models(childComplexity), true
 
 	case "ChannelProviderQuotaSettings.opencodeGo":
 		if e.complexity.ChannelProviderQuotaSettings.OpencodeGo == nil {
@@ -4743,6 +4852,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.DeleteDisabledAPIKeysPayload.Success(childComplexity), true
 
+	case "DeriveModelAssociationsPayload.addedCount":
+		if e.complexity.DeriveModelAssociationsPayload.AddedCount == nil {
+			break
+		}
+
+		return e.complexity.DeriveModelAssociationsPayload.AddedCount(childComplexity), true
+
 	case "DeveloperModelSettings.developer":
 		if e.complexity.DeveloperModelSettings.Developer == nil {
 			break
@@ -5148,6 +5264,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Model.UpdatedAt(childComplexity), true
 
+	case "ModelAssociation.auto":
+		if e.complexity.ModelAssociation.Auto == nil {
+			break
+		}
+
+		return e.complexity.ModelAssociation.Auto(childComplexity), true
 	case "ModelAssociation.channelModel":
 		if e.complexity.ModelAssociation.ChannelModel == nil {
 			break
@@ -5178,6 +5300,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ModelAssociation.Disabled(childComplexity), true
+	case "ModelAssociation.disabledReason":
+		if e.complexity.ModelAssociation.DisabledReason == nil {
+			break
+		}
+
+		return e.complexity.ModelAssociation.DisabledReason(childComplexity), true
 	case "ModelAssociation.modelId":
 		if e.complexity.ModelAssociation.ModelID == nil {
 			break
@@ -5806,6 +5934,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.BulkEnableChannels(childComplexity, args["ids"].([]*objects.GUID)), true
+	case "Mutation.bulkEnableDerivedAssociations":
+		if e.complexity.Mutation.BulkEnableDerivedAssociations == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_bulkEnableDerivedAssociations_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.BulkEnableDerivedAssociations(childComplexity, args["input"].(biz.BulkEnableDerivedAssociationsInput)), true
 	case "Mutation.bulkEnableModels":
 		if e.complexity.Mutation.BulkEnableModels == nil {
 			break
@@ -6175,6 +6314,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DeleteUser(childComplexity, args["id"].(objects.GUID)), true
+	case "Mutation.deriveModelAssociations":
+		if e.complexity.Mutation.DeriveModelAssociations == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deriveModelAssociations_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeriveModelAssociations(childComplexity, args["modelID"].(objects.GUID)), true
 	case "Mutation.disableChannelAPIKey":
 		if e.complexity.Mutation.DisableChannelAPIKey == nil {
 			break
@@ -6318,6 +6468,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.RotateAPIKey(childComplexity, args["id"].(objects.GUID)), true
+	case "Mutation.saveChannelCapabilities":
+		if e.complexity.Mutation.SaveChannelCapabilities == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_saveChannelCapabilities_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SaveChannelCapabilities(childComplexity, args["input"].(biz.SaveChannelCapabilitiesInput)), true
 	case "Mutation.saveChannelEndpoints":
 		if e.complexity.Mutation.SaveChannelEndpoints == nil {
 			break
@@ -9273,6 +9434,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.RetryableErrorPattern.Regex(childComplexity), true
 
+	case "RevokedChannelCapabilitiesPayload.autoDisabledCount":
+		if e.complexity.RevokedChannelCapabilitiesPayload.AutoDisabledCount == nil {
+			break
+		}
+
+		return e.complexity.RevokedChannelCapabilitiesPayload.AutoDisabledCount(childComplexity), true
+	case "RevokedChannelCapabilitiesPayload.manualNotices":
+		if e.complexity.RevokedChannelCapabilitiesPayload.ManualNotices == nil {
+			break
+		}
+
+		return e.complexity.RevokedChannelCapabilitiesPayload.ManualNotices(childComplexity), true
+
 	case "Role.createdAt":
 		if e.complexity.Role.CreatedAt == nil {
 			break
@@ -9402,6 +9576,44 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.S3.Region(childComplexity), true
+
+	case "SaveChannelCapabilitiesPayload.addedCount":
+		if e.complexity.SaveChannelCapabilitiesPayload.AddedCount == nil {
+			break
+		}
+
+		return e.complexity.SaveChannelCapabilitiesPayload.AddedCount(childComplexity), true
+	case "SaveChannelCapabilitiesPayload.channel":
+		if e.complexity.SaveChannelCapabilitiesPayload.Channel == nil {
+			break
+		}
+
+		return e.complexity.SaveChannelCapabilitiesPayload.Channel(childComplexity), true
+	case "SaveChannelCapabilitiesPayload.revoked":
+		if e.complexity.SaveChannelCapabilitiesPayload.Revoked == nil {
+			break
+		}
+
+		return e.complexity.SaveChannelCapabilitiesPayload.Revoked(childComplexity), true
+	case "SaveChannelCapabilitiesPayload.unmatchedModels":
+		if e.complexity.SaveChannelCapabilitiesPayload.UnmatchedModels == nil {
+			break
+		}
+
+		return e.complexity.SaveChannelCapabilitiesPayload.UnmatchedModels(childComplexity), true
+
+	case "SaveChannelEndpointsPayload.channel":
+		if e.complexity.SaveChannelEndpointsPayload.Channel == nil {
+			break
+		}
+
+		return e.complexity.SaveChannelEndpointsPayload.Channel(childComplexity), true
+	case "SaveChannelEndpointsPayload.revoked":
+		if e.complexity.SaveChannelEndpointsPayload.Revoked == nil {
+			break
+		}
+
+		return e.complexity.SaveChannelEndpointsPayload.Revoked(childComplexity), true
 
 	case "ScopeInfo.description":
 		if e.complexity.ScopeInfo.Description == nil {
@@ -11351,12 +11563,14 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAutoDisableChannelStatusInput,
 		ec.unmarshalInputBackupOptionsInput,
 		ec.unmarshalInputBulkCreateChannelsInput,
+		ec.unmarshalInputBulkEnableDerivedAssociationsInput,
 		ec.unmarshalInputBulkImportChannelItem,
 		ec.unmarshalInputBulkImportChannelsInput,
 		ec.unmarshalInputBulkUpdateChannelOrderingInput,
 		ec.unmarshalInputChannelCredentialsInput,
 		ec.unmarshalInputChannelEndpointInput,
 		ec.unmarshalInputChannelModelAssociationInput,
+		ec.unmarshalInputChannelModelCapabilityInput,
 		ec.unmarshalInputChannelModelPriceOrder,
 		ec.unmarshalInputChannelModelPriceVersionOrder,
 		ec.unmarshalInputChannelModelPriceVersionWhereInput,
@@ -11474,6 +11688,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputRoleOrder,
 		ec.unmarshalInputRoleWhereInput,
 		ec.unmarshalInputS3Input,
+		ec.unmarshalInputSaveChannelCapabilitiesInput,
 		ec.unmarshalInputSaveChannelEndpointsInput,
 		ec.unmarshalInputSaveChannelModelPriceInput,
 		ec.unmarshalInputSaveProxyPresetInput,
@@ -11636,7 +11851,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "axonhub.graphql" "ent.graphql" "dashboard.graphql" "scopes.graphql" "me.graphql" "system.graphql" "filter.graphql" "model.graphql" "backup.graphql" "channel_probe.graphql" "prompt.graphql" "prompt_protection_rule.graphql" "price.graphql" "cost.graphql" "analytics.graphql"
+//go:embed "llm-proxy.graphql" "ent.graphql" "dashboard.graphql" "scopes.graphql" "me.graphql" "system.graphql" "filter.graphql" "model.graphql" "backup.graphql" "channel_probe.graphql" "prompt.graphql" "prompt_protection_rule.graphql" "price.graphql" "cost.graphql" "analytics.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -11648,7 +11863,7 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
-	{Name: "axonhub.graphql", Input: sourceData("axonhub.graphql"), BuiltIn: false},
+	{Name: "llm-proxy.graphql", Input: sourceData("llm-proxy.graphql"), BuiltIn: false},
 	{Name: "ent.graphql", Input: sourceData("ent.graphql"), BuiltIn: false},
 	{Name: "dashboard.graphql", Input: sourceData("dashboard.graphql"), BuiltIn: false},
 	{Name: "scopes.graphql", Input: sourceData("scopes.graphql"), BuiltIn: false},
@@ -12128,6 +12343,17 @@ func (ec *executionContext) field_Mutation_bulkEnableChannels_args(ctx context.C
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_bulkEnableDerivedAssociations_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNBulkEnableDerivedAssociationsInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationsInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_bulkEnableModels_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -12501,6 +12727,17 @@ func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deriveModelAssociations_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "modelID", ec.unmarshalNID2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUID)
+	if err != nil {
+		return nil, err
+	}
+	args["modelID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_disableChannelAPIKey_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -12666,6 +12903,17 @@ func (ec *executionContext) field_Mutation_rotateAPIKey_args(ctx context.Context
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_saveChannelCapabilities_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNSaveChannelCapabilitiesInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelCapabilitiesInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -18290,6 +18538,8 @@ func (ec *executionContext) fieldContext_ApplyChannelOverrideTemplatePayload_cha
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -19129,6 +19379,130 @@ func (ec *executionContext) fieldContext_BrandSettings_title(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _BulkEnableDerivedAssociationResult_associationId(ctx context.Context, field graphql.CollectedField, obj *biz.BulkEnableDerivedAssociationResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BulkEnableDerivedAssociationResult_associationId,
+		func(ctx context.Context) (any, error) {
+			return obj.AssociationID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BulkEnableDerivedAssociationResult_associationId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BulkEnableDerivedAssociationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BulkEnableDerivedAssociationResult_success(ctx context.Context, field graphql.CollectedField, obj *biz.BulkEnableDerivedAssociationResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BulkEnableDerivedAssociationResult_success,
+		func(ctx context.Context) (any, error) {
+			return obj.Success, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BulkEnableDerivedAssociationResult_success(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BulkEnableDerivedAssociationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BulkEnableDerivedAssociationResult_reason(ctx context.Context, field graphql.CollectedField, obj *biz.BulkEnableDerivedAssociationResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BulkEnableDerivedAssociationResult_reason,
+		func(ctx context.Context) (any, error) {
+			return obj.Reason, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_BulkEnableDerivedAssociationResult_reason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BulkEnableDerivedAssociationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BulkEnableDerivedAssociationsResult_results(ctx context.Context, field graphql.CollectedField, obj *biz.BulkEnableDerivedAssociationsResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_BulkEnableDerivedAssociationsResult_results,
+		func(ctx context.Context) (any, error) {
+			return obj.Results, nil
+		},
+		nil,
+		ec.marshalNBulkEnableDerivedAssociationResult2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationResultᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_BulkEnableDerivedAssociationsResult_results(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BulkEnableDerivedAssociationsResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "associationId":
+				return ec.fieldContext_BulkEnableDerivedAssociationResult_associationId(ctx, field)
+			case "success":
+				return ec.fieldContext_BulkEnableDerivedAssociationResult_success(ctx, field)
+			case "reason":
+				return ec.fieldContext_BulkEnableDerivedAssociationResult_reason(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BulkEnableDerivedAssociationResult", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BulkImportChannelsResult_success(ctx context.Context, field graphql.CollectedField, obj *biz.BulkImportChannelsResult) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -19321,6 +19695,8 @@ func (ec *executionContext) fieldContext_BulkImportChannelsResult_channels(_ con
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -19470,6 +19846,8 @@ func (ec *executionContext) fieldContext_BulkUpdateChannelOrderingResult_channel
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -20419,6 +20797,41 @@ func (ec *executionContext) fieldContext_Channel_defaultEndpoints(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Channel_protocolCapabilities(ctx context.Context, field graphql.CollectedField, obj *ent.Channel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Channel_protocolCapabilities,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Channel().ProtocolCapabilities(ctx, obj)
+		},
+		nil,
+		ec.marshalNChannelProtocolCapabilities2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelProtocolCapabilities,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Channel_protocolCapabilities(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Channel",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "declaredProtocols":
+				return ec.fieldContext_ChannelProtocolCapabilities_declaredProtocols(ctx, field)
+			case "models":
+				return ec.fieldContext_ChannelProtocolCapabilities_models(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ChannelProtocolCapabilities", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Channel_allModelEntries(ctx context.Context, field graphql.CollectedField, obj *ent.Channel) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -20890,6 +21303,8 @@ func (ec *executionContext) fieldContext_ChannelEdge_node(_ context.Context, fie
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -21248,6 +21663,64 @@ func (ec *executionContext) fieldContext_ChannelModelAutoSyncSetting_frequency(_
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type AutoSyncFrequency does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChannelModelCapability_modelId(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelModelCapability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ChannelModelCapability_modelId,
+		func(ctx context.Context) (any, error) {
+			return obj.ModelID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ChannelModelCapability_modelId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChannelModelCapability",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChannelModelCapability_protocols(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelModelCapability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ChannelModelCapability_protocols,
+		func(ctx context.Context) (any, error) {
+			return obj.Protocols, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ChannelModelCapability_protocols(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChannelModelCapability",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -21625,6 +22098,8 @@ func (ec *executionContext) fieldContext_ChannelModelPrice_channel(_ context.Con
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -23507,6 +23982,8 @@ func (ec *executionContext) fieldContext_ChannelProbe_channel(_ context.Context,
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -23790,6 +24267,70 @@ func (ec *executionContext) fieldContext_ChannelProbeSetting_frequency(_ context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ProbeFrequency does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChannelProtocolCapabilities_declaredProtocols(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelProtocolCapabilities) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ChannelProtocolCapabilities_declaredProtocols,
+		func(ctx context.Context) (any, error) {
+			return obj.DeclaredProtocols, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ChannelProtocolCapabilities_declaredProtocols(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChannelProtocolCapabilities",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ChannelProtocolCapabilities_models(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelProtocolCapabilities) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ChannelProtocolCapabilities_models,
+		func(ctx context.Context) (any, error) {
+			return obj.Models, nil
+		},
+		nil,
+		ec.marshalNChannelModelCapability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelModelCapabilityᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ChannelProtocolCapabilities_models(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChannelProtocolCapabilities",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modelId":
+				return ec.fieldContext_ChannelModelCapability_modelId(ctx, field)
+			case "protocols":
+				return ec.fieldContext_ChannelModelCapability_protocols(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ChannelModelCapability", field.Name)
 		},
 	}
 	return fc, nil
@@ -25336,6 +25877,8 @@ func (ec *executionContext) fieldContext_ClearChannelOverrideTemplatesPayload_ch
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -26816,6 +27359,35 @@ func (ec *executionContext) fieldContext_DeleteDisabledAPIKeysPayload_message(_ 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeriveModelAssociationsPayload_addedCount(ctx context.Context, field graphql.CollectedField, obj *biz.DeriveModelAssociationsPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DeriveModelAssociationsPayload_addedCount,
+		func(ctx context.Context) (any, error) {
+			return obj.AddedCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DeriveModelAssociationsPayload_addedCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeriveModelAssociationsPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28883,6 +29455,64 @@ func (ec *executionContext) fieldContext_ModelAssociation_disabled(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _ModelAssociation_auto(ctx context.Context, field graphql.CollectedField, obj *objects.ModelAssociation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ModelAssociation_auto,
+		func(ctx context.Context) (any, error) {
+			return obj.Auto, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ModelAssociation_auto(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModelAssociation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModelAssociation_disabledReason(ctx context.Context, field graphql.CollectedField, obj *objects.ModelAssociation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ModelAssociation_disabledReason,
+		func(ctx context.Context) (any, error) {
+			return obj.DisabledReason, nil
+		},
+		nil,
+		ec.marshalOString2string,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ModelAssociation_disabledReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModelAssociation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModelAssociation_when(ctx context.Context, field graphql.CollectedField, obj *objects.ModelAssociation) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -29884,6 +30514,8 @@ func (ec *executionContext) fieldContext_ModelChannelConnection_channel(_ contex
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -30746,6 +31378,10 @@ func (ec *executionContext) fieldContext_ModelProtocolPool_associations(_ contex
 				return ec.fieldContext_ModelAssociation_priority(ctx, field)
 			case "disabled":
 				return ec.fieldContext_ModelAssociation_disabled(ctx, field)
+			case "auto":
+				return ec.fieldContext_ModelAssociation_auto(ctx, field)
+			case "disabledReason":
+				return ec.fieldContext_ModelAssociation_disabledReason(ctx, field)
 			case "when":
 				return ec.fieldContext_ModelAssociation_when(ctx, field)
 			case "channelModel":
@@ -31053,6 +31689,8 @@ func (ec *executionContext) fieldContext_Mutation_createChannel(ctx context.Cont
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -31156,6 +31794,8 @@ func (ec *executionContext) fieldContext_Mutation_duplicateChannel(ctx context.C
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -31259,6 +31899,8 @@ func (ec *executionContext) fieldContext_Mutation_bulkCreateChannels(ctx context
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -31362,6 +32004,8 @@ func (ec *executionContext) fieldContext_Mutation_updateChannel(ctx context.Cont
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -31399,7 +32043,7 @@ func (ec *executionContext) _Mutation_saveChannelEndpoints(ctx context.Context, 
 			return ec.resolvers.Mutation().SaveChannelEndpoints(ctx, fc.Args["input"].(biz.SaveChannelEndpointsInput))
 		},
 		nil,
-		ec.marshalNChannel2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚐChannel,
+		ec.marshalNSaveChannelEndpointsPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelEndpointsPayload,
 		true,
 		true,
 	)
@@ -31413,68 +32057,12 @@ func (ec *executionContext) fieldContext_Mutation_saveChannelEndpoints(ctx conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Channel_id(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Channel_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Channel_updatedAt(ctx, field)
-			case "type":
-				return ec.fieldContext_Channel_type(ctx, field)
-			case "baseURL":
-				return ec.fieldContext_Channel_baseURL(ctx, field)
-			case "name":
-				return ec.fieldContext_Channel_name(ctx, field)
-			case "status":
-				return ec.fieldContext_Channel_status(ctx, field)
-			case "supportedModels":
-				return ec.fieldContext_Channel_supportedModels(ctx, field)
-			case "manualModels":
-				return ec.fieldContext_Channel_manualModels(ctx, field)
-			case "autoSyncSupportedModels":
-				return ec.fieldContext_Channel_autoSyncSupportedModels(ctx, field)
-			case "autoSyncModelPattern":
-				return ec.fieldContext_Channel_autoSyncModelPattern(ctx, field)
-			case "tags":
-				return ec.fieldContext_Channel_tags(ctx, field)
-			case "defaultTestModel":
-				return ec.fieldContext_Channel_defaultTestModel(ctx, field)
-			case "policies":
-				return ec.fieldContext_Channel_policies(ctx, field)
-			case "settings":
-				return ec.fieldContext_Channel_settings(ctx, field)
-			case "orderingWeight":
-				return ec.fieldContext_Channel_orderingWeight(ctx, field)
-			case "errorMessage":
-				return ec.fieldContext_Channel_errorMessage(ctx, field)
-			case "remark":
-				return ec.fieldContext_Channel_remark(ctx, field)
-			case "endpoints":
-				return ec.fieldContext_Channel_endpoints(ctx, field)
-			case "requests":
-				return ec.fieldContext_Channel_requests(ctx, field)
-			case "executions":
-				return ec.fieldContext_Channel_executions(ctx, field)
-			case "usageLogs":
-				return ec.fieldContext_Channel_usageLogs(ctx, field)
-			case "channelProbes":
-				return ec.fieldContext_Channel_channelProbes(ctx, field)
-			case "channelModelPrices":
-				return ec.fieldContext_Channel_channelModelPrices(ctx, field)
-			case "providerQuotaStatus":
-				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
-			case "defaultEndpoints":
-				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
-			case "allModelEntries":
-				return ec.fieldContext_Channel_allModelEntries(ctx, field)
-			case "credentials":
-				return ec.fieldContext_Channel_credentials(ctx, field)
-			case "disabledAPIKeys":
-				return ec.fieldContext_Channel_disabledAPIKeys(ctx, field)
-			case "liveLimiterStats":
-				return ec.fieldContext_Channel_liveLimiterStats(ctx, field)
+			case "channel":
+				return ec.fieldContext_SaveChannelEndpointsPayload_channel(ctx, field)
+			case "revoked":
+				return ec.fieldContext_SaveChannelEndpointsPayload_revoked(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Channel", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type SaveChannelEndpointsPayload", field.Name)
 		},
 	}
 	defer func() {
@@ -31485,6 +32073,147 @@ func (ec *executionContext) fieldContext_Mutation_saveChannelEndpoints(ctx conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_saveChannelEndpoints_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_saveChannelCapabilities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_saveChannelCapabilities,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().SaveChannelCapabilities(ctx, fc.Args["input"].(biz.SaveChannelCapabilitiesInput))
+		},
+		nil,
+		ec.marshalNSaveChannelCapabilitiesPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelCapabilitiesPayload,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_saveChannelCapabilities(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "channel":
+				return ec.fieldContext_SaveChannelCapabilitiesPayload_channel(ctx, field)
+			case "addedCount":
+				return ec.fieldContext_SaveChannelCapabilitiesPayload_addedCount(ctx, field)
+			case "unmatchedModels":
+				return ec.fieldContext_SaveChannelCapabilitiesPayload_unmatchedModels(ctx, field)
+			case "revoked":
+				return ec.fieldContext_SaveChannelCapabilitiesPayload_revoked(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SaveChannelCapabilitiesPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_saveChannelCapabilities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_bulkEnableDerivedAssociations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_bulkEnableDerivedAssociations,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().BulkEnableDerivedAssociations(ctx, fc.Args["input"].(biz.BulkEnableDerivedAssociationsInput))
+		},
+		nil,
+		ec.marshalNBulkEnableDerivedAssociationsResult2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationsResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_bulkEnableDerivedAssociations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "results":
+				return ec.fieldContext_BulkEnableDerivedAssociationsResult_results(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BulkEnableDerivedAssociationsResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_bulkEnableDerivedAssociations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deriveModelAssociations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deriveModelAssociations,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().DeriveModelAssociations(ctx, fc.Args["modelID"].(objects.GUID))
+		},
+		nil,
+		ec.marshalNDeriveModelAssociationsPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐDeriveModelAssociationsPayload,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deriveModelAssociations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "addedCount":
+				return ec.fieldContext_DeriveModelAssociationsPayload_addedCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeriveModelAssociationsPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deriveModelAssociations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -31568,6 +32297,8 @@ func (ec *executionContext) fieldContext_Mutation_updateChannelStatus(ctx contex
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -42148,6 +42879,8 @@ func (ec *executionContext) fieldContext_ProviderQuotaStatus_channel(_ context.C
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -43445,6 +44178,8 @@ func (ec *executionContext) fieldContext_Query_allChannelSummarys(ctx context.Co
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -47555,6 +48290,8 @@ func (ec *executionContext) fieldContext_Request_channel(_ context.Context, fiel
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -48692,6 +49429,8 @@ func (ec *executionContext) fieldContext_RequestExecution_channel(_ context.Cont
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -49886,6 +50625,64 @@ func (ec *executionContext) fieldContext_RetryableErrorPattern_regex(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _RevokedChannelCapabilitiesPayload_autoDisabledCount(ctx context.Context, field graphql.CollectedField, obj *biz.RevokedChannelCapabilitiesPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RevokedChannelCapabilitiesPayload_autoDisabledCount,
+		func(ctx context.Context) (any, error) {
+			return obj.AutoDisabledCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RevokedChannelCapabilitiesPayload_autoDisabledCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RevokedChannelCapabilitiesPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RevokedChannelCapabilitiesPayload_manualNotices(ctx context.Context, field graphql.CollectedField, obj *biz.RevokedChannelCapabilitiesPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RevokedChannelCapabilitiesPayload_manualNotices,
+		func(ctx context.Context) (any, error) {
+			return obj.ManualNotices, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RevokedChannelCapabilitiesPayload_manualNotices(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RevokedChannelCapabilitiesPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Role_id(ctx context.Context, field graphql.CollectedField, obj *ent.Role) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -50571,6 +51368,320 @@ func (ec *executionContext) fieldContext_S3_pathStyle(_ context.Context, field g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SaveChannelCapabilitiesPayload_channel(ctx context.Context, field graphql.CollectedField, obj *biz.SaveChannelCapabilitiesPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SaveChannelCapabilitiesPayload_channel,
+		func(ctx context.Context) (any, error) {
+			return obj.Channel, nil
+		},
+		nil,
+		ec.marshalNChannel2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚐChannel,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SaveChannelCapabilitiesPayload_channel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SaveChannelCapabilitiesPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Channel_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Channel_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Channel_updatedAt(ctx, field)
+			case "type":
+				return ec.fieldContext_Channel_type(ctx, field)
+			case "baseURL":
+				return ec.fieldContext_Channel_baseURL(ctx, field)
+			case "name":
+				return ec.fieldContext_Channel_name(ctx, field)
+			case "status":
+				return ec.fieldContext_Channel_status(ctx, field)
+			case "supportedModels":
+				return ec.fieldContext_Channel_supportedModels(ctx, field)
+			case "manualModels":
+				return ec.fieldContext_Channel_manualModels(ctx, field)
+			case "autoSyncSupportedModels":
+				return ec.fieldContext_Channel_autoSyncSupportedModels(ctx, field)
+			case "autoSyncModelPattern":
+				return ec.fieldContext_Channel_autoSyncModelPattern(ctx, field)
+			case "tags":
+				return ec.fieldContext_Channel_tags(ctx, field)
+			case "defaultTestModel":
+				return ec.fieldContext_Channel_defaultTestModel(ctx, field)
+			case "policies":
+				return ec.fieldContext_Channel_policies(ctx, field)
+			case "settings":
+				return ec.fieldContext_Channel_settings(ctx, field)
+			case "orderingWeight":
+				return ec.fieldContext_Channel_orderingWeight(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_Channel_errorMessage(ctx, field)
+			case "remark":
+				return ec.fieldContext_Channel_remark(ctx, field)
+			case "endpoints":
+				return ec.fieldContext_Channel_endpoints(ctx, field)
+			case "requests":
+				return ec.fieldContext_Channel_requests(ctx, field)
+			case "executions":
+				return ec.fieldContext_Channel_executions(ctx, field)
+			case "usageLogs":
+				return ec.fieldContext_Channel_usageLogs(ctx, field)
+			case "channelProbes":
+				return ec.fieldContext_Channel_channelProbes(ctx, field)
+			case "channelModelPrices":
+				return ec.fieldContext_Channel_channelModelPrices(ctx, field)
+			case "providerQuotaStatus":
+				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
+			case "defaultEndpoints":
+				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
+			case "allModelEntries":
+				return ec.fieldContext_Channel_allModelEntries(ctx, field)
+			case "credentials":
+				return ec.fieldContext_Channel_credentials(ctx, field)
+			case "disabledAPIKeys":
+				return ec.fieldContext_Channel_disabledAPIKeys(ctx, field)
+			case "liveLimiterStats":
+				return ec.fieldContext_Channel_liveLimiterStats(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Channel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SaveChannelCapabilitiesPayload_addedCount(ctx context.Context, field graphql.CollectedField, obj *biz.SaveChannelCapabilitiesPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SaveChannelCapabilitiesPayload_addedCount,
+		func(ctx context.Context) (any, error) {
+			return obj.AddedCount, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SaveChannelCapabilitiesPayload_addedCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SaveChannelCapabilitiesPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SaveChannelCapabilitiesPayload_unmatchedModels(ctx context.Context, field graphql.CollectedField, obj *biz.SaveChannelCapabilitiesPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SaveChannelCapabilitiesPayload_unmatchedModels,
+		func(ctx context.Context) (any, error) {
+			return obj.UnmatchedModels, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SaveChannelCapabilitiesPayload_unmatchedModels(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SaveChannelCapabilitiesPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SaveChannelCapabilitiesPayload_revoked(ctx context.Context, field graphql.CollectedField, obj *biz.SaveChannelCapabilitiesPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SaveChannelCapabilitiesPayload_revoked,
+		func(ctx context.Context) (any, error) {
+			return obj.Revoked, nil
+		},
+		nil,
+		ec.marshalNRevokedChannelCapabilitiesPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐRevokedChannelCapabilitiesPayload,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SaveChannelCapabilitiesPayload_revoked(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SaveChannelCapabilitiesPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "autoDisabledCount":
+				return ec.fieldContext_RevokedChannelCapabilitiesPayload_autoDisabledCount(ctx, field)
+			case "manualNotices":
+				return ec.fieldContext_RevokedChannelCapabilitiesPayload_manualNotices(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RevokedChannelCapabilitiesPayload", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SaveChannelEndpointsPayload_channel(ctx context.Context, field graphql.CollectedField, obj *biz.SaveChannelEndpointsPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SaveChannelEndpointsPayload_channel,
+		func(ctx context.Context) (any, error) {
+			return obj.Channel, nil
+		},
+		nil,
+		ec.marshalNChannel2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚐChannel,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SaveChannelEndpointsPayload_channel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SaveChannelEndpointsPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Channel_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Channel_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Channel_updatedAt(ctx, field)
+			case "type":
+				return ec.fieldContext_Channel_type(ctx, field)
+			case "baseURL":
+				return ec.fieldContext_Channel_baseURL(ctx, field)
+			case "name":
+				return ec.fieldContext_Channel_name(ctx, field)
+			case "status":
+				return ec.fieldContext_Channel_status(ctx, field)
+			case "supportedModels":
+				return ec.fieldContext_Channel_supportedModels(ctx, field)
+			case "manualModels":
+				return ec.fieldContext_Channel_manualModels(ctx, field)
+			case "autoSyncSupportedModels":
+				return ec.fieldContext_Channel_autoSyncSupportedModels(ctx, field)
+			case "autoSyncModelPattern":
+				return ec.fieldContext_Channel_autoSyncModelPattern(ctx, field)
+			case "tags":
+				return ec.fieldContext_Channel_tags(ctx, field)
+			case "defaultTestModel":
+				return ec.fieldContext_Channel_defaultTestModel(ctx, field)
+			case "policies":
+				return ec.fieldContext_Channel_policies(ctx, field)
+			case "settings":
+				return ec.fieldContext_Channel_settings(ctx, field)
+			case "orderingWeight":
+				return ec.fieldContext_Channel_orderingWeight(ctx, field)
+			case "errorMessage":
+				return ec.fieldContext_Channel_errorMessage(ctx, field)
+			case "remark":
+				return ec.fieldContext_Channel_remark(ctx, field)
+			case "endpoints":
+				return ec.fieldContext_Channel_endpoints(ctx, field)
+			case "requests":
+				return ec.fieldContext_Channel_requests(ctx, field)
+			case "executions":
+				return ec.fieldContext_Channel_executions(ctx, field)
+			case "usageLogs":
+				return ec.fieldContext_Channel_usageLogs(ctx, field)
+			case "channelProbes":
+				return ec.fieldContext_Channel_channelProbes(ctx, field)
+			case "channelModelPrices":
+				return ec.fieldContext_Channel_channelModelPrices(ctx, field)
+			case "providerQuotaStatus":
+				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
+			case "defaultEndpoints":
+				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
+			case "allModelEntries":
+				return ec.fieldContext_Channel_allModelEntries(ctx, field)
+			case "credentials":
+				return ec.fieldContext_Channel_credentials(ctx, field)
+			case "disabledAPIKeys":
+				return ec.fieldContext_Channel_disabledAPIKeys(ctx, field)
+			case "liveLimiterStats":
+				return ec.fieldContext_Channel_liveLimiterStats(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Channel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SaveChannelEndpointsPayload_revoked(ctx context.Context, field graphql.CollectedField, obj *biz.SaveChannelEndpointsPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SaveChannelEndpointsPayload_revoked,
+		func(ctx context.Context) (any, error) {
+			return obj.Revoked, nil
+		},
+		nil,
+		ec.marshalNRevokedChannelCapabilitiesPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐRevokedChannelCapabilitiesPayload,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SaveChannelEndpointsPayload_revoked(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SaveChannelEndpointsPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "autoDisabledCount":
+				return ec.fieldContext_RevokedChannelCapabilitiesPayload_autoDisabledCount(ctx, field)
+			case "manualNotices":
+				return ec.fieldContext_RevokedChannelCapabilitiesPayload_manualNotices(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RevokedChannelCapabilitiesPayload", field.Name)
 		},
 	}
 	return fc, nil
@@ -56260,6 +57371,8 @@ func (ec *executionContext) fieldContext_UnassociatedChannel_channel(_ context.C
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -57337,6 +58450,8 @@ func (ec *executionContext) fieldContext_UsageLog_channel(_ context.Context, fie
 				return ec.fieldContext_Channel_providerQuotaStatus(ctx, field)
 			case "defaultEndpoints":
 				return ec.fieldContext_Channel_defaultEndpoints(ctx, field)
+			case "protocolCapabilities":
+				return ec.fieldContext_Channel_protocolCapabilities(ctx, field)
 			case "allModelEntries":
 				return ec.fieldContext_Channel_allModelEntries(ctx, field)
 			case "credentials":
@@ -63906,6 +65021,33 @@ func (ec *executionContext) unmarshalInputBulkCreateChannelsInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputBulkEnableDerivedAssociationsInput(ctx context.Context, obj any) (biz.BulkEnableDerivedAssociationsInput, error) {
+	var it biz.BulkEnableDerivedAssociationsInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"channelID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "channelID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+			data, err := ec.unmarshalNID2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputBulkImportChannelItem(ctx context.Context, obj any) (biz.BulkImportChannelItem, error) {
 	var it biz.BulkImportChannelItem
 	asMap := map[string]any{}
@@ -64146,6 +65288,40 @@ func (ec *executionContext) unmarshalInputChannelModelAssociationInput(ctx conte
 				return it, err
 			}
 			it.ModelID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputChannelModelCapabilityInput(ctx context.Context, obj any) (objects.ChannelModelCapability, error) {
+	var it objects.ChannelModelCapability
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"modelId", "protocols"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "modelId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modelId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ModelID = data
+		case "protocols":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocols"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Protocols = data
 		}
 	}
 
@@ -70798,7 +71974,7 @@ func (ec *executionContext) unmarshalInputModelAssociationInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"type", "priority", "disabled", "when", "channelModel", "channelRegex", "regex", "modelId", "channelTagsModel", "channelTagsRegex"}
+	fieldsInOrder := [...]string{"type", "priority", "disabled", "auto", "disabledReason", "when", "channelModel", "channelRegex", "regex", "modelId", "channelTagsModel", "channelTagsRegex"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -70826,6 +72002,20 @@ func (ec *executionContext) unmarshalInputModelAssociationInput(ctx context.Cont
 				return it, err
 			}
 			it.Disabled = data
+		case "auto":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("auto"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Auto = data
+		case "disabledReason":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabledReason"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DisabledReason = data
 		case "when":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("when"))
 			data, err := ec.unmarshalOModelAssociationWhenInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐModelAssociationWhen(ctx, v)
@@ -80348,6 +81538,47 @@ func (ec *executionContext) unmarshalInputS3Input(ctx context.Context, obj any) 
 				return it, err
 			}
 			it.PathStyle = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSaveChannelCapabilitiesInput(ctx context.Context, obj any) (biz.SaveChannelCapabilitiesInput, error) {
+	var it biz.SaveChannelCapabilitiesInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"channelID", "declaredProtocols", "models"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "channelID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+			data, err := ec.unmarshalNID2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelID = data
+		case "declaredProtocols":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("declaredProtocols"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeclaredProtocols = data
+		case "models":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("models"))
+			data, err := ec.unmarshalNChannelModelCapabilityInput2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelModelCapabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Models = data
 		}
 	}
 
@@ -90136,6 +91367,91 @@ func (ec *executionContext) _BrandSettings(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var bulkEnableDerivedAssociationResultImplementors = []string{"BulkEnableDerivedAssociationResult"}
+
+func (ec *executionContext) _BulkEnableDerivedAssociationResult(ctx context.Context, sel ast.SelectionSet, obj *biz.BulkEnableDerivedAssociationResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bulkEnableDerivedAssociationResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BulkEnableDerivedAssociationResult")
+		case "associationId":
+			out.Values[i] = ec._BulkEnableDerivedAssociationResult_associationId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "success":
+			out.Values[i] = ec._BulkEnableDerivedAssociationResult_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reason":
+			out.Values[i] = ec._BulkEnableDerivedAssociationResult_reason(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var bulkEnableDerivedAssociationsResultImplementors = []string{"BulkEnableDerivedAssociationsResult"}
+
+func (ec *executionContext) _BulkEnableDerivedAssociationsResult(ctx context.Context, sel ast.SelectionSet, obj *biz.BulkEnableDerivedAssociationsResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bulkEnableDerivedAssociationsResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BulkEnableDerivedAssociationsResult")
+		case "results":
+			out.Values[i] = ec._BulkEnableDerivedAssociationsResult_results(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var bulkImportChannelsResultImplementors = []string{"BulkImportChannelsResult"}
 
 func (ec *executionContext) _BulkImportChannelsResult(ctx context.Context, sel ast.SelectionSet, obj *biz.BulkImportChannelsResult) graphql.Marshaler {
@@ -90625,6 +91941,42 @@ func (ec *executionContext) _Channel(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "protocolCapabilities":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Channel_protocolCapabilities(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "allModelEntries":
 			field := field
 
@@ -91068,6 +92420,50 @@ func (ec *executionContext) _ChannelModelAutoSyncSetting(ctx context.Context, se
 			out.Values[i] = graphql.MarshalString("ChannelModelAutoSyncSetting")
 		case "frequency":
 			out.Values[i] = ec._ChannelModelAutoSyncSetting_frequency(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var channelModelCapabilityImplementors = []string{"ChannelModelCapability"}
+
+func (ec *executionContext) _ChannelModelCapability(ctx context.Context, sel ast.SelectionSet, obj *objects.ChannelModelCapability) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, channelModelCapabilityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ChannelModelCapability")
+		case "modelId":
+			out.Values[i] = ec._ChannelModelCapability_modelId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "protocols":
+			out.Values[i] = ec._ChannelModelCapability_protocols(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -92444,6 +93840,50 @@ func (ec *executionContext) _ChannelProbeSetting(ctx context.Context, sel ast.Se
 	return out
 }
 
+var channelProtocolCapabilitiesImplementors = []string{"ChannelProtocolCapabilities"}
+
+func (ec *executionContext) _ChannelProtocolCapabilities(ctx context.Context, sel ast.SelectionSet, obj *objects.ChannelProtocolCapabilities) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, channelProtocolCapabilitiesImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ChannelProtocolCapabilities")
+		case "declaredProtocols":
+			out.Values[i] = ec._ChannelProtocolCapabilities_declaredProtocols(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "models":
+			out.Values[i] = ec._ChannelProtocolCapabilities_models(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var channelProviderQuotaSettingsImplementors = []string{"ChannelProviderQuotaSettings"}
 
 func (ec *executionContext) _ChannelProviderQuotaSettings(ctx context.Context, sel ast.SelectionSet, obj *objects.ChannelProviderQuotaSettings) graphql.Marshaler {
@@ -93792,6 +95232,45 @@ func (ec *executionContext) _DeleteDisabledAPIKeysPayload(ctx context.Context, s
 	return out
 }
 
+var deriveModelAssociationsPayloadImplementors = []string{"DeriveModelAssociationsPayload"}
+
+func (ec *executionContext) _DeriveModelAssociationsPayload(ctx context.Context, sel ast.SelectionSet, obj *biz.DeriveModelAssociationsPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deriveModelAssociationsPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeriveModelAssociationsPayload")
+		case "addedCount":
+			out.Values[i] = ec._DeriveModelAssociationsPayload_addedCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var developerModelSettingsImplementors = []string{"DeveloperModelSettings"}
 
 func (ec *executionContext) _DeveloperModelSettings(ctx context.Context, sel ast.SelectionSet, obj *biz.DeveloperModelSettings) graphql.Marshaler {
@@ -94707,6 +96186,13 @@ func (ec *executionContext) _ModelAssociation(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "auto":
+			out.Values[i] = ec._ModelAssociation_auto(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "disabledReason":
+			out.Values[i] = ec._ModelAssociation_disabledReason(ctx, field, obj)
 		case "when":
 			out.Values[i] = ec._ModelAssociation_when(ctx, field, obj)
 		case "channelModel":
@@ -95715,6 +97201,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "saveChannelEndpoints":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_saveChannelEndpoints(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "saveChannelCapabilities":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_saveChannelCapabilities(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bulkEnableDerivedAssociations":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_bulkEnableDerivedAssociations(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deriveModelAssociations":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deriveModelAssociations(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -102639,6 +104146,50 @@ func (ec *executionContext) _RetryableErrorPattern(ctx context.Context, sel ast.
 	return out
 }
 
+var revokedChannelCapabilitiesPayloadImplementors = []string{"RevokedChannelCapabilitiesPayload"}
+
+func (ec *executionContext) _RevokedChannelCapabilitiesPayload(ctx context.Context, sel ast.SelectionSet, obj *biz.RevokedChannelCapabilitiesPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, revokedChannelCapabilitiesPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RevokedChannelCapabilitiesPayload")
+		case "autoDisabledCount":
+			out.Values[i] = ec._RevokedChannelCapabilitiesPayload_autoDisabledCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "manualNotices":
+			out.Values[i] = ec._RevokedChannelCapabilitiesPayload_manualNotices(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var roleImplementors = []string{"Role", "Node"}
 
 func (ec *executionContext) _Role(ctx context.Context, sel ast.SelectionSet, obj *ent.Role) graphql.Marshaler {
@@ -103020,6 +104571,104 @@ func (ec *executionContext) _S3(ctx context.Context, sel ast.SelectionSet, obj *
 			}
 		case "pathStyle":
 			out.Values[i] = ec._S3_pathStyle(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var saveChannelCapabilitiesPayloadImplementors = []string{"SaveChannelCapabilitiesPayload"}
+
+func (ec *executionContext) _SaveChannelCapabilitiesPayload(ctx context.Context, sel ast.SelectionSet, obj *biz.SaveChannelCapabilitiesPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, saveChannelCapabilitiesPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SaveChannelCapabilitiesPayload")
+		case "channel":
+			out.Values[i] = ec._SaveChannelCapabilitiesPayload_channel(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "addedCount":
+			out.Values[i] = ec._SaveChannelCapabilitiesPayload_addedCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "unmatchedModels":
+			out.Values[i] = ec._SaveChannelCapabilitiesPayload_unmatchedModels(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "revoked":
+			out.Values[i] = ec._SaveChannelCapabilitiesPayload_revoked(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var saveChannelEndpointsPayloadImplementors = []string{"SaveChannelEndpointsPayload"}
+
+func (ec *executionContext) _SaveChannelEndpointsPayload(ctx context.Context, sel ast.SelectionSet, obj *biz.SaveChannelEndpointsPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, saveChannelEndpointsPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SaveChannelEndpointsPayload")
+		case "channel":
+			out.Values[i] = ec._SaveChannelEndpointsPayload_channel(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "revoked":
+			out.Values[i] = ec._SaveChannelEndpointsPayload_revoked(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -109002,6 +110651,79 @@ func (ec *executionContext) unmarshalNBulkCreateChannelsInput2githubᚗcomᚋmut
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNBulkEnableDerivedAssociationResult2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationResultᚄ(ctx context.Context, sel ast.SelectionSet, v []*biz.BulkEnableDerivedAssociationResult) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNBulkEnableDerivedAssociationResult2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationResult(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNBulkEnableDerivedAssociationResult2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationResult(ctx context.Context, sel ast.SelectionSet, v *biz.BulkEnableDerivedAssociationResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BulkEnableDerivedAssociationResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBulkEnableDerivedAssociationsInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationsInput(ctx context.Context, v any) (biz.BulkEnableDerivedAssociationsInput, error) {
+	res, err := ec.unmarshalInputBulkEnableDerivedAssociationsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBulkEnableDerivedAssociationsResult2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationsResult(ctx context.Context, sel ast.SelectionSet, v biz.BulkEnableDerivedAssociationsResult) graphql.Marshaler {
+	return ec._BulkEnableDerivedAssociationsResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBulkEnableDerivedAssociationsResult2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkEnableDerivedAssociationsResult(ctx context.Context, sel ast.SelectionSet, v *biz.BulkEnableDerivedAssociationsResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BulkEnableDerivedAssociationsResult(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBulkImportChannelItem2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐBulkImportChannelItemᚄ(ctx context.Context, v any) ([]*biz.BulkImportChannelItem, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
@@ -109217,6 +110939,74 @@ func (ec *executionContext) unmarshalNChannelEndpointInput2ᚕgithubᚗcomᚋmut
 
 func (ec *executionContext) marshalNChannelModelAutoSyncSetting2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐChannelModelAutoSyncSetting(ctx context.Context, sel ast.SelectionSet, v biz.ChannelModelAutoSyncSetting) graphql.Marshaler {
 	return ec._ChannelModelAutoSyncSetting(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNChannelModelCapability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelModelCapability(ctx context.Context, sel ast.SelectionSet, v objects.ChannelModelCapability) graphql.Marshaler {
+	return ec._ChannelModelCapability(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNChannelModelCapability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelModelCapabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []objects.ChannelModelCapability) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNChannelModelCapability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelModelCapability(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNChannelModelCapabilityInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelModelCapability(ctx context.Context, v any) (objects.ChannelModelCapability, error) {
+	res, err := ec.unmarshalInputChannelModelCapabilityInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNChannelModelCapabilityInput2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelModelCapabilityᚄ(ctx context.Context, v any) ([]objects.ChannelModelCapability, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]objects.ChannelModelCapability, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNChannelModelCapabilityInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelModelCapability(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalNChannelModelEntry2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐChannelModelEntry(ctx context.Context, sel ast.SelectionSet, v biz.ChannelModelEntry) graphql.Marshaler {
@@ -109701,6 +111491,20 @@ func (ec *executionContext) marshalNChannelProbeSetting2githubᚗcomᚋmutallipp
 func (ec *executionContext) unmarshalNChannelProbeWhereInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚐChannelProbeWhereInput(ctx context.Context, v any) (*ent.ChannelProbeWhereInput, error) {
 	res, err := ec.unmarshalInputChannelProbeWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNChannelProtocolCapabilities2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelProtocolCapabilities(ctx context.Context, sel ast.SelectionSet, v objects.ChannelProtocolCapabilities) graphql.Marshaler {
+	return ec._ChannelProtocolCapabilities(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNChannelProtocolCapabilities2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐChannelProtocolCapabilities(ctx context.Context, sel ast.SelectionSet, v *objects.ChannelProtocolCapabilities) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ChannelProtocolCapabilities(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNChannelStatus2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋchannelᚐStatus(ctx context.Context, v any) (channel.Status, error) {
@@ -110389,6 +112193,20 @@ func (ec *executionContext) marshalNDeleteDisabledAPIKeysPayload2ᚖgithubᚗcom
 		return graphql.Null
 	}
 	return ec._DeleteDisabledAPIKeysPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDeriveModelAssociationsPayload2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐDeriveModelAssociationsPayload(ctx context.Context, sel ast.SelectionSet, v biz.DeriveModelAssociationsPayload) graphql.Marshaler {
+	return ec._DeriveModelAssociationsPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeriveModelAssociationsPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐDeriveModelAssociationsPayload(ctx context.Context, sel ast.SelectionSet, v *biz.DeriveModelAssociationsPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DeriveModelAssociationsPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNDeveloperModelSettings2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐDeveloperModelSettingsᚄ(ctx context.Context, sel ast.SelectionSet, v []*biz.DeveloperModelSettings) graphql.Marshaler {
@@ -112988,6 +114806,16 @@ func (ec *executionContext) unmarshalNRetryableErrorPatternInput2githubᚗcomᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNRevokedChannelCapabilitiesPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐRevokedChannelCapabilitiesPayload(ctx context.Context, sel ast.SelectionSet, v *biz.RevokedChannelCapabilitiesPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RevokedChannelCapabilitiesPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNRole2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚐRole(ctx context.Context, sel ast.SelectionSet, v ent.Role) graphql.Marshaler {
 	return ec._Role(ctx, sel, &v)
 }
@@ -113095,9 +114923,42 @@ func (ec *executionContext) unmarshalNRoleWhereInput2ᚖgithubᚗcomᚋmutallipp
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNSaveChannelCapabilitiesInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelCapabilitiesInput(ctx context.Context, v any) (biz.SaveChannelCapabilitiesInput, error) {
+	res, err := ec.unmarshalInputSaveChannelCapabilitiesInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSaveChannelCapabilitiesPayload2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelCapabilitiesPayload(ctx context.Context, sel ast.SelectionSet, v biz.SaveChannelCapabilitiesPayload) graphql.Marshaler {
+	return ec._SaveChannelCapabilitiesPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSaveChannelCapabilitiesPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelCapabilitiesPayload(ctx context.Context, sel ast.SelectionSet, v *biz.SaveChannelCapabilitiesPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SaveChannelCapabilitiesPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNSaveChannelEndpointsInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelEndpointsInput(ctx context.Context, v any) (biz.SaveChannelEndpointsInput, error) {
 	res, err := ec.unmarshalInputSaveChannelEndpointsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSaveChannelEndpointsPayload2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelEndpointsPayload(ctx context.Context, sel ast.SelectionSet, v biz.SaveChannelEndpointsPayload) graphql.Marshaler {
+	return ec._SaveChannelEndpointsPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSaveChannelEndpointsPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelEndpointsPayload(ctx context.Context, sel ast.SelectionSet, v *biz.SaveChannelEndpointsPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SaveChannelEndpointsPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNSaveChannelModelPriceInput2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋbizᚐSaveChannelModelPriceInputᚄ(ctx context.Context, v any) ([]*biz.SaveChannelModelPriceInput, error) {

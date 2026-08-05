@@ -1,4 +1,4 @@
-// Package qb provides database utilities and query builders for AxonHub.
+// Package qb provides database utilities and query builders for llm-proxy.
 //
 // This package contains shared database logic that can be used across the
 // codebase without depending on generated code or GraphQL types.

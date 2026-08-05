@@ -7,26 +7,26 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-E2E_DB="${SCRIPT_DIR}/axonhub-e2e.db"
+E2E_DB="${SCRIPT_DIR}/llm-proxy-e2e.db"
 E2E_PORT=8099
-BINARY_NAME="axonhub-e2e"
+BINARY_NAME="llm-proxy-e2e"
 BINARY_PATH="${SCRIPT_DIR}/${BINARY_NAME}"
 PID_FILE="${SCRIPT_DIR}/.e2e-backend.pid"
 LOG_FILE="${SCRIPT_DIR}/e2e-backend.log"
 DB_TYPE_FILE="${SCRIPT_DIR}/.e2e-backend-db-type"
-DB_TYPE="${AXONHUB_E2E_DB_TYPE:-sqlite}"
-MYSQL_CONTAINER="axonhub-e2e-mysql"
+DB_TYPE="${LLM_PROXY_E2E_DB_TYPE:-sqlite}"
+MYSQL_CONTAINER="llm-proxy-e2e-mysql"
 MYSQL_PORT=13306
 MYSQL_ROOT_PASSWORD="axonhub_test_root"
 MYSQL_DATABASE="axonhub_e2e"
-MYSQL_USER="axonhub"
+MYSQL_USER="llm-proxy"
 MYSQL_PASSWORD="axonhub_test"
-POSTGRES_CONTAINER="axonhub-e2e-postgres"
+POSTGRES_CONTAINER="llm-proxy-e2e-postgres"
 POSTGRES_PORT=15432
 POSTGRES_DATABASE="axonhub_e2e"
-POSTGRES_USER="axonhub"
+POSTGRES_USER="llm-proxy"
 POSTGRES_PASSWORD="axonhub_test"
-USE_EXISTING_DB="${AXONHUB_E2E_USE_EXISTING_DB:-false}"
+USE_EXISTING_DB="${LLM_PROXY_E2E_USE_EXISTING_DB:-false}"
 
 check_docker() {
   if ! command -v docker >/dev/null 2>&1; then
@@ -104,17 +104,17 @@ cleanup_database() {
 
   case "$type" in
     mysql)
-      if [ "$USE_EXISTING_DB" != "true" ] && [ "${AXONHUB_E2E_KEEP_DB:-false}" != "true" ] && command -v docker >/dev/null 2>&1; then
+      if [ "$USE_EXISTING_DB" != "true" ] && [ "${LLM_PROXY_E2E_KEEP_DB:-false}" != "true" ] && command -v docker >/dev/null 2>&1; then
         docker rm -f "$MYSQL_CONTAINER" >/dev/null 2>&1 || true
       fi
       ;;
     postgres)
-      if [ "$USE_EXISTING_DB" != "true" ] && [ "${AXONHUB_E2E_KEEP_DB:-false}" != "true" ] && command -v docker >/dev/null 2>&1; then
+      if [ "$USE_EXISTING_DB" != "true" ] && [ "${LLM_PROXY_E2E_KEEP_DB:-false}" != "true" ] && command -v docker >/dev/null 2>&1; then
         docker rm -f "$POSTGRES_CONTAINER" >/dev/null 2>&1 || true
       fi
       ;;
     sqlite)
-      if [ "${AXONHUB_E2E_KEEP_DB:-false}" != "true" ]; then
+      if [ "${LLM_PROXY_E2E_KEEP_DB:-false}" != "true" ]; then
         rm -f "$E2E_DB"
       fi
       ;;
@@ -125,7 +125,7 @@ load_db_type() {
   if [ -f "$DB_TYPE_FILE" ]; then
     DB_TYPE=$(cat "$DB_TYPE_FILE")
   else
-    DB_TYPE="${AXONHUB_E2E_DB_TYPE:-sqlite}"
+    DB_TYPE="${LLM_PROXY_E2E_DB_TYPE:-sqlite}"
   fi
 }
 
@@ -165,9 +165,9 @@ case "${1:-}" in
           echo "Preparing MySQL database for E2E..."
           setup_mysql
         fi
-        DB_DIALECT="${AXONHUB_E2E_DB_DIALECT:-mysql}"
-        if [ -n "${AXONHUB_E2E_DB_DSN:-}" ]; then
-          DB_DSN="$AXONHUB_E2E_DB_DSN"
+        DB_DIALECT="${LLM_PROXY_E2E_DB_DIALECT:-mysql}"
+        if [ -n "${LLM_PROXY_E2E_DB_DSN:-}" ]; then
+          DB_DSN="$LLM_PROXY_E2E_DB_DSN"
         else
           DB_DSN="${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(localhost:${MYSQL_PORT})/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=True&loc=Local"
         fi
@@ -179,9 +179,9 @@ case "${1:-}" in
           echo "Preparing PostgreSQL database for E2E..."
           setup_postgres
         fi
-        DB_DIALECT="${AXONHUB_E2E_DB_DIALECT:-postgres}"
-        if [ -n "${AXONHUB_E2E_DB_DSN:-}" ]; then
-          DB_DSN="$AXONHUB_E2E_DB_DSN"
+        DB_DIALECT="${LLM_PROXY_E2E_DB_DIALECT:-postgres}"
+        if [ -n "${LLM_PROXY_E2E_DB_DSN:-}" ]; then
+          DB_DSN="$LLM_PROXY_E2E_DB_DSN"
         else
           DB_DSN="host=localhost port=${POSTGRES_PORT} user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DATABASE} sslmode=disable"
         fi
@@ -212,19 +212,19 @@ case "${1:-}" in
     if [ "$SHOULD_BUILD" = true ]; then
       echo "Building E2E backend..."
       cd "$PROJECT_ROOT"
-      go build -o "$BINARY_PATH" ./cmd/axonhub
+      go build -o "$BINARY_PATH" ./cmd/llm-proxy
       cd "$SCRIPT_DIR"
     fi
     
     echo "Using $DB_DSN database for E2E..."
     # Start backend server with E2E configuration
     echo "Starting backend on port $E2E_PORT using $DB_TYPE database..."
-    AXONHUB_SERVER_PORT=$E2E_PORT \
-    AXONHUB_DB_DIALECT="$DB_DIALECT" \
-    AXONHUB_DB_DSN="$DB_DSN" \
-    AXONHUB_LOG_OUTPUT="stdio" \
-    AXONHUB_LOG_LEVEL="debug" \
-    AXONHUB_LOG_ENCODING="console" \
+    LLM_PROXY_SERVER_PORT=$E2E_PORT \
+    LLM_PROXY_DB_DIALECT="$DB_DIALECT" \
+    LLM_PROXY_DB_DSN="$DB_DSN" \
+    LLM_PROXY_LOG_OUTPUT="stdio" \
+    LLM_PROXY_LOG_LEVEL="debug" \
+    LLM_PROXY_LOG_ENCODING="console" \
     nohup "$BINARY_PATH" > "$LOG_FILE" 2>&1 &
     
     BACKEND_PID=$!
@@ -285,7 +285,7 @@ case "${1:-}" in
 
     rm -f "$PID_FILE"
 
-    if [ "${AXONHUB_E2E_KEEP_DB:-false}" != "true" ]; then
+    if [ "${LLM_PROXY_E2E_KEEP_DB:-false}" != "true" ]; then
       cleanup_database "$DB_TYPE"
       rm -f "$DB_TYPE_FILE"
     else

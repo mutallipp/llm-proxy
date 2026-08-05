@@ -1,6 +1,6 @@
 # Trace Multiple Requests - Responses API
 
-This directory contains integration tests for testing multiple Responses API calls within a single trace in AxonHub.
+This directory contains integration tests for testing multiple Responses API calls within a single trace in llm-proxy.
 
 ## Test Overview
 

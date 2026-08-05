@@ -2,7 +2,7 @@
 
 ## 概述
 
-AxonHub 通过 Jina AI 重排序 API 支持文档重排序，允许您根据与查询的相关性重新排列文档。这对于改善搜索结果、RAG（检索增强生成）管道以及其他需要按相关性对文档进行排序的应用程序非常有用。
+llm-proxy 通过 Jina AI 重排序 API 支持文档重排序，允许您根据与查询的相关性重新排列文档。这对于改善搜索结果、RAG（检索增强生成）管道以及其他需要按相关性对文档进行排序的应用程序非常有用。
 
 ## 核心优势
 
@@ -89,7 +89,7 @@ import requests
 response = requests.post(
     "http://localhost:8090/v1/rerank",
     headers={
-        "Authorization": "Bearer your-axonhub-api-key",
+        "Authorization": "Bearer your-llm-proxy-api-key",
         "Content-Type": "application/json"
     },
     json={
@@ -118,7 +118,7 @@ import requests
 response = requests.post(
     "http://localhost:8090/jina/v1/rerank",
     headers={
-        "Authorization": "Bearer your-axonhub-api-key",
+        "Authorization": "Bearer your-llm-proxy-api-key",
         "Content-Type": "application/json"
     },
     json={
@@ -195,7 +195,7 @@ func main() {
         "http://localhost:8090/v1/rerank",
         bytes.NewBuffer(jsonData),
     )
-    httpReq.Header.Set("Authorization", "Bearer your-axonhub-api-key")
+    httpReq.Header.Set("Authorization", "Bearer your-llm-proxy-api-key")
     httpReq.Header.Set("Content-Type", "application/json")
     httpReq.Header.Set("AH-Trace-Id", "trace-example-123")
     httpReq.Header.Set("AH-Thread-Id", "thread-example-abc")

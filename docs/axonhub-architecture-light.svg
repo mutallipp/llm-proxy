@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-labelledby="axonhub-title">
-  <title id="axonhub-title">AxonHub Architecture - Unified AI Gateway</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-labelledby="llm-proxy-title">
+  <title id="llm-proxy-title">llm-proxy Architecture - Unified AI Gateway</title>
   
   <!-- CSS Animations -->
   <style>
@@ -68,7 +68,7 @@
   
   <!-- Title -->
   <text x="400" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">
-    AxonHub - Unified AI Gateway
+    llm-proxy - Unified AI Gateway
   </text>
   
   <!-- Left side: AI Providers -->
@@ -92,13 +92,13 @@
     <text x="120" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#3367D6">Gemini</text>
   </g>
   
-  <!-- Center: AxonHub -->
+  <!-- Center: llm-proxy -->
   <g class="pulse-center">
     <circle cx="400" cy="200" r="80" fill="#0ea5e9" fill-opacity="0.1" stroke="#0ea5e9" stroke-width="3" class="glow"/>
     <circle cx="400" cy="200" r="60" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="5,5" class="rotate-slow"/>
     <circle cx="400" cy="200" r="40" fill="none" stroke="#0ea5e9" stroke-width="1" stroke-dasharray="3,3" class="rotate-medium"/>
     
-    <text x="400" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#0369a1">AxonHub</text>
+    <text x="400" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#0369a1">llm-proxy</text>
     <!-- <text x="400" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#0369a1">Gateway</text> -->
     
     <!-- Center icon -->
@@ -126,7 +126,7 @@
     <text x="680" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#059669">Agent</text>
   </g>
   
-  <!-- Arrows: Providers to AxonHub -->
+  <!-- Arrows: Providers to llm-proxy -->
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>

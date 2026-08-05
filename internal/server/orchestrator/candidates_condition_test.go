@@ -161,7 +161,7 @@ func TestMatchesAssociationWhen_RequestHeader(t *testing.T) {
 
 func TestMatchesAssociationWhen_RequestHeaderOperators(t *testing.T) {
 	now := time.Date(2026, 5, 25, 10, 0, 0, 0, time.Local)
-	headers := map[string]string{"User-Agent": "axonhub-cli/1.2.3"}
+	headers := map[string]string{"User-Agent": "llm-proxy-cli/1.2.3"}
 
 	cases := []struct {
 		name     string
@@ -173,12 +173,12 @@ func TestMatchesAssociationWhen_RequestHeaderOperators(t *testing.T) {
 		{"contains no match", "contains", "browser", false},
 		{"not_contains match", "not_contains", "browser", true},
 		{"not_contains no match", "not_contains", "cli", false},
-		{"start_with match", "start_with", "axonhub-cli", true},
+		{"start_with match", "start_with", "llm-proxy-cli", true},
 		{"start_with no match", "start_with", "other", false},
 		{"end_with match", "end_with", "1.2.3", true},
 		{"end_with no match", "end_with", "0.0.0", false},
 		{"ne match", "ne", "other", true},
-		{"eq match", "eq", "axonhub-cli/1.2.3", true},
+		{"eq match", "eq", "llm-proxy-cli/1.2.3", true},
 	}
 
 	for _, tc := range cases {

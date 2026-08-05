@@ -1,6 +1,6 @@
 # 前端技术架构与开发规范
 
-本文档面向 AxonHub 前端开发与验收，内容以当前 `frontend/src` 实现为准。
+本文档面向 llm-proxy 前端开发与验收，内容以当前 `frontend/src` 实现为准。
 
 ## 1. 技术栈与分层
 
@@ -73,6 +73,13 @@ useQueryChannels({ first: 2000 });
 4. `Select` 的 Channel value 保持 GraphQL Relay GID；写入 association 前通过 `parseChannelIdFromSelectValue` 提取数字，编辑回显通过 `channelIdToSelectValue` 映射回 GID。
 5. 保存前必须校验协议池格式非空、每个池至少有一个 target、priority 为 0 到 100 的整数，并拒绝重复的 Channel/物理模型组合。
 6. 更新 Model 时以 GraphQL mutation 提交完整 `settings.protocolPools`；Adapter 绑定在独立的 Adapter REST 页面维护，不把 Channel 或物理模型写回 Adapter binding。
+
+## 4.1 渠道能力编辑器与派生条目（2026-08-05）
+
+- **渠道能力编辑器**：[`channels-capability-dialog.tsx`](../../frontend/src/features/channels/components/channels-capability-dialog.tsx)，行菜单入口（`channels-columns.tsx`，对话框类型 `'capability'` 在 `channels-context.tsx`，挂载在 `channels-dialogs.tsx`）。交互：协议族多选（白名单复用 models 域 `protocolPoolFormats`，跨 feature import）→ 模型候选默认继承全部协议 → 逐模型去掉例外（持久保存）。
+- **保存与提示**：`useSaveChannelCapabilities` 提交 `saveChannelCapabilities`，payload 返回 `addedCount`/`unmatchedModels`/`revoked`，保存后提示新增关联数与未匹配声明，并提供一键批量启用（`useBulkEnableDerivedAssociations`，逐条校验、部分成功）；`saveChannelEndpoints` 返回改为 payload，端点复核产生的撤销同样提示。
+- **缓存失效**：能力保存/批量启用写入的是各 Model settings，onSuccess 需同时 invalidate `['channels']`、`['channel', id]` 与 `['models']`；`useDeriveModelAssociations` 后 invalidate `['models']` 及模型详情 key。
+- **派生条目展示**：Model 协议池编辑器中 `auto: true` 关联展示 auto 徽章与 `disabledReason`，隐藏删除按钮（服务端同样拒绝删除）；"同步渠道"按钮调 `deriveModelAssociations`（增量、只增不撤）；启用校验失败时服务端拒绝保存并展示原因。
 
 ## 5. 已验证的关键坑
 

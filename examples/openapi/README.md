@@ -1,14 +1,14 @@
-# AxonHub OpenAPI 示例
+# llm-proxy OpenAPI 示例
 
-这个目录展示了如何使用 [genqlient](https://github.com/Khan/genqlient) 生成 Go 客户端代码，以便通过 GraphQL 调用 AxonHub 的管理接口。
+这个目录展示了如何使用 [genqlient](https://github.com/Khan/genqlient) 生成 Go 客户端代码，以便通过 GraphQL 调用 llm-proxy 的管理接口。
 
 ## 简介
 
-AxonHub 提供了一个专用的 GraphQL 端点 `/openapi/v1/graphql` 用于程序化管理 LLM API Key。这个示例演示了如何生成并使用 Go 代码来集成这些功能。
+llm-proxy 提供了一个专用的 GraphQL 端点 `/openapi/v1/graphql` 用于程序化管理 LLM API Key。这个示例演示了如何生成并使用 Go 代码来集成这些功能。
 
 ## 目录结构
 
-- `graphql/openapi.graphql`: AxonHub OpenAPI 的 GraphQL Schema 定义。
+- `graphql/openapi.graphql`: llm-proxy OpenAPI 的 GraphQL Schema 定义。
 - `graphql/api_key.graphql`: 定义了具体的操作（Mutation/Query）。
 - `graphql/genqlient.yaml`: `genqlient` 的配置文件。
 - `graphql/generated.go`: 自动生成的 Go 客户端代码。
@@ -54,17 +54,17 @@ go run github.com/Khan/genqlient
 
 ### 2. 运行示例
 
-1. 确保 AxonHub 服务器正在运行（默认端口 8090）。
+1. 确保 llm-proxy 服务器正在运行（默认端口 8090）。
 2. 获取一个具有 `service_account` 类型且拥有 `read_api_keys` + `write_api_keys` 权限的 API Key。
 3. 运行示例程序：
 
 ```bash
-export AXONHUB_API_KEY="your_service_account_api_key"
+export LLM_PROXY_API_KEY="your_service_account_api_key"
 
 # 可选: 设置其一即可让示例额外演示 apiKeyQuotaUsages 查询
-# export AXONHUB_QUERY_KEY_ID="gid://axonhub/APIKey/123"   # 按 GUID 查
-# export AXONHUB_QUERY_KEY="ah-xxxxxxxx"                    # 按明文 Key 查
-# export AXONHUB_QUERY_KEY_NAME="my-llm-key"                # 按名称查（项目内唯一）
+# export LLM_PROXY_QUERY_KEY_ID="gid://axonhub/APIKey/123"   # 按 GUID 查
+# export LLM_PROXY_QUERY_KEY="ah-xxxxxxxx"                    # 按明文 Key 查
+# export LLM_PROXY_QUERY_KEY_NAME="my-llm-key"                # 按名称查（项目内唯一）
 
 go run main.go
 ```
@@ -92,7 +92,7 @@ go run main.go
 - **GUID 类型校验**: 所有 `ID` 参数必须是对应类型的 GUID（如 `gid://axonhub/APIKey/123`、`gid://axonhub/APIKeyProfileTemplate/45`）；类型不匹配会被直接拒绝。
 - **Profile 命名冲突**: `loadApiKeyProfileTemplate` 在追加时若发现同名 profile，会自动加 `(1)` / `(2)` 后缀，不会覆盖。
 - **整体替换语义**: `updateAPIKeyProfiles` 是**整体替换**——传入的 profiles 列表会完全覆盖原有的，且 `activeProfile` 必须存在于列表中。
-- **Schema 同步**: 如果 AxonHub 后端的 `openapi.graphql` 发生了变化，你需要同步更新 `graphql/openapi.graphql` 并重新生成代码。
+- **Schema 同步**: 如果 llm-proxy 后端的 `openapi.graphql` 发生了变化，你需要同步更新 `graphql/openapi.graphql` 并重新生成代码。
 - **端点地址**: 默认端点为 `http://localhost:8090/openapi/v1/graphql`。
 
 ## 常见问题

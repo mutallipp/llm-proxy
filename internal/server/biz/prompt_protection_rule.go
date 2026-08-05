@@ -58,7 +58,7 @@ func NewPromptProtectionRuleService(params PromptProtectionRuleServiceParams) *P
 		Mode:  watcherMode,
 		Redis: params.CacheConfig.Redis,
 	}, watcher.WatcherFromConfigOptions{
-		RedisChannel: "axonhub:cache:prompt_protection_rules",
+		RedisChannel: "llm-proxy:cache:prompt_protection_rules",
 		Buffer:       32,
 	})
 	if err != nil {
@@ -67,7 +67,7 @@ func NewPromptProtectionRuleService(params PromptProtectionRuleServiceParams) *P
 
 	svc.promptProtectionRuleNotifier = notifier
 	svc.enabledRulesCache = live.NewCache(live.Options[[]*ent.PromptProtectionRule]{
-		Name:            "axonhub:enabled_prompt_protection_rules",
+		Name:            "llm-proxy:enabled_prompt_protection_rules",
 		InitialValue:    []*ent.PromptProtectionRule{},
 		RefreshInterval: 30 * time.Second,
 		DebounceDelay:   500 * time.Millisecond,

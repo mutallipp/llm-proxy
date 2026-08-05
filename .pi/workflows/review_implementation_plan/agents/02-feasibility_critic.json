@@ -1,0 +1,61 @@
+{
+  "findings": [
+    {
+      "title": "R12/auto_sync 触发点在 U1-U10 中无归属文件，AE7 无法按单元落地",
+      "severity": "high",
+      "category": "遗漏集成点",
+      "description": "Technical Design 触发点装配明确列出『channel_model_sync.go 同步成功处（R12）』，AE 追溯 AE7→U3/U4，但 U3 的 Modify 清单只有 biz/channel.go（SaveChannelEndpoints 后 R1b、DeleteChannel R13），U4 只创建 protocol_pool_derivation.go（对账语义），没有任何 Unit 声明修改 channel_model_sync.go。auto_sync 增删模型 → 派生/撤销对账的接线代码无主，按单元清单实施会整体漏掉 R12/KTD12。",
+      "evidence": "docs/plans/...plan.md U3（Modify 仅 biz/channel.go）、U4（无 channel_model_sync.go）、Technical Design『触发点装配』、Verification Contract『AE7→U3/U4』；实际触发点 internal/server/biz/channel_model_sync.go:70 syncChannelModelsForChannel，addedModels/removedModels 差异已存在于 :132-133，是现成可接线的钩子，但不在任何 Unit 文件清单内。",
+      "suggested_fix": "在 U3（或 U4）Modify 清单中显式加入 internal/server/biz/channel_model_sync.go：syncChannelModelsForChannel 保存 mergedModels 成功后，以 addedModels 继承渠道当前协议声明触发派生、removedModels 触发撤销对账（R12/KTD12），并同步更新 U3 测试清单覆盖 AE7。"
+    },
+    {
+      "title": "protocolCapabilities 字段会与 entgql 自动生成的 ent.graphql 冲突（U6 描述按字面执行会使 make generate 失败）",
+      "severity": "high",
+      "category": "生成链/Schema 归属错误",
+      "description": "KTD18/U6 写『Channel 增加 protocolCapabilities 字段，schema 写在 llm-proxy.graphql』。但 entc.go 启用了 entgql.WithSchemaGenerator()+WithSchemaPath(\"ent.graphql\")，ent schema 中无注解的 JSON 字段会被自动写进生成的 ent.graphql——先例即 endpoints/settings：U2 加 field.JSON(\"protocol_capabilities\") 后跑 make generate（U2 自己的步骤），ent.graphql 的 type Channel 就会自动多出 protocolCapabilities 字段。此时若再按 U6 在 llm-proxy.graphql 的 extend type Channel 里声明同名字段，gqlgen 会报重复字段定义，生成失败。计划没有给出两条出路中的任何一条（entgql.Skip 注解 + forceResolver 手工扩展，或完全依赖生成字段）。",
+      "evidence": "internal/ent/entc.go:16-25（WithSchemaGenerator/WithSchemaPath(\"ent.graphql\")）；internal/server/gql/ent.graphql:438 `endpoints: [ChannelEndpoint!]` 由无 entgql 注解的 JSON 字段自动生成（internal/ent/schema/channel.go:153-159 无注解）；internal/server/gql/llm-proxy.graphql:664 已有 `extend type Channel`（defaultEndpoints 等 forceResolver 字段先例）；计划 KTD18/U6 要求字段写入 llm-proxy.graphql。",
+      "suggested_fix": "二选一并写进 U2/U6：方案 A（推荐，与 defaultEndpoints 先例一致）——U2 字段加 .Annotations(entgql.Skip(...)) 使其不进 ent.graphql，U6 在 llm-proxy.graphql extend type Channel 用 @goField(forceResolver: true) 声明 protocolCapabilities 并在 llm-proxy.resolvers.go 实现；方案 B——不加注解，U6 不在 llm-proxy.graphql 重复声明该字段，只补类型定义。"
+    },
+    {
+      "title": "U6 遗漏新 types 的 gqlgen.yml models 映射（ChannelProtocolCapabilities/ChannelModelCapability）",
+      "severity": "medium",
+      "category": "遗漏集成点",
+      "description": "JSON 结构体对应的 GraphQL 类型在本仓库的既有模式是：类型手写 llm-proxy.graphql + gqlgen.yml models 映射到 objects.* 结构体。U6 只写了改 llm-proxy.graphql 和 resolvers，未提 gqlgen.yml。若不给 ChannelProtocolCapabilities/ChannelModelCapability 加 models 映射，gqlgen 会在 models_gen.go 生成平行结构体，与 ent.Channel.ProtocolCapabilities 的 objects.ChannelProtocolCapabilities 类型不匹配，resolver 绑定报错或需要额外 field resolver。SaveChannelCapabilitiesPayload 等新 payload 类型可不映射（生成即可，有 FetchModelsPayload 等先例），但 objects 直绑类型必须映射。",
+      "evidence": "internal/server/gql/gqlgen.yml:124-141（ChannelEndpoint/ChannelPolicies/ChannelSettings → internal/objects.* 映射先例）；internal/server/gql/llm-proxy.graphql:98（ChannelEndpoint 类型手写定义）；计划 U6 Modify 清单无 gqlgen.yml。",
+      "suggested_fix": "U6 Modify 清单加入 internal/server/gql/gqlgen.yml：ChannelProtocolCapabilities(+Input)/ChannelModelCapability(+Input) 映射到 internal/objects.*，与 ChannelEndpoint 模式一致。"
+    },
+    {
+      "title": "U5 启用校验覆盖面与描述失准：BulkCreateModels 无校验绕过闸门；纯函数签名无法承载 R6a；行号引用错误",
+      "severity": "medium",
+      "category": "单元描述与代码不符/覆盖缺口",
+      "description": "三个叠加问题：1) U5 写『接入 validateModelSettings/UpdateModel:444/CreateModel:61』，但现有校验调用点实际在 model.go:350（CreateModel）与 :447（UpdateModel），第 61 行是 validateModelSettings 函数体内（ValidateProtocolPools 调用），不是 CreateModel；2) BulkCreateModels（:383，对应 bulkCreateModels mutation）完全不调用任何 settings 校验，而 KTD19 声称『任何新增即启用的关联都过校验、服务端拦截是唯一可靠强制点』——批量创建路径会绕过启用闸门；3) 现有 validateModelSettings(settings) 是无 ctx 纯函数（:57），R6a 需要查渠道/能力/端点/模型条目，且『禁用→启用』判定需先加载模型现有 settings 做 diff，而 UpdateModel 当前在校验前并不读取现存模型——U5 按字面描述无法直接落地，需要签名改造与流程补载。ModelService 已持有 channelService/systemService（model.go:48-49），依赖本身可得，此点无障碍。",
+      "evidence": "internal/server/biz/model.go:57（纯函数签名）、:350 与 :447（真实校验调用点）、:383-436（BulkCreateModels 无 validateModelSettings 调用）、:45-50（ModelService 依赖）；计划 U5 文本与 KTD19。",
+      "suggested_fix": "U5 修正为：在 CreateModel/UpdateModel/BulkCreateModels 三个 settings 写入路径统一接入带 ctx 的启用校验方法（svc 层方法而非纯函数）；UpdateModel 校验前加载现存模型 settings 做 disabled→enabled diff；修正行号引用（:350/:447）。"
+    },
+    {
+      "title": "U7 文件清单遗漏两个必需接线文件：channels-context.tsx（对话框 union 类型）与 channels-dialogs.tsx（对话框挂载）",
+      "severity": "medium",
+      "category": "遗漏集成点",
+      "description": "渠道行菜单通过 useChannels().setOpen('endpoints') 打开对话框：open 状态是 ChannelsDialogType 联合类型，新入口需新增 'capability' 成员（channels-context.tsx:5）；对话框组件统一挂载在 channels-dialogs.tsx（ChannelsEndpointsDialog 先例 :287）。U7 的 Modify 清单只有 channels-columns.tsx、data/channels.ts、data/schema.ts、locales，缺这两个文件，TypeScript 编译会立即报错，属于可快速自愈但清单不完整。另注意 protocolPoolFormats 定义在 models feature（frontend/src/features/models/data/protocol-pools.ts:4），channels 侧复用是跨 feature import，方向可行但值得注明。",
+      "evidence": "frontend/src/features/channels/context/channels-context.tsx:5（type ChannelsDialogType）、:57（useDialogState<ChannelsDialogType>）；frontend/src/features/channels/components/channels-columns.tsx:87/:212（setOpen('endpoints')）；channels-dialogs.tsx:287（ChannelsEndpointsDialog 挂载）；计划 U7 Modify 清单。",
+      "suggested_fix": "U7 Modify 清单补入 channels-context.tsx（ChannelsDialogType 加成员）与 channels-dialogs.tsx（挂载 ChannelsCapabilityDialog，参照 endpoints 写法）。"
+    },
+    {
+      "title": "Sequencing 声称 U3/U4 可并行，但 U3 的 SaveProtocolCapabilities 显式依赖 U4 的 reconcile/apply 契约",
+      "severity": "low",
+      "category": "依赖排序",
+      "description": "U3 描述包含『SaveProtocolCapabilities 含…触发 reconcile/R11 统计』，即 U3 必须调用 U4 产出的 reconcileAssociations+apply；Sequencing 写『U3/U4（可并行）』只在 U4 的函数签名契约先行冻结时成立，计划未声明该前置。其余链路 U1→U2→…→U10 无环、无遗漏依赖；U4 所需 systemSettings 经 ChannelService.SystemService（channel.go:153）→SystemService.ModelSettingsOrDefault 可得，事务有 biz/abstract.go:40 db.Tx(ctx) 先例，均无障碍。",
+      "evidence": "docs/plans/...plan.md Sequencing 与 U3/U4 文本；internal/server/biz/channel.go:153（SystemService 依赖）；internal/server/biz/abstract.go:40（Tx 先例）；internal/server/biz/model_settings_inheritance.go:133（EffectiveModelProtocolPools 签名）。",
+      "suggested_fix": "Sequencing 注明 U3/U4 并行的前提是 U4 的 reconcile/apply 函数签名先定稿（KTD16 已给出语义轮廓，补签名级契约即可），或将 U3 标为依赖 U4。"
+    },
+    {
+      "title": "计划内代码引用小误差（不影响可行性结论）",
+      "severity": "info",
+      "category": "引用准确性",
+      "description": "1) Technical Design 写『db/ent.go schema.Migrate』，实际是 internal/server/db/ent.go:66-77 的 client.Schema.Create（migrate.WithDropColumn(true) 已开），启动自动迁移对新 JSON 列结论成立——新增列自动完成、无需 datamigrate/schemahook 额外步骤，U2 可行；2) enttest 包存在（internal/ent/enttest），U2 验证方式可行；3) model_fetcher.go 的 FetchModels 在 :237 附近，计划引用基本准确；4) objects/model.go 的 SupportedInboundAPIFormats（:47-50）、ModelAssociation（:95 起）引用准确，U1 可行。",
+      "evidence": "internal/server/db/ent.go:66-83（Schema.Create+datamigrate.Run）；internal/ent/enttest/ent.go；internal/server/biz/model_fetcher.go:237；internal/objects/model.go:47-50/:95-106。",
+      "suggested_fix": "把『db/ent.go schema.Migrate』更正为 internal/server/db/ent.go 的 client.Schema.Create 自动迁移表述，避免实施者找错文件。"
+    }
+  ],
+  "summary": "计划实施层整体可行（U2 迁移链、U3 钩子位置、U4 事务/settings 来源、U5 服务依赖、U6 resolver 归属、前端 hook/i18n/行菜单结构均经核实成立），但存在两处 high：R12/auto_sync 触发点（channel_model_sync.go）无任何 Unit 归属导致 AE7 无法落地；protocolCapabilities 字段会与 entgql 自动生成的 ent.graphql 冲突，按 U6 字面执行 make generate 将失败——另有 U5 校验漏掉 bulkCreateModels 且行号/签名描述失准、U6 漏 gqlgen.yml 映射、U7 漏 channels-context/channels-dialogs 接线文件等 medium 问题，建议修订后再实施。"
+}

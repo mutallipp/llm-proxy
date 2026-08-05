@@ -1,6 +1,6 @@
 # Orchestrator Package
 
-The orchestrator package is the core component of AxonHub's bidirectional data transformation proxy. It implements the request pipeline that routes client requests through inbound transformers, unified request routing, outbound transformers, and provider communication.
+The orchestrator package is the core component of llm-proxy's bidirectional data transformation proxy. It implements the request pipeline that routes client requests through inbound transformers, unified request routing, outbound transformers, and provider communication.
 
 ## Architecture Overview
 

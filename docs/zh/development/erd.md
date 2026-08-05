@@ -1,8 +1,8 @@
-# AxonHub 实体关系图 (ERD)
+# llm-proxy 实体关系图 (ERD)
 
 ## 概述
 
-AxonHub 采用多层级的权限管理架构，支持 Global（全局）和 Project（项目）两个层级。系统通过 RBAC（基于角色的访问控制）模型管理用户权限，实现细粒度的资源访问控制。
+llm-proxy 采用多层级的权限管理架构，支持 Global（全局）和 Project（项目）两个层级。系统通过 RBAC（基于角色的访问控制）模型管理用户权限，实现细粒度的资源访问控制。
 
 ---
 
@@ -24,7 +24,7 @@ AxonHub 采用多层级的权限管理架构，支持 Global（全局）和 Proj
 
 ### 1. User（用户）
 
-**描述**：系统用户实体，代表使用 AxonHub 的个人或服务账号。
+**描述**：系统用户实体，代表使用 llm-proxy 的个人或服务账号。
 
 **层级**：Global
 
@@ -513,13 +513,13 @@ AxonHub 采用多层级的权限管理架构，支持 Global（全局）和 Proj
 
 ```mermaid
 erDiagram
-    AxonHub ||--o{ User : "manages"
-    AxonHub ||--o{ Project : "manages"
-    AxonHub ||--o{ Model : "defines"
-    AxonHub ||--o{ Channel : "manages"
-    AxonHub ||--o{ System : "configures"
-    AxonHub ||--o{ Role : "defines"
-    AxonHub ||--o{ DataStorage : "configures"
+    llm-proxy ||--o{ User : "manages"
+    llm-proxy ||--o{ Project : "manages"
+    llm-proxy ||--o{ Model : "defines"
+    llm-proxy ||--o{ Channel : "manages"
+    llm-proxy ||--o{ System : "configures"
+    llm-proxy ||--o{ Role : "defines"
+    llm-proxy ||--o{ DataStorage : "configures"
 
     User ||--o{ ProjectUser : "belongs to"
     Project ||--o{ ProjectUser : "has"
@@ -561,7 +561,7 @@ erDiagram
 
     Role ||--o{ RoleScope : "contains"
 
-    AxonHub {    }
+    llm-proxy {    }
 
     User {
         uuid id PK

@@ -85,7 +85,7 @@ type GitHubRelease struct {
 // This accounts for build and upload time.
 const releaseCooldownDuration = 30 * time.Minute
 
-// FetchLatestGitHubRelease fetches the latest stable release tag from GitHub for the axonhub service.
+// FetchLatestGitHubRelease fetches the latest stable release tag from GitHub for the llm-proxy service.
 // It skips beta, rc, and prerelease versions, and waits for a cooldown period after release.
 // In monorepo mode, it only considers tags matching "vX.Y.Z" (no service prefix).
 func FetchLatestGitHubRelease(ctx context.Context) (string, error) {
@@ -108,7 +108,7 @@ func FetchLatestGitHubRelease(ctx context.Context) (string, error) {
 	}
 
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
-	req.Header.Set("User-Agent", "AxonHub-Version-Checker")
+	req.Header.Set("User-Agent", "llm-proxy-Version-Checker")
 
 	client := &http.Client{Timeout: 10 * time.Second}
 
@@ -138,8 +138,8 @@ func FetchLatestGitHubRelease(ctx context.Context) (string, error) {
 			continue
 		}
 
-		// Only consider axonhub tags (vX.Y.Z format, skip service-prefixed tags like "axonclaw/v1.0.0")
-		if !isAxonHubTag(release.TagName) {
+		// Only consider llm-proxy tags (vX.Y.Z format, skip service-prefixed tags like "axonclaw/v1.0.0")
+		if !isLLMProxyTag(release.TagName) {
 			continue
 		}
 
@@ -158,10 +158,10 @@ func FetchLatestGitHubRelease(ctx context.Context) (string, error) {
 	return "", fmt.Errorf("no stable release found")
 }
 
-// isAxonHubTag returns true if the tag is an axonhub version tag (vX.Y.Z format).
-// Tags with a service prefix (e.g., "axonclaw/v1.0.0") are not axonhub tags.
-func isAxonHubTag(tag string) bool {
-	// axonhub tags start with "v", other services use "service/vX.Y.Z" format
+// isLLMProxyTag returns true if the tag is an llm-proxy version tag (vX.Y.Z format).
+// Tags with a service prefix (e.g., "axonclaw/v1.0.0") are not llm-proxy tags.
+func isLLMProxyTag(tag string) bool {
+	// llm-proxy tags start with "v", other services use "service/vX.Y.Z" format
 	return strings.HasPrefix(tag, "v")
 }
 

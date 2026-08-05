@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-REM AxonHub Windows start wrapper (.bat)
+REM llm-proxy Windows start wrapper (.bat)
 
 where powershell >NUL 2>NUL
 if %ERRORLEVEL% NEQ 0 (

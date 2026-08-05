@@ -149,19 +149,19 @@ func TestIsNewerVersion(t *testing.T) {
 	}
 }
 
-func TestIsAxonHubTag(t *testing.T) {
+func TestIsLLMProxyTag(t *testing.T) {
 	tests := []struct {
 		name string
 		tag  string
 		want bool
 	}{
 		{
-			name: "standard axonhub tag",
+			name: "standard llm-proxy tag",
 			tag:  "v1.0.0",
 			want: true,
 		},
 		{
-			name: "axonhub prerelease tag",
+			name: "llm-proxy prerelease tag",
 			tag:  "v1.0.0-beta",
 			want: true,
 		},
@@ -189,8 +189,8 @@ func TestIsAxonHubTag(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := isAxonHubTag(tt.tag)
-			require.Equal(t, tt.want, got, "isAxonHubTag(%q) = %v, want %v", tt.tag, got, tt.want)
+			got := isLLMProxyTag(tt.tag)
+			require.Equal(t, tt.want, got, "isLLMProxyTag(%q) = %v, want %v", tt.tag, got, tt.want)
 		})
 	}
 }

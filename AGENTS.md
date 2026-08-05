@@ -9,6 +9,7 @@ This file provides guidance to AI coding assistants when working with code in th
 1. Do NOT run lint or build commands unless explicitly requested by the user.
 2. Do NOT restart the development server — it's already started and managed.
 3. All summary files should be stored in `.agent/summary` directory if available.
+4. **dev / prod 启停、构建、部署、日志统一走 Makefile target**。禁止在 `scripts/` 下新增 `start.sh` / `stop.sh` / `dev-*.sh` 之类的包装脚本（这类脚本与 Makefile 二选一，不要两边都有）。需要直调 docker compose 时也走 `make` 包装的 target，不要裸调 `docker compose`。**所有 `start` / `dev-up` 都先停掉同名容器再启新容器**（幂等部署），不要假设之前未启动。
 
 ### 开发约定
 
@@ -24,14 +25,26 @@ This file provides guidance to AI coding assistants when working with code in th
 - Backend API: port 8090, Frontend dev server: port 5173 (proxies to backend).
 - Configuration: `conf/conf.go` (YAML + env var), SQLite by default.
 
+### 环境变量命名约定
+
+- 当前生效前缀：`LLM_PROXY_`（2026-08 起硬切换，旧 `AXONHUB_` 已彻底移除，无向后兼容）
+- 常见示例：`LLM_PROXY_DB_DSN`、`LLM_PROXY_DB_DIALECT`、`LLM_PROXY_SERVER_PORT`、`LLM_PROXY_SERVER_HOST`、`LLM_PROXY_SERVER_API_AUTH_ALLOW_NO_AUTH`、`LLM_PROXY_LOG_LEVEL`、`LLM_PROXY_HTTP_PROXY`
+- 配置优先级仍按现有规则：环境变量 > 配置文件 > 默认值
+- 详细字段定义见 `conf/conf.go` 和 `config.example.yml`
+
 ## Project Overview
 
-AxonHub is an all-in-one AI development platform that serves as a unified API gateway for multiple AI providers. It provides OpenAI and Anthropic-compatible API interfaces with automatic request transformation, enabling seamless communication between clients and various AI providers through a sophisticated bidirectional data transformation pipeline.
+llm-proxy is an all-in-one AI development platform that serves as a unified API gateway for multiple AI providers. It provides OpenAI and Anthropic-compatible API interfaces with automatic request transformation, enabling seamless communication between clients and various AI providers through a sophisticated bidirectional data transformation pipeline.
 
 ### 项目定位
 
-llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协议转换、渠道路由、模型组和 Adapter 入口。
-内部 Go module、包路径和 `AXONHUB_*` 环境变量暂时保持兼容，不要因为产品改名直接批量重命名内部标识。
+llm-proxy 是基于原 AxonHub 核心能力维护的统一 AI 网关（前身名为 AxonHub，2026-08 完成品牌切换）。提供多协议转换、渠道路由、模型组和 Adapter 入口。
+
+### 命名一致性
+
+- **环境变量 / 数据库 / 部署配置 / 产品名**：已统一为 `llm-proxy` / `LLM_PROXY_*`
+- **Go module 路径 / 包导入路径**：保持 `github.com/mutallipp/llm-proxy`（与 GitHub 仓库名一致；如需整体改为 `llmproxy` 等无连字符名以避免 gqlgen 生成函数名包含连字符，需同步重新生成 gqlgen 代码，本次未做）
+- **GraphQL Relay GID 命名空间**：保持 `gid://axonhub/<Type>/<id>` 格式（数据库内已存大量该格式的 ID，切换需数据迁移，本次未做）
 
 ## Technology Stack
 
@@ -40,7 +53,7 @@ llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协
 
 ## Backend Structure
 
-- `cmd/axonhub/main.go` — Application entry point
+- `cmd/llm-proxy/main.go` — Application entry point
 - `internal/server/` — HTTP server and route handling with Gin
 - `internal/server/biz/` — Core business logic and services
 - `internal/server/api/` — REST and GraphQL API handlers
@@ -88,6 +101,33 @@ llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协
 - [Adapter/Model 绑定规则](.agent/rules/adapter-model-binding.md)
 - [定向测试、curl、浏览器验收与 E2E 规则](.agent/rules/e2e.md)
 
+## 本地开发与部署脚本
+
+启动命令统一在 `Makefile` 里（inline docker compose，无需额外脚本文件）：
+
+| 命令 | 说明 |
+|---|---|
+| `make start` | **幂等部署**：先停掉已有 `llm-proxy` 容器，再 build + up 新容器（端口 8090） |
+| `make stop` | 停止 prod 容器（保留镜像） |
+| `make restart` | 重新创建 prod 容器 |
+| `make logs` | tail prod 容器日志 |
+| `make status` | 查看 prod / dev 容器运行状态 |
+| `make dev-up` | **幂等部署**：先停掉已有 `llm-proxy-dev` 容器，再 build + up 新容器（端口 18090；需本机 `.env.dev.local` 提供 DB DSN） |
+| `make dev-down` | 停止并删除 dev 容器 |
+| `make dev-logs` | tail dev 容器日志 |
+| `make dev-restart` | 重新创建 dev 容器 |
+| `make dev-clean` | 停止 dev + 删除 dev 镜像 |
+| `make dev-db-sync-schema` | 将 prod 的表/索引/约束复制到**空** dev DB；不复制任何数据或凭据 |
+| `make dev-db-sync-full` | **破坏性操作**：停掉 dev、重建 dev DB，并复制完整 prod 数据（含 API Key、OAuth token、Channel Cookie） |
+| `make dev-frontend` | 本地起 Vite dev（端口 15173，代理到 18090） |
+| `make dev` | 一键：起 dev 后端 + 前台跑 Vite（Ctrl+C 退出前端后需 `make dev-down` 停后端） |
+
+dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立库），dev 容器名为 `llm-proxy-dev`，互不冲突。`.env.dev` 只放可提交的默认配置；本机创建被忽略的 `.env.dev.local` 并在其中设置 `LLM_PROXY_DB_DSN` 后才能运行 `make dev-up`。需要按线上结构初始化空 dev 库时，执行 `make dev-db-sync-schema`；该 target 非破坏性地拒绝非空 dev 库，且只同步 schema，不会复制 API Key、OAuth token 或 Channel Cookie。需要完整复刻线上数据时，执行 `make dev-db-sync-full`；它会停止 dev、销毁并重建 dev DB，再导入 prod 全量快照，**会复制敏感凭据，且覆盖现有 dev 数据**。
+
+## 已知问题（不阻塞部署）
+
+- `internal/server/biz/webhook_notifier_test.go:93` — `TestWebhookNotifier_NotifyChannelAutoDisabled` 偶发失败，模板解析返回 `template: webhook:1: unexpected EOF`，与本次品牌改名无关（改名前已存在）。待后续修 webhook 渲染逻辑时同步处理。
+
 ## Rules Index
 
 All detailed rules are in `.agent/rules/`:
@@ -109,7 +149,7 @@ All detailed rules are in `.agent/rules/`:
 ## Model-centric Adapter Gateway（2026-08-02）
 
 - Adapter 只绑定逻辑 Model（`source_model_id -> model_id`）；Model 的 `settings.protocolPools` 按入站协议族维护 Channel 和物理模型关联、优先级和启用状态。
-- 协议池 key（`openai`/`anthropic`）与 Channel endpoint 的完整 `apiFormat` 分开维护；禁止跨协议兜底。详细边界见 [adapter-model-binding.md](.agent/rules/adapter-model-binding.md)。
+- 协议池 key（`openai` Chat Completions / `openai_responses` Responses / `anthropic`）与 Channel endpoint 的完整 `apiFormat` 分开维护；禁止跨协议兜底。详细边界见 [adapter-model-binding.md](.agent/rules/adapter-model-binding.md)。
 - GraphQL Relay GID 在 Select 中保留原值，写入数值字段前使用 `extractNumberID`；配置保存后必须刷新 runtime snapshot。
 - 出现 `no protocol pool`、`model not bound` 或 `no usable target` 时，按架构文档和 E2E 规则逐层排查。
 

@@ -34,7 +34,7 @@ const (
 var maxImageFileSize = initMaxImageFileSize()
 
 func initMaxImageFileSize() int {
-	if v := os.Getenv("AXONHUB_MAX_IMAGE_FILE_SIZE"); v != "" {
+	if v := os.Getenv("LLM_PROXY_MAX_IMAGE_FILE_SIZE"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil && n > 0 {
 			return n
 		}

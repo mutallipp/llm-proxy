@@ -2,7 +2,7 @@ package biz
 
 const (
 	defaultChannelTestSystemPrompt = "You are a helpful assistant."
-	defaultChannelTestUserPrompt   = "Hello world, I'm AxonHub.\nPlease tell me who you are?"
+	defaultChannelTestUserPrompt   = "Hello world, I'm llm-proxy.\nPlease tell me who you are?"
 	maxChannelTestPromptRunes      = 4096
 )
 

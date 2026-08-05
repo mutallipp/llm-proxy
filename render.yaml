@@ -1,22 +1,22 @@
 services:
   - type: web
-    name: axonhub
+    name: llm-proxy
     runtime: docker
     plan: free
     envVars:
-      - key: AXONHUB_SERVER_PORT
+      - key: LLM_PROXY_SERVER_PORT
         value: 8090
-      - key: AXONHUB_DB_DIALECT
+      - key: LLM_PROXY_DB_DIALECT
         value: postgres
-      - key: AXONHUB_DB_DSN
+      - key: LLM_PROXY_DB_DSN
         fromDatabase:
-          name: axonhub-db
+          name: llm-proxy-db
           property: connectionString
-      - key: AXONHUB_LOG_LEVEL
+      - key: LLM_PROXY_LOG_LEVEL
         value: info
     healthCheckPath: /health
     autoDeploy: true
 
 databases:
-  - name: axonhub-db
+  - name: llm-proxy-db
     plan: free

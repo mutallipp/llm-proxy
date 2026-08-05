@@ -34,7 +34,7 @@ interface AnimationDiagnostics {
 
 declare global {
   interface Window {
-    __AXONHUB_SIGNIN_ANIMATION__?: AnimationDiagnostics;
+    __LLM_PROXY_SIGNIN_ANIMATION__?: AnimationDiagnostics;
   }
 }
 
@@ -378,11 +378,11 @@ const AnimatedLineBackground: FC = () => {
 
   useEffect(() => {
     if (!shouldExposeAnimationDiagnostics()) {
-      delete window.__AXONHUB_SIGNIN_ANIMATION__;
+      delete window.__LLM_PROXY_SIGNIN_ANIMATION__;
       return;
     }
 
-    window.__AXONHUB_SIGNIN_ANIMATION__ = {
+    window.__LLM_PROXY_SIGNIN_ANIMATION__ = {
       reset: resetDiagnosticsState,
       snapshot: snapshotDiagnostics,
       simulate: simulateDiagnostics,
@@ -390,7 +390,7 @@ const AnimatedLineBackground: FC = () => {
     };
 
     return () => {
-      delete window.__AXONHUB_SIGNIN_ANIMATION__;
+      delete window.__LLM_PROXY_SIGNIN_ANIMATION__;
     };
   }, [resetDiagnosticsState, simulateDiagnostics, simulateLargeGapDiagnostics, snapshotDiagnostics]);
 

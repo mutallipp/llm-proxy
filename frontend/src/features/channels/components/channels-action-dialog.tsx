@@ -80,7 +80,7 @@ const duplicateNameRegex = /^(.*) \((\d+)\)$/;
 type ApiFormatOption = ApiFormat | 'openai/responses:websocket';
 type ResponsesTransport = 'http' | 'websocket';
 
-const OPENAI_RESPONSES_WEBSOCKET: ApiFormatOption = 'openai/responses:websocket';
+const OPENAI_RESPONSES_WEBSOCKET = 'openai/responses:websocket' as const;
 // A single trailing # suppresses automatic version suffix appending while still
 // allowing the Responses transformer to append /responses. Do not replace these
 // defaults with ## unless the upstream URL should be used fully raw.
@@ -297,29 +297,39 @@ function getNextDuplicateName(name: string, existingNames: Set<string>) {
 // Providers that are always OAuth (no third-party API key mode)
 const alwaysOAuthProviderKeys = ['antigravity', 'github_copilot'];
 
-function isOfficialCodexChannel(channel: { credentials?: { apiKey?: string } }): boolean {
+interface ChannelCredentialState {
+  credentials?: Channel['credentials'];
+}
+
+interface ClaudeCodeChannelState extends ChannelCredentialState {
+  baseURL: Channel['baseURL'];
+}
+
+function isOfficialCodexChannel(channel: ChannelCredentialState): boolean {
   try {
     const apiKey = channel.credentials?.apiKey || '';
     const json = JSON.parse(apiKey);
     return !!((json.access_token && json.refresh_token) || (json.tokens?.access_token && json.tokens?.refresh_token));
   } catch {
+    // 凭据不是 OAuth JSON 时按第三方渠道处理。
     return false;
   }
 }
 
-function isOfficialClaudeCodeChannel(channel: { credentials?: { apiKey?: string }; baseURL: string }): boolean {
+function isOfficialClaudeCodeChannel(channel: ClaudeCodeChannelState): boolean {
   const apiKey = channel.credentials?.apiKey || '';
   const defaultURL = getDefaultBaseURL('claudecode');
   return apiKey.includes('sk-ant-oat') || apiKey.includes('sk-ant-api03') || channel.baseURL === defaultURL;
 }
 
-function extractCodexAuthJSONText(apiKey: string | undefined): string | undefined {
-  if (!apiKey) return apiKey;
+function extractCodexAuthJSONText(apiKey: string | null | undefined): string | undefined {
+  if (!apiKey) return undefined;
 
   try {
     const parsed = JSON.parse(apiKey);
     return parsed?.tokens?.access_token ? apiKey : undefined;
   } catch {
+    // 非 Codex OAuth JSON 不回填到 OAuth 表单。
     return undefined;
   }
 }

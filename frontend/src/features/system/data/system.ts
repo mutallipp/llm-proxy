@@ -1273,7 +1273,7 @@ export function useBackup() {
         const a = document.createElement('a');
         a.href = url;
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        a.download = `axonhub-backup-${timestamp}.json`;
+        a.download = `llm-proxy-backup-${timestamp}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

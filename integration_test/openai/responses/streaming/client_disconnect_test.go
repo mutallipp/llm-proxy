@@ -106,8 +106,8 @@ func TestResponsesStreamingClientDisconnectAfterDone(t *testing.T) {
 
 	// The key assertion: even though we disconnected immediately after receiving [DONE],
 	// the request execution status should be "completed", not "canceled"
-	// Note: This requires checking the AxonHub database or logs to verify the status
-	t.Log("Test completed. Check AxonHub request execution status:")
+	// Note: This requires checking the llm-proxy database or logs to verify the status
+	t.Log("Test completed. Check llm-proxy request execution status:")
 	t.Log("  - Status should be 'completed' (not 'canceled')")
 	t.Log("  - This verifies the fix for GitHub Issue #827")
 }
@@ -172,7 +172,7 @@ func TestResponsesStreamingClientDisconnectMidStream(t *testing.T) {
 
 	// The key assertion: since we disconnected before [DONE], the request
 	// execution status should be "canceled"
-	t.Log("Test completed. Check AxonHub request execution status:")
+	t.Log("Test completed. Check llm-proxy request execution status:")
 	t.Log("  - Status should be 'canceled' (because we disconnected before [DONE])")
 }
 
@@ -183,7 +183,7 @@ func TestResponsesStreamingClientDisconnectMidStream(t *testing.T) {
 // that stops reading immediately after the final text payload is available,
 // before the explicit response.completed event is observed locally.
 //
-// This is closer to a real proxy/client chain such as Claude Code -> AxonHub -> Codex,
+// This is closer to a real proxy/client chain such as Claude Code -> llm-proxy -> Codex,
 // where downstream teardown can happen very close to completion and the transport may be
 // canceled before the terminal event is processed in the expected order.
 func TestResponsesStreamingClientDisconnectAfterOutputTextDone(t *testing.T) {
@@ -256,7 +256,7 @@ func TestResponsesStreamingClientDisconnectAfterOutputTextDone(t *testing.T) {
 		t.Log("response.completed was observed before cancellation in this run; near-completion timing may vary by provider")
 	}
 
-	t.Log("Near-completion teardown test finished. Verify AxonHub logs / request execution status:")
+	t.Log("Near-completion teardown test finished. Verify llm-proxy logs / request execution status:")
 	t.Log("  - final decision should still resolve to completed when aggregation proves completion")
 	t.Log("  - this is the closest integration-level regression to Claude Code style early stop")
 }
@@ -323,7 +323,7 @@ func TestResponsesStreamingRapidDisconnects(t *testing.T) {
 	wg.Wait()
 
 	t.Log("Rapid disconnect test completed")
-	t.Log("Check AxonHub request execution statuses:")
+	t.Log("Check llm-proxy request execution statuses:")
 	t.Log("  - Requests that received [DONE] should be 'completed'")
 	t.Log("  - Requests that disconnected before [DONE] should be 'canceled'")
 }

@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-REM AxonHub Windows installer wrapper (.bat)
+REM llm-proxy Windows installer wrapper (.bat)
 
 where powershell >NUL 2>NUL
 if %ERRORLEVEL% NEQ 0 (

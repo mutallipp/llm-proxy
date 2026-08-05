@@ -2,13 +2,13 @@
 
 ## 概述
 
-AxonHub 使用灵活的配置系统，支持 YAML 配置文件和环境变量。本指南涵盖了所有可用的配置选项以及针对不同部署场景的最佳实践。
+llm-proxy 使用灵活的配置系统，支持 YAML 配置文件和环境变量。本指南涵盖了所有可用的配置选项以及针对不同部署场景的最佳实践。
 
 ## 配置方法
 
 ### 配置优先级
 
-AxonHub 使用 Viper 进行配置管理，它可以从多个配置源读取并将其合并为一组配置键值对。Viper 使用以下优先级进行合并（从高到低）：
+llm-proxy 使用 Viper 进行配置管理，它可以从多个配置源读取并将其合并为一组配置键值对。Viper 使用以下优先级进行合并（从高到低）：
 
 1. **环境变量** - 系统环境变量
 2. **配置文件** - YAML 配置文件
@@ -25,11 +25,11 @@ AxonHub 使用 Viper 进行配置管理，它可以从多个配置源读取并�
 # config.yml
 server:
   port: 8090
-  name: "AxonHub"
+  name: "llm-proxy"
 
 db:
   dialect: "sqlite3"
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+  dsn: "file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
 
 log:
   level: "info"
@@ -41,10 +41,10 @@ log:
 所有配置选项都可以通过环境变量设置：
 
 ```bash
-export AXONHUB_SERVER_PORT=8090
-export AXONHUB_DB_DIALECT="sqlite3"
-export AXONHUB_DB_DSN="file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
-export AXONHUB_LOG_LEVEL="info"
+export LLM_PROXY_SERVER_PORT=8090
+export LLM_PROXY_DB_DIALECT="sqlite3"
+export LLM_PROXY_DB_DSN="file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+export LLM_PROXY_LOG_LEVEL="info"
 ```
 
 ### 3. 混合配置
@@ -58,7 +58,7 @@ export AXONHUB_LOG_LEVEL="info"
 ```yaml
 server:
   port: 8090                    # 服务器端口
-  name: "AxonHub"               # 服务器名称
+  name: "llm-proxy"               # 服务器名称
   base_path: ""                 # API 路由的基础路径
   request_timeout: "30s"        # 请求超时时间
   llm_request_timeout: "600s"   # LLM 请求超时时间
@@ -73,25 +73,25 @@ server:
 ```
 
 **环境变量：**
-- `AXONHUB_SERVER_PORT`
-- `AXONHUB_SERVER_NAME`
-- `AXONHUB_SERVER_BASE_PATH`
-- `AXONHUB_SERVER_REQUEST_TIMEOUT`
-- `AXONHUB_SERVER_LLM_REQUEST_TIMEOUT`
-- `AXONHUB_SERVER_TRACE_THREAD_HEADER`
-- `AXONHUB_SERVER_TRACE_TRACE_HEADER`
-- `AXONHUB_SERVER_TRACE_EXTRA_TRACE_HEADERS`
-- `AXONHUB_SERVER_TRACE_CLAUDE_CODE_TRACE_ENABLED`
-- `AXONHUB_SERVER_TRACE_CODEX_TRACE_ENABLED`
-- `AXONHUB_SERVER_DEBUG`
-- `AXONHUB_SERVER_DISABLE_SSL_VERIFY`
+- `LLM_PROXY_SERVER_PORT`
+- `LLM_PROXY_SERVER_NAME`
+- `LLM_PROXY_SERVER_BASE_PATH`
+- `LLM_PROXY_SERVER_REQUEST_TIMEOUT`
+- `LLM_PROXY_SERVER_LLM_REQUEST_TIMEOUT`
+- `LLM_PROXY_SERVER_TRACE_THREAD_HEADER`
+- `LLM_PROXY_SERVER_TRACE_TRACE_HEADER`
+- `LLM_PROXY_SERVER_TRACE_EXTRA_TRACE_HEADERS`
+- `LLM_PROXY_SERVER_TRACE_CLAUDE_CODE_TRACE_ENABLED`
+- `LLM_PROXY_SERVER_TRACE_CODEX_TRACE_ENABLED`
+- `LLM_PROXY_SERVER_DEBUG`
+- `LLM_PROXY_SERVER_DISABLE_SSL_VERIFY`
 
 ### 数据库配置
 
 ```yaml
 db:
   dialect: "sqlite3"            # sqlite3, postgres, mysql, tidb
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"  # 主库连接字符串
+  dsn: "file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"  # 主库连接字符串
   debug: false                  # 启用数据库调试日志
   read_replica:
     read_dsn: ""                # 从库连接字符串（留空则禁用读写分离，所有查询走主库）
@@ -106,16 +106,16 @@ db:
 - **TiDB**: `tidb` (生产环境/云端)
 
 **环境变量：**
-- `AXONHUB_DB_DIALECT`
-- `AXONHUB_DB_DSN`
-- `AXONHUB_DB_DEBUG`
-- `AXONHUB_DB_READ_REPLICA_READ_DSN`
-- `AXONHUB_DB_READ_REPLICA_READ_MAX_OPEN_CONNS`
-- `AXONHUB_DB_READ_REPLICA_READ_MAX_IDLE_CONNS`
+- `LLM_PROXY_DB_DIALECT`
+- `LLM_PROXY_DB_DSN`
+- `LLM_PROXY_DB_DEBUG`
+- `LLM_PROXY_DB_READ_REPLICA_READ_DSN`
+- `LLM_PROXY_DB_READ_REPLICA_READ_MAX_OPEN_CONNS`
+- `LLM_PROXY_DB_READ_REPLICA_READ_MAX_IDLE_CONNS`
 
 #### 读写分离
 
-当配置了 `read_replica.read_dsn` 时，AxonHub 会自动根据 SQL 语句类型分流：
+当配置了 `read_replica.read_dsn` 时，llm-proxy 会自动根据 SQL 语句类型分流：
 
 | 操作类型 | 目标 | 示例 |
 |----------|------|------|
@@ -127,9 +127,9 @@ db:
 ```yaml
 db:
   dialect: "postgres"
-  dsn: "postgres://axonhub:password@master.db:5432/axonhub?sslmode=disable"
+  dsn: "postgres://llm-proxy:password@master.db:5432/llm-proxy?sslmode=disable"
   read_replica:
-    read_dsn: "postgres://axonhub:password@replica.db:5432/axonhub?sslmode=disable"
+    read_dsn: "postgres://llm-proxy:password@replica.db:5432/llm-proxy?sslmode=disable"
 ```
 
 ### 缓存配置
@@ -166,24 +166,24 @@ cache:
 ```
 
 **环境变量：**
-- `AXONHUB_CACHE_MODE`
-- `AXONHUB_CACHE_MEMORY_EXPIRATION`
-- `AXONHUB_CACHE_MEMORY_CLEANUP_INTERVAL`
-- `AXONHUB_CACHE_REDIS_URL`
-- `AXONHUB_CACHE_REDIS_ADDR`
-- `AXONHUB_CACHE_REDIS_ADDRS`
-- `AXONHUB_CACHE_REDIS_USERNAME`
-- `AXONHUB_CACHE_REDIS_PASSWORD`
-- `AXONHUB_CACHE_REDIS_MASTER_NAME`
-- `AXONHUB_CACHE_REDIS_SENTINEL_USERNAME`
-- `AXONHUB_CACHE_REDIS_SENTINEL_PASSWORD`
-- `AXONHUB_CACHE_REDIS_ROUTE_BY_LATENCY`
-- `AXONHUB_CACHE_REDIS_ROUTE_RANDOMLY`
-- `AXONHUB_CACHE_REDIS_IS_CLUSTER_MODE`
-- `AXONHUB_CACHE_REDIS_DB`
-- `AXONHUB_CACHE_REDIS_TLS`
-- `AXONHUB_CACHE_REDIS_TLS_INSECURE_SKIP_VERIFY`
-- `AXONHUB_CACHE_REDIS_EXPIRATION`
+- `LLM_PROXY_CACHE_MODE`
+- `LLM_PROXY_CACHE_MEMORY_EXPIRATION`
+- `LLM_PROXY_CACHE_MEMORY_CLEANUP_INTERVAL`
+- `LLM_PROXY_CACHE_REDIS_URL`
+- `LLM_PROXY_CACHE_REDIS_ADDR`
+- `LLM_PROXY_CACHE_REDIS_ADDRS`
+- `LLM_PROXY_CACHE_REDIS_USERNAME`
+- `LLM_PROXY_CACHE_REDIS_PASSWORD`
+- `LLM_PROXY_CACHE_REDIS_MASTER_NAME`
+- `LLM_PROXY_CACHE_REDIS_SENTINEL_USERNAME`
+- `LLM_PROXY_CACHE_REDIS_SENTINEL_PASSWORD`
+- `LLM_PROXY_CACHE_REDIS_ROUTE_BY_LATENCY`
+- `LLM_PROXY_CACHE_REDIS_ROUTE_RANDOMLY`
+- `LLM_PROXY_CACHE_REDIS_IS_CLUSTER_MODE`
+- `LLM_PROXY_CACHE_REDIS_DB`
+- `LLM_PROXY_CACHE_REDIS_TLS`
+- `LLM_PROXY_CACHE_REDIS_TLS_INSECURE_SKIP_VERIFY`
+- `LLM_PROXY_CACHE_REDIS_EXPIRATION`
 
 #### 使用URL配置更多参数
 **standalone模式标准URL**
@@ -207,7 +207,7 @@ redis://127.0.0.1:7000?is_cluster_mode=true
 | 参数 | 说明 | 示例 |
 |------|------|------|
 | addrs | 指定多个地址，格式为 addrs=host:port，可重复 | addrs=127.0.0.1:7000&addrs=127.0.0.1:7001 |
-| client_name | 客户端名称，会设置为 Redis 客户端的 ClientName | client_name=axonhub |
+| client_name | 客户端名称，会设置为 Redis 客户端的 ClientName | client_name=llm-proxy |
 | db | 指定 Redis DB 序号（数字） | db=1 或 在路径中 /1 |
 | protocol | 协议版本（整型，库内部使用） | protocol=3 |
 | username | 连接用户名（用于 ACL） | username=default |
@@ -237,7 +237,7 @@ redis://127.0.0.1:7000?is_cluster_mode=true
 | route_randomly | 随机路由（true/false） | route_randomly=true |
 | master_name | sentinel 模式下的 master 名称 | master_name=mymaster |
 | disable_identity | 禁用客户端标识（true/false） | disable_identity=true |
-| identity_suffix | 客户端标识后缀 | identity_suffix=-axonhub |
+| identity_suffix | 客户端标识后缀 | identity_suffix=-llm-proxy |
 | failing_timeout_seconds | 失败检测超时（秒） | failing_timeout_seconds=30 |
 | unstable_resp3 | 使用不稳定的 RESP3（true/false） | unstable_resp3=true |
 | is_cluster_mode | 强制集群模式（true/false） | is_cluster_mode=true |
@@ -250,7 +250,7 @@ redis://127.0.0.1:7000?is_cluster_mode=true
 
 ```yaml
 log:
-  name: "axonhub"               # 日志器名称
+  name: "llm-proxy"               # 日志器名称
   debug: false                  # 启用调试日志
   level: "info"                 # debug, info, warn, error, panic, fatal
   level_key: "level"            # 日志级别字段的键名
@@ -263,7 +263,7 @@ log:
   excludes: []                  # 排除的日志器名称
   output: "stdio"               # file 或 stdio
   file:                         # 基于文件的日志配置
-    path: "logs/axonhub.log"   # 日志文件路径
+    path: "logs/llm-proxy.log"   # 日志文件路径
     max_size: 100               # 轮转前的最大大小 (MB)
     max_age: 30                 # 保留的最大天数
     max_backups: 10             # 旧日志文件的最大数量
@@ -271,23 +271,23 @@ log:
 ```
 
 **环境变量：**
-- `AXONHUB_LOG_NAME`
-- `AXONHUB_LOG_DEBUG`
-- `AXONHUB_LOG_LEVEL`
-- `AXONHUB_LOG_LEVEL_KEY`
-- `AXONHUB_LOG_TIME_KEY`
-- `AXONHUB_LOG_CALLER_KEY`
-- `AXONHUB_LOG_FUNCTION_KEY`
-- `AXONHUB_LOG_NAME_KEY`
-- `AXONHUB_LOG_ENCODING`
-- `AXONHUB_LOG_INCLUDES`
-- `AXONHUB_LOG_EXCLUDES`
-- `AXONHUB_LOG_OUTPUT`
-- `AXONHUB_LOG_FILE_PATH`
-- `AXONHUB_LOG_FILE_MAX_SIZE`
-- `AXONHUB_LOG_FILE_MAX_AGE`
-- `AXONHUB_LOG_FILE_MAX_BACKUPS`
-- `AXONHUB_LOG_FILE_LOCAL_TIME`
+- `LLM_PROXY_LOG_NAME`
+- `LLM_PROXY_LOG_DEBUG`
+- `LLM_PROXY_LOG_LEVEL`
+- `LLM_PROXY_LOG_LEVEL_KEY`
+- `LLM_PROXY_LOG_TIME_KEY`
+- `LLM_PROXY_LOG_CALLER_KEY`
+- `LLM_PROXY_LOG_FUNCTION_KEY`
+- `LLM_PROXY_LOG_NAME_KEY`
+- `LLM_PROXY_LOG_ENCODING`
+- `LLM_PROXY_LOG_INCLUDES`
+- `LLM_PROXY_LOG_EXCLUDES`
+- `LLM_PROXY_LOG_OUTPUT`
+- `LLM_PROXY_LOG_FILE_PATH`
+- `LLM_PROXY_LOG_FILE_MAX_SIZE`
+- `LLM_PROXY_LOG_FILE_MAX_AGE`
+- `LLM_PROXY_LOG_FILE_MAX_BACKUPS`
+- `LLM_PROXY_LOG_FILE_LOCAL_TIME`
 
 ### 指标配置
 
@@ -301,10 +301,10 @@ metrics:
 ```
 
 **环境变量：**
-- `AXONHUB_METRICS_ENABLED`
-- `AXONHUB_METRICS_EXPORTER_TYPE`
-- `AXONHUB_METRICS_EXPORTER_ENDPOINT`
-- `AXONHUB_METRICS_EXPORTER_INSECURE`
+- `LLM_PROXY_METRICS_ENABLED`
+- `LLM_PROXY_METRICS_EXPORTER_TYPE`
+- `LLM_PROXY_METRICS_EXPORTER_ENDPOINT`
+- `LLM_PROXY_METRICS_EXPORTER_INSECURE`
 
 ### 垃圾回收配置
 
@@ -314,7 +314,7 @@ gc:
 ```
 
 **环境变量：**
-- `AXONHUB_GC_CRON`
+- `LLM_PROXY_GC_CRON`
 
 ### GitHub Copilot OAuth 配置
 
@@ -324,7 +324,7 @@ copilot:
 ```
 
 **描述：**
-配置用于 GitHub Copilot 设备流程认证的 OAuth 客户端 ID。默认情况下，AxonHub 使用 VS Code 的公共客户端 ID。对于生产部署或为了遵守 GitHub 的服务条款，您应该注册自己的 OAuth 应用程序并配置自定义客户端 ID。
+配置用于 GitHub Copilot 设备流程认证的 OAuth 客户端 ID。默认情况下，llm-proxy 使用 VS Code 的公共客户端 ID。对于生产部署或为了遵守 GitHub 的服务条款，您应该注册自己的 OAuth 应用程序并配置自定义客户端 ID。
 
 **环境变量：**
 - `GITHUB_COPILOT_CLIENT_ID`
@@ -340,9 +340,9 @@ copilot:
 1. 前往 GitHub 设置 → 开发者设置 → OAuth 应用程序
 2. 点击"新建 OAuth 应用程序"
 3. 填写应用程序详细信息：
-   - 应用程序名称：`您的 AxonHub 实例`
-   - 主页 URL：`https://your-axonhub-domain.com`
-   - 授权回调 URL：`https://your-axonhub-domain.com/api/copilot/oauth/callback`
+   - 应用程序名称：`您的 llm-proxy 实例`
+   - 主页 URL：`https://your-llm-proxy-domain.com`
+   - 授权回调 URL：`https://your-llm-proxy-domain.com/api/copilot/oauth/callback`
 4. 点击"注册应用程序"
 5. 复制客户端 ID 并设置为环境变量
 
@@ -363,12 +363,12 @@ export GITHUB_COPILOT_CLIENT_ID="Iv1.your-custom-client-id"
 ```yaml
 server:
   port: 8090
-  name: "AxonHub Dev"
+  name: "llm-proxy Dev"
   debug: true
 
 db:
   dialect: "sqlite3"
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+  dsn: "file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
   debug: true
 
 log:
@@ -382,14 +382,14 @@ log:
 ```yaml
 server:
   port: 8090
-  name: "AxonHub Production"
+  name: "llm-proxy Production"
   debug: false
   request_timeout: "30s"
   llm_request_timeout: "600s"
 
 db:
   dialect: "postgres"
-  dsn: "postgres://axonhub:password@localhost:5432/axonhub?sslmode=disable"
+  dsn: "postgres://llm-proxy:password@localhost:5432/llm-proxy?sslmode=disable"
   debug: false
 
 cache:
@@ -423,7 +423,7 @@ log:
   encoding: "json"
   output: "file"
   file:
-    path: "/var/log/axonhub/axonhub.log"
+    path: "/var/log/llm-proxy/llm-proxy.log"
     max_size: 200
     max_age: 14
     max_backups: 7
@@ -434,7 +434,7 @@ log:
 ### SQLite
 
 ```
-file:axonhub.db?cache=shared&_fk=1
+file:llm-proxy.db?cache=shared&_fk=1
 ```
 
 ### PostgreSQL
@@ -461,12 +461,12 @@ username.root:password@tcp(host:4000)/database?tls=true&parseTime=true&multiStat
 
 1. **对敏感信息使用环境变量**
    ```bash
-   export AXONHUB_DB_DSN="postgres://axonhub:$(cat /run/secrets/db-password)@localhost:5432/axonhub"
+   export LLM_PROXY_DB_DSN="postgres://llm-proxy:$(cat /run/secrets/db-password)@localhost:5432/llm-proxy"
    ```
 
 2. **为数据库连接启用 TLS**
    ```yaml
-   dsn: "postgres://user:pass@host:5432/axonhub?sslmode=verify-full"
+   dsn: "postgres://user:pass@host:5432/llm-proxy?sslmode=verify-full"
    ```
 
 3. **在生产环境中使用基于文件的日志**
@@ -474,7 +474,7 @@ username.root:password@tcp(host:4000)/database?tls=true&parseTime=true&multiStat
    log:
      output: "file"
      file:
-       path: "/var/log/axonhub/axonhub.log"
+       path: "/var/log/llm-proxy/llm-proxy.log"
    ```
 
 ### 性能
@@ -553,7 +553,7 @@ username.root:password@tcp(host:4000)/database?tls=true&parseTime=true&multiStat
 验证您的配置：
 
 ```bash
-./axonhub config check
+./llm-proxy config check
 ```
 
 此命令将验证您的配置文件并报告任何错误。

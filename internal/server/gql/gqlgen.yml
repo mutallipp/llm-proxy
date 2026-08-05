@@ -1,8 +1,8 @@
 # schema tells gqlgen where the GraphQL schema is located.
 schema:
-  # axonhub.graphql must be loaded before ent.graphql because it defines DisabledAPIKey
+  # llm-proxy.graphql must be loaded before ent.graphql because it defines DisabledAPIKey
   # which is referenced by the disabled_api_keys field in Channel schema
-  - axonhub.graphql
+  - llm-proxy.graphql
   - ent.graphql
   - dashboard.graphql
   - scopes.graphql
@@ -124,12 +124,27 @@ models:
   ChannelEndpoint:
     model:
       - github.com/mutallipp/llm-proxy/internal/objects.ChannelEndpoint
+  ChannelModelCapability:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelModelCapability
+  ChannelModelCapabilityInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelModelCapability
+  ChannelProtocolCapabilities:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/objects.ChannelProtocolCapabilities
   AdapterTargetCapabilities:
     model:
       - github.com/mutallipp/llm-proxy/internal/objects.AdapterTargetCapabilities
   ChannelEndpointInput:
     model:
       - github.com/mutallipp/llm-proxy/internal/objects.ChannelEndpoint
+  SaveChannelCapabilitiesInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SaveChannelCapabilitiesInput
+  BulkEnableDerivedAssociationsInput:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.BulkEnableDerivedAssociationsInput
   ChannelPolicies:
     model:
       - github.com/mutallipp/llm-proxy/internal/objects.ChannelPolicies
@@ -190,6 +205,24 @@ models:
   SaveChannelEndpointsInput:
     model:
       - github.com/mutallipp/llm-proxy/internal/server/biz.SaveChannelEndpointsInput
+  SaveChannelCapabilitiesPayload:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SaveChannelCapabilitiesPayload
+  SaveChannelEndpointsPayload:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.SaveChannelEndpointsPayload
+  RevokedChannelCapabilitiesPayload:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.RevokedChannelCapabilitiesPayload
+  BulkEnableDerivedAssociationsResult:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.BulkEnableDerivedAssociationsResult
+  BulkEnableDerivedAssociationResult:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.BulkEnableDerivedAssociationResult
+  DeriveModelAssociationsPayload:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/biz.DeriveModelAssociationsPayload
   QueryChannelInput:
     model:
       - github.com/mutallipp/llm-proxy/internal/server/biz.QueryChannelsInput

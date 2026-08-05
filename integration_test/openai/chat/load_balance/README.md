@@ -1,10 +1,10 @@
 # Load Balance Integration Tests
 
-This directory contains comprehensive integration tests for AxonHub's load balancing system. These tests verify that the load balancing strategies work correctly in real-world scenarios.
+This directory contains comprehensive integration tests for llm-proxy's load balancing system. These tests verify that the load balancing strategies work correctly in real-world scenarios.
 
 ## Overview
 
-AxonHub uses a sophisticated multi-strategy load balancing system to distribute requests across multiple channels. The load balancer combines several strategies to make optimal routing decisions:
+llm-proxy uses a sophisticated multi-strategy load balancing system to distribute requests across multiple channels. The load balancer combines several strategies to make optimal routing decisions:
 
 ### Load Balancing Strategies
 
@@ -84,8 +84,8 @@ Advanced load balancing tests for edge cases and optimizations:
 
 ### Prerequisites
 
-1. **AxonHub server must be running** on `http://localhost:8090` (or set `TEST_OPENAI_BASE_URL`)
-2. **Valid API key** must be set in `TEST_AXONHUB_API_KEY` environment variable
+1. **llm-proxy server must be running** on `http://localhost:8090` (or set `TEST_OPENAI_BASE_URL`)
+2. **Valid API key** must be set in `TEST_LLM_PROXY_API_KEY` environment variable
 3. **Multiple channels configured** with different weights for proper load distribution
 4. **Model available** (default: `deepseek-chat`, or set `TEST_MODEL`)
 
@@ -93,7 +93,7 @@ Advanced load balancing tests for edge cases and optimizations:
 
 ```bash
 # Required
-export TEST_AXONHUB_API_KEY="your-api-key"
+export TEST_LLM_PROXY_API_KEY="your-api-key"
 
 # Optional
 export TEST_OPENAI_BASE_URL="http://localhost:8090/v1"  # Default
@@ -137,7 +137,7 @@ Enable debug mode to see detailed load balancing decisions:
 
 ```bash
 # Set environment variable on server
-export AXONHUB_DEBUG_LOAD_BALANCER_ENABLED=true
+export LLM_PROXY_DEBUG_LOAD_BALANCER_ENABLED=true
 
 # Or send AH-Debug header in requests
 # (Tests can be modified to include this header)
@@ -366,7 +366,7 @@ This optimization reduces overhead when many channels are available but only a f
 
 ```bash
 # On server
-export AXONHUB_DEBUG_LOAD_BALANCER_ENABLED=true
+export LLM_PROXY_DEBUG_LOAD_BALANCER_ENABLED=true
 
 # Restart server to apply
 ```

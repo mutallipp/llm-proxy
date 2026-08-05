@@ -126,10 +126,30 @@ func TestAdapterCandidateSelector_Select(t *testing.T) {
 	channelSvc.SetEnabledChannelsForTest([]*biz.Channel{
 		newSelectorTestBizChannel(1, channel.TypeOpenai, "OpenAI", "https://openai.example", []string{"gpt-4"}, []objects.ChannelEndpoint{selectorEndpoint("openai/chat/completions")}),
 		newSelectorTestBizChannel(2, channel.TypeAnthropic, "Anthropic", "https://anthropic.example", []string{"claude"}, []objects.ChannelEndpoint{selectorEndpoint("anthropic/messages")}),
+		newSelectorTestBizChannel(3, channel.TypeOpenaiResponses, "OpenAI Responses", "https://responses.example", []string{"gpt-4"}, []objects.ChannelEndpoint{selectorEndpoint(llm.APIFormatOpenAIResponse)}),
 	})
 	t.Run("openai adapter cannot select anthropic pool", func(t *testing.T) {
 		model := selectorModel(map[string][]*objects.ModelAssociation{"anthropic": {selectorAssociation(2, "claude", 1)}})
 		candidates, err := selector.Select(contexts.WithRuntimeAdapter(ctx, selectorAdapter("openai/chat/completions", model)), selectorRequest("openai/chat/completions"))
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "no protocol pool")
+		assert.Nil(t, candidates)
+	})
+	t.Run("openai responses uses a dedicated protocol pool", func(t *testing.T) {
+		model := selectorModel(map[string][]*objects.ModelAssociation{
+			"openai_responses": {selectorAssociation(3, "gpt-4", 1)},
+		})
+		candidates, err := selector.Select(contexts.WithRuntimeAdapter(ctx, selectorAdapter(llm.APIFormatOpenAIResponse, model)), selectorRequest(llm.APIFormatOpenAIResponse))
+		require.NoError(t, err)
+		require.Len(t, candidates, 1)
+		assert.Equal(t, 3, candidates[0].Channel.ID)
+		assert.Equal(t, string(llm.APIFormatOpenAIResponse), candidates[0].APIFormat)
+	})
+	t.Run("openai responses does not reuse the chat pool", func(t *testing.T) {
+		model := selectorModel(map[string][]*objects.ModelAssociation{
+			"openai": {selectorAssociation(1, "gpt-4", 1)},
+		})
+		candidates, err := selector.Select(contexts.WithRuntimeAdapter(ctx, selectorAdapter(llm.APIFormatOpenAIResponse, model)), selectorRequest(llm.APIFormatOpenAIResponse))
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "no protocol pool")
 		assert.Nil(t, candidates)
@@ -181,4 +201,20 @@ func TestHasOutboundEndpoint(t *testing.T) {
 	channel := &biz.Channel{Channel: &ent.Channel{Endpoints: []objects.ChannelEndpoint{{APIFormat: "openai/chat/completions", Path: "/v1"}}}}
 	assert.True(t, hasOutboundEndpoint(channel, "openai/chat/completions"))
 	assert.False(t, hasOutboundEndpoint(channel, "anthropic/messages"))
+}
+
+func TestNormalizeProtocolPoolKey(t *testing.T) {
+	tests := map[string]string{
+		"openai/chat_completions":  "openai",
+		"openai/chat/completions":  "openai",
+		"openai/responses":         "openai_responses",
+		"openai/responses_compact": "openai_responses",
+		"anthropic/messages":       "anthropic",
+		"gemini/contents":          "gemini/contents",
+	}
+	for apiFormat, want := range tests {
+		t.Run(apiFormat, func(t *testing.T) {
+			assert.Equal(t, want, normalizeProtocolPoolKey(apiFormat))
+		})
+	}
 }

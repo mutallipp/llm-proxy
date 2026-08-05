@@ -4,10 +4,10 @@
 
 ## 架构设计
 
-AxonHub 实现了一个双向数据转换管道，确保客户端与 AI 提供商之间的无缝通信。
+llm-proxy 实现了一个双向数据转换管道，确保客户端与 AI 提供商之间的无缝通信。
 
 <div align="center">
-  <img src="../../transformation-flow.svg" alt="AxonHub Transformation Flow" width="900"/>
+  <img src="../../transformation-flow.svg" alt="llm-proxy Transformation Flow" width="900"/>
 </div>
 
 ### 管道组件
@@ -84,10 +84,10 @@ cd frontend
 pnpm install --frozen-lockfile
 cd ..
 make build
-./axonhub
+./llm-proxy
 ```
 
-不要只执行 `go run ./cmd/axonhub`：新 clone 的仓库不提交前端 dist，直接运行可能看不到最新的 Adapter、Model 等页面。
+不要只执行 `go run ./cmd/llm-proxy`：新 clone 的仓库不提交前端 dist，直接运行可能看不到最新的 Adapter、Model 等页面。
 
 后端服务默认启动在 `http://localhost:8090`。
 

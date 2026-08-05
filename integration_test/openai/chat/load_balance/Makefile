@@ -17,8 +17,8 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Environment Variables:"
-	@echo "  TEST_AXONHUB_API_KEY      API key for AxonHub (required)"
-	@echo "  TEST_OPENAI_BASE_URL      Base URL for AxonHub (default: http://localhost:8090/v1)"
+	@echo "  TEST_LLM_PROXY_API_KEY      API key for llm-proxy (required)"
+	@echo "  TEST_OPENAI_BASE_URL      Base URL for llm-proxy (default: http://localhost:8090/v1)"
 	@echo "  TEST_MODEL                Model to use for tests (default: deepseek-chat)"
 	@echo "  TEST_DISABLE_TRACE        Disable trace ID generation (default: false)"
 	@echo "  TEST_DISABLE_THREAD       Disable thread ID generation (default: false)"
@@ -71,7 +71,7 @@ test-failover: ## Run failover and retry tests
 
 test-debug: ## Run tests with debug output
 	@echo "Running tests with debug output..."
-	@echo "Note: Set AXONHUB_DEBUG_LOAD_BALANCER_ENABLED=true on server for detailed logs"
+	@echo "Note: Set LLM_PROXY_DEBUG_LOAD_BALANCER_ENABLED=true on server for detailed logs"
 	$(GO_TEST) -run TestLoadBalancingDebugMode ./...
 
 test-quick: ## Run quick smoke tests
@@ -107,12 +107,12 @@ clean: ## Clean test artifacts
 
 check-env: ## Check required environment variables
 	@echo "Checking environment variables..."
-	@if [ -z "$$TEST_AXONHUB_API_KEY" ]; then \
-		echo "❌ ERROR: TEST_AXONHUB_API_KEY is not set"; \
-		echo "   Please set it with: export TEST_AXONHUB_API_KEY=your-api-key"; \
+	@if [ -z "$$TEST_LLM_PROXY_API_KEY" ]; then \
+		echo "❌ ERROR: TEST_LLM_PROXY_API_KEY is not set"; \
+		echo "   Please set it with: export TEST_LLM_PROXY_API_KEY=your-api-key"; \
 		exit 1; \
 	else \
-		echo "✅ TEST_AXONHUB_API_KEY is set"; \
+		echo "✅ TEST_LLM_PROXY_API_KEY is set"; \
 	fi
 	@echo "✅ TEST_OPENAI_BASE_URL: $${TEST_OPENAI_BASE_URL:-http://localhost:8090/v1 (default)}"
 	@echo "✅ TEST_MODEL: $${TEST_MODEL:-deepseek-chat (default)}"
@@ -127,7 +127,7 @@ verify: check-env ## Verify test environment is ready
 		echo "✅ Server is reachable at $$BASE_URL"; \
 	else \
 		echo "❌ WARNING: Cannot reach server at $$BASE_URL"; \
-		echo "   Make sure AxonHub server is running"; \
+		echo "   Make sure llm-proxy server is running"; \
 	fi
 	@echo ""
 	@echo "Environment is ready for testing!"

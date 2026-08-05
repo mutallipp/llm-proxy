@@ -48,7 +48,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username "${{ github.actor }}" --password-stdin
 
       - name: Push chart to GHCR
-        run: helm push ".chart-packages/axonhub-${CHART_VERSION}.tgz" "$OCI_REGISTRY"
+        run: helm push ".chart-packages/llm-proxy-${CHART_VERSION}.tgz" "$OCI_REGISTRY"
 
       - name: Verify published chart
-        run: helm show chart "$OCI_REGISTRY/axonhub" --version "$CHART_VERSION"
+        run: helm show chart "$OCI_REGISTRY/llm-proxy" --version "$CHART_VERSION"

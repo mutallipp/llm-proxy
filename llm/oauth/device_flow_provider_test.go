@@ -207,7 +207,7 @@ func TestDeviceFlowProvider_Start_Success(t *testing.T) {
 			TokenURL:      server.URL + "/token",
 			ClientID:      "test-client",
 			Scopes:        []string{"read:user", "repo"},
-			UserAgent:     "axonhub-test",
+			UserAgent:     "llm-proxy-test",
 		},
 	})
 
@@ -222,7 +222,7 @@ func TestDeviceFlowProvider_Start_Success(t *testing.T) {
 	assert.Equal(t, "https://example.com/verify?code=USER-CODE-456", resp.CompleteURI)
 	assert.Equal(t, 900, resp.ExpiresIn)
 	assert.Equal(t, 5, resp.Interval)
-	assert.Equal(t, "axonhub-test", gotUA)
+	assert.Equal(t, "llm-proxy-test", gotUA)
 	assert.Equal(t, "test-client", gotForm.Get("client_id"))
 	assert.Equal(t, "read:user repo", gotForm.Get("scope"))
 }

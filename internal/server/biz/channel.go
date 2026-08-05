@@ -118,7 +118,7 @@ func NewChannelService(params ChannelServiceParams) *ChannelService {
 		Mode:  watcherMode,
 		Redis: params.CacheConfig.Redis,
 	}, watcher.WatcherFromConfigOptions{
-		RedisChannel: "axonhub:cache:channels",
+		RedisChannel: "llm-proxy:cache:channels",
 		Buffer:       32,
 	})
 	if err != nil {
@@ -128,7 +128,7 @@ func NewChannelService(params ChannelServiceParams) *ChannelService {
 	svc.channelNotifier = notifier
 
 	svc.enabledChannelsCache = live.NewCache(live.Options[[]*Channel]{
-		Name:            "axonhub:enabled_channels",
+		Name:            "llm-proxy:enabled_channels",
 		InitialValue:    []*Channel{},
 		RefreshInterval: time.Minute,
 		RefreshFunc:     svc.onCacheRefreshed,
@@ -864,36 +864,64 @@ func (svc *ChannelService) reloadChannelsAfterCommit(ctx context.Context) {
 // SaveChannelEndpoints updates the endpoints field for a channel.
 // Validates user-configured endpoint overrides before storing them. Runtime
 // endpoint resolution merges matching api_format entries with defaults.
-func (svc *ChannelService) SaveChannelEndpoints(ctx context.Context, input SaveChannelEndpointsInput) (*ent.Channel, error) {
+func (svc *ChannelService) SaveChannelEndpoints(ctx context.Context, input SaveChannelEndpointsInput) (*SaveChannelEndpointsPayload, error) {
 	if err := ValidateEndpoints(input.Endpoints); err != nil {
 		return nil, fmt.Errorf("invalid endpoints: %w", err)
 	}
 
-	ch, err := svc.entFromContext(ctx).Channel.Get(ctx, input.ChannelID.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get channel: %w", err)
+	var (
+		ch      *ent.Channel
+		revoked *RevokedChannelCapabilitiesPayload
+	)
+	if err := svc.RunInTransaction(ctx, func(txCtx context.Context) error {
+		var err error
+		ch, err = svc.entFromContext(txCtx).Channel.Get(txCtx, input.ChannelID.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get channel: %w", err)
+		}
+
+		ch, err = svc.entFromContext(txCtx).Channel.UpdateOne(ch).
+			SetEndpoints(input.Endpoints).
+			Save(txCtx)
+		if err != nil {
+			return fmt.Errorf("failed to update channel endpoints: %w", err)
+		}
+
+		ch, revoked, err = svc.reviewChannelEndpointCapabilities(txCtx, ch)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	if ent.TxFromContext(ctx) == nil {
+		ch.Unwrap()
 	}
 
-	ch, err = svc.entFromContext(ctx).Channel.UpdateOne(ch).
-		SetEndpoints(input.Endpoints).
-		Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update channel endpoints: %w", err)
-	}
+	svc.reloadChannelsAfterCommit(ctx)
 
-	svc.asyncReloadChannels()
-
-	return ch, nil
+	return &SaveChannelEndpointsPayload{Channel: ch, Revoked: revoked}, nil
 }
 
 // DeleteChannel deletes a channel by ID.
 func (svc *ChannelService) DeleteChannel(ctx context.Context, id int) error {
-	if err := svc.entFromContext(ctx).Channel.DeleteOneID(id).Exec(ctx); err != nil {
-		return fmt.Errorf("failed to delete channel: %w", err)
+	if err := svc.RunInTransaction(ctx, func(txCtx context.Context) error {
+		if err := svc.CleanupDeletedChannelAssociations(txCtx, []int{id}); err != nil {
+			return err
+		}
+		if err := svc.entFromContext(txCtx).Channel.DeleteOneID(id).Exec(txCtx); err != nil {
+			return fmt.Errorf("failed to delete channel: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	svc.forgetLimiter(id)
-	svc.asyncReloadChannels()
+	svc.reloadChannelsAfterCommit(ctx)
 
 	return nil
 }

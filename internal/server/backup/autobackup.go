@@ -101,7 +101,7 @@ func (svc *BackupService) performBackup(ctx context.Context, settings *biz.AutoB
 	}
 
 	timestamp := time.Now().Format("2006-01-02_15-04-05")
-	filename := fmt.Sprintf("axonhub-backup-%s.json", timestamp)
+	filename := fmt.Sprintf("llm-proxy-backup-%s.json", timestamp)
 
 	if ds.Type == datastorage.TypeDatabase {
 		data, err := svc.doBackup(ctx, opts)
@@ -116,7 +116,7 @@ func (svc *BackupService) performBackup(ctx context.Context, settings *biz.AutoB
 			log.Int("size", len(data)),
 		)
 	} else {
-		f, err := os.CreateTemp("", "axonhub-backup-*.json")
+		f, err := os.CreateTemp("", "llm-proxy-backup-*.json")
 		if err != nil {
 			return fmt.Errorf("failed to create temp backup file: %w", err)
 		}
@@ -167,7 +167,7 @@ func (svc *BackupService) cleanupOldBackups(ctx context.Context, ds *ent.DataSto
 	var backupFiles []os.FileInfo
 
 	for _, f := range files {
-		if strings.HasPrefix(f.Name(), "axonhub-backup-") && strings.HasSuffix(f.Name(), ".json") {
+		if strings.HasPrefix(f.Name(), "llm-proxy-backup-") && strings.HasSuffix(f.Name(), ".json") {
 			backupFiles = append(backupFiles, f)
 		}
 	}

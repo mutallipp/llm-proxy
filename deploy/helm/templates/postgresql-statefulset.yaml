@@ -2,21 +2,21 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "axonhub.postgresql.fullname" . }}
+  name: {{ include "llm-proxy.postgresql.fullname" . }}
   labels:
-    {{- include "axonhub.labels" . | nindent 4 }}
+    {{- include "llm-proxy.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgresql
 spec:
-  serviceName: {{ include "axonhub.postgresql.serviceName" . }}
+  serviceName: {{ include "llm-proxy.postgresql.serviceName" . }}
   replicas: {{ .Values.postgresql.replicaCount }}
   selector:
     matchLabels:
-      {{- include "axonhub.selectorLabels" . | nindent 6 }}
+      {{- include "llm-proxy.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: postgresql
   template:
     metadata:
       labels:
-        {{- include "axonhub.selectorLabels" . | nindent 8 }}
+        {{- include "llm-proxy.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: postgresql
     spec:
       {{- with .Values.global.imagePullSecrets }}

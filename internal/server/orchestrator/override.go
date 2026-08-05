@@ -244,7 +244,7 @@ func applyBodySet(
 ) ([]byte, error) {
 	renderedValue := renderOverrideValue(ctx, op.Value, renderCtx)
 
-	if renderedValue == "__AXONHUB_CLEAR__" {
+	if renderedValue == "__LLM_PROXY_CLEAR__" {
 		return sjson.DeleteBytes(body, op.Path)
 	}
 
@@ -439,8 +439,8 @@ func applyOverrideOperationToHeaders(
 	switch op.Op {
 	case objects.OverrideOpSet:
 		renderedValue := renderTemplate(ctx, op.Value, renderCtx)
-		// For backward compatibility, we still support "__AXONHUB_CLEAR__" to clear the header.
-		if renderedValue == "__AXONHUB_CLEAR__" {
+		// For backward compatibility, we still support "__LLM_PROXY_CLEAR__" to clear the header.
+		if renderedValue == "__LLM_PROXY_CLEAR__" {
 			headers.Del(op.Path)
 			return
 		}

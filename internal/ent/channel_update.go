@@ -170,6 +170,26 @@ func (_u *ChannelUpdate) AppendSupportedModels(v []string) *ChannelUpdate {
 	return _u
 }
 
+// SetProtocolCapabilities sets the "protocol_capabilities" field.
+func (_u *ChannelUpdate) SetProtocolCapabilities(v objects.ChannelProtocolCapabilities) *ChannelUpdate {
+	_u.mutation.SetProtocolCapabilities(v)
+	return _u
+}
+
+// SetNillableProtocolCapabilities sets the "protocol_capabilities" field if the given value is not nil.
+func (_u *ChannelUpdate) SetNillableProtocolCapabilities(v *objects.ChannelProtocolCapabilities) *ChannelUpdate {
+	if v != nil {
+		_u.SetProtocolCapabilities(*v)
+	}
+	return _u
+}
+
+// ClearProtocolCapabilities clears the value of the "protocol_capabilities" field.
+func (_u *ChannelUpdate) ClearProtocolCapabilities() *ChannelUpdate {
+	_u.mutation.ClearProtocolCapabilities()
+	return _u
+}
+
 // SetManualModels sets the "manual_models" field.
 func (_u *ChannelUpdate) SetManualModels(v []string) *ChannelUpdate {
 	_u.mutation.SetManualModels(v)
@@ -696,6 +716,12 @@ func (_u *ChannelUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			sqljson.Append(u, channel.FieldSupportedModels, value)
 		})
 	}
+	if value, ok := _u.mutation.ProtocolCapabilities(); ok {
+		_spec.SetField(channel.FieldProtocolCapabilities, field.TypeJSON, value)
+	}
+	if _u.mutation.ProtocolCapabilitiesCleared() {
+		_spec.ClearField(channel.FieldProtocolCapabilities, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.ManualModels(); ok {
 		_spec.SetField(channel.FieldManualModels, field.TypeJSON, value)
 	}
@@ -1177,6 +1203,26 @@ func (_u *ChannelUpdateOne) SetSupportedModels(v []string) *ChannelUpdateOne {
 // AppendSupportedModels appends value to the "supported_models" field.
 func (_u *ChannelUpdateOne) AppendSupportedModels(v []string) *ChannelUpdateOne {
 	_u.mutation.AppendSupportedModels(v)
+	return _u
+}
+
+// SetProtocolCapabilities sets the "protocol_capabilities" field.
+func (_u *ChannelUpdateOne) SetProtocolCapabilities(v objects.ChannelProtocolCapabilities) *ChannelUpdateOne {
+	_u.mutation.SetProtocolCapabilities(v)
+	return _u
+}
+
+// SetNillableProtocolCapabilities sets the "protocol_capabilities" field if the given value is not nil.
+func (_u *ChannelUpdateOne) SetNillableProtocolCapabilities(v *objects.ChannelProtocolCapabilities) *ChannelUpdateOne {
+	if v != nil {
+		_u.SetProtocolCapabilities(*v)
+	}
+	return _u
+}
+
+// ClearProtocolCapabilities clears the value of the "protocol_capabilities" field.
+func (_u *ChannelUpdateOne) ClearProtocolCapabilities() *ChannelUpdateOne {
+	_u.mutation.ClearProtocolCapabilities()
 	return _u
 }
 
@@ -1735,6 +1781,12 @@ func (_u *ChannelUpdateOne) sqlSave(ctx context.Context) (_node *Channel, err er
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, channel.FieldSupportedModels, value)
 		})
+	}
+	if value, ok := _u.mutation.ProtocolCapabilities(); ok {
+		_spec.SetField(channel.FieldProtocolCapabilities, field.TypeJSON, value)
+	}
+	if _u.mutation.ProtocolCapabilitiesCleared() {
+		_spec.ClearField(channel.FieldProtocolCapabilities, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.ManualModels(); ok {
 		_spec.SetField(channel.FieldManualModels, field.TypeJSON, value)

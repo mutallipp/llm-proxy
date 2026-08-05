@@ -1,0 +1,134 @@
+{
+  "confirmed": [
+    {
+      "title": "U5 启用校验单元与代码现实三处不符：行号错误、BulkCreateModels 绕过闸门、纯函数签名无法承载 R6a（合并原 F1/F8/F19①）",
+      "severity": "high",
+      "category": "单元描述与代码不符/覆盖缺口",
+      "description": "三个叠加问题均经核实：1) U5 写『validateModelSettings/UpdateModel:444/CreateModel:61』，实际 CreateModel 在 model.go:347（校验调用 :350）、UpdateModel 校验调用在 :447，第 61 行处于 validateModelSettings 函数体内（ValidateProtocolPools 调用处）；2) BulkCreateModels（:383）完全不调用任何 settings 校验（383-442 行无 validate 调用），而 KTD19 声称『任何新增即启用的关联都过校验、服务端拦截是唯一可靠强制点』——U5 的钩子点枚举明确遗漏了三个 settings 写入路径之一，批量创建可绕过启用闸门；3) 现有 validateModelSettings 是无 ctx 纯函数（:57），R6a 需要查渠道/能力/端点/模型条目，且『禁用→启用』diff 需先加载模型现存 settings，而 UpdateModel 在校验前不读取现存模型（:446-449 直接校验 input.Settings）。按 U5 字面描述无法落地，需签名改造与流程补载。ModelService 已持有 channelService/systemService（:48-49），依赖可得。由 medium 升级 high：枚举式钩子清单漏掉真实写入路径且签名需重设计，返工可能性高。",
+      "evidence": "internal/server/biz/model.go:347（func CreateModel）、:350 与 :447（validateModelSettings 真实调用点）、:57（纯函数签名）、:383-442（BulkCreateModels 无校验）、:444-451（UpdateModel 校验前不读现存 settings）、:48-49（svc 依赖）；计划 U5 与 KTD19 文本。",
+      "suggested_fix": "U5 修正为：在 CreateModel(:347)/UpdateModel(:444)/BulkCreateModels(:383) 三个 settings 写入路径统一接入带 ctx 的启用校验（svc 层方法而非纯函数）；UpdateModel 校验前加载现存模型 settings 做 disabled→enabled diff；修正行号引用。"
+    },
+    {
+      "title": "R12/KTD12 的 auto_sync 钩子文件 channel_model_sync.go 不在任何 Unit 修改清单，AE7 无法落地（合并原 F5/F12）",
+      "severity": "high",
+      "category": "遗漏集成点",
+      "description": "两条重复 finding 合并裁决，均属实。Technical Design 触发点装配明确列『channel_model_sync.go 同步成功处（R12）』，AE 追溯 AE7→U3/U4；但 U3 Modify 仅 internal/server/biz/channel.go（SaveChannelEndpoints 后 R1b、DeleteChannel R13），U4 仅新建 protocol_pool_derivation.go，U1-U10 无任何单元声明修改 channel_model_sync.go。auto_sync 增删模型→能力表继承+派生/撤销对账的接线代码无主，按单元清单实施会整体漏掉 R12/KTD12，AE7 必然在 E2E 失败。现成钩子已核实存在：syncChannelModelsForChannel（:70）内 addedModels/removedModels 差异计算在 :132-133、modelsChanged 分支 :140、SetSupportedModels 写入 :143。",
+      "evidence": "计划 U3/U4 Modify 清单、Technical Design『触发点装配』、Verification Contract『AE7→U3/U4』；internal/server/biz/channel_model_sync.go:70/:132-134/:140/:143。",
+      "suggested_fix": "在 U3（或 U4）Modify 清单显式加入 internal/server/biz/channel_model_sync.go：同步成功且 modelsChanged 处，addedModels 继承渠道当前协议声明并触发派生、removedModels 触发撤销对账（R12/KTD12），补对应单测，AE7 追溯与 U3 测试清单同步更新。"
+    },
+    {
+      "title": "R10『一键同步渠道』服务层实现无归属：KTD16/U4/测试穷举/AE6 追溯均漏 R10",
+      "severity": "high",
+      "category": "追溯断链/遗漏集成点",
+      "description": "经核实计划文本：KTD16 Governs 为『R4-R8, R12-R14』（无 R10）；U4 描述只列 R5/R6/R7/R12/R13/R14，测试穷举『R4-R8/R12-R14』（无 R10）；U3 描述为渠道能力服务（R1a/差异/R11/R1b，无 R10）；KTD17 只定义 mutation deriveModelAssociations 表面，U6 只做 resolver 接线。R10 需要两处引擎能力：按逻辑模型名反查能力表、以及『增量、不撤销』模式（reconcileAssociations 的操作清单含禁用/清理，R10 必须抑制）。两者均无单元拥有，resolver 实施时将无可调用的 biz 方法。AE6（一键同步增量性）追溯 U6/U8 亦缺引擎层 U4。",
+      "evidence": "计划 KTD16（Governs R4-R8, R12-R14）、KTD17、U3/U4/U6 描述、Verification Contract『对账引擎覆盖 R4-R8/R12-R14』与『AE6→U6/U8』；R10 需求文本要求『增量对账…不执行撤销对账』。",
+      "suggested_fix": "在 U4（或 U3）显式加入 model 维度增量 reconcile 服务函数（含『不撤销』模式与按模型名反查能力表），KTD16 Governs 补 R10，U4 测试穷举补 R10 分支，AE6 追溯改为 U4/U6/U8。"
+    },
+    {
+      "title": "protocolCapabilities 字段双声明冲突：entgql 会自动生成进 ent.graphql，U6 再写入 llm-proxy.graphql 将使 gqlgen 报重复字段",
+      "severity": "high",
+      "category": "生成链/Schema 归属错误",
+      "description": "核实全部前提成立：1) entc.go 启用 entgql.WithSchemaGenerator()+WithSchemaPath(\"ent.graphql\")（:20-24）；2) 无注解 JSON 字段确实被自动生成——ent.graphql type Channel 中 settings: ChannelSettings、endpoints: [ChannelEndpoint!] 均为自动生成（对应 schema/channel.go 中无/空注解的 JSON 字段），policies 带 forceResolver 指令生成；3) llm-proxy.graphql:664 已有 extend type Channel（defaultEndpoints/credentials 等 forceResolver 先例）。因此 U2 按字面加 field.JSON(\"protocol_capabilities\") 不加注解后跑 make generate（U2 自己的步骤），ent.graphql type Channel 即自动多出 protocolCapabilities 字段；U6 再在 llm-proxy.graphql extend type Channel 声明同名字段，gqlgen 生成必然失败。计划未给出两条出路中的任何一条。按 severity 定义接近 blocker（字面执行 U6 的 make generate 必然失败），但因失败即时可见、修复路径明确，维持 high。",
+      "evidence": "internal/ent/entc.go:20-24；internal/server/gql/ent.graphql:407-445（type Channel 含自动生成的 settings/endpoints）；internal/ent/schema/channel.go:138-159（settings 空注解、endpoints 无注解、policies forceResolver）；internal/server/gql/llm-proxy.graphql:664-690；计划 KTD18/U2/U6。",
+      "suggested_fix": "二选一并写进 U2/U6：方案 A（与 credentials/defaultEndpoints 先例一致）——U2 字段加 entgql.Skip 注解不进 ent.graphql，U6 在 llm-proxy.graphql extend type Channel 用 @goField(forceResolver: true) 声明并实现 resolver；方案 B——不加注解，U6 不在 extend type Channel 重复声明该字段，仅在 llm-proxy.graphql 补 ChannelProtocolCapabilities 类型定义。"
+    },
+    {
+      "title": "U6 遗漏新 types 的 gqlgen.yml models 映射（ChannelProtocolCapabilities/ChannelModelCapability）",
+      "severity": "medium",
+      "category": "遗漏集成点",
+      "description": "经核实本仓库模式：JSON 结构体对应的 GraphQL 类型手写 llm-proxy.graphql（ChannelEndpoint 在 llm-proxy.graphql:98）+ gqlgen.yml models 映射到 objects.*（gqlgen.yml 中 ChannelEndpoint/ChannelEndpointInput/ChannelPolicies/ChannelSettings → internal/objects.* 映射均在案）。U6 Modify 清单无 gqlgen.yml。若不映射，gqlgen 会在 models_gen.go 生成平行结构体，与 ent.Channel.ProtocolCapabilities 的 objects.ChannelProtocolCapabilities 类型不匹配，resolver 绑定失败或需额外 field resolver。payload 类型（SaveChannelCapabilitiesPayload 等）生成即可，无需映射。",
+      "evidence": "internal/server/gql/gqlgen.yml:124-141（ChannelEndpoint/ChannelPolicies/ChannelSettings 映射先例）；internal/server/gql/llm-proxy.graphql:98；计划 U6 Modify 清单无 gqlgen.yml。",
+      "suggested_fix": "U6 Modify 清单加入 internal/server/gql/gqlgen.yml：ChannelProtocolCapabilities(+Input)/ChannelModelCapability(+Input) 映射到 internal/objects.*，与 ChannelEndpoint 模式一致。"
+    },
+    {
+      "title": "U7 与 Verification Contract 声称的 vitest 不存在，实际单测框架是 node:test",
+      "severity": "medium",
+      "category": "测试策略缺口/不实引用",
+      "description": "核实属实：frontend/package.json 无 vitest/jsdom 依赖、无 vitest 配置文件；单测脚本为 \"test:unit\": \"node --test src/**/*.test.mjs\"（package.json scripts）；被参照的 protocol-pools.test.mjs 头部即 import assert from 'node:assert/strict'; import test from 'node:test'。U7 写『vitest，参照 protocol-pools.test.mjs』与 Verification Contract『前端：vitest 通过』两处表述既与代码事实矛盾、也彼此矛盾；若实现者按 vitest 引入依赖或写 vitest 风格 import，测试将无法被 test:unit 运行，验收门禁不可执行。",
+      "evidence": "frontend/package.json scripts \"test:unit\": \"node --test src/**/*.test.mjs\"、无 vitest 依赖/配置；frontend/src/features/models/data/protocol-pools.test.mjs 头部 node:test import；计划 U7 与 Verification Contract 文本。",
+      "suggested_fix": "U7 改为『node:test（node --test，沿用 protocol-pools.test.mjs 模式）』；Verification Contract 改为『npm run test:unit 全绿』。"
+    },
+    {
+      "title": "U7 文件清单遗漏两个必需接线文件：channels-context.tsx（对话框 union 类型）与 channels-dialogs.tsx（对话框挂载）",
+      "severity": "medium",
+      "category": "遗漏集成点",
+      "description": "核实属实：渠道行菜单经 setOpen('endpoints')（channels-columns.tsx:212）打开对话框，open 状态类型是 channels-context.tsx:5 的 ChannelsDialogType（:57 useDialogState<ChannelsDialogType>），新入口必须新增 'capability' 成员；对话框统一挂载在 channels-dialogs.tsx（ChannelsEndpointsDialog 先例 :26 import、:287 挂载）。U7 Modify 清单缺这两个文件，按清单实施 TypeScript 编译会立即报错。附带核实：protocolPoolFormats 定义在 frontend/src/features/models/data/protocol-pools.ts:4，channels 侧复用为跨 feature import，方向可行但值得注明。原证据中 channels-columns.tsx:87 一处行号不准（:212 已确认），不影响结论。",
+      "evidence": "frontend/src/features/channels/context/channels-context.tsx:5/:57；frontend/src/features/channels/components/channels-columns.tsx:212；frontend/src/features/channels/components/channels-dialogs.tsx:26/:287；计划 U7 Modify 清单。",
+      "suggested_fix": "U7 Modify 清单补入 channels-context.tsx（ChannelsDialogType 加 'capability' 成员）与 channels-dialogs.tsx（挂载 ChannelsCapabilityDialog，参照 endpoints 写法），并注明 protocolPoolFormats 为跨 feature import。"
+    },
+    {
+      "title": "R1b 端点复核产生的撤销结果没有 GraphQL 返回面，AE12『渠道侧提示』无法实现",
+      "severity": "medium",
+      "category": "产品契约与实施矛盾",
+      "description": "核实属实：saveChannelEndpoints 现返回 Channel!（llm-proxy.graphql:830），biz 实现仅返回 *ent.Channel（channel.go:867-887）；KTD18 的 revoked{autoDisabledCount, manualNotices[]} 只存在于 SaveChannelCapabilitiesPayload；U6 schema 修改清单不含 saveChannelEndpoints 返回类型变更。R1b 要求端点保存后复核『按撤销处理并提示』、AE12 要求『渠道侧提示该变更』，但前端从 saveChannelEndpoints 拿不到撤销统计与手动条目提示（autoDisabledCount 无法靠重查 protocolCapabilities 重建）。",
+      "evidence": "internal/server/gql/llm-proxy.graphql:830；internal/server/biz/channel.go:867-887；计划 KTD18 payload 定义与 U6 清单。",
+      "suggested_fix": "KTD18/U6 二选一明确：将 saveChannelEndpoints 返回改为含 revoked 统计的 payload 类型，或定义替代获取方式（如复核结果写入 Channel.protocolCapabilities 并由前端 diff），同步 AE12 验收方式。"
+    },
+    {
+      "title": "R17 白名单约束在 SaveProtocolCapabilities 无后端校验归属，派生 merge-write 可写入非法协议池 key",
+      "severity": "medium",
+      "category": "覆盖缺口",
+      "description": "核实属实：白名单定义为 objects/model.go SupportedInboundAPIFormats（openai/anthropic），校验仅存在于 ValidateProtocolPools（objects/model.go）与 validateModelSettings（biz/model.go:57 起，模型保存路径）。U3 的 SaveProtocolCapabilities 描述只列 R1a 端点能力校验，无『协议 key ∈ 白名单』入参校验；前端 U7 仅靠 protocolPoolFormats 限定可选项。直接调 GraphQL 提交 gemini 等非白名单 key 会进入能力表，派生 merge-write（KTD16 写层直写 model settings）不经过 ValidateProtocolPools，非法 key 将被持久化进 protocolPools。",
+      "evidence": "internal/objects/model.go（SupportedInboundAPIFormats 与 ValidateProtocolPools）；internal/server/biz/model.go:57 起（校验仅在模型保存路径）；计划 U3 描述无白名单项、KTD16 merge-write 语义。",
+      "suggested_fix": "U3 的 SaveProtocolCapabilities 显式加入『DeclaredProtocols 与 Models[].Protocols 的每个 key ∈ SupportedInboundAPIFormats』校验（可在 objects 层抽共享函数），并补一条 U3 单测用例。"
+    },
+    {
+      "title": "R2 继承在能力对话框之外的模型列表写入路径（UpdateChannel/批量导入）无触发点，且计划未声明收窄",
+      "severity": "medium",
+      "category": "遗漏集成点",
+      "description": "核实属实：UpdateChannelInput 暴露 supportedModels/appendSupportedModels/manualModels/appendManualModels（ent.graphql:6024-6035），UpdateChannel 直接写入（channel.go:737/:741），批量导入同样写 supported_models（channel_bulk.go:295）；前端渠道表单与批量导入对话框至今仍编辑 supportedModels（channels/data/schema.ts 多处、channels-bulk-import-dialog.tsx）。计划触发点装配只覆盖 saveChannelCapabilities、SaveChannelEndpoints、auto_sync、DeleteChannel、deriveModelAssociations 五处，上述路径新增模型不进能力表、不继承协议、不派生，与已定稿 R2『手动添加或拉取模型列表时新模型默认继承』存在实施层缺口。本条不挑战 R2 语义本身，只指出计划未覆盖也未声明『继承仅发生在能力对话框内』的收窄。",
+      "evidence": "internal/server/gql/ent.graphql:6024-6035；internal/server/biz/channel.go:737/:741；internal/server/biz/channel_bulk.go:295；frontend/src/features/channels/data/schema.ts、channels-bulk-import-dialog.tsx；计划触发点装配清单。",
+      "suggested_fix": "产品层确认收窄（继承仅在能力对话框发生，文档注明）或在 UpdateChannel/批量导入写入模型列表处补能力表继承钩子，并把归属 Unit 写入 Modify 清单。"
+    },
+    {
+      "title": "KTD13『auto 条目不可删除』无服务端强制归属；ModelAssociationInput 将暴露 auto 字段但无清洗约定",
+      "severity": "medium",
+      "category": "覆盖缺口",
+      "description": "两个相关缺口均属实：① R9/KTD13 的『auto 派生条目不可删除、只可禁用』仅由 U8 前端隐藏删除实现，U5 接入的只有启用校验（R6a），直接调 updateModel 提交不含 auto 条目的 protocolPools 可静默删除（直到下次渠道保存对账才可能自愈，且会丢失用户调整过的优先级）；② KTD15 给 ModelAssociation/Input 同步加 auto/disabledReason（model.graphql:53/:148 现有类型，KTD15 扩展），无任何 Unit 说明服务端须忽略客户端提交的 auto 标记——客户端可给手动条目伪造 auto=true，使其落入撤销对账处置范围，违反 KTD7『派生逻辑永不修改或删除手动条目』。",
+      "evidence": "internal/server/gql/model.graphql:53/:148；计划 KTD15、U5 描述（仅启用校验）、U8 描述（仅前端隐藏删除）。",
+      "suggested_fix": "U5 的 settings 写入链补两条规则：拒绝删除现存 auto 条目（或写层强制保留）；入站 associations 一律以服务端现存 auto/disabledReason 状态为准，忽略客户端提交值；补对应单测。"
+    },
+    {
+      "title": "U1 引用的 internal/objects/model_test.go 不存在，『扩展』措辞误导（应为新建）",
+      "severity": "low",
+      "category": "错误代码引用",
+      "description": "核实属实：internal/objects/ 下现有测试仅 GUID_test.go、condition_test.go、price_test.go、price_schedule_test.go，无 model_test.go。U1 写『internal/objects/model_test.go 扩展』会误导实现者寻找不存在的文件。",
+      "evidence": "ls internal/objects/*_test.go 输出四个文件，无 model_test.go；计划 U1 文本。",
+      "suggested_fix": "改为『新建 internal/objects/model_test.go（参照 condition_test.go 模式）』。"
+    },
+    {
+      "title": "迁移引用不精确：『db/ent.go schema.Migrate』实际为 internal/server/db/ent.go 的 client.Schema.Create（合并原 F4/F11）",
+      "severity": "low",
+      "category": "不精确引用",
+      "description": "合并两条 finding：Technical Design 写『新 JSON 字段由 ent 启动自动迁移处理（db/ent.go schema.Migrate，WithDropColumn 已开）』。核实：仓库无顶层 db/ 目录，实际为 internal/server/db/ent.go；API 是 client.Schema.Create(ctx, ..., migrate.WithDropIndex(true), migrate.WithDropColumn(true), schemahook)（:67-76），不存在 schema.Migrate。WithDropColumn(true) 事实正确，新增 JSON 列自动迁移结论成立（无需数据回填/手写 SQL）。同批核实为准确引用：enttest 包存在（internal/ent/enttest/ent.go）、model_fetcher.go FetchModels 在 :237、objects/model.go SupportedInboundAPIFormats/ModelSettings 引用准确、EffectiveModelProtocolPools 在 model_settings_inheritance.go:133、SystemService 依赖在 channel.go:153、db.Tx 先例在 abstract.go:40。",
+      "evidence": "internal/server/db/ent.go:67-76（Schema.Create+WithDropColumn）；internal/ent/enttest/ent.go；internal/server/biz/model_fetcher.go:237；internal/server/biz/model_settings_inheritance.go:133；internal/server/biz/channel.go:153；internal/server/biz/abstract.go:40。",
+      "suggested_fix": "Technical Design 更正为『internal/server/db/ent.go 的 client.Schema.Create 启动自动迁移（WithDropColumn(true) 已开）』。"
+    },
+    {
+      "title": "Sequencing 声称 U3/U4 可并行，但 U3 显式依赖 U4 的 reconcile/apply 签名，前置未声明",
+      "severity": "low",
+      "category": "依赖排序",
+      "description": "核实属实：U3 描述含『SaveProtocolCapabilities 含…触发 reconcile/R11 统计』，即 U3 需调用 U4 产出的 reconcileAssociations+apply；Sequencing『U3/U4（可并行）』只有在 U4 函数签名契约先行冻结时成立，KTD16 仅给出语义轮廓（新旧声明、现有 pools→操作清单），计划未声明签名级前置。其余链路 U1→U2→…→U10 经核无环、无遗漏依赖。",
+      "evidence": "计划 Sequencing 与 U3/U4/KTD16 文本。",
+      "suggested_fix": "Sequencing 注明 U3/U4 并行前提是 U4 的 reconcile/apply 签名先定稿（在 KTD16 补签名级契约），或将 U3 标为依赖 U4。"
+    },
+    {
+      "title": "AE 追溯与实际负责 Unit 的三处错位：AE6 缺 U4、AE9 缺 U7、AE10 缺 U5",
+      "severity": "low",
+      "category": "追溯断链",
+      "description": "经核实计划文本与代码：① AE6（一键同步增量性）追溯 U6/U8，增量/保留优先级语义属对账引擎，应含 U4；② AE9（批量启用部分成功）追溯 U5/U6，但一键批量启用入口在渠道保存提示处、由 U7 实现（U7 描述含 useBulkEnableDerivedAssociations 与保存后一键启用入口），应含 U7；③ AE10 只追溯 U3，其『归档渠道启用被拒绝』分支是 R6a 渠道状态校验，应含 U5（渠道 status enum 含 archived 已核实：schema/channel.go）。",
+      "evidence": "计划 Verification Contract AE 追溯行与 U3/U5/U7/U8 描述；internal/ent/schema/channel.go status enum Values(\"enabled\",\"disabled\",\"archived\")。",
+      "suggested_fix": "修正 AE 追溯：AE6→U4/U6/U8、AE9→U5/U6/U7、AE10→U3/U5。"
+    },
+    {
+      "title": "测试覆盖薄点：U3 缺 R1b/R2a 单测归属；backup/restore 往返回归未显式锁定",
+      "severity": "low",
+      "category": "测试策略缺口",
+      "description": "① U3 测试清单只含『R1a 拒绝、R3 round-trip 保真、差异判定』，但 U3 拥有的 R1b 端点复核逻辑与 R2a 新协议族传播的差异计算无单测归属，仅靠 E2E（AE12/AE11）兜底；② backup/restore 兼容结论经核实成立但未锁定为回归用例：restore.go:269 remapModelSettingsChannelIDs 遍历 ProtocolPools 做渠道 ID 重映射，backup_ops.go:141 序列化整个 ent.Channel——新字段 protocol_capabilities 与 ModelAssociation auto/disabledReason 可自然 round-trip，建议显式补一条往返用例防止后续回归。",
+      "evidence": "计划 U3 Test 清单与 Verification Contract 回归节；internal/server/backup/restore.go:269/:670；internal/server/backup/backup_ops.go:141。",
+      "suggested_fix": "U3 测试清单补 R1b 复核与 R2a 差异传播用例；Verification Contract 回归节补一条 backup/restore 对 auto/disabledReason/protocol_capabilities 的往返测试要求。"
+    }
+  ],
+  "false_positives": [],
+  "summary": "19 条 findings 全部经 read/grep 对照计划与代码核实，无一虚假，合并 3 组重复后得 16 条 confirmed（4 high：U5 启用校验描述失真含 BulkCreateModels 绕过、channel_model_sync.go 无主漏 R12、R10 服务函数无归属、protocolCapabilities entgql 双声明冲突；7 medium：gqlgen.yml 映射缺失、vitest 不实、U7 缺两个接线文件、R1b 无返回面、R17 白名单无后端校验、R2 继承路径缺口、auto 条目服务端强制缺失；5 low/info：model_test.go 应新建、迁移引用不精确、U3/U4 并行前提、AE 追溯三处错位、测试覆盖薄点），其中 U5 一条由 medium 升级 high；4 个 high 问题若按当前计划字面实施将导致生成失败、R10/R12 功能整体缺失或启用闸门失效，建议修复后再进入实施。"
+}

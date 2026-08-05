@@ -255,5 +255,10 @@
   "models.groupedView.collapseAll": "折叠全部",
   "models.groupedView.summary": "{{groups}} 个开发者 · {{models}} 个模型",
   "models.onboarding.steps.settingsButton.title": "模型设置",
-  "models.onboarding.steps.settingsButton.description": "点击这里访问全局模型设置。让我们一起探索您可以配置的内容。"
+  "models.onboarding.steps.settingsButton.description": "点击这里访问全局模型设置。让我们一起探索您可以配置的内容。",
+  "models.dialogs.protocolPool.title": "协议池",
+  "models.dialogs.protocolPool.syncChannels": "同步渠道",
+  "models.dialogs.protocolPool.auto": "自动",
+  "models.messages.deriveAssociationsSuccess": "渠道关联已同步，新增 {{count}} 条关联。",
+  "models.messages.enableAssociationFailed": "关联启用失败，请检查渠道能力和端点配置。"
 }

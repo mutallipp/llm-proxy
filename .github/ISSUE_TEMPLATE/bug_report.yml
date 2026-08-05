@@ -22,7 +22,7 @@ body:
           required: true
         - label: I have read the [documentation](https://github.com/mutallipp/llm-proxy#readme) / 我已阅读文档
           required: true
-        - label: I am using the latest version of AxonHub / 我正在使用 AxonHub 的最新版本
+        - label: I am using the latest version of llm-proxy / 我正在使用 llm-proxy 的最新版本
           required: true
 
   - type: checkboxes
@@ -93,10 +93,10 @@ body:
       required: true
 
   - type: input
-    id: axonhub-version
+    id: llm-proxy-version
     attributes:
-      label: AxonHub Version / AxonHub 版本
-      description: What version of AxonHub are you running? / 你正在运行的 AxonHub 版本是？
+      label: llm-proxy Version / llm-proxy 版本
+      description: What version of llm-proxy are you running? / 你正在运行的 llm-proxy 版本是？
       placeholder: e.g., v1.0.0 / 例如：v1.0.0
     validations:
       required: true
@@ -105,7 +105,7 @@ body:
     id: usage-scenario
     attributes:
       label: Usage Scenario / 使用场景
-      description: How are you using AxonHub when the issue occurs? / 问题发生时你如何使用 AxonHub？
+      description: How are you using llm-proxy when the issue occurs? / 问题发生时你如何使用 llm-proxy？
       options:
         - Claude Code
         - Codex

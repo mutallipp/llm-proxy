@@ -211,7 +211,7 @@ export function CreateDataStorageDialog() {
                       return true;
                     },
                   })}
-                  placeholder='/var/axonhub/data'
+                  placeholder='/var/llm-proxy/data'
                 />
                 {errors.directory && (
                   <span className='text-sm text-red-500'>{errors.directory.message}</span>

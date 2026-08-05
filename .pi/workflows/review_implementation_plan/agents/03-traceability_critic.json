@@ -1,0 +1,69 @@
+{
+  "findings": [
+    {
+      "title": "R12/KTD12 的 auto_sync 钩子文件未出现在任何 Unit 的修改清单",
+      "severity": "high",
+      "category": "遗漏集成点",
+      "description": "Technical Design 触发点装配明确写『channel_model_sync.go 同步成功处（R12）』，但 U1-U10 的 Modify 清单无一包含 channel_model_sync.go：U3 只改 internal/server/biz/channel.go（SaveChannelEndpoints/DeleteChannel），U4 只新建派生引擎。R12 要求新增模型继承全部已勾选协议并触发派生、移除模型触发撤销对账，这些钩子只能落在 syncChannelModelsForChannel（唯一计算 addedModels/removedModels 的位置）。AE7 追溯为 U3/U4，但两者都不拥有该文件。按 Unit 清单实施会整体漏掉 R12，AE7 必然在 E2E 失败。",
+      "evidence": "internal/server/biz/channel_model_sync.go:70 syncChannelModelsForChannel、:132-134 addedModels/removedModels 计算、:143 SetSupportedModels；计划 U3 Modify 仅列 internal/server/biz/channel.go（SaveChannelEndpoints:867、DeleteChannel:890 均已核实存在）",
+      "suggested_fix": "在 U3（或单独 Unit）Modify 清单中加入 internal/server/biz/channel_model_sync.go：在同步成功且 modelsChanged 处调用能力表继承更新（新模型→继承 DeclaredProtocols）与派生/撤销对账，并补充对应单测；AE7 追溯补上该 Unit。"
+    },
+    {
+      "title": "R10『一键同步渠道』服务层实现与测试无归属",
+      "severity": "high",
+      "category": "追溯断链",
+      "description": "KTD17 只定义了 mutation deriveModelAssociations(modelID)，U6 只实现 resolver 接线；但『按逻辑模型名查本地能力表 + 增量对账（保留优先级、对重新声明条目清除禁用原因、不重置已启用状态、不执行撤销对账）』的服务函数在 U3（channel_capability.go 描述无 R10）与 U4（描述只列 R5/R6/R7/R12/R13/R14）中都未出现。U4 测试穷举范围『R4-R8/R12-R14』漏 R10；KTD16 Governs（R4-R8, R12-R14）同样漏 R10，而 R10 的增量模式恰是派生引擎职责。AE6 追溯为 U6/U8（均为接线/UI 层），缺引擎层 U4。实施时 resolver 将无可调用的 biz 方法，很可能返工。",
+      "evidence": "计划 KTD16/KTD17/U4/U6 描述；Verification Contract『对账引擎覆盖 R4-R8/R12-R14』未含 R10；AE 追溯 AE6→U6/U8",
+      "suggested_fix": "在 U4（或 U3）中显式加入 model 维度的增量 reconcile 服务函数（含『不撤销』模式），KTD16 Governs 补 R10，U4 测试穷举补 R10/AE6 分支，AE6 追溯补 U4。"
+    },
+    {
+      "title": "R1b 端点复核产生的撤销结果没有 GraphQL 返回面",
+      "severity": "medium",
+      "category": "产品契约与实施矛盾",
+      "description": "R1b 要求端点保存后复核、『不再被支持的声明按撤销处理并提示』，AE12 要求『渠道侧提示该变更』。但 saveChannelEndpoints 现返回 Channel!，KTD18 的 revoked{autoDisabledCount, manualNotices[]} 只存在于 SaveChannelCapabilitiesPayload；U6 的 schema 修改清单没有改 saveChannelEndpoints 返回类型，也没有其他通知通道。R1b 复核即使被 U3 触发，前端也拿不到撤销统计与手动条目提示。",
+      "evidence": "internal/server/gql/llm-proxy.graphql:830 saveChannelEndpoints(input: SaveChannelEndpointsInput!): Channel!；internal/server/biz/channel.go:867-887 现实现仅返回 *ent.Channel；KTD18 payload 定义仅挂在 saveChannelCapabilities",
+      "suggested_fix": "KTD18/U6 二选一明确：将 saveChannelEndpoints 返回改为含 revoked 统计的 payload 类型，或定义 R1b 提示的替代获取方式（如复核结果随 Channel.protocolCapabilities 暴露+前端 diff），并同步 AE12 验收方式。"
+    },
+    {
+      "title": "R17 白名单约束在声明保存时缺后端强制点归属",
+      "severity": "medium",
+      "category": "覆盖缺口",
+      "description": "R17 要求渠道协议声明受协议池 key 白名单约束，但 U3 的 SaveProtocolCapabilities 描述只列 R1a 端点能力校验，未包含对 DeclaredProtocols/Models[].Protocols 的白名单校验；前端 U7 仅靠 protocolPoolFormats 限定可选项，直接调 GraphQL 可绕过。若非白名单 key 进入能力表，派生将向 model settings 写入非法协议池 key（ValidateProtocolPools 只在 model 保存路径拦截，派生 merge-write 不经过它）。",
+      "evidence": "白名单定义 internal/objects/model.go:46-49 SupportedInboundAPIFormats；校验只存在于 ValidateProtocolPools（internal/objects/model.go:52 起）与 validateModelSettings（internal/server/biz/model.go:57 起）；计划 U3 描述无白名单校验项",
+      "suggested_fix": "U3 的 SaveProtocolCapabilities 显式加入『协议 key ∈ SupportedInboundAPIFormats』入参校验（objects 层可提供共享校验函数），并加一条 U3 单测用例。"
+    },
+    {
+      "title": "R2 继承在能力对话框之外的模型列表变更路径（UpdateChannel/批量导入）无触发点",
+      "severity": "medium",
+      "category": "遗漏集成点",
+      "description": "R2 要求『渠道添加模型（手动添加或拉取模型列表）时新模型默认继承全部已勾选协议』。计划触发点装配只覆盖 saveChannelCapabilities、SaveChannelEndpoints、auto_sync、DeleteChannel、deriveModelAssociations 五处；但 supportedModels/manualModels 可经 UpdateChannelInput 与批量导入直接写入，这些路径新增模型不会进入能力表、也不会派生，与 R2 语义矛盾。计划未声明『继承仅发生在能力对话框内』这一收窄。",
+      "evidence": "internal/server/gql/ent.graphql:6031-6033 UpdateChannelInput 暴露 supportedModels/manualModels；internal/server/biz/channel.go:737-741 UpdateChannel 写入两者；internal/server/biz/channel_bulk.go:295 批量导入 SetSupportedModels",
+      "suggested_fix": "产品层确认收窄（继承仅在能力对话框发生，文档注明）或在 UpdateChannel/批量导入写入模型列表处补能力表继承钩子，并把归属 Unit 写入 Modify 清单。"
+    },
+    {
+      "title": "KTD13『auto 条目不可删除』无服务端强制归属；ModelAssociationInput 暴露 auto 字段未提清洗",
+      "severity": "medium",
+      "category": "覆盖缺口",
+      "description": "两个相关缺口：① R9/KTD13 的『auto 派生条目不可删除、只可禁用』仅由 U8 前端隐藏删除实现，U5 接入 validateModelSettings 的只有启用校验（R6a），直接调 updateModel 删除 auto 条目可静默生效（直到下次对账才自愈）；② KTD15 给 ModelAssociationInput 同步加了 auto/disabledReason 字段，但没有任何 Unit 说明服务端须忽略/清洗客户端提交的 auto 标记——客户端可给手动条目伪造 auto=true，使其落入撤销对账处置范围，违反 KTD7。",
+      "evidence": "internal/server/gql/model.graphql:53 type ModelAssociation、:148 input ModelAssociationInput（KTD15 将向两者加 auto/disabledReason）；计划 U5 描述仅含启用校验，U8 描述为『auto 条目隐藏删除』",
+      "suggested_fix": "U5 的 settings 校验链中补两条规则：拒绝删除现存 auto 条目（或写层静默保留）、入 associations 一律以服务端状态为准忽略客户端 auto/disabledReason；补对应单测。"
+    },
+    {
+      "title": "AE 追溯与实际负责 Unit 不匹配的三处小错位",
+      "severity": "low",
+      "category": "追溯断链",
+      "description": "① AE6（一键同步增量性）追溯 U6/U8，但增量语义属引擎层，应含 U4；② AE9（批量启用部分成功）追溯 U5/U6，但『一键批量启用入口』在渠道保存提示处、由 U7 实现（U7 描述含 useBulkEnableDerivedAssociations 与『一键启用入口』），应含 U7；③ AE10 只追溯 U3，其『归档渠道启用被拒绝』分支依赖 R6a 渠道状态校验（channel status enum enabled/disabled/archived），应含 U5。",
+      "evidence": "计划 Verification Contract AE 追溯行；U7/U8 单元描述；internal/ent/schema/channel.go:108 status enum 含 archived",
+      "suggested_fix": "修正 AE 追溯为 AE6→U4/U6/U8、AE9→U5/U6/U7、AE10→U3/U5。"
+    },
+    {
+      "title": "代码引用错误与单测覆盖薄点（含 backup/restore 回归建议）",
+      "severity": "low",
+      "category": "测试策略缺口",
+      "description": "① U5 写『CreateModel:61』，实际 CreateModel 在 internal/server/biz/model.go:347（61 行处于 validateModelSettings 函数体内），行号引用错误；② U3 测试清单只含 R1a/R3/差异判定，R1b 端点复核与 R2a 新协议族传播无单测归属，仅靠 E2E（AE12/AE11）兜底；③ Verification Contract 回归只写 go test ./internal/... 与 orchestrator 零改动，未点名 backup/restore 兼容——实测 restore.go 会对 protocolPools 做渠道 ID 重映射、backup 序列化整个 ent.Channel，新字段 auto/disabledReason 与 protocol_capabilities 可自然 round-trip，但建议显式补一条备份/恢复往返用例锁定该兼容结论。",
+      "evidence": "internal/server/biz/model.go:347 CreateModel、:444 UpdateModel、:57 validateModelSettings；internal/server/backup/restore.go:268-300 remapModelSettingsChannelIDs；internal/server/backup/backup_ops.go:141 BackupChannel{Channel: *ch}",
+      "suggested_fix": "更正 U5 行号为 CreateModel:347；U3 测试清单补 R1b/R2a 用例；Verification Contract 回归节补一条 backup/restore 对 auto/disabledReason/protocol_capabilities 的往返测试要求。"
+    }
+  ],
+  "summary": "计划代码引用基本属实（SaveChannelEndpoints:867、SupportedInboundAPIFormats、ent schema、前端文件等均核实存在），但存在 2 个 high 级追溯断链——R12 的 auto_sync 钩子文件（channel_model_sync.go）不在任何 Unit 修改清单、R10 一键同步的服务层实现与测试无归属，另有 R1b 提示无返回面、R17 后端白名单强制点缺失、R2 在 UpdateChannel/批量导入路径无继承钩子、KTD13/auto 字段缺服务端强制与清洗等 4 个 medium 缺口需修复后方可实施。"
+}

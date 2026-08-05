@@ -22,7 +22,7 @@ var defaultConfig = Config{
 	Excludes:  []string{},
 	Output:    "stdio",
 	File: FileConfig{
-		Path:       "logs/axonhub.log",
+		Path:       "logs/llm-proxy.log",
 		MaxSize:    50,
 		MaxAge:     30,
 		MaxBackups: 10,
@@ -44,7 +44,7 @@ var globalConfig = Config{
 	Excludes:  []string{},
 	Output:    "stdio",
 	File: FileConfig{
-		Path:       "logs/axonhub.log",
+		Path:       "logs/llm-proxy.log",
 		MaxSize:    50,
 		MaxAge:     30,
 		MaxBackups: 10,

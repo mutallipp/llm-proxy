@@ -64,7 +64,7 @@ func TestWebhookNotifier_NotifyChannelAutoDisabled(t *testing.T) {
 				URL:       server.URL,
 				TimeoutMs: 1000,
 				Headers: []objects.HeaderEntry{
-					{Key: "X-AxonHub-Event", Value: "{{.Event}}"},
+					{Key: "X-llm-proxy-Event", Value: "{{.Event}}"},
 				},
 				Body: `{"event":"{{.Event}}","channel":"{{.Channel.Name}}","status_code":{{.Trigger.StatusCode}},"threshold":{{.Trigger.Threshold}},"actual_count":{{.Trigger.ActualCount}}}`,
 			},

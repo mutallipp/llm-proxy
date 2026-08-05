@@ -1,6 +1,6 @@
 # Model Management Guide
 
-This guide explains how to manage AI models in AxonHub and use "Model Associations" for intelligent routing.
+This guide explains how to manage AI models in llm-proxy and use "Model Associations" for intelligent routing.
 
 ## Core Concepts: Models and Channels
 
@@ -11,7 +11,7 @@ Imagine you're sending a package:
 - **Channel** = Different courier companies (e.g., "SF Express", "YTO")
 - **Model Association** = Your rule: "Documents go via SF Express, packages via YTO; if SF fails, use YTO"
 
-In AxonHub:
+In llm-proxy:
 - **Model**: An abstract name you expose, like `gpt-4` or `claude-sonnet`
 - **Channel**: An actual AI provider connection
 - **Model Association**: Determines which channel and actual model to use when a client requests a model
@@ -48,7 +48,7 @@ By default, a model inherits developer rules from the same developer and merges 
 
 ## Model Association Types
 
-Model associations are "routing rules." AxonHub supports 6 rule types:
+Model associations are "routing rules." llm-proxy supports 6 rule types:
 
 ### 1. Specific Channel, Specific Model (Most Precise)
 

@@ -138,7 +138,7 @@ type LoadBalancer struct {
 // NewLoadBalancer creates a new load balancer with the given strategies.
 // All strategy scores are summed with equal weight; registration order does not affect scoring.
 func NewLoadBalancer(systemService RetryPolicyProvider, selectionTracker ChannelSelectionTracker, strategies ...LoadBalanceStrategy) *LoadBalancer {
-	debug := strings.EqualFold(os.Getenv("AXONHUB_DEBUG_LOAD_BALANCER_ENABLED"), "true")
+	debug := strings.EqualFold(os.Getenv("LLM_PROXY_DEBUG_LOAD_BALANCER_ENABLED"), "true")
 
 	return &LoadBalancer{
 		strategies:       strategies,

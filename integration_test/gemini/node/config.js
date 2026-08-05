@@ -2,7 +2,7 @@ const crypto = require('crypto');
 
 class TestConfig {
   constructor() {
-    this.apiKey = process.env.TEST_AXONHUB_API_KEY || '';
+    this.apiKey = process.env.TEST_LLM_PROXY_API_KEY || '';
     this.baseUrl = process.env.TEST_GEMINI_BASE_URL || 'http://localhost:8090/gemini';
     this.model = process.env.TEST_MODEL || 'gemini-2.5-flash';
     this.disableTrace = process.env.TEST_DISABLE_TRACE === 'true';
@@ -26,7 +26,7 @@ class TestConfig {
 
   validateConfig() {
     if (!this.apiKey) {
-      throw new Error('API key is required (set TEST_AXONHUB_API_KEY environment variable)');
+      throw new Error('API key is required (set TEST_LLM_PROXY_API_KEY environment variable)');
     }
 
     if (!this.disableTrace && !this.traceId) {

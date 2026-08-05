@@ -33,7 +33,7 @@ jobs:
           cache: true
 
       - name: Build main binary
-        run: go build -ldflags "-s -w" -tags=nomsgpack -o axonhub ./cmd/axonhub
+        run: go build -ldflags "-s -w" -tags=nomsgpack -o llm-proxy ./cmd/llm-proxy
 
       - name: Build schema generator
         run: cd cmd/schema && go build -o schema

@@ -387,7 +387,7 @@ func TestEvaluate(t *testing.T) {
 					Value:    "cli",
 				}},
 			},
-			data: map[string]any{"request_header": map[string]string{"User-Agent": "axonhub-cli/1.2"}},
+			data: map[string]any{"request_header": map[string]string{"User-Agent": "llm-proxy-cli/1.2"}},
 			want: true,
 		},
 		{
@@ -399,7 +399,7 @@ func TestEvaluate(t *testing.T) {
 					Value:    "browser",
 				}},
 			},
-			data: map[string]any{"request_header": map[string]string{"User-Agent": "axonhub-cli/1.2"}},
+			data: map[string]any{"request_header": map[string]string{"User-Agent": "llm-proxy-cli/1.2"}},
 			want: true,
 		},
 		{
@@ -408,10 +408,10 @@ func TestEvaluate(t *testing.T) {
 				Conditions: []Condition{{
 					Field:    "request_header.User-Agent",
 					Operator: "start_with",
-					Value:    "axonhub",
+					Value:    "llm-proxy",
 				}},
 			},
-			data: map[string]any{"request_header": map[string]string{"User-Agent": "axonhub-cli/1.2"}},
+			data: map[string]any{"request_header": map[string]string{"User-Agent": "llm-proxy-cli/1.2"}},
 			want: true,
 		},
 		{
@@ -423,7 +423,7 @@ func TestEvaluate(t *testing.T) {
 					Value:    "1.2",
 				}},
 			},
-			data: map[string]any{"request_header": map[string]string{"User-Agent": "axonhub-cli/1.2"}},
+			data: map[string]any{"request_header": map[string]string{"User-Agent": "llm-proxy-cli/1.2"}},
 			want: true,
 		},
 	}

@@ -37,7 +37,7 @@ globs: "internal/ent/schema/**/*.go, internal/server/gql/**/*.go, internal/serve
    - Run `make generate` to regenerate code
    - Example workflow:
      ```graphql
-     # 1. Define types in axonhub.graphql
+     # 1. Define types in llm-proxy.graphql
      input ChannelRateLimitInput {
        rpm: Int
        tpm: Int

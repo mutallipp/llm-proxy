@@ -74,10 +74,10 @@ fmt:
 # Check if environment is properly configured
 check-env:
 	@echo "Checking environment configuration..."
-	@if [ -z "$$TEST_AXONHUB_API_KEY" ]; then \
-		echo "WARNING: TEST_AXONHUB_API_KEY not set"; \
+	@if [ -z "$$TEST_LLM_PROXY_API_KEY" ]; then \
+		echo "WARNING: TEST_LLM_PROXY_API_KEY not set"; \
 	else \
-		echo "✓ TEST_AXONHUB_API_KEY is set"; \
+		echo "✓ TEST_LLM_PROXY_API_KEY is set"; \
 	fi
 	@echo "TEST_ANTHROPIC_BASE_URL: $${TEST_ANTHROPIC_BASE_URL:-https://api.anthropic.com}"
 	@echo "TEST_MODEL: $${TEST_MODEL:-claude-3-5-sonnet-20241022}"
@@ -118,7 +118,7 @@ help:
 env-reminder:
 	@echo "=== Environment Setup Reminder ==="
 	@echo "Make sure you have set the following environment variables:"
-	@echo "  export TEST_AXONHUB_API_KEY='your-anthropic-api-key'"
+	@echo "  export TEST_LLM_PROXY_API_KEY='your-anthropic-api-key'"
 	@echo "  export TEST_ANTHROPIC_BASE_URL='https://api.anthropic.com'  # Optional"
 	@echo "  export TEST_MODEL='claude-3-5-sonnet-20241022'              # Optional"
 	@echo ""

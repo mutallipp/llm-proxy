@@ -11,19 +11,19 @@ function Write-Success([string]$m){ Write-Host "[SUCCESS] $m" -ForegroundColor G
 function Write-Warn([string]$m){ Write-Host "[WARNING] $m" -ForegroundColor Yellow }
 function Write-Err([string]$m){ Write-Host "[ERROR] $m" -ForegroundColor Red }
 
-$ServiceName = 'axonhub'
-$BaseDir = Join-Path $env:LOCALAPPDATA 'AxonHub'
+$ServiceName = 'llm-proxy'
+$BaseDir = Join-Path $env:LOCALAPPDATA 'llm-proxy'
 $ConfigFile = Join-Path $BaseDir 'config.yml'
-$BinaryPath = Join-Path $BaseDir 'axonhub.exe'
-$PidFile = Join-Path $BaseDir 'axonhub.pid'
-$LogFile = Join-Path $BaseDir 'axonhub.log'
+$BinaryPath = Join-Path $BaseDir 'llm-proxy.exe'
+$PidFile = Join-Path $BaseDir 'llm-proxy.pid'
+$LogFile = Join-Path $BaseDir 'llm-proxy.log'
 $DefaultPort = 8090
 
 function Show-Usage {
   Write-Host @" 
 Usage: start.bat
 
-This script starts AxonHub directly (no service manager).
+This script starts llm-proxy directly (no service manager).
 Logs: $LogFile
 PID file: $PidFile
 "@
@@ -65,13 +65,13 @@ function Check-Port([int]$port){
   return $true
 }
 
-$stdoutTempFile = Join-Path $env:TEMP ("axonhub-" + [guid]::NewGuid().ToString() + '-stdout.log')
-$stderrTempFile = Join-Path $env:TEMP ("axonhub-" + [guid]::NewGuid().ToString() + '-stderr.log')
+$stdoutTempFile = Join-Path $env:TEMP ("llm-proxy-" + [guid]::NewGuid().ToString() + '-stdout.log')
+$stderrTempFile = Join-Path $env:TEMP ("llm-proxy-" + [guid]::NewGuid().ToString() + '-stderr.log')
 
-Write-Info 'Starting AxonHub...'
+Write-Info 'Starting llm-proxy...'
 
 if(-not (Test-Path $BinaryPath)){
-  Write-Err "AxonHub binary not found at $BinaryPath"
+  Write-Err "llm-proxy binary not found at $BinaryPath"
   Write-Info 'Please run the installer first: install.bat'
   exit 1
 }
@@ -83,7 +83,7 @@ if(Test-Path $PidFile){
   try {
     $pid = Get-Content -Path $PidFile -ErrorAction Stop
     if($pid -and (Get-Process -Id $pid -ErrorAction SilentlyContinue)){
-      Write-Warn "AxonHub is already running (PID: $pid)"
+      Write-Warn "llm-proxy is already running (PID: $pid)"
       exit 0
     } else {
       Write-Info 'Removing stale PID file'
@@ -97,19 +97,19 @@ if(Test-Path $PidFile){
 # Check configured port
 $port = Get-ConfiguredPort
 if(-not (Check-Port $port)){
-  Write-Err "Cannot start AxonHub: port $port is already in use"
+  Write-Err "Cannot start llm-proxy: port $port is already in use"
   exit 1
 }
 
 $ConfigArgs = @()
 if(Test-Path $ConfigFile){ 
-  # Config exists, binary will auto-detect it from $HOME/.config/axonhub/
+  # Config exists, binary will auto-detect it from $HOME/.config/llm-proxy/
   Write-Info "Configuration found at $ConfigFile, binary will auto-detect it" 
 } else { 
   Write-Warn "Configuration not found at $ConfigFile, starting with defaults" 
 }
 
-Write-Info 'Starting AxonHub process...'
+Write-Info 'Starting llm-proxy process...'
 try {
   if($ConfigArgs.Count -gt 0){
     $p = Start-Process -FilePath $BinaryPath -ArgumentList $ConfigArgs -RedirectStandardOutput $stdoutTempFile -RedirectStandardError $stderrTempFile -PassThru -WindowStyle Hidden
@@ -120,17 +120,17 @@ try {
   if($p -and (Get-Process -Id $p.Id -ErrorAction SilentlyContinue)){
     $p.Id | Out-File -FilePath $PidFile -Encoding ascii -Force
     Remove-Item -Force $stdoutTempFile,$stderrTempFile -ErrorAction SilentlyContinue
-    Write-Success "AxonHub started successfully (PID: $($p.Id))"
+    Write-Success "llm-proxy started successfully (PID: $($p.Id))"
     Write-Info 'Process information:'
     Write-Host "  • PID: $($p.Id)"
     Write-Host "  • Log file: $LogFile"
     Write-Host "  • Config: " -NoNewline; if(Test-Path $ConfigFile){ Write-Host $ConfigFile } else { Write-Host 'default' }
     Write-Host "  • Web interface: http://localhost:$port"
     Write-Host ''
-    Write-Info 'To stop AxonHub: stop.bat'
+    Write-Info 'To stop llm-proxy: stop.bat'
     Write-Info "To view logs: Get-Content -Path '$LogFile' -Tail 100 -Wait"
   } else {
-    Write-Err 'AxonHub failed to start'
+    Write-Err 'llm-proxy failed to start'
     if(Test-Path $LogFile){
       Write-Info 'Last few log lines:'
       Get-Content -Path $LogFile -Tail 20

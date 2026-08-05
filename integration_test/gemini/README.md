@@ -1,6 +1,6 @@
 # Gemini Go SDK Integration Tests
 
-This directory contains comprehensive integration tests for the Gemini Go SDK using the `google.golang.org/genai` library, demonstrating various API usage patterns with proper header handling for AxonHub integration.
+This directory contains comprehensive integration tests for the Gemini Go SDK using the `google.golang.org/genai` library, demonstrating various API usage patterns with proper header handling for llm-proxy integration.
 
 ## Test Structure
 
@@ -21,7 +21,7 @@ Each test case is organized in its own directory with dedicated tests and docume
 ## Common Integration Features
 
 ### Headers Integration
-All tests include proper AxonHub header handling:
+All tests include proper llm-proxy header handling:
 - `AH-Trace-Id`: Request tracing identifier
 - `AH-Thread-Id`: Conversation thread identifier
 
@@ -41,13 +41,13 @@ All tests include proper AxonHub header handling:
 
 ### Environment Setup
 1. **Go 1.25+**: Ensure Go is installed and configured
-2. **AxonHub API Key**: Set the `TEST_AXONHUB_API_KEY` environment variable
+2. **llm-proxy API Key**: Set the `TEST_LLM_PROXY_API_KEY` environment variable
 3. **Dependencies**: Run `go mod tidy` to install required packages
 
 ### Required Environment Variables
 ```bash
-export TEST_AXONHUB_API_KEY="your-api-key-here"
-export TEST_GEMINI_BASE_URL="http://localhost:8090/gemini"  # Optional, defaults to AxonHub
+export TEST_LLM_PROXY_API_KEY="your-api-key-here"
+export TEST_GEMINI_BASE_URL="http://localhost:8090/gemini"  # Optional, defaults to llm-proxy
 export TEST_TRACE_ID="test-trace-123"              # Optional, defaults provided
 export TEST_THREAD_ID="test-thread-456"            # Optional, defaults provided
 export TEST_PROJECT_ID="test-project"              # Optional, defaults provided
@@ -59,7 +59,7 @@ export TEST_MODEL="gemini-1.5-flash"               # Optional, defaults to gemin
 ### Run All Tests
 ```bash
 # From the integration test directory
-cd /path/to/axonhub/integration_test/gemini
+cd /path/to/llm-proxy/integration_test/gemini
 
 # Run all tests
 go test -v ./...
@@ -93,7 +93,7 @@ Tests use a centralized configuration system defined in `internal/testutil/`:
 
 - **Config**: Environment variable management
 - **Client**: Gemini client setup with authentication using go-genai
-- **Headers**: AxonHub header generation
+- **Headers**: llm-proxy header generation
 - **Helper**: Common test utilities and validation
 
 ### Custom Configuration
@@ -143,12 +143,12 @@ response, err := model.GenerateContent(ctx, parts...)
 
 If no `TEST_MODEL` is specified, the system defaults to `gemini-1.5-flash`.
 
-## Integration with AxonHub
+## Integration with llm-proxy
 
-These tests demonstrate proper integration patterns for AxonHub:
+These tests demonstrate proper integration patterns for llm-proxy:
 
 ### Header Propagation
-All requests include standard AxonHub headers for tracing and threading:
+All requests include standard llm-proxy headers for tracing and threading:
 
 ```go
 headers := map[string]string{
@@ -158,10 +158,10 @@ headers := map[string]string{
 ```
 
 ### Context Management
-Tests show how to maintain conversation context and state across multiple API calls using Gemini chat sessions, which is essential for AxonHub's conversation threading system.
+Tests show how to maintain conversation context and state across multiple API calls using Gemini chat sessions, which is essential for llm-proxy's conversation threading system.
 
 ### Error Handling
-Proper error handling and validation patterns that integrate well with AxonHub's error reporting and logging systems.
+Proper error handling and validation patterns that integrate well with llm-proxy's error reporting and logging systems.
 
 ## Gemini SDK Specific Features
 
@@ -246,8 +246,8 @@ Follow these patterns for consistency:
 
 **Missing API Key**
 ```
-Error: TEST_AXONHUB_API_KEY environment variable is required
-Solution: Set TEST_AXONHUB_API_KEY environment variable
+Error: TEST_LLM_PROXY_API_KEY environment variable is required
+Solution: Set TEST_LLM_PROXY_API_KEY environment variable
 ```
 
 **Import Errors**

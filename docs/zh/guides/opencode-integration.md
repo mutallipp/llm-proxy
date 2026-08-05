@@ -4,19 +4,19 @@
 
 ## 概述
 
-AxonHub 可以作为 Anthropic 端点的无缝替代方案，让 OpenCode 通过您自己的基础设施进行连接。本指南说明了如何配置 OpenCode 以及如何将其与 AxonHub 模型配置（Model Profiles）结合使用，以实现灵活的路由。
+llm-proxy 可以作为 Anthropic 端点的无缝替代方案，让 OpenCode 通过您自己的基础设施进行连接。本指南说明了如何配置 OpenCode 以及如何将其与 llm-proxy 模型配置（Model Profiles）结合使用，以实现灵活的路由。
 
 ### 核心点
 
-- AxonHub 执行 AI 协议/格式转换。您可以配置多个上游渠道（供应商），并为 OpenCode 暴露一个统一的 Anthropic 兼容接口。
+- llm-proxy 执行 AI 协议/格式转换。您可以配置多个上游渠道（供应商），并为 OpenCode 暴露一个统一的 Anthropic 兼容接口。
 - 您可以将来自同一会话的 OpenCode 请求聚合到一个追踪（Trace）中（参见“配置 OpenCode”）。
 
 ### 前提条件
 
-- 可从您的开发机器访问的 AxonHub 实例。
-- 具有项目访问权限的有效 AxonHub API 密钥。
+- 可从您的开发机器访问的 llm-proxy 实例。
+- 具有项目访问权限的有效 llm-proxy API 密钥。
 - 访问 OpenCode CLI 工具。
-- 可选：在 AxonHub 控制台中配置的一个或多个模型配置（Model Profiles）。
+- 可选：在 llm-proxy 控制台中配置的一个或多个模型配置（Model Profiles）。
 
 ---
 
@@ -30,19 +30,19 @@ AxonHub 可以作为 Anthropic 端点的无缝替代方案，让 OpenCode 通过
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    "opencode-axonhub-tracing"
+    "opencode-llm-proxy-tracing"
   ],
   "provider": {
-    "axonhub": {
+    "llm-proxy": {
       "npm": "@ai-sdk/anthropic",
-      "name": "AxonHub",
+      "name": "llm-proxy",
       "options": {
         "baseURL": "http://127.0.0.1:8090/anthropic/v1",
-        "apiKey": "AXONHUB_API_KEY"
+        "apiKey": "LLM_PROXY_API_KEY"
       },
       "models": {
         "claude-sonnet-4-5": {
-          "name": "AxonHub - Claude Sonnet 4.5",
+          "name": "llm-proxy - Claude Sonnet 4.5",
           "modalities": {
             "input": [
               "text",
@@ -64,9 +64,9 @@ AxonHub 可以作为 Anthropic 端点的无缝替代方案，让 OpenCode 通过
 | 参数 | 描述 | 示例 |
 |-----------|-------------|---------|
 | `npm` | 用于提供商的 npm 包 | `@ai-sdk/anthropic` |
-| `name` | 提供商的显示名称 | `AxonHub` |
-| `baseURL` | AxonHub Anthropic API 端点 | `http://127.0.0.1:8090/anthropic/v1` |
-| `apiKey` | 您的 AxonHub API 密钥 | 将 `AXONHUB_API_KEY` 替换为您的实际密钥 |
+| `name` | 提供商的显示名称 | `llm-proxy` |
+| `baseURL` | llm-proxy Anthropic API 端点 | `http://127.0.0.1:8090/anthropic/v1` |
+| `apiKey` | 您的 llm-proxy API 密钥 | 将 `LLM_PROXY_API_KEY` 替换为您的实际密钥 |
 
 ### 3. 添加多个模型
 
@@ -75,30 +75,30 @@ AxonHub 可以作为 Anthropic 端点的无缝替代方案，让 OpenCode 通过
 ```json
 {
   "provider": {
-    "axonhub": {
+    "llm-proxy": {
       "npm": "@ai-sdk/anthropic",
-      "name": "AxonHub",
+      "name": "llm-proxy",
       "options": {
         "baseURL": "http://127.0.0.1:8090/anthropic/v1",
-        "apiKey": "your-axonhub-api-key"
+        "apiKey": "your-llm-proxy-api-key"
       },
       "models": {
         "claude-sonnet-4-5": {
-          "name": "AxonHub - Claude Sonnet 4.5",
+          "name": "llm-proxy - Claude Sonnet 4.5",
           "modalities": {
             "input": ["text", "image"],
             "output": ["text"]
           }
         },
         "claude-haiku-4-5": {
-          "name": "AxonHub - Claude Haiku 4.5",
+          "name": "llm-proxy - Claude Haiku 4.5",
           "modalities": {
             "input": ["text", "image"],
             "output": ["text"]
           }
         },
         "claude-opus-4-5": {
-          "name": "AxonHub - Claude Opus 4.5",
+          "name": "llm-proxy - Claude Opus 4.5",
           "modalities": {
             "input": ["text", "image"],
             "output": ["text"]
@@ -110,15 +110,15 @@ AxonHub 可以作为 Anthropic 端点的无缝替代方案，让 OpenCode 通过
 }
 ```
 
-### 4. 使用远程 AxonHub 实例
+### 4. 使用远程 llm-proxy 实例
 
-如果您的 AxonHub 实例部署在远程，请更新 `baseURL`：
+如果您的 llm-proxy 实例部署在远程，请更新 `baseURL`：
 
 ```json
 {
   "options": {
-    "baseURL": "https://your-axonhub-domain.com/anthropic/v1",
-    "apiKey": "your-axonhub-api-key"
+    "baseURL": "https://your-llm-proxy-domain.com/anthropic/v1",
+    "apiKey": "your-llm-proxy-api-key"
   }
 }
 ```
@@ -127,16 +127,16 @@ AxonHub 可以作为 Anthropic 端点的无缝替代方案，让 OpenCode 通过
 
 ## 使用模型配置（Model Profiles）
 
-AxonHub 模型配置可以将传入的模型名称重映射为特定提供商的等效名称：
-- 在 AxonHub 控制台中创建一个配置，并添加映射规则（精确名称或正则表达式）。
+llm-proxy 模型配置可以将传入的模型名称重映射为特定提供商的等效名称：
+- 在 llm-proxy 控制台中创建一个配置，并添加映射规则（精确名称或正则表达式）。
 - 将该配置分配给您的 API 密钥。
 - 切换活跃的配置以更改 OpenCode 行为，而无需更改工具设置。
 
 <table>
   <tr align="center">
     <td align="center">
-      <a href="../../screenshots/axonhub-profiles.png">
-        <img src="../../screenshots/axonhub-profiles.png" alt="模型配置" width="250"/>
+      <a href="../../screenshots/llm-proxy-profiles.png">
+        <img src="../../screenshots/llm-proxy-profiles.png" alt="模型配置" width="250"/>
       </a>
       <br/>
       模型配置
@@ -165,7 +165,7 @@ AxonHub 模型配置可以将传入的模型名称重映射为特定提供商的
 
 ## OpenCode 追踪插件
 
-`opencode-axonhub-tracing` 插件为每个 LLM 请求注入追踪头部（trace headers），实现在 AxonHub 中的请求聚合和追踪。
+`opencode-llm-proxy-tracing` 插件为每个 LLM 请求注入追踪头部（trace headers），实现在 llm-proxy 中的请求聚合和追踪。
 
 ### 默认 Headers
 
@@ -181,7 +181,7 @@ AxonHub 模型配置可以将传入的模型名称重映射为特定提供商的
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-axonhub-tracing"]
+  "plugin": ["opencode-llm-proxy-tracing"]
 }
 ```
 
@@ -193,14 +193,14 @@ OpenCode 会在需要时自动安装插件。
 
 | 环境变量 | 默认值 | 描述 |
 |----------|--------|------|
-| `OPENCODE_AXONHUB_TRACING_THREAD_HEADER` | `AH-Thread-Id` | 自定义线程 header key |
-| `OPENCODE_AXONHUB_TRACING_TRACE_HEADER` | `AH-Trace-Id` | 自定义追踪 header key |
+| `OPENCODE_LLM_PROXY_TRACING_THREAD_HEADER` | `AH-Thread-Id` | 自定义线程 header key |
+| `OPENCODE_LLM_PROXY_TRACING_TRACE_HEADER` | `AH-Trace-Id` | 自定义追踪 header key |
 
 示例：
 
 ```bash
-export OPENCODE_AXONHUB_TRACING_THREAD_HEADER="X-Thread-Id"
-export OPENCODE_AXONHUB_TRACING_TRACE_HEADER="X-Trace-Id"
+export OPENCODE_LLM_PROXY_TRACING_THREAD_HEADER="X-Thread-Id"
+export OPENCODE_LLM_PROXY_TRACING_TRACE_HEADER="X-Trace-Id"
 ```
 
 > **注意**：空字符串值会自动回退到默认 key。
@@ -213,7 +213,7 @@ export OPENCODE_AXONHUB_TRACING_TRACE_HEADER="X-Trace-Id"
 
 ### 收益
 
-- **会话聚合**：在 AxonHub 追踪中将同一 OpenCode 会话的相关请求分组
+- **会话聚合**：在 llm-proxy 追踪中将同一 OpenCode 会话的相关请求分组
 - **请求关联**：在 AI 基础设施中追踪单个消息
 - **灵活配置**：自定义 header key 以匹配现有的追踪基础设施
 
@@ -226,8 +226,8 @@ export OPENCODE_AXONHUB_TRACING_TRACE_HEADER="X-Trace-Id"
 **症状**：连接错误、超时错误
 
 **解决方案**：
-1. 验证 `baseURL` 指向正确的 AxonHub 端点
-2. 检查 AxonHub 是否正在运行：`curl http://localhost:8090/health`
+1. 验证 `baseURL` 指向正确的 llm-proxy 端点
+2. 检查 llm-proxy 是否正在运行：`curl http://localhost:8090/health`
 3. 验证防火墙是否允许出站连接
 4. 对于使用自签名证书的 HTTPS 端点，配置信任设置
 
@@ -237,7 +237,7 @@ export OPENCODE_AXONHUB_TRACING_TRACE_HEADER="X-Trace-Id"
 
 **解决方案**：
 1. 验证您的 API 密钥在配置中是否正确
-2. 在 AxonHub 控制台中检查 API 密钥是否已过期
+2. 在 llm-proxy 控制台中检查 API 密钥是否已过期
 3. 确保 API 密钥具有所请求项目的访问权限
 4. 验证 API 密钥具有所请求模型的权限
 
@@ -246,7 +246,7 @@ export OPENCODE_AXONHUB_TRACING_TRACE_HEADER="X-Trace-Id"
 **症状**：错误的模型响应、意外行为
 
 **解决方案**：
-1. 在 AxonHub 控制台中查看活跃的配置映射
+1. 在 llm-proxy 控制台中查看活跃的配置映射
 2. 检查渠道配置和模型关联
 3. 验证请求的模型名称是否与您的配置匹配
 4. 如果有必要，禁用或调整配置规则
@@ -265,18 +265,18 @@ export OPENCODE_AXONHUB_TRACING_TRACE_HEADER="X-Trace-Id"
 
 ## 高级配置
 
-### 多个 AxonHub 提供商
+### 多个 llm-proxy 提供商
 
-您可以将多个 AxonHub 实例配置为不同的提供商：
+您可以将多个 llm-proxy 实例配置为不同的提供商：
 
 ```json
 {
   "provider": {
-    "axonhub-prod": {
+    "llm-proxy-prod": {
       "npm": "@ai-sdk/anthropic",
-      "name": "AxonHub Production",
+      "name": "llm-proxy Production",
       "options": {
-        "baseURL": "https://prod.axonhub.com/anthropic/v1",
+        "baseURL": "https://prod.llm-proxy.com/anthropic/v1",
         "apiKey": "prod-api-key"
       },
       "models": {
@@ -289,9 +289,9 @@ export OPENCODE_AXONHUB_TRACING_TRACE_HEADER="X-Trace-Id"
         }
       }
     },
-    "axonhub-dev": {
+    "llm-proxy-dev": {
       "npm": "@ai-sdk/anthropic",
-      "name": "AxonHub Development",
+      "name": "llm-proxy Development",
       "options": {
         "baseURL": "http://localhost:8090/anthropic/v1",
         "apiKey": "dev-api-key"
@@ -312,21 +312,21 @@ export OPENCODE_AXONHUB_TRACING_TRACE_HEADER="X-Trace-Id"
 
 ### 使用 OpenAI 兼容端点
 
-OpenCode 也可以使用 AxonHub 的 OpenAI 兼容端点：
+OpenCode 也可以使用 llm-proxy 的 OpenAI 兼容端点：
 
 ```json
 {
   "provider": {
-    "axonhub-openai": {
+    "llm-proxy-openai": {
       "npm": "@ai-sdk/openai",
-      "name": "AxonHub OpenAI",
+      "name": "llm-proxy OpenAI",
       "options": {
         "baseURL": "http://127.0.0.1:8090/v1",
-        "apiKey": "your-axonhub-api-key"
+        "apiKey": "your-llm-proxy-api-key"
       },
       "models": {
         "gpt-4": {
-          "name": "AxonHub - GPT-4",
+          "name": "llm-proxy - GPT-4",
           "modalities": {
             "input": ["text"],
             "output": ["text"]
@@ -351,7 +351,7 @@ OpenCode 也可以使用 AxonHub 的 OpenAI 兼容端点：
 ### 性能
 - **启用追踪聚合**：提高缓存命中率
 - **使用合适的模型**：将模型能力与任务复杂度相匹配
-- **监控使用情况**：在 AxonHub 控制台中追踪成本和性能
+- **监控使用情况**：在 llm-proxy 控制台中追踪成本和性能
 - **配置超时**：为您的用例设置合理的超时值
 
 ---

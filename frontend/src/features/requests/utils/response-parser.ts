@@ -16,7 +16,7 @@ export function parseResponse(body?: any, chunks?: any[] | null): ParsedResponse
 
   // 1. Try to parse from body first (final result)
   if (body) {
-    // 1.1 Handle AxonHub / AI SDK 'parts' format
+    // 1.1 Handle llm-proxy / AI SDK 'parts' format
     if (Array.isArray(body.parts)) {
       body.parts.forEach((part: any) => {
         if (part.type === 'text') fullContent += part.text || '';
@@ -212,7 +212,7 @@ export function parseResponse(body?: any, chunks?: any[] | null): ParsedResponse
         return;
       }
 
-      // --- Custom AxonHub / AI SDK format ---
+      // --- Custom llm-proxy / AI SDK format ---
       if (data.type === 'text-delta' && typeof data.delta === 'string') {
         fullContent += data.delta;
       } else if (data.type === 'reasoning-delta' && typeof data.delta === 'string') {

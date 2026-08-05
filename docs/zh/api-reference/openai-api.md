@@ -2,13 +2,13 @@
 
 ## 概述
 
-AxonHub 完全支持 OpenAI API 规范，允许您使用任何 OpenAI 兼容的客户端 SDK 访问多个提供商的模型。
+llm-proxy 完全支持 OpenAI API 规范，允许您使用任何 OpenAI 兼容的客户端 SDK 访问多个提供商的模型。
 
 ## 核心优势
 
 - **API 互操作性**：使用 OpenAI Chat Completions API 调用 Anthropic、Gemini 和其他支持的模型
 - **零代码变更**：继续使用现有的 OpenAI 客户端 SDK，无需修改
-- **自动转换**：AxonHub 在需要时自动在 API 格式之间进行转换
+- **自动转换**：llm-proxy 在需要时自动在 API 格式之间进行转换
 - **提供商灵活性**：使用 OpenAI API 格式访问任何支持的 AI 提供商
 
 ## 支持的端点
@@ -26,9 +26,9 @@ import (
     "github.com/openai/openai-go/v3/option"
 )
 
-// 使用 AxonHub 配置创建 OpenAI 客户端
+// 使用 llm-proxy 配置创建 OpenAI 客户端
 client := openai.NewClient(
-    option.WithAPIKey("your-axonhub-api-key"),
+    option.WithAPIKey("your-llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/v1"),
     
 )
@@ -54,7 +54,7 @@ fmt.Println(responseText)
 
 ### OpenAI Responses API
 
-AxonHub 提供对 OpenAI Responses API 的部分支持。该 API 为单轮交互提供了简化的接口。
+llm-proxy 提供对 OpenAI Responses API 的部分支持。该 API 为单轮交互提供了简化的接口。
 
 **端点：**
 - `POST /v1/responses` - 生成响应
@@ -76,9 +76,9 @@ import (
     "github.com/openai/openai-go/v3/shared"
 )
 
-// 使用 AxonHub 配置创建 OpenAI 客户端
+// 使用 llm-proxy 配置创建 OpenAI 客户端
 client := openai.NewClient(
-    option.WithAPIKey("your-axonhub-api-key"),
+    option.WithAPIKey("your-llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/v1"),
 )
 
@@ -117,7 +117,7 @@ import (
 )
 
 client := openai.NewClient(
-    option.WithAPIKey("your-axonhub-api-key"),
+    option.WithAPIKey("your-llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/v1"),
 )
 
@@ -152,7 +152,7 @@ fmt.Println("\n完整响应:", fullContent.String())
 
 ## API 转换能力
 
-AxonHub 自动在 API 格式之间进行转换，实现以下强大场景：
+llm-proxy 自动在 API 格式之间进行转换，实现以下强大场景：
 
 ### 使用 OpenAI SDK 调用 Anthropic 模型
 ```go
@@ -167,7 +167,7 @@ completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewPara
 // 访问响应
 responseText := completion.Choices[0].Message.Content
 fmt.Println(responseText)
-// AxonHub 自动转换 OpenAI 格式 → Anthropic 格式
+// llm-proxy 自动转换 OpenAI 格式 → Anthropic 格式
 ```
 
 ### 使用 OpenAI SDK 调用 Gemini 模型
@@ -183,12 +183,12 @@ completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewPara
 // 访问响应
 responseText := completion.Choices[0].Message.Content
 fmt.Println(responseText)
-// AxonHub 自动转换 OpenAI 格式 → Gemini 格式
+// llm-proxy 自动转换 OpenAI 格式 → Gemini 格式
 ```
 
 ## 嵌入 API
 
-AxonHub 通过 OpenAI 兼容 API 提供全面的文本和多模态嵌入生成支持。
+llm-proxy 通过 OpenAI 兼容 API 提供全面的文本和多模态嵌入生成支持。
 
 **端点：**
 - `POST /v1/embeddings` - OpenAI 兼容嵌入 API
@@ -252,7 +252,7 @@ AxonHub 通过 OpenAI 兼容 API 提供全面的文本和多模态嵌入生成�
 import openai
 
 client = openai.OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -279,7 +279,7 @@ import (
 
 func main() {
     client := openai.NewClient(
-        option.WithAPIKey("your-axonhub-api-key"),
+        option.WithAPIKey("your-llm-proxy-api-key"),
         option.WithBaseURL("http://localhost:8090/v1"),
     )
 
@@ -311,7 +311,7 @@ for i, data in enumerate(response.data):
 
 ## 模型 API
 
-AxonHub 提供增强的 `/v1/models` 端点，可列出可用模型并选择性地显示扩展元数据。
+llm-proxy 提供增强的 `/v1/models` 端点，可列出可用模型并选择性地显示扩展元数据。
 
 ### 支持的端点
 
@@ -450,7 +450,7 @@ curl -s "http://localhost:8090/v1/models?include=name,pricing" \
 import openai
 
 client = openai.OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -499,7 +499,7 @@ OpenAI API 格式使用 Bearer 令牌认证：
 
 - **头部**：`Authorization: Bearer <your-api-key>`
 
-API 密钥通过 AxonHub 的 API 密钥管理系统进行管理。
+API 密钥通过 llm-proxy 的 API 密钥管理系统进行管理。
 
 ## 流式支持
 
@@ -547,7 +547,7 @@ OpenAI 格式错误响应：
 
 ## 工具支持
 
-AxonHub 通过 OpenAI API 格式支持**函数工具**（自定义函数调用）。但是，**不支持**各提供商特有的工具：
+llm-proxy 通过 OpenAI API 格式支持**函数工具**（自定义函数调用）。但是，**不支持**各提供商特有的工具：
 
 | 工具类型 | 支持状态 | 说明 |
 | -------- | -------- | ---- |
@@ -557,7 +557,7 @@ AxonHub 通过 OpenAI API 格式支持**函数工具**（自定义函数调用�
 | **文件搜索（File Search）** | ❌ 不支持 | 提供商特有功能 |
 | **计算机使用（Computer Use）** | ❌ 不支持 | Anthropic 特有功能 |
 
-> **注意**：仅支持可跨提供商转换的通用函数工具。网页搜索、代码解释器、计算机使用等提供商特有工具需要直接访问提供商的基础设施，无法通过 AxonHub 代理。
+> **注意**：仅支持可跨提供商转换的通用函数工具。网页搜索、代码解释器、计算机使用等提供商特有工具需要直接访问提供商的基础设施，无法通过 llm-proxy 代理。
 
 ## 最佳实践
 
@@ -569,16 +569,16 @@ AxonHub 通过 OpenAI API 格式支持**函数工具**（自定义函数调用�
 
 ## 迁移指南
 
-### 从 OpenAI 迁移到 AxonHub
+### 从 OpenAI 迁移到 llm-proxy
 ```go
 // 之前：直接 OpenAI
 client := openai.NewClient(
     option.WithAPIKey("openai-key"),
 )
 
-// 之后：使用 OpenAI API 的 AxonHub
+// 之后：使用 OpenAI API 的 llm-proxy
 client := openai.NewClient(
-    option.WithAPIKey("axonhub-api-key"),
+    option.WithAPIKey("llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/v1"),
 )
 // 您的现有代码继续工作！

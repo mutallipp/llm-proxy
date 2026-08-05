@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { pageInfoSchema } from '@/gql/pagination';
+import { protocolPoolFormats } from '@/features/models/data/protocol-pools';
 
 export const apiFormatSchema = z.enum([
   'openai/chat_completions',
@@ -51,6 +52,32 @@ export const channelEndpointSchema = z.object({
   transport: z.enum(['http', 'websocket']).optional().or(z.literal('')),
 });
 export type ChannelEndpoint = z.infer<typeof channelEndpointSchema>;
+
+// 渠道协议能力声明，与 KTD18 契约一致；codegen 就绪后可替换为生成类型。
+export const channelModelCapabilitySchema = z.object({
+  modelId: z.string(),
+  protocols: z.array(z.string()),
+});
+export type ChannelModelCapability = z.infer<typeof channelModelCapabilitySchema>;
+
+export const channelProtocolCapabilitiesSchema = z.object({
+  declaredProtocols: z.array(z.string()),
+  models: z.array(channelModelCapabilitySchema),
+});
+export type ChannelProtocolCapabilities = z.infer<typeof channelProtocolCapabilitiesSchema>;
+
+// 以下本地类型与 KTD18 契约一致，codegen 就绪后替换为生成类型。
+export const saveChannelCapabilitiesInputSchema = z.object({
+  channelID: z.string().min(1),
+  declaredProtocols: z.array(z.enum(protocolPoolFormats)),
+  models: z.array(channelModelCapabilitySchema),
+});
+export type SaveChannelCapabilitiesInput = z.infer<typeof saveChannelCapabilitiesInputSchema>;
+
+export const bulkEnableDerivedAssociationsInputSchema = z.object({
+  channelID: z.string().min(1),
+});
+export type BulkEnableDerivedAssociationsInput = z.infer<typeof bulkEnableDerivedAssociationsInputSchema>;
 
 // Channel Types
 export const channelTypeSchema = z.enum([
@@ -155,7 +182,7 @@ export const overrideOperationSchema = z.object({
   path: z.string().optional(),
   from: z.string().optional(),
   to: z.string().optional(),
-  value: z.any().optional(),
+  value: z.unknown().optional(),
   condition: z.string().optional(),
   match: overrideMatchSchema.nullish(),
   index: z.number().int().nullish(),
@@ -343,8 +370,33 @@ export const channelSchema = z.object({
   liveLimiterStats: channelLimiterStatsSchema.optional().nullable(),
   endpoints: z.array(channelEndpointSchema).optional().default([]).nullable(),
   defaultEndpoints: z.array(channelEndpointSchema).optional().default([]).nullable(),
+  protocolCapabilities: channelProtocolCapabilitiesSchema.optional().nullable(),
 });
 export type Channel = z.infer<typeof channelSchema>;
+
+export const channelCapabilityRevokedSchema = z.object({
+  autoDisabledCount: z.number(),
+  manualNotices: z.array(z.string()),
+});
+export type ChannelCapabilityRevoked = z.infer<typeof channelCapabilityRevokedSchema>;
+
+export const saveChannelCapabilitiesPayloadSchema = z.object({
+  channel: channelSchema.pick({ id: true, type: true, name: true, protocolCapabilities: true }),
+  addedCount: z.number(),
+  unmatchedModels: z.array(z.string()),
+  revoked: channelCapabilityRevokedSchema,
+});
+export type SaveChannelCapabilitiesPayload = z.infer<typeof saveChannelCapabilitiesPayloadSchema>;
+
+export const bulkEnableDerivedAssociationResultSchema = z.object({
+  associationId: z.string().optional().nullable(),
+  success: z.boolean(),
+  reason: z.string().optional().nullable(),
+});
+export const bulkEnableDerivedAssociationsResultSchema = z.object({
+  results: z.array(bulkEnableDerivedAssociationResultSchema),
+});
+export type BulkEnableDerivedAssociationsResult = z.infer<typeof bulkEnableDerivedAssociationsResultSchema>;
 
 // Simplified schema for saveChannelEndpoints mutation response
 export const channelEndpointsResponseSchema = z.object({
@@ -355,6 +407,12 @@ export const channelEndpointsResponseSchema = z.object({
   endpoints: z.array(channelEndpointSchema).optional().default([]).nullable(),
 });
 export type ChannelEndpointsResponse = z.infer<typeof channelEndpointsResponseSchema>;
+
+export const saveChannelEndpointsPayloadSchema = z.object({
+  channel: channelEndpointsResponseSchema,
+  revoked: channelCapabilityRevokedSchema,
+});
+export type SaveChannelEndpointsPayload = z.infer<typeof saveChannelEndpointsPayloadSchema>;
 
 export const testAPIKeyResultSchema = z.object({
   keyPrefix: z.string(),
@@ -635,30 +693,23 @@ export const updateChannelInputSchema = z
   })
   .superRefine((data, ctx) => {
     const effectiveType = data.type;
-    const hasApiKey = data.credentials?.apiKey && data.credentials.apiKey.trim().length > 0;
+    const apiKey = data.credentials?.apiKey;
+    const hasApiKey = Boolean(apiKey?.trim());
 
     // For OAuth validation on updates: validate if type is OAuth, or if credentials.apiKey is provided
     // (which indicates OAuth credentials are being set)
     const isOAuthType =
       effectiveType === 'codex' || effectiveType === 'claudecode' || effectiveType === 'antigravity' || effectiveType === 'github_copilot';
 
-    // Derive type from parent context if not available
-    let derivedType = effectiveType;
-    if (!derivedType && hasApiKey) {
-      // Try to get type from parent context
-      const parent = ctx.parent;
-      if (parent && typeof parent === 'object' && 'type' in parent) {
-        derivedType = (parent as { type?: string }).type;
-      }
-    }
+    const derivedType = effectiveType;
 
     // If we have an OAuth key but no type, check if it looks like Copilot credentials
-    const isCopilotKey = hasApiKey && data.credentials?.apiKey?.trim().startsWith('{');
+    const isCopilotKey = hasApiKey && apiKey?.trim().startsWith('{');
 
     if (isOAuthType || derivedType === 'github_copilot' || isCopilotKey) {
-      if (isCopilotKey && !derivedType) {
+      if (isCopilotKey && !derivedType && apiKey) {
         try {
-          const parsed = JSON.parse(data.credentials.apiKey);
+          const parsed = JSON.parse(apiKey);
           if (!parsed.access_token) {
             ctx.addIssue({
               code: 'custom',
@@ -667,6 +718,7 @@ export const updateChannelInputSchema = z
             });
           }
         } catch {
+          // 无法解析的凭据按无效 Copilot OAuth 凭据反馈给表单。
           ctx.addIssue({
             code: 'custom',
             message: 'channels.dialogs.oauth.errors.copilotCredentialsInvalid',
@@ -675,7 +727,9 @@ export const updateChannelInputSchema = z
         }
         return;
       }
-      validateOAuthCredentials(derivedType, data.credentials?.apiKey, ctx);
+      if (derivedType) {
+        validateOAuthCredentials(derivedType, apiKey, ctx);
+      }
     }
 
     // 如果是 anthropic_gcp 类型且提供了 credentials，GCP 字段必填（字段级报错）

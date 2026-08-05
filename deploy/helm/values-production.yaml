@@ -1,4 +1,4 @@
-# Production values for AxonHub Helm chart
+# Production values for llm-proxy Helm chart
 # Copy this file and modify according to your production requirements
 
 # Global configuration
@@ -7,8 +7,8 @@ global:
   # Add your image pull secrets here if using private registry
   # - name: my-registry-secret
 
-# AxonHub application configuration
-axonhub:
+# llm-proxy application configuration
+llm-proxy:
   replicaCount: 2
   
   image:
@@ -19,15 +19,15 @@ axonhub:
   
   # Environment variables - customize the database connection string for your environment
   env:
-    AXONHUB_DB_DIALECT: postgres
+    LLM_PROXY_DB_DIALECT: postgres
     # For external database - modify this connection string
-    AXONHUB_DB_DSN: postgres://axonhub:your_db_password@your-db-host:5432/axonhub?sslmode=require
+    LLM_PROXY_DB_DSN: postgres://llm-proxy:your_db_password@your-db-host:5432/llm-proxy?sslmode=require
     # For internal PostgreSQL - uncomment below and comment above
-    # AXONHUB_DB_DSN: postgres://axonhub:CHANGE_ME_POSTGRES_USER_123456@axonhub-postgresql:5432/axonhub?sslmode=disable
-    # Read replica DSN for read-write separation - leave empty to disable (env: AXONHUB_DB_READ_REPLICA_READ_DSN)
-    # AXONHUB_DB_READ_REPLICA_READ_DSN: postgres://axonhub:your_db_password@your-db-read-host:5432/axonhub?sslmode=require
+    # LLM_PROXY_DB_DSN: postgres://llm-proxy:CHANGE_ME_POSTGRES_USER_123456@llm-proxy-postgresql:5432/llm-proxy?sslmode=disable
+    # Read replica DSN for read-write separation - leave empty to disable (env: LLM_PROXY_DB_READ_REPLICA_READ_DSN)
+    # LLM_PROXY_DB_READ_REPLICA_READ_DSN: postgres://llm-proxy:your_db_password@your-db-read-host:5432/llm-proxy?sslmode=require
   
-  # Environment variables are defined above in the axonhub.env section
+  # Environment variables are defined above in the llm-proxy.env section
   
   # Service configuration
   service:
@@ -92,9 +92,9 @@ postgresql:
   # Security - CHANGE THESE VALUES IN PRODUCTION
   auth:
     postgresPassword: "CHANGE_ME_POSTGRES_ADMIN_123456"
-    username: "axonhub"
+    username: "llm-proxy"
     password: "CHANGE_ME_POSTGRES_USER_123456"
-    database: "axonhub"
+    database: "llm-proxy"
   
   # Service configuration
   service:
@@ -125,7 +125,7 @@ postgresql:
       command:
         - pg_isready
         - -U
-        - axonhub
+        - llm-proxy
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
@@ -136,7 +136,7 @@ postgresql:
       command:
         - pg_isready
         - -U
-        - axonhub
+        - llm-proxy
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 5
@@ -151,14 +151,14 @@ ingress:
     # nginx.ingress.kubernetes.io/rewrite-target: /
     cert-manager.io/cluster-issuer: "letsencrypt-prod"  # For SSL certificates
   hosts:
-    - host: axonhub.yourdomain.com  # Change to your domain
+    - host: llm-proxy.yourdomain.com  # Change to your domain
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: axonhub-tls
+    - secretName: llm-proxy-tls
       hosts:
-        - axonhub.yourdomain.com  # Change to your domain
+        - llm-proxy.yourdomain.com  # Change to your domain
 
 # Autoscaling - enable for production workloads
 autoscaling:

@@ -13,19 +13,19 @@ import (
 )
 
 func main() {
-	// AxonHub 的 OpenAPI GraphQL 地址
+	// llm-proxy 的 OpenAPI GraphQL 地址
 	// 注意: 这是一个专用的管理端点，需要 Service Account 类型的 API Key
 	endpoint := "http://localhost:8090/openapi/v1/graphql"
-	if envEndpoint := os.Getenv("AXONHUB_ENDPOINT"); envEndpoint != "" {
+	if envEndpoint := os.Getenv("LLM_PROXY_ENDPOINT"); envEndpoint != "" {
 		endpoint = envEndpoint
 	}
 
 	// 你的 API Key
 	// 注意: 必须是 Service Account 类型。createLLMAPIKey 需要 write_api_keys；
 	// 末尾可选的 apiKeyQuotaUsages 查询额外需要 read_api_keys。
-	apiKey := os.Getenv("AXONHUB_API_KEY")
+	apiKey := os.Getenv("LLM_PROXY_API_KEY")
 	if apiKey == "" {
-		fmt.Println("请设置 AXONHUB_API_KEY 环境变量 (需要 Service Account Key)")
+		fmt.Println("请设置 LLM_PROXY_API_KEY 环境变量 (需要 Service Account Key)")
 		os.Exit(1)
 	}
 
@@ -99,18 +99,18 @@ func lookupAPIKeyByName(ctx context.Context, client graphql.Client, name string)
 }
 
 // queryQuotaUsage 演示 apiKeyQuotaUsages 查询。通过环境变量三选一指定目标 Key:
-//   - AXONHUB_QUERY_KEY_ID:   目标 Key 的 GUID (形如 gid://axonhub/APIKey/123)
-//   - AXONHUB_QUERY_KEY:      目标 Key 的明文字符串
-//   - AXONHUB_QUERY_KEY_NAME: 目标 Key 的名称 (项目内唯一)
+//   - LLM_PROXY_QUERY_KEY_ID:   目标 Key 的 GUID (形如 gid://axonhub/APIKey/123)
+//   - LLM_PROXY_QUERY_KEY:      目标 Key 的明文字符串
+//   - LLM_PROXY_QUERY_KEY_NAME: 目标 Key 的名称 (项目内唯一)
 //
 // 都未设置时跳过本演示。注意: 该查询应使用 POST，避免明文 Key 落入 URL。
 func queryQuotaUsage(ctx context.Context, client graphql.Client) {
-	keyID := os.Getenv("AXONHUB_QUERY_KEY_ID")
-	keyVal := os.Getenv("AXONHUB_QUERY_KEY")
-	keyName := os.Getenv("AXONHUB_QUERY_KEY_NAME")
+	keyID := os.Getenv("LLM_PROXY_QUERY_KEY_ID")
+	keyVal := os.Getenv("LLM_PROXY_QUERY_KEY")
+	keyName := os.Getenv("LLM_PROXY_QUERY_KEY_NAME")
 
 	if keyID == "" && keyVal == "" && keyName == "" {
-		fmt.Println("\n(设置 AXONHUB_QUERY_KEY_ID / AXONHUB_QUERY_KEY / AXONHUB_QUERY_KEY_NAME 之一可查询某个 Key 的额度用量)")
+		fmt.Println("\n(设置 LLM_PROXY_QUERY_KEY_ID / LLM_PROXY_QUERY_KEY / LLM_PROXY_QUERY_KEY_NAME 之一可查询某个 Key 的额度用量)")
 		return
 	}
 

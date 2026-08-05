@@ -33,11 +33,11 @@ test.describe('System Setup', () => {
     })
 
     // Generate random owner credentials
-    const ownerEmail = process.env.AXONHUB_ADMIN_EMAIL || 'my@example.com'
-    const ownerPassword = process.env.AXONHUB_ADMIN_PASSWORD || 'pwd123456'
+    const ownerEmail = process.env.LLM_PROXY_ADMIN_EMAIL || 'my@example.com'
+    const ownerPassword = process.env.LLM_PROXY_ADMIN_PASSWORD || 'pwd123456'
 
     // Store credentials in environment for other tests to use
-    process.env.AXONHUB_ADMIN_EMAIL = ownerEmail
+    process.env.LLM_PROXY_ADMIN_EMAIL = ownerEmail
 
     console.log(`Initializing system with owner: ${ownerEmail}`)
 
@@ -60,7 +60,7 @@ test.describe('System Setup', () => {
       await page.getByRole('textbox', { name: /Owner Last Name/i }).fill('User')
       await page.getByRole('textbox', { name: /Owner Email/i }).fill(ownerEmail)
       await page.getByLabel(/Owner Password/i).fill(ownerPassword)
-      await page.getByRole('textbox', { name: /Brand Name/i }).fill('AxonHub')
+      await page.getByRole('textbox', { name: /Brand Name/i }).fill('llm-proxy')
 
       // Submit initialization form
       const submitButton = page.getByRole('button', { name: /Initialize System|初始化系统/i })

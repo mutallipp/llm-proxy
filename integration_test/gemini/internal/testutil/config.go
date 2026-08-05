@@ -35,7 +35,7 @@ func DefaultConfigWithPrefix(prefix string) *Config {
 	disableThread := strings.EqualFold(getEnvOrDefault("TEST_DISABLE_THREAD", "false"), "true")
 
 	config := &Config{
-		APIKey:        getEnvOrDefault("TEST_AXONHUB_API_KEY", ""),
+		APIKey:        getEnvOrDefault("TEST_LLM_PROXY_API_KEY", ""),
 		BaseURL:       getEnvOrDefault("TEST_GEMINI_BASE_URL", "http://localhost:8090/gemini"),
 		Timeout:       30 * time.Second,
 		MaxRetries:    3,
@@ -68,12 +68,12 @@ func DefaultConfigWithPrefix(prefix string) *Config {
 // NewClient creates a new Gemini client with the given configuration
 func (c *Config) NewClient() (*genai.Client, error) {
 	if c.APIKey == "" {
-		return nil, fmt.Errorf("TEST_AXONHUB_API_KEY environment variable is required")
+		return nil, fmt.Errorf("TEST_LLM_PROXY_API_KEY environment variable is required")
 	}
 
 	ctx := context.Background()
 
-	// For AxonHub integration, we'll use Gemini API backend
+	// For llm-proxy integration, we'll use Gemini API backend
 	clientConfig := &genai.ClientConfig{
 		APIKey:  c.APIKey,
 		Backend: genai.BackendGeminiAPI,
@@ -143,7 +143,7 @@ func getRandomThreadIDWithPrefix(prefix string) string {
 	return generateRandomID(prefix)
 }
 
-// GetHeaders returns the standard headers used in AxonHub
+// GetHeaders returns the standard headers used in llm-proxy
 func (c *Config) GetHeaders() map[string]string {
 	headers := make(map[string]string)
 
@@ -184,7 +184,7 @@ func getEnvOrDefault(key, defaultValue string) string {
 // ValidateConfig validates the test configuration
 func (c *Config) ValidateConfig() error {
 	if c.APIKey == "" {
-		return fmt.Errorf("API key is required (set TEST_AXONHUB_API_KEY environment variable)")
+		return fmt.Errorf("API key is required (set TEST_LLM_PROXY_API_KEY environment variable)")
 	}
 
 	// Only validate trace ID if not disabled

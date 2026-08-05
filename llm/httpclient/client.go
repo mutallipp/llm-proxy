@@ -396,7 +396,7 @@ func BuildHttpRequest(
 	// Handle User-Agent header - only set default if not already present
 	if httpReq.Header.Get("User-Agent") == "" {
 		// No User-Agent set, use default
-		httpReq.Header.Set("User-Agent", "axonhub/1.0")
+		httpReq.Header.Set("User-Agent", "llm-proxy/1.0")
 	}
 
 	for k := range libManagedHeaders {

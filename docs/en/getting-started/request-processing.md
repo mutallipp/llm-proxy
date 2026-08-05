@@ -1,14 +1,14 @@
 # Request Processing Guide
 
-This guide explains the main steps a request goes through in AxonHub. Its goal is to give you a simple and accurate mental model.
+This guide explains the main steps a request goes through in llm-proxy. Its goal is to give you a simple and accurate mental model.
 
 ## One-Sentence Summary
 
-AxonHub converts the request into a unified format, selects a channel based on configuration, and converts the result back into the format the client expects.
+llm-proxy converts the request into a unified format, selects a channel based on configuration, and converts the result back into the format the client expects.
 
 ## Core Concept: Three Layers of Model Settings
 
-AxonHub has three places that affect model names:
+llm-proxy has three places that affect model names:
 
 | Layer | Configuration Location | Purpose | Simple Analogy |
 |-------|------------------------|---------|----------------|
@@ -39,7 +39,7 @@ flowchart TD
 
 ### 1. Protocol Transform
 
-AxonHub supports multiple API formats, such as OpenAI, Anthropic, and Gemini. It first converts them into one internal format.
+llm-proxy supports multiple API formats, such as OpenAI, Anthropic, and Gemini. It first converts them into one internal format.
 
 ### 2. Permission Check
 
@@ -76,13 +76,13 @@ Developer rules select only a channel or channel tags. The concrete upstream mod
 
 ### 5. Content Processing
 
-Before sending the request upstream, AxonHub may also apply:
+Before sending the request upstream, llm-proxy may also apply:
 - prompt injection
 - prompt protection
 
 ### 6. Load Balancing
 
-If there are multiple candidate channels, AxonHub decides which one to try first.
+If there are multiple candidate channels, llm-proxy decides which one to try first.
 
 Common factors include:
 - channel weight
@@ -91,7 +91,7 @@ Common factors include:
 
 ### 7. Request Rewrite
 
-At the channel layer, AxonHub can further rewrite the upstream model name and request parameters.
+At the channel layer, llm-proxy can further rewrite the upstream model name and request parameters.
 
 ### 8. Call Upstream
 
@@ -99,7 +99,7 @@ The system sends the request to the selected AI provider.
 
 ### 9. Retry on Failure
 
-If the upstream call fails, AxonHub may retry or switch to the next candidate channel.
+If the upstream call fails, llm-proxy may retry or switch to the next candidate channel.
 
 ### 10. Response Transform
 

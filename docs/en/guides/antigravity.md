@@ -4,16 +4,16 @@
 
 ## Overview
 
-AxonHub supports Google's Antigravity API as a channel provider, offering access to Claude, Gemini, and GPT-OSS models through Google's internal infrastructure. This guide explains how to configure Antigravity channels and leverage its advanced features like intelligent endpoint fallback and dual quota pools.
+llm-proxy supports Google's Antigravity API as a channel provider, offering access to Claude, Gemini, and GPT-OSS models through Google's internal infrastructure. This guide explains how to configure Antigravity channels and leverage its advanced features like intelligent endpoint fallback and dual quota pools.
 
 ### Key Points
 - Antigravity provides access to multiple model families (Claude, Gemini, GPT-OSS) through a unified Google infrastructure
-- AxonHub automatically handles endpoint failover across Daily, Autopush, and Production environments
+- llm-proxy automatically handles endpoint failover across Daily, Autopush, and Production environments
 - Per-model cooldown tracking prevents wasted requests to rate-limited endpoints
 - Support for dual quota pools allows maximizing available capacity
 
 ### Prerequisites
-- AxonHub instance with channel management access
+- llm-proxy instance with channel management access
 - Valid Google account with Antigravity access
 - OAuth credentials obtained through the Antigravity OAuth flow
 
@@ -23,7 +23,7 @@ AxonHub supports Google's Antigravity API as a channel provider, offering access
 
 ### Getting OAuth Credentials
 
-1. Navigate to the **Channels** section in the AxonHub management interface
+1. Navigate to the **Channels** section in the llm-proxy management interface
 
 2. Click **Create Channel** and select **Antigravity** as the channel type
 
@@ -33,7 +33,7 @@ AxonHub supports Google's Antigravity API as a channel provider, offering access
 
 5. After successful authentication, you'll be redirected to a callback URL. Copy the entire callback URL
 
-6. Paste the callback URL into the AxonHub form and click **Exchange & Fill API Key**
+6. Paste the callback URL into the llm-proxy form and click **Exchange & Fill API Key**
 
 7. The credentials will be automatically filled. Complete the channel configuration:
    - **Name**: A descriptive name (e.g., "Antigravity - Daily")
@@ -70,7 +70,7 @@ Antigravity provides access to multiple model families:
 
 ## Endpoint Fallback & Health Tracking
 
-AxonHub implements intelligent endpoint management for Antigravity to maximize availability and quota utilization.
+llm-proxy implements intelligent endpoint management for Antigravity to maximize availability and quota utilization.
 
 ### Available Endpoints
 
@@ -90,7 +90,7 @@ Antigravity operates across three endpoints:
 
 ### Automatic Failover
 
-When a request fails with a retryable error (429 Rate Limit, 403 Forbidden, 404 Not Found, 5xx Server Error), AxonHub automatically:
+When a request fails with a retryable error (429 Rate Limit, 403 Forbidden, 404 Not Found, 5xx Server Error), llm-proxy automatically:
 
 1. Records the failure and puts the endpoint into a **60-second cooldown**
 2. Retries the request on the next available endpoint
@@ -119,7 +119,7 @@ This per-model isolation maximizes quota utilization across your entire fleet.
 
 ### Fail-Fast Behavior
 
-If **all endpoints are in cooldown** for a specific model, AxonHub returns an error immediately:
+If **all endpoints are in cooldown** for a specific model, llm-proxy returns an error immediately:
 
 ```text
 Error: all antigravity endpoints in cooldown for model claude-sonnet-4-5
@@ -176,7 +176,7 @@ supported_models:
   - antigravity-gemini-2.5-pro   # Uses Antigravity quota
 ```
 
-When one quota pool is exhausted, AxonHub can automatically fail over to the other pool via channel retry logic.
+When one quota pool is exhausted, llm-proxy can automatically fail over to the other pool via channel retry logic.
 
 ---
 
@@ -204,7 +204,7 @@ When one quota pool is exhausted, AxonHub can automatically fail over to the oth
      - antigravity-gemini-2.5-pro
    ```
 
-2. **Model Profiles**: Use AxonHub model profiles to route between quota pools automatically
+2. **Model Profiles**: Use llm-proxy model profiles to route between quota pools automatically
    - Create profile mapping `gemini-2.5-pro` → `antigravity-gemini-2.5-pro` as fallback
    - When Gemini CLI quota exhausts, profile routing switches to Antigravity quota
 
@@ -218,11 +218,11 @@ When one quota pool is exhausted, AxonHub can automatically fail over to the oth
 
 2. **Channel Priority**: Set higher priority for Production endpoint if stability is more important than latest features
 
-3. **Load Balancing**: Use AxonHub's adaptive load balancing to distribute load across healthy endpoints
+3. **Load Balancing**: Use llm-proxy's adaptive load balancing to distribute load across healthy endpoints
 
 ### Monitoring
 
-Track these metrics in AxonHub traces:
+Track these metrics in llm-proxy traces:
 
 - **Endpoint failures**: Frequency of 429/5xx errors per endpoint
 - **Cooldown events**: How often endpoints enter cooldown
@@ -239,7 +239,7 @@ Track these metrics in AxonHub traces:
 
 **Solutions**:
 - Verify the project ID in credentials is correct
-- Check that the base URL is reachable from your AxonHub instance
+- Check that the base URL is reachable from your llm-proxy instance
 - Ensure the model name is valid for the selected endpoint
 - Try a different endpoint (Daily, Autopush, or Prod)
 
@@ -289,11 +289,11 @@ Track these metrics in AxonHub traces:
 
 ### Custom Cooldown Duration
 
-Cooldown duration is fixed at 60 seconds by default. This is hard-coded in the AxonHub implementation but can be modified by:
+Cooldown duration is fixed at 60 seconds by default. This is hard-coded in the llm-proxy implementation but can be modified by:
 
 1. Forking the repository
 2. Modifying `DefaultCooldownDuration` in `llm/transformer/antigravity/health_tracker.go`
-3. Rebuilding AxonHub
+3. Rebuilding llm-proxy
 
 ### Health Tracker Statistics
 
@@ -342,10 +342,10 @@ A: Yes! Create separate channels for each endpoint (Daily, Autopush, Prod) and u
 A: No, the health tracker is in-memory only. Cooldown state is lost on restart, but this is intentional for clean slate recovery.
 
 **Q: What happens if I use an invalid model name?**  
-A: The request will fail with 404 Not Found, triggering endpoint fallback. If all endpoints return 404, AxonHub returns the error to the client.
+A: The request will fail with 404 Not Found, triggering endpoint fallback. If all endpoints return 404, llm-proxy returns the error to the client.
 
 **Q: Can I disable endpoint fallback?**  
 A: Not currently, but you can configure only one endpoint per channel to effectively disable fallback for that channel.
 
 **Q: How do I know which endpoint served my request?**  
-A: Check the AxonHub trace logs. Successful fallback attempts log: "antigravity request succeeded with fallback endpoint".
+A: Check the llm-proxy trace logs. Successful fallback attempts log: "antigravity request succeeded with fallback endpoint".

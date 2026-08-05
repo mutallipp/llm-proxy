@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AxonHub Stop Script
-# This script stops AxonHub directly (no systemd), with proper error handling
+# llm-proxy Stop Script
+# This script stops llm-proxy directly (no systemd), with proper error handling
 
 set -e
 
@@ -13,16 +13,16 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-SERVICE_NAME="axonhub"
+SERVICE_NAME="llm-proxy"
 # Resolve non-root user's HOME when running via sudo
 if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
     USER_HOME="$(eval echo ~${SUDO_USER})"
 else
     USER_HOME="$HOME"
 fi
-BASE_DIR="${USER_HOME}/.config/axonhub"
-PID_FILE="${BASE_DIR}/axonhub.pid"
-PROCESS_NAME="axonhub"
+BASE_DIR="${USER_HOME}/.config/llm-proxy"
+PID_FILE="${BASE_DIR}/llm-proxy.pid"
+PROCESS_NAME="llm-proxy"
 
 print_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -43,7 +43,7 @@ print_error() {
 # Note: systemd-related logic removed for simplicity; this script always stops directly
 
 stop_by_pid() {
-    print_info "Stopping AxonHub using PID file..."
+    print_info "Stopping llm-proxy using PID file..."
     
     if [[ ! -f "$PID_FILE" ]]; then
         print_warning "PID file not found at $PID_FILE"
@@ -82,10 +82,10 @@ stop_by_pid() {
         fi
         
         if ! kill -0 "$pid" 2>/dev/null; then
-            print_success "AxonHub stopped successfully (PID: $pid)"
+            print_success "llm-proxy stopped successfully (PID: $pid)"
             rm -f "$PID_FILE"
         else
-            print_error "Failed to stop AxonHub process"
+            print_error "Failed to stop llm-proxy process"
             return 1
         fi
     else
@@ -95,17 +95,17 @@ stop_by_pid() {
 }
 
 stop_by_process_name() {
-    print_info "Stopping AxonHub by process name..."
+    print_info "Stopping llm-proxy by process name..."
     
     local pids
     pids=$(pgrep -f "$PROCESS_NAME" 2>/dev/null || true)
     
     if [[ -z "$pids" ]]; then
-        print_warning "No AxonHub processes found"
+        print_warning "No llm-proxy processes found"
         return 1
     fi
     
-    print_info "Found AxonHub processes: $pids"
+    print_info "Found llm-proxy processes: $pids"
     
     for pid in $pids; do
         print_info "Stopping process $pid..."
@@ -134,10 +134,10 @@ stop_by_process_name() {
     remaining_pids=$(pgrep -f "$PROCESS_NAME" 2>/dev/null || true)
     
     if [[ -z "$remaining_pids" ]]; then
-        print_success "All AxonHub processes stopped successfully"
+        print_success "All llm-proxy processes stopped successfully"
         rm -f "$PID_FILE"
     else
-        print_error "Some AxonHub processes are still running: $remaining_pids"
+        print_error "Some llm-proxy processes are still running: $remaining_pids"
         return 1
     fi
 }
@@ -147,7 +147,7 @@ check_running_processes() {
     pids=$(pgrep -f "$PROCESS_NAME" 2>/dev/null || true)
     
     if [[ -n "$pids" ]]; then
-        print_info "Running AxonHub processes:"
+        print_info "Running llm-proxy processes:"
         ps -p $pids -o pid,ppid,cmd --no-headers 2>/dev/null || true
         return 0
     else
@@ -156,7 +156,7 @@ check_running_processes() {
 }
 
 main() {
-    print_info "Stopping AxonHub..."
+    print_info "Stopping llm-proxy..."
     
     local stopped=false
     
@@ -175,43 +175,43 @@ main() {
     # Final check
     if [[ "$stopped" != true ]]; then
         if check_running_processes; then
-            print_error "Failed to stop all AxonHub processes"
+            print_error "Failed to stop all llm-proxy processes"
             return 1
         else
-            print_info "No AxonHub processes were running"
+            print_info "No llm-proxy processes were running"
         fi
     fi
     
     # Clean up PID file
     rm -f "$PID_FILE"
     
-    print_success "AxonHub has been stopped"
+    print_success "llm-proxy has been stopped"
 }
 
 # Handle script arguments
 case "${1:-}" in
     --force)
-        print_info "Force stopping all AxonHub processes..."
+        print_info "Force stopping all llm-proxy processes..."
         if check_running_processes; then
             pkill -KILL -f "$PROCESS_NAME" 2>/dev/null || true
             sleep 2
             if ! check_running_processes; then
-                print_success "All AxonHub processes force-stopped"
+                print_success "All llm-proxy processes force-stopped"
                 rm -f "$PID_FILE"
             else
                 print_error "Failed to force-stop some processes"
                 exit 1
             fi
         else
-            print_info "No AxonHub processes found"
+            print_info "No llm-proxy processes found"
         fi
         ;;
     --help|-h)
         echo "Usage: $0 [--force]"
         echo
-        echo "This script stops AxonHub directly (no systemd)."
+        echo "This script stops llm-proxy directly (no systemd)."
         echo "Options:"
-        echo "  --force     Force kill all AxonHub processes"
+        echo "  --force     Force kill all llm-proxy processes"
         echo "  --help, -h  Show this help message"
         exit 0
         ;;

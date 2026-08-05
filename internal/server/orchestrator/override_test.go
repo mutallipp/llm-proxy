@@ -216,11 +216,11 @@ func TestOverrideParametersComplex(t *testing.T) {
 					"logic_field": "{{if eq .Model \"gpt-4\"}}is-gpt-4{{else}}not-gpt-4{{end}}",
 					"effort_logic": "{{if eq .ReasoningEffort \"high\"}}high-effort{{else}}low-effort{{end}}",
 					"json_complex": "{\"array\": [1, 2, \"{{.Model}}\"], \"nested\": {\"key\": \"val\"}}",
-					"clear_me": "__AXONHUB_CLEAR__"
+					"clear_me": "__LLM_PROXY_CLEAR__"
 				}`,
 				OverrideHeaders: []objects.HeaderEntry{
 					{Key: "X-Logic-Header", Value: "{{if .Metadata.env}}env-{{.Metadata.env}}{{else}}no-env{{end}}"},
-					{Key: "X-Clear-Header", Value: "__AXONHUB_CLEAR__"},
+					{Key: "X-Clear-Header", Value: "__LLM_PROXY_CLEAR__"},
 				},
 			},
 		},
@@ -872,7 +872,7 @@ func TestOverrideParametersMiddleware_EmptySettings(t *testing.T) {
 	require.Equal(t, 0.5, temperature.Float())
 }
 
-func TestOverrideParametersMiddleware_AxonHubClear(t *testing.T) {
+func TestOverrideParametersMiddleware_LLMProxyClear(t *testing.T) {
 	tests := []struct {
 		name               string
 		overrideParameters map[string]any
@@ -881,9 +881,9 @@ func TestOverrideParametersMiddleware_AxonHubClear(t *testing.T) {
 		expectedPreserved  map[string]any
 	}{
 		{
-			name: "remove single parameter with __AXONHUB_CLEAR__",
+			name: "remove single parameter with __LLM_PROXY_CLEAR__",
 			overrideParameters: map[string]any{
-				"temperature": "__AXONHUB_CLEAR__",
+				"temperature": "__LLM_PROXY_CLEAR__",
 			},
 			initialBody: map[string]any{
 				"model":       "gpt-4",
@@ -894,10 +894,10 @@ func TestOverrideParametersMiddleware_AxonHubClear(t *testing.T) {
 			expectedPreserved: map[string]any{"model": "gpt-4", "max_tokens": float64(1000)},
 		},
 		{
-			name: "remove multiple parameters with __AXONHUB_CLEAR__",
+			name: "remove multiple parameters with __LLM_PROXY_CLEAR__",
 			overrideParameters: map[string]any{
-				"temperature": "__AXONHUB_CLEAR__",
-				"max_tokens":  "__AXONHUB_CLEAR__",
+				"temperature": "__LLM_PROXY_CLEAR__",
+				"max_tokens":  "__LLM_PROXY_CLEAR__",
 				"top_p":       0.95,
 			},
 			initialBody: map[string]any{
@@ -914,9 +914,9 @@ func TestOverrideParametersMiddleware_AxonHubClear(t *testing.T) {
 			},
 		},
 		{
-			name: "remove nested parameter with __AXONHUB_CLEAR__",
+			name: "remove nested parameter with __LLM_PROXY_CLEAR__",
 			overrideParameters: map[string]any{
-				"response_format.type": "__AXONHUB_CLEAR__",
+				"response_format.type": "__LLM_PROXY_CLEAR__",
 			},
 			initialBody: map[string]any{
 				"model": "gpt-4",
@@ -931,7 +931,7 @@ func TestOverrideParametersMiddleware_AxonHubClear(t *testing.T) {
 		{
 			name: "mix of removal and override",
 			overrideParameters: map[string]any{
-				"temperature": "__AXONHUB_CLEAR__",
+				"temperature": "__LLM_PROXY_CLEAR__",
 				"max_tokens":  2000,
 				"top_p":       0.95,
 			},
@@ -950,7 +950,7 @@ func TestOverrideParametersMiddleware_AxonHubClear(t *testing.T) {
 		{
 			name: "attempt to remove non-existent parameter",
 			overrideParameters: map[string]any{
-				"non_existent": "__AXONHUB_CLEAR__",
+				"non_existent": "__LLM_PROXY_CLEAR__",
 			},
 			initialBody: map[string]any{
 				"model":       "gpt-4",
@@ -1055,19 +1055,19 @@ func TestOverrideHeadersMiddleware(t *testing.T) {
 	}{
 		{
 			name:            "override single header",
-			overrideHeaders: []objects.HeaderEntry{{Key: "User-Agent", Value: "AxonHub/1.0"}},
+			overrideHeaders: []objects.HeaderEntry{{Key: "User-Agent", Value: "llm-proxy/1.0"}},
 			existingHeaders: http.Header{
 				"Content-Type": []string{"application/json"},
 			},
 			expectedHeaders: http.Header{
 				"Content-Type": []string{"application/json"},
-				"User-Agent":   []string{"AxonHub/1.0"},
+				"User-Agent":   []string{"llm-proxy/1.0"},
 			},
 		},
 		{
 			name: "override multiple headers",
 			overrideHeaders: []objects.HeaderEntry{
-				{Key: "User-Agent", Value: "AxonHub/1.0"},
+				{Key: "User-Agent", Value: "llm-proxy/1.0"},
 				{Key: "X-Custom-Header", Value: "custom-value"},
 				{Key: "Authorization", Value: "Bearer token123"},
 			},
@@ -1077,7 +1077,7 @@ func TestOverrideHeadersMiddleware(t *testing.T) {
 			},
 			expectedHeaders: http.Header{
 				"Content-Type":    []string{"application/json"},
-				"User-Agent":      []string{"AxonHub/1.0"},
+				"User-Agent":      []string{"llm-proxy/1.0"},
 				"X-Custom-Header": []string{"custom-value"},
 			},
 		},
@@ -1108,12 +1108,12 @@ func TestOverrideHeadersMiddleware(t *testing.T) {
 		{
 			name: "no existing headers",
 			overrideHeaders: []objects.HeaderEntry{
-				{Key: "User-Agent", Value: "AxonHub/1.0"},
+				{Key: "User-Agent", Value: "llm-proxy/1.0"},
 				{Key: "X-API-Key", Value: "secret-key"},
 			},
 			existingHeaders: nil,
 			expectedHeaders: http.Header{
-				"User-Agent": []string{"AxonHub/1.0"},
+				"User-Agent": []string{"llm-proxy/1.0"},
 			},
 		},
 	}
@@ -1496,19 +1496,19 @@ func TestOverrideParametersRenderClear(t *testing.T) {
 		},
 	}
 
-	// Create mock channel with override parameters using templates that render to __AXONHUB_CLEAR__
+	// Create mock channel with override parameters using templates that render to __LLM_PROXY_CLEAR__
 	channel := &biz.Channel{
 		Channel: &ent.Channel{
 			ID:   1,
 			Name: "clear-test",
 			Settings: &objects.ChannelSettings{
 				OverrideParameters: `{
-					"clear_body_field": "{{if eq .Metadata.clear_flag \"true\"}}__AXONHUB_CLEAR__{{else}}keep-me{{end}}",
-					"keep_body_field": "{{if eq .Metadata.clear_flag \"false\"}}__AXONHUB_CLEAR__{{else}}keep-me{{end}}"
+					"clear_body_field": "{{if eq .Metadata.clear_flag \"true\"}}__LLM_PROXY_CLEAR__{{else}}keep-me{{end}}",
+					"keep_body_field": "{{if eq .Metadata.clear_flag \"false\"}}__LLM_PROXY_CLEAR__{{else}}keep-me{{end}}"
 				}`,
 				OverrideHeaders: []objects.HeaderEntry{
-					{Key: "X-Clear-Header", Value: "{{if eq .Metadata.clear_flag \"true\"}}__AXONHUB_CLEAR__{{else}}keep-me{{end}}"},
-					{Key: "X-Keep-Header", Value: "{{if eq .Metadata.clear_flag \"false\"}}__AXONHUB_CLEAR__{{else}}keep-me{{end}}"},
+					{Key: "X-Clear-Header", Value: "{{if eq .Metadata.clear_flag \"true\"}}__LLM_PROXY_CLEAR__{{else}}keep-me{{end}}"},
+					{Key: "X-Keep-Header", Value: "{{if eq .Metadata.clear_flag \"false\"}}__LLM_PROXY_CLEAR__{{else}}keep-me{{end}}"},
 				},
 			},
 		},
@@ -1902,7 +1902,7 @@ func TestOverrideLegacyFormatCompatibility(t *testing.T) {
 			ID:   1,
 			Name: "legacy-test",
 			Settings: &objects.ChannelSettings{
-				OverrideParameters: `{"temperature": 0.7, "max_tokens": 2000, "remove_me": "__AXONHUB_CLEAR__"}`,
+				OverrideParameters: `{"temperature": 0.7, "max_tokens": 2000, "remove_me": "__LLM_PROXY_CLEAR__"}`,
 			},
 		},
 		Outbound: &mockTransformer{},
@@ -2072,7 +2072,7 @@ func TestParseOverrideOperations(t *testing.T) {
 	})
 
 	t.Run("legacy map format", func(t *testing.T) {
-		ops, err := objects.ParseOverrideOperations(`{"temperature": 0.7, "remove": "__AXONHUB_CLEAR__"}`)
+		ops, err := objects.ParseOverrideOperations(`{"temperature": 0.7, "remove": "__LLM_PROXY_CLEAR__"}`)
 		require.NoError(t, err)
 		require.Len(t, ops, 2)
 

@@ -1,12 +1,12 @@
 [Unit]
-Description=AxonHub AI Gateway
+Description=llm-proxy AI Gateway
 After=network.target
 
 [Service]
 Type=simple
-User=axonhub
-WorkingDirectory=/opt/axonhub
-ExecStart=/opt/axonhub/axonhub
+User=llm-proxy
+WorkingDirectory=/opt/llm-proxy
+ExecStart=/opt/llm-proxy/llm-proxy
 Restart=always
 RestartSec=5
 

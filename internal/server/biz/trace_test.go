@@ -1917,7 +1917,7 @@ func TestTraceService_GetRequestTrace_integration(t *testing.T) {
 		t.Skip("skipping integration test in short mode")
 	}
 
-	client := enttest.NewEntClient(t, "sqlite3", filepath.Join(xfile.ProjectDir(), "axonhub.db"))
+	client := enttest.NewEntClient(t, "sqlite3", filepath.Join(xfile.ProjectDir(), "llm-proxy.db"))
 
 	traceService, client := setupTestTraceService(t, client)
 	defer client.Close()

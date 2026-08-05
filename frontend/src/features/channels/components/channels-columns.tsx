@@ -215,6 +215,15 @@ const ActionCell = memo(({ row }: { row: Row<Channel> }) => {
             <IconPlugConnected size={16} className='mr-2' />
             {t('channels.endpoints.title')}
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              setCurrentRow(channel);
+              setOpen('capability');
+            }}
+          >
+            <IconAdjustments size={16} className='mr-2' />
+            {t('channels.capability.action')}
+          </DropdownMenuItem>
           {hasMultipleAPIKeys && (
             <DropdownMenuItem
               onClick={() => {

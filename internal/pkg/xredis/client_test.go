@@ -304,7 +304,7 @@ func TestParseUniversalURL(t *testing.T) {
 				"min_idle_conns=5", "max_idle_conns=10", "max_active_conns=30",
 				"conn_max_lifetime=5m", "conn_max_idle_time=30s",
 				"max_redirects=8", "read_only=false", "route_by_latency=true", "route_randomly=false",
-				"master_name=mymaster", "disable_identity=false", "identity_suffix=axonhub",
+				"master_name=mymaster", "disable_identity=false", "identity_suffix=llm-proxy",
 				"failing_timeout_seconds=15", "unstable_resp3=false", "is_cluster_mode=true",
 				"addrs=127.0.0.1:7001", "addrs=127.0.0.1:7002", "addrs=127.0.0.1:7003",
 				"tls_insecure_skip_verify=true",
@@ -340,7 +340,7 @@ func TestParseUniversalURL(t *testing.T) {
 		assert.False(t, opts.RouteRandomly)
 		assert.Equal(t, "mymaster", opts.MasterName)
 		assert.False(t, opts.DisableIdentity)
-		assert.Equal(t, "axonhub", opts.IdentitySuffix)
+		assert.Equal(t, "llm-proxy", opts.IdentitySuffix)
 		assert.Equal(t, 15, opts.FailingTimeoutSeconds)
 		assert.False(t, opts.UnstableResp3)
 		assert.True(t, opts.IsClusterMode)

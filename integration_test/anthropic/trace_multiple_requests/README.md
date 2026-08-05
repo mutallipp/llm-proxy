@@ -1,6 +1,6 @@
 # Trace Multiple Requests Integration Test
 
-This directory contains integration tests for testing multiple AI API calls within a single trace in AxonHub using the Anthropic SDK.
+This directory contains integration tests for testing multiple AI API calls within a single trace in llm-proxy using the Anthropic SDK.
 
 ## Test Overview
 
@@ -32,7 +32,7 @@ This test validates the ability to perform multiple sequential AI calls within t
 
 - **Calculator Function** - Simulates mathematical calculations
 - **Anthropic Messages API** - For AI interactions
-- **AxonHub Test Utilities** - For test setup and validation
+- **llm-proxy Test Utilities** - For test setup and validation
 
 ## Running the Test
 

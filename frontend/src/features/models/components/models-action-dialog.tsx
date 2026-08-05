@@ -7,6 +7,7 @@ import { CalendarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format-number';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,7 +29,8 @@ import {
   protocolPoolFormats,
 } from '../data/protocol-pools';
 import { DEVELOPER_IDS, DEVELOPER_ICONS } from '../data/constants';
-import { useCreateModel, useUpdateModel } from '../data/models';
+import { useCreateModel, useDeriveModelAssociations, useUpdateModel } from '../data/models';
+import { toast } from 'sonner';
 import { useDevelopersData } from '../data/providers';
 import { type Provider, type ProviderModel, resolveVision } from '../data/providers.schema';
 import { CreateModelInput, createModelInputSchema, UpdateModelInput, ModelCard, ModelType, modelTypeSchema, updateModelInputSchema } from '../data/schema';
@@ -42,6 +44,7 @@ export function ModelsActionDialog() {
   const { open, setOpen, currentRow } = useModels();
   const createModel = useCreateModel();
   const updateModel = useUpdateModel();
+  const deriveModelAssociations = useDeriveModelAssociations();
   const { data: developersData } = useDevelopersData();
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [developerSearchValue, setDeveloperSearchValue] = useState<string>('');
@@ -261,6 +264,7 @@ export function ModelsActionDialog() {
       }
       handleClose();
     } catch (error) {
+      toast.error(t('models.messages.enableAssociationFailed'));
       const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : 0;
       setProtocolError(status === 401 ? '未登录或登录已过期' : status === 403 ? '没有修改模型的权限' : status === 404 ? '模型或渠道不存在' : status === 409 ? '协议池配置冲突，请检查重复 target' : status >= 500 ? '服务暂时不可用，请稍后重试' : '保存协议池失败，请检查输入后重试');
     }
@@ -293,7 +297,7 @@ export function ModelsActionDialog() {
                   <FormField
                     control={form.control}
                     name='developer'
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem>
                         <FormLabel>{t('models.fields.developer')}</FormLabel>
                         <FormControl>
@@ -316,7 +320,7 @@ export function ModelsActionDialog() {
                   <FormField
                     control={form.control}
                     name='modelID'
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem>
                         <FormLabel>{t('models.fields.modelId')}</FormLabel>
                         <FormControl>
@@ -843,15 +847,15 @@ export function ModelsActionDialog() {
 
             {isEdit && (
               <div className='space-y-3 rounded-md border p-3'>
-                <div className='flex items-center justify-between'><FormLabel>协议池</FormLabel><Button type='button' variant='outline' size='sm' onClick={() => setProtocolPools([...protocolPools, { format: 'openai', associations: [] }])}>新增协议池</Button></div>
+                <div className='flex items-center justify-between gap-2'><FormLabel>{t('models.dialogs.protocolPool.title')}</FormLabel><div className='flex gap-2'><Button type='button' variant='outline' size='sm' onClick={() => currentRow && deriveModelAssociations.mutate(currentRow.id)} disabled={deriveModelAssociations.isPending}>{t('models.dialogs.protocolPool.syncChannels')}</Button><Button type='button' variant='outline' size='sm' onClick={() => setProtocolPools([...protocolPools, { format: 'openai', associations: [] }])}>新增协议池</Button></div></div>
                 {protocolError && <p className='text-sm text-destructive'>{protocolError}</p>}
                 {protocolPools.map((pool, index) => <div key={`${pool.format}-${index}`} className='space-y-2 rounded border p-2'>
                   <div className='flex gap-2'><Select value={pool.format} onValueChange={(format) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, format } : item))}><SelectTrigger><SelectValue placeholder='选择协议' /></SelectTrigger><SelectContent>{protocolPoolFormats.map((format) => <SelectItem key={format} value={format}>{format}</SelectItem>)}</SelectContent></Select><Button type='button' variant='ghost' onClick={() => setProtocolPools(protocolPools.filter((_, i) => i !== index))}>删除协议池</Button></div>
                   {pool.associations.map((association, targetIndex) => <div key={targetIndex} className='space-y-2 rounded bg-muted/30 p-2'>
                     <div className='flex gap-2'><Input placeholder='物理模型 ID' value={association.channelModel?.modelId || ''} onChange={(event) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, channelModel: { ...target.channelModel!, modelId: event.target.value } } : target) } : item))} /><Input className='w-24' type='number' min={0} max={100} step={1} placeholder='优先级' value={association.priority ?? 0} onChange={(event) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, priority: Number(event.target.value) } : target) } : item))} /></div>
-                    <div className='flex gap-2'><Select value={channelIdToSelectValue(association.channelModel?.channelId, channels)} onValueChange={(value) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, channelModel: { ...target.channelModel!, channelId: parseChannelIdFromSelectValue(value) ?? 0 } } : target) } : item))}><SelectTrigger><SelectValue placeholder='选择渠道' /></SelectTrigger><SelectContent>{channels.filter((channel) => channelSupportsProtocolPool(channel, pool.format)).map((channel) => <SelectItem key={channel.id} value={channel.id}>{channel.name}</SelectItem>)}</SelectContent></Select><label className='flex items-center gap-2 text-sm'><Checkbox checked={!association.disabled} onCheckedChange={(checked) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, disabled: !checked } : target) } : item))} />启用</label><Button type='button' variant='ghost' onClick={() => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.filter((_, j) => j !== targetIndex) } : item))}>删除 target</Button></div>
+                    <div className='flex flex-wrap items-center gap-2'><Select value={channelIdToSelectValue(association.channelModel?.channelId, channels)} onValueChange={(value) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, channelModel: { ...target.channelModel!, channelId: parseChannelIdFromSelectValue(value) ?? 0 } } : target) } : item))}><SelectTrigger><SelectValue placeholder='选择渠道' /></SelectTrigger><SelectContent>{channels.filter((channel) => channelSupportsProtocolPool(channel, pool.format)).map((channel) => <SelectItem key={channel.id} value={channel.id}>{channel.name}</SelectItem>)}</SelectContent></Select><label className='flex items-center gap-2 text-sm'><Checkbox checked={!association.disabled} onCheckedChange={(checked) => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.map((target, j) => j === targetIndex ? { ...target, disabled: !checked } : target) } : item))} />启用</label>{association.auto && <Badge variant='secondary'>{t('models.dialogs.protocolPool.auto')}</Badge>} {association.disabledReason && <span className='text-destructive text-xs'>{association.disabledReason}</span>}{!association.auto && <Button type='button' variant='ghost' onClick={() => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: item.associations.filter((_, j) => j !== targetIndex) } : item))}>删除 target</Button>}</div>
                   </div>)}
-                  <Button type='button' variant='outline' size='sm' onClick={() => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: [...item.associations, { type: 'channel_model' as const, priority: 0, disabled: false, channelModel: { channelId: 0, modelId: '' } }] } : item))}>新增 target</Button>
+                  <Button type='button' variant='outline' size='sm' onClick={() => setProtocolPools(protocolPools.map((item, i) => i === index ? { ...item, associations: [...item.associations, { type: 'channel_model' as const, priority: 0, disabled: false, auto: false, channelModel: { channelId: 0, modelId: '' } }] } : item))}>新增 target</Button>
                 </div>)}
               </div>
             )}

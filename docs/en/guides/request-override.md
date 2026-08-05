@@ -1,6 +1,6 @@
 # Request Override Guide
 
-Request Override is a powerful feature in AxonHub that allows you to dynamically modify request bodies (Body) and headers (Headers) before they are sent to the AI provider. This is particularly useful for model-specific parameter adjustments, feature mapping (like `reasoning_effort`), or injecting custom metadata.
+Request Override is a powerful feature in llm-proxy that allows you to dynamically modify request bodies (Body) and headers (Headers) before they are sent to the AI provider. This is particularly useful for model-specific parameter adjustments, feature mapping (like `reasoning_effort`), or injecting custom metadata.
 
 ## Core Concepts
 
@@ -10,7 +10,7 @@ Overrides are configured at the **Channel** level. There are two types of overri
 
 ### Template Rendering
 
-AxonHub uses Go templates for dynamic value rendering. You can access the following variables in your templates:
+llm-proxy uses Go templates for dynamic value rendering. You can access the following variables in your templates:
 
 | Variable | Description | Example |
 | :--- | :--- | :--- |
@@ -25,7 +25,7 @@ When embedding a template value inside JSON, use `toJSON` so quotes and other sp
 
 ## Override Operation Types
 
-AxonHub supports the following override operations:
+llm-proxy supports the following override operations:
 
 | Operation Type | Description | Use Case |
 | :--- | :--- | :--- |
@@ -92,7 +92,7 @@ Use `set_if_absent` when the channel should provide a default without replacing 
 ]
 ```
 
-For a request without `max_output_tokens`, AxonHub adds `"max_output_tokens": 32000`. If the client supplies the field, its value is preserved. Presence is determined by the JSON path, so `0`, `false`, an empty string, and explicit `null` all count as present.
+For a request without `max_output_tokens`, llm-proxy adds `"max_output_tokens": 32000`. If the client supplies the field, its value is preserved. Presence is determined by the JSON path, so `0`, `false`, an empty string, and explicit `null` all count as present.
 
 ### Using Templates
 
@@ -261,7 +261,7 @@ For `{"tools":[{"function":{"name":"get_weather"}},{"function":{"name":"web_sear
 
 ### Dynamic JSON Objects
 
-If a rendered template string is a valid JSON object or array, AxonHub will automatically parse it and insert it as a structured JSON object rather than a string:
+If a rendered template string is a valid JSON object or array, llm-proxy will automatically parse it and insert it as a structured JSON object rather than a string:
 
 ```json
 [
@@ -374,7 +374,7 @@ Pass internal tracking IDs to the provider for debugging:
   {
     "op": "set",
     "path": "X-Request-Source",
-    "value": "axonhub-gateway"
+    "value": "llm-proxy-gateway"
   },
   {
     "op": "set",
@@ -386,7 +386,7 @@ Pass internal tracking IDs to the provider for debugging:
 
 ## Backward Compatibility
 
-AxonHub still supports the legacy override parameters format (JSON object), and the system will automatically convert it to the new operation format:
+llm-proxy still supports the legacy override parameters format (JSON object), and the system will automatically convert it to the new operation format:
 
 **Legacy Format (Still Supported):**
 ```json
@@ -406,7 +406,7 @@ This will be equivalently converted to:
 
 ## Notes & Limitations
 
-- **Stream Parameter**: The `stream` parameter in the request body cannot be overridden as it is managed by the AxonHub pipeline.
+- **Stream Parameter**: The `stream` parameter in the request body cannot be overridden as it is managed by the llm-proxy pipeline.
 - **Header Security**: Be careful when overriding security-sensitive headers like `Authorization`.
 - **Invalid Templates**: If a template fails to parse or execute, the original raw value will be used, and a warning will be logged.
 - **Execution Order**: Operations are executed in array order, and subsequent operations can override the results of previous operations.

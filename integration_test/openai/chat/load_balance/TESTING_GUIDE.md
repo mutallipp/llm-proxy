@@ -6,7 +6,7 @@ Quick reference guide for running and interpreting load balance tests.
 
 ```bash
 # Set required environment variable
-export TEST_AXONHUB_API_KEY="your-api-key"
+export TEST_LLM_PROXY_API_KEY="your-api-key"
 
 # Verify environment
 make verify
@@ -217,7 +217,7 @@ make test-advanced   # Advanced scenarios
 
 ```bash
 # On server
-export AXONHUB_LOAD_BALANCER_DEBUG=true
+export LLM_PROXY_LOAD_BALANCER_DEBUG=true
 
 # Restart server
 # Run tests again
@@ -310,7 +310,7 @@ Tests use unique trace IDs, so no cleanup needed. However:
 ```yaml
 - name: Run Load Balance Tests
   env:
-    TEST_AXONHUB_API_KEY: ${{ secrets.TEST_API_KEY }}
+    TEST_LLM_PROXY_API_KEY: ${{ secrets.TEST_API_KEY }}
     TEST_OPENAI_BASE_URL: http://localhost:8090/v1
     TEST_MODEL: deepseek-chat
   run: |
@@ -331,7 +331,7 @@ make test-quick || exit 1
 Before reporting issues, verify:
 
 - [ ] Server is running on correct port
-- [ ] TEST_AXONHUB_API_KEY is set and valid
+- [ ] TEST_LLM_PROXY_API_KEY is set and valid
 - [ ] Multiple channels are configured and enabled
 - [ ] Channels support the test model
 - [ ] Network connectivity is working
@@ -356,4 +356,4 @@ If tests continue to fail:
 - [Load Balancer Implementation](../../../../internal/server/orchestrator/load_balancer.go)
 - [Strategy Documentation](../../../../internal/server/orchestrator/lb_strategy_*.go)
 - [Main README](./README.md)
-- [AxonHub Documentation](../../../../docs/)
+- [llm-proxy Documentation](../../../../docs/)

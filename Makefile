@@ -4,7 +4,9 @@
 	migration-test migration-test-all migration-test-all-dbs \
 	sync-faq sync-models filter-logs \
 	lint lint-privacy \
-	generate-schema
+	generate-schema \
+	start stop restart logs status \
+	dev-up dev-down dev-logs dev-restart dev-clean dev-db-sync-schema dev-db-sync-full dev-frontend dev
 
 # Generate GraphQL and Ent code
 generate:
@@ -19,13 +21,13 @@ generate-openapi:
 
 # Build the backend application
 build-backend:
-	@echo "Building axonhub backend..."
-	go build -ldflags "-s -w" -tags=nomsgpack -o axonhub ./cmd/axonhub
+	@echo "Building llm-proxy backend..."
+	go build -ldflags "-s -w" -tags=nomsgpack -o llm-proxy ./cmd/llm-proxy
 	@echo "Backend build completed!"
 
 # Build the frontend application
 build-frontend:
-	@echo "Building axonhub frontend..."
+	@echo "Building llm-proxy frontend..."
 	cd frontend && pnpm vite build
 	@echo "Copying frontend dist to server static directory..."
 	rm -rf internal/server/static/dist/assets
@@ -40,18 +42,18 @@ build: build-frontend build-backend
 # Cleanup test database - remove all playwright test data
 cleanup-db:
 	@echo "Cleaning up playwright test data from database..."
-	@sqlite3 axonhub.db "DELETE FROM user_roles WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
-	@sqlite3 axonhub.db "DELETE FROM user_projects WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
-	@sqlite3 axonhub.db "DELETE FROM user_projects WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM api_keys WHERE name LIKE 'pw-test-%';"
-	@sqlite3 axonhub.db "DELETE FROM api_keys WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
-	@sqlite3 axonhub.db "DELETE FROM api_keys WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM roles WHERE code LIKE 'pw-test-%' OR name LIKE 'pw-test-%';"
-	@sqlite3 axonhub.db "DELETE FROM roles WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM usage_logs WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM requests WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%';"
-	@sqlite3 axonhub.db "DELETE FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%';"
+	@sqlite3 llm-proxy.db "DELETE FROM user_roles WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
+	@sqlite3 llm-proxy.db "DELETE FROM user_projects WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
+	@sqlite3 llm-proxy.db "DELETE FROM user_projects WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM api_keys WHERE name LIKE 'pw-test-%';"
+	@sqlite3 llm-proxy.db "DELETE FROM api_keys WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
+	@sqlite3 llm-proxy.db "DELETE FROM api_keys WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM roles WHERE code LIKE 'pw-test-%' OR name LIKE 'pw-test-%';"
+	@sqlite3 llm-proxy.db "DELETE FROM roles WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM usage_logs WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM requests WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%';"
+	@sqlite3 llm-proxy.db "DELETE FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%';"
 	@echo "Cleanup completed!"
 
 # --- Testing ---
@@ -163,6 +165,89 @@ generate-schema:
 	@echo "Generating JSON schema for configuration..."
 	@cd cmd/schema && go run . > ../../config.schema.json
 	@echo "JSON schema generated at config.schema.json"
+
+# ── Production (docker-compose.yml, port 8090) ─────────────────
+start:        ## Stop any running prod, then build + start fresh (port 8090)
+	@if docker ps --format '{{.Names}}' | grep -qx 'llm-proxy'; then \
+		echo "==> Stopping existing llm-proxy container..."; \
+		docker compose stop llm-proxy; \
+		docker compose rm -f llm-proxy; \
+	fi
+	docker compose build llm-proxy
+	docker compose up -d llm-proxy
+
+stop:         ## Stop prod container (keeps image)
+	docker compose stop llm-proxy
+
+restart:      ## Force-recreate prod container
+	docker compose up -d --force-recreate llm-proxy
+
+logs:         ## Tail prod container logs
+	docker compose logs -f llm-proxy
+
+status:       ## Show prod + dev container status
+	@echo "== prod =="; docker ps -a --filter 'name=llm-proxy$$' --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' || true
+	@echo "== dev ==";  docker ps -a --filter 'name=llm-proxy-dev' --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' || true
+
+# ── Development (docker-compose.dev.yml, port 18090) ─────────
+dev-up:       ## Stop any running dev, then build + start fresh (port 18090)
+	@test -f .env.dev.local || { echo "ERROR: 缺少本机凭据文件 .env.dev.local（仅需设置 LLM_PROXY_DB_DSN）" >&2; exit 1; }
+	@if docker ps --format '{{.Names}}' | grep -qx 'llm-proxy-dev'; then \
+		echo "==> Stopping existing llm-proxy-dev container..."; \
+		docker compose -f docker-compose.dev.yml stop llm-proxy; \
+		docker compose -f docker-compose.dev.yml rm -f llm-proxy; \
+	fi
+	docker compose -f docker-compose.dev.yml build llm-proxy
+	docker compose -f docker-compose.dev.yml up -d llm-proxy
+
+dev-down:     ## Stop + remove dev container
+	docker compose -f docker-compose.dev.yml down
+
+dev-logs:     ## Tail dev container logs
+	docker compose -f docker-compose.dev.yml logs -f llm-proxy
+
+dev-restart:  ## Force-recreate dev container
+	docker compose -f docker-compose.dev.yml up -d --force-recreate llm-proxy
+
+dev-clean:    ## Stop dev + remove dev image (drops dev DB manually: DROP DATABASE "llm-proxy-dev")
+	docker compose -f docker-compose.dev.yml down --rmi local
+
+dev-db-sync-schema: ## Copy prod schema into EMPTY dev DB only (no data or credentials)
+	@set -eu; \
+	table_count=$$(docker exec postgres psql -U dev -d 'llm-proxy-dev' -Atc "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';"); \
+	if [ "$$table_count" -ne 0 ]; then \
+		echo "ERROR: llm-proxy-dev already has $$table_count public tables; refusing to overwrite dev data." >&2; \
+		exit 1; \
+	fi; \
+	dump_file=$$(mktemp); \
+	trap 'rm -f "$$dump_file"' EXIT; \
+	echo "==> Dumping schema from prod database llm-proxy..."; \
+	docker exec postgres pg_dump -U dev -d 'llm-proxy' --schema-only --no-owner --no-privileges > "$$dump_file"; \
+	echo "==> Applying schema to empty dev database llm-proxy-dev..."; \
+	docker exec -i postgres psql -U dev -d 'llm-proxy-dev' -v ON_ERROR_STOP=1 < "$$dump_file"; \
+	echo "==> Done. No prod data, API Keys, OAuth tokens, or channel Cookies were copied."
+
+dev-db-sync-full: dev-down ## Replace dev DB with a full prod snapshot (includes secrets)
+	@set -eu; \
+	dump_file=$$(mktemp); \
+	trap 'rm -f "$$dump_file"' EXIT; \
+	echo "==> Dumping full prod database llm-proxy..."; \
+	docker exec postgres pg_dump -U dev -d 'llm-proxy' --clean --if-exists --no-owner --no-privileges > "$$dump_file"; \
+	echo "==> Terminating dev DB connections and recreating llm-proxy-dev..."; \
+	docker exec postgres psql -U dev -d postgres -v ON_ERROR_STOP=1 -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'llm-proxy-dev' AND pid <> pg_backend_pid();"; \
+	docker exec postgres dropdb -U dev --if-exists 'llm-proxy-dev'; \
+	docker exec postgres createdb -U dev -O dev 'llm-proxy-dev'; \
+	echo "==> Restoring full prod snapshot into llm-proxy-dev..."; \
+	docker exec -i postgres psql -U dev -d 'llm-proxy-dev' -v ON_ERROR_STOP=1 < "$$dump_file"; \
+	echo "==> Done. dev now contains a full prod copy, including credentials."
+
+dev-frontend: ## Run frontend Vite dev server (assumes dev backend on 18090)
+	cd frontend && VITE_API_URL=http://localhost:18090 pnpm dev --port 15173
+
+dev:          ## Start dev backend, then run Vite dev in foreground (Ctrl+C exits frontend; run dev-down to stop backend)
+	@echo "Starting dev backend on :18090 (Ctrl+C exits frontend only, run 'make dev-down' to stop backend)..."
+	$(MAKE) dev-up
+	$(MAKE) dev-frontend
 
 # Run all lint checks
 lint: lint-all lint-privacy

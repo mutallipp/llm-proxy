@@ -13,6 +13,8 @@ const MODEL_SETTINGS_FIELDS = `
         type
         priority
         disabled
+        auto
+        disabledReason
         when {
           enabled
           condition {
@@ -583,6 +585,46 @@ export function useQueryUnassociatedChannels() {
       return data.queryUnassociatedChannels;
     },
     enabled: false,
+  });
+}
+
+const DERIVE_MODEL_ASSOCIATIONS_MUTATION = `
+  mutation DeriveModelAssociations($modelID: ID!) {
+    deriveModelAssociations(modelID: $modelID) {
+      addedCount
+    }
+  }
+`;
+
+// 与 KTD18 契约一致，codegen 就绪后替换为生成类型。
+export interface DeriveModelAssociationsPayload {
+  addedCount: number;
+}
+
+export function useDeriveModelAssociations() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const { handleError } = useErrorHandler();
+
+  return useMutation({
+    mutationFn: async (modelID: string) => {
+      try {
+        const data = await graphqlRequest<{ deriveModelAssociations: DeriveModelAssociationsPayload }>(
+          DERIVE_MODEL_ASSOCIATIONS_MUTATION,
+          { modelID }
+        );
+        return data.deriveModelAssociations;
+      } catch (error) {
+        handleError(error, { context: t('models.dialogs.protocolPool.title') });
+        throw error;
+      }
+    },
+    onSuccess: (data, modelID) => {
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+      queryClient.invalidateQueries({ queryKey: ['model', modelID] });
+      queryClient.invalidateQueries({ queryKey: ['models', modelID] });
+      toast.success(t('models.messages.deriveAssociationsSuccess', { count: data.addedCount }));
+    },
   });
 }
 
