@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AxonHub Setup Script
-# This script manages auto-start configuration for AxonHub on Linux and macOS
+# llm-proxy Setup Script
+# This script manages auto-start configuration for llm-proxy on Linux and macOS
 
 set -e
 
@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-SERVICE_NAME="axonhub"
+SERVICE_NAME="llm-proxy"
 # Resolve non-root user's HOME when running via sudo
 if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
     USER_HOME="$(eval echo ~${SUDO_USER})"
@@ -22,10 +22,10 @@ else
     USER_HOME="$HOME"
     TARGET_USER="$USER"
 fi
-BASE_DIR="${USER_HOME}/.config/axonhub"
-BINARY_PATH="/usr/local/bin/axonhub"
-PID_FILE="${BASE_DIR}/axonhub.pid"
-LOG_FILE="${BASE_DIR}/axonhub.log"
+BASE_DIR="${USER_HOME}/.config/llm-proxy"
+BINARY_PATH="/usr/local/bin/llm-proxy"
+PID_FILE="${BASE_DIR}/llm-proxy.pid"
+LOG_FILE="${BASE_DIR}/llm-proxy.log"
 
 # Platform detection
 OS=""
@@ -80,14 +80,14 @@ detect_platform() {
 
 usage() {
     cat 1>&2 <<EOF
-AxonHub Setup
+llm-proxy Setup
 
 Usage:
   ./setup.sh [command] [options]
 
 Commands:
-  install-autostart    Install AxonHub to start automatically on boot
-  uninstall-autostart  Remove AxonHub from automatic startup
+  install-autostart    Install llm-proxy to start automatically on boot
+  uninstall-autostart  Remove llm-proxy from automatic startup
   status               Check autostart status
 
 Options:
@@ -120,7 +120,7 @@ create_systemd_service_file() {
 
     cat > "$service_path" << EOF
 [Unit]
-Description=AxonHub AI Gateway
+Description=llm-proxy AI Gateway
 After=network.target
 
 [Service]
@@ -142,8 +142,8 @@ install_systemd_user_service() {
     print_info "Installing systemd user service..."
 
     if [[ ! -x "$BINARY_PATH" ]]; then
-        print_error "AxonHub binary not found at $BINARY_PATH"
-        print_info "Please run install.sh first to install AxonHub"
+        print_error "llm-proxy binary not found at $BINARY_PATH"
+        print_info "Please run install.sh first to install llm-proxy"
         return 1
     fi
 
@@ -182,8 +182,8 @@ install_systemd_system_service() {
     fi
 
     if [[ ! -x "$BINARY_PATH" ]]; then
-        print_error "AxonHub binary not found at $BINARY_PATH"
-        print_info "Please run install.sh first to install AxonHub"
+        print_error "llm-proxy binary not found at $BINARY_PATH"
+        print_info "Please run install.sh first to install llm-proxy"
         return 1
     fi
 
@@ -287,7 +287,7 @@ check_systemd_status() {
 # ==================== macOS launchd functions ====================
 
 get_launchd_plist_path() {
-    echo "${USER_HOME}/Library/LaunchAgents/com.axonhub.axonhub.plist"
+    echo "${USER_HOME}/Library/LaunchAgents/com.llm-proxy.llm-proxy.plist"
 }
 
 create_launchd_plist() {
@@ -299,7 +299,7 @@ create_launchd_plist() {
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.axonhub.axonhub</string>
+    <string>com.llm-proxy.llm-proxy</string>
     <key>ProgramArguments</key>
     <array>
         <string>${BINARY_PATH}</string>
@@ -331,8 +331,8 @@ install_launchd_service() {
     print_info "Installing launchd user agent..."
 
     if [[ ! -x "$BINARY_PATH" ]]; then
-        print_error "AxonHub binary not found at $BINARY_PATH"
-        print_info "Please run install.sh first to install AxonHub"
+        print_error "llm-proxy binary not found at $BINARY_PATH"
+        print_info "Please run install.sh first to install llm-proxy"
         return 1
     fi
 
@@ -386,7 +386,7 @@ check_launchd_status() {
 
     if [[ -f "$plist_path" ]]; then
         # Check if loaded
-        if sudo -u "$TARGET_USER" launchctl list | grep -q "com.axonhub.axonhub"; then
+        if sudo -u "$TARGET_USER" launchctl list | grep -q "com.llm-proxy.llm-proxy"; then
             echo "enabled"
         else
             echo "disabled (plist exists)"
@@ -399,7 +399,7 @@ check_launchd_status() {
 # ==================== Main functions ====================
 
 install_autostart() {
-    print_info "Installing AxonHub auto-start..."
+    print_info "Installing llm-proxy auto-start..."
 
     case "$OS" in
         linux)
@@ -420,7 +420,7 @@ install_autostart() {
 }
 
 uninstall_autostart() {
-    print_info "Uninstalling AxonHub auto-start..."
+    print_info "Uninstalling llm-proxy auto-start..."
 
     case "$OS" in
         linux)
@@ -438,7 +438,7 @@ uninstall_autostart() {
 }
 
 show_status() {
-    print_info "Checking AxonHub autostart status..."
+    print_info "Checking llm-proxy autostart status..."
 
     echo ""
     echo "Platform: $OS ($ARCH)"

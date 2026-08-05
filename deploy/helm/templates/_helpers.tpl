@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "axonhub.name" -}}
+{{- define "llm-proxy.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "axonhub.fullname" -}}
+{{- define "llm-proxy.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "axonhub.chart" -}}
+{{- define "llm-proxy.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "axonhub.labels" -}}
-helm.sh/chart: {{ include "axonhub.chart" . }}
-{{ include "axonhub.selectorLabels" . }}
+{{- define "llm-proxy.labels" -}}
+helm.sh/chart: {{ include "llm-proxy.chart" . }}
+{{ include "llm-proxy.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "axonhub.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "axonhub.name" . }}
+{{- define "llm-proxy.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "llm-proxy.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "axonhub.serviceAccountName" -}}
+{{- define "llm-proxy.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "axonhub.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "llm-proxy.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -64,13 +64,13 @@ Create the name of the service account to use
 {{/*
 PostgreSQL fullname
 */}}
-{{- define "axonhub.postgresql.fullname" -}}
-{{- printf "%s-postgresql" (include "axonhub.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- define "llm-proxy.postgresql.fullname" -}}
+{{- printf "%s-postgresql" (include "llm-proxy.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 PostgreSQL service name
 */}}
-{{- define "axonhub.postgresql.serviceName" -}}
-{{- include "axonhub.postgresql.fullname" . }}
+{{- define "llm-proxy.postgresql.serviceName" -}}
+{{- include "llm-proxy.postgresql.fullname" . }}
 {{- end }}

@@ -18,13 +18,13 @@ import (
 )
 
 // TestS3ObjectStoreIntegration exercises the native S3 ObjectStore against a real
-// S3-compatible endpoint (e.g. MinIO). It is skipped unless AXONHUB_TEST_S3_ENDPOINT
+// S3-compatible endpoint (e.g. MinIO). It is skipped unless LLM_PROXY_TEST_S3_ENDPOINT
 // is set, so it never runs during a normal `go test ./...`.
 //
 //	docker run -d --rm --name minio -p 9000:9000 \
 //	  -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
 //	  minio/minio server /data
-//	AXONHUB_TEST_S3_ENDPOINT=http://localhost:9000 go test ./internal/server/biz/ -run TestS3ObjectStoreIntegration -v
+//	LLM_PROXY_TEST_S3_ENDPOINT=http://localhost:9000 go test ./internal/server/biz/ -run TestS3ObjectStoreIntegration -v
 func TestS3ObjectStoreIntegration(t *testing.T) {
 	cfg := s3TestConfig(t)
 	ctx := context.Background()
@@ -173,17 +173,17 @@ func TestS3ObjectStoreIntegration(t *testing.T) {
 func s3TestConfig(t *testing.T) *objects.S3 {
 	t.Helper()
 
-	endpoint := os.Getenv("AXONHUB_TEST_S3_ENDPOINT")
+	endpoint := os.Getenv("LLM_PROXY_TEST_S3_ENDPOINT")
 	if endpoint == "" {
-		t.Skip("AXONHUB_TEST_S3_ENDPOINT not set; skipping S3 integration test")
+		t.Skip("LLM_PROXY_TEST_S3_ENDPOINT not set; skipping S3 integration test")
 	}
 
 	return &objects.S3{
-		BucketName: getenvDefault("AXONHUB_TEST_S3_BUCKET", "axonhub-test"),
+		BucketName: getenvDefault("LLM_PROXY_TEST_S3_BUCKET", "llm-proxy-test"),
 		Endpoint:   endpoint,
-		Region:     getenvDefault("AXONHUB_TEST_S3_REGION", "us-east-1"),
-		AccessKey:  getenvDefault("AXONHUB_TEST_S3_ACCESS_KEY", "minioadmin"),
-		SecretKey:  getenvDefault("AXONHUB_TEST_S3_SECRET_KEY", "minioadmin"),
+		Region:     getenvDefault("LLM_PROXY_TEST_S3_REGION", "us-east-1"),
+		AccessKey:  getenvDefault("LLM_PROXY_TEST_S3_ACCESS_KEY", "minioadmin"),
+		SecretKey:  getenvDefault("LLM_PROXY_TEST_S3_SECRET_KEY", "minioadmin"),
 		PathStyle:  true,
 	}
 }

@@ -1,6 +1,6 @@
 <div align="center">
 
-# AxonHub - オールインワンAI開発プラットフォーム
+# llm-proxy - オールインワンAI開発プラットフォーム
 ### あらゆるSDKを使用。あらゆるモデルにアクセス。コード変更ゼロ。
 
 <a href="https://trendshift.io/repositories/16225" target="_blank"><img src="https://trendshift.io/api/badge/repositories/16225" alt="mutallipp%2Fllm-proxy | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -53,7 +53,7 @@
         本プロジェクトを支援いただいている Krill AI に感謝します。Krill は GPT、Claude、Gemini および多数の中国国内モデル向けに、公式かつ安定した高速 API 中継サービスを提供しています。エンタープライズ向けカスタマイズ、請求書発行、1日16時間・週7日の専用技術サポートに対応しています。独自に最適化された WebSocket 接続により、最初のトークンをより速く受け取れます。
       </p>
       <p align="left">
-        <a href="https://lj.s.gy/jKk8uU" target="_blank">このリンク</a> から登録し、チャージ時に <code>AxonHub</code> クーポンコードを入力すると、初回の Codex プラン購入が 23% オフになります。
+        <a href="https://lj.s.gy/jKk8uU" target="_blank">このリンク</a> から登録し、チャージ時に <code>llm-proxy</code> クーポンコードを入力すると、初回の Codex プラン購入が 23% オフになります。
       </p>
     </td>
   </tr>
@@ -73,15 +73,15 @@
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <a href="https://bloome.im/app?ref=MjgMzmCY&utm_medium=github&utm_source=looplj-axonhub-ivor-202606" target="_blank">
+        <a href="https://bloome.im/app?ref=MjgMzmCY&utm_medium=github&utm_source=looplj-llm-proxy-ivor-202606" target="_blank">
           <img src="docs/sponsors/bloome.png" alt="Bloome" height="90"/>
           <br/>
           <strong>Bloome</strong>
         </a>
       </td>
       <td valign="middle">
-        AxonHub をローカルセットアップなしで試すなら、Bloome で：
-        <a href="https://bloome.im/app?ref=MjgMzmCY&utm_medium=github&utm_source=looplj-axonhub-ivor-202606" target="_blank">Quick start</a>、
+        llm-proxy をローカルセットアップなしで試すなら、Bloome で：
+        <a href="https://bloome.im/app?ref=MjgMzmCY&utm_medium=github&utm_source=looplj-llm-proxy-ivor-202606" target="_blank">Quick start</a>、
         ブラウザやスマートフォンからワンクリックで起動でき、チームにも簡単に共有できます。
       </td>
     </tr>
@@ -104,9 +104,9 @@
 
 ### オールインワンAI開発プラットフォーム
 
-**AxonHubは、コードを一行も変更することなくモデルプロバイダーを切り替えられるAIゲートウェイです。**
+**llm-proxyは、コードを一行も変更することなくモデルプロバイダーを切り替えられるAIゲートウェイです。**
 
-OpenAI SDK、Anthropic SDK、またはその他のAI SDKを使用している場合でも、AxonHubはリクエストを透過的に変換し、サポートされているあらゆるモデルプロバイダーで動作させます。リファクタリングもSDKの入れ替えも不要 - 設定を変更するだけで完了です。
+OpenAI SDK、Anthropic SDK、またはその他のAI SDKを使用している場合でも、llm-proxyはリクエストを透過的に変換し、サポートされているあらゆるモデルプロバイダーで動作させます。リファクタリングもSDKの入れ替えも不要 - 設定を変更するだけで完了です。
 
 **解決する課題：**
 - 🔒 **ベンダーロックイン** - GPT-4からClaudeやGeminiへ瞬時に切り替え
@@ -115,7 +115,7 @@ OpenAI SDK、Anthropic SDK、またはその他のAI SDKを使用している場
 - 💸 **コスト管理** - リアルタイムの使用量追跡と予算管理
 
 <div align="center">
-  <img src="docs/axonhub-architecture-light.svg" alt="AxonHub Architecture" width="700"/>
+  <img src="docs/llm-proxy-architecture-light.svg" alt="llm-proxy Architecture" width="700"/>
 </div>
 
 ### コア機能
@@ -140,7 +140,7 @@ OpenAI SDK、Anthropic SDK、またはその他のAI SDKを使用している場
 
 ## 🎯 デモ
 
-[デモインスタンス](https://axonhub.onrender.com)でAxonHubをお試しください！
+[デモインスタンス](https://llm-proxy.onrender.com)でllm-proxyをお試しください！
 
 **注意**：デモインスタンスでは現在、ZhipuとOpenRouterの無料モデルが設定されています。
 
@@ -155,27 +155,27 @@ OpenAI SDK、Anthropic SDK、またはその他のAI SDKを使用している場
 
 ### 📸 スクリーンショット
 
-AxonHubの動作画面をご覧ください：
+llm-proxyの動作画面をご覧ください：
 
 <table>
   <tr>
     <td align="center">
-      <a href="docs/screenshots/axonhub-dashboard.png">
-        <img src="docs/screenshots/axonhub-dashboard.png" alt="System Dashboard" width="250"/>
+      <a href="docs/screenshots/llm-proxy-dashboard.png">
+        <img src="docs/screenshots/llm-proxy-dashboard.png" alt="System Dashboard" width="250"/>
       </a>
       <br/>
       システムダッシュボード
     </td>
     <td align="center">
-      <a href="docs/screenshots/axonhub-channels.png">
-        <img src="docs/screenshots/axonhub-channels.png" alt="Channel Management" width="250"/>
+      <a href="docs/screenshots/llm-proxy-channels.png">
+        <img src="docs/screenshots/llm-proxy-channels.png" alt="Channel Management" width="250"/>
       </a>
       <br/>
       チャネル管理
     </td>
     <td align="center">
-      <a href="docs/screenshots/axonhub-model-price.png">
-        <img src="docs/screenshots/axonhub-model-price.png" alt="Model Price" width="250"/>
+      <a href="docs/screenshots/llm-proxy-model-price.png">
+        <img src="docs/screenshots/llm-proxy-model-price.png" alt="Model Price" width="250"/>
       </a>
       <br/>
       モデル料金
@@ -183,22 +183,22 @@ AxonHubの動作画面をご覧ください：
   </tr>
   <tr>
   <td align="center">
-      <a href="docs/screenshots/axonhub-models.png">
-        <img src="docs/screenshots/axonhub-models.png" alt="Models" width="250"/>
+      <a href="docs/screenshots/llm-proxy-models.png">
+        <img src="docs/screenshots/llm-proxy-models.png" alt="Models" width="250"/>
       </a>
       <br/>
       モデル
     </td>
     <td align="center">
-      <a href="docs/screenshots/axonhub-trace.png">
-        <img src="docs/screenshots/axonhub-trace.png" alt="Trace Viewer" width="250"/>
+      <a href="docs/screenshots/llm-proxy-trace.png">
+        <img src="docs/screenshots/llm-proxy-trace.png" alt="Trace Viewer" width="250"/>
       </a>
       <br/>
       トレースビューア
     </td>
     <td align="center">
-      <a href="docs/screenshots/axonhub-requests.png">
-        <img src="docs/screenshots/axonhub-requests.png" alt="Request Monitoring" width="250"/>
+      <a href="docs/screenshots/llm-proxy-requests.png">
+        <img src="docs/screenshots/llm-proxy-requests.png" alt="Request Monitoring" width="250"/>
       </a>
       <br/>
       リクエストモニタリング
@@ -247,28 +247,28 @@ AxonHubの動作画面をご覧ください：
 
 ```bash
 # ダウンロードして展開（macOS ARM64の例）
-curl -sSL https://github.com/mutallipp/llm-proxy/releases/latest/download/axonhub_darwin_arm64.tar.gz | tar xz
-cd axonhub_*
+curl -sSL https://github.com/mutallipp/llm-proxy/releases/latest/download/llm-proxy_darwin_arm64.tar.gz | tar xz
+cd llm-proxy_*
 
 # SQLiteで実行（デフォルト）
-./axonhub
+./llm-proxy
 
 # http://localhost:8090 を開く
 # 初回起動時：セットアップウィザードに従ってシステムを初期化してください（管理者アカウントの作成、パスワードは6文字以上）
 ```
 
-以上です！あとはAIチャネルを設定し、AxonHub経由でモデルの呼び出しを開始できます。
+以上です！あとはAIチャネルを設定し、llm-proxy経由でモデルの呼び出しを開始できます。
 
 ### コード変更ゼロの移行例
 
-**既存のコードはそのまま動作します。** SDKの接続先をAxonHubに向けるだけです：
+**既存のコードはそのまま動作します。** SDKの接続先をllm-proxyに向けるだけです：
 
 ```python
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://localhost:8090/v1",  # AxonHubに接続
-    api_key="your-axonhub-api-key"        # AxonHubのAPIキーを使用
+    base_url="http://localhost:8090/v1",  # llm-proxyに接続
+    api_key="your-llm-proxy-api-key"        # llm-proxyのAPIキーを使用
 )
 
 # OpenAI SDKでClaudeを呼び出し！
@@ -282,7 +282,7 @@ response = client.chat.completions.create(
 
 ### Renderへのワンクリックデプロイ
 
-[Render](https://render.com)でAxonHubをワンクリックで無料デプロイ。
+[Render](https://render.com)でllm-proxyをワンクリックで無料デプロイ。
 
 <div>
 
@@ -310,21 +310,21 @@ response = client.chat.completions.create(
 
    ```bash
    # ダウンロードしたファイルを展開
-   unzip axonhub_*.zip
-   cd axonhub_*
+   unzip llm-proxy_*.zip
+   cd llm-proxy_*
 
    # 実行権限を追加（Linux/macOSのみ）
-   chmod +x axonhub
+   chmod +x llm-proxy
 
    # 直接実行 - デフォルトのSQLiteデータベース
 
-   # AxonHubをシステムにインストール
+   # llm-proxyをシステムにインストール
    sudo ./install.sh
 
-   # AxonHubサービスを開始
+   # llm-proxyサービスを開始
    ./start.sh
 
-   # AxonHubサービスを停止
+   # llm-proxyサービスを停止
    ./stop.sh
    ```
 
@@ -341,7 +341,7 @@ response = client.chat.completions.create(
 
 #### データベースサポート
 
-AxonHubは、異なる規模のデプロイニーズに対応するために複数のデータベースをサポートしています：
+llm-proxyは、異なる規模のデプロイニーズに対応するために複数のデータベースをサポートしています：
 
 | データベース       | サポートバージョン | 推奨シナリオ                             | 自動マイグレーション | リンク                                                       |
 | -------------- | ------------------ | ------------------------------------------------ | -------------- | ----------------------------------------------------------- |
@@ -355,18 +355,18 @@ AxonHubは、異なる規模のデプロイニーズに対応するために複�
 
 #### 設定
 
-AxonHubは、環境変数によるオーバーライドをサポートするYAML設定ファイルを使用します：
+llm-proxyは、環境変数によるオーバーライドをサポートするYAML設定ファイルを使用します：
 
 ```yaml
 # config.yml
 server:
   port: 8090
-  name: "AxonHub"
+  name: "llm-proxy"
   debug: false
 
 db:
   dialect: "tidb"
-  dsn: "<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
+  dsn: "<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/llm-proxy?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
 
 log:
   level: "info"
@@ -376,10 +376,10 @@ log:
 環境変数：
 
 ```bash
-AXONHUB_SERVER_PORT=8090
-AXONHUB_DB_DIALECT="tidb"
-AXONHUB_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
-AXONHUB_LOG_LEVEL=info
+LLM_PROXY_SERVER_PORT=8090
+LLM_PROXY_DB_DIALECT="tidb"
+LLM_PROXY_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/llm-proxy?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
+LLM_PROXY_LOG_LEVEL=info
 ```
 
 詳細な設定手順については、[設定ドキュメント](docs/en/deployment/configuration.md)を参照してください。
@@ -389,11 +389,11 @@ AXONHUB_LOG_LEVEL=info
 ```bash
 # プロジェクトをクローン
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
+cd llm-proxy
 
 # 環境変数を設定
-export AXONHUB_DB_DIALECT="tidb"
-export AXONHUB_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
+export LLM_PROXY_DB_DIALECT="tidb"
+export LLM_PROXY_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/llm-proxy?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
 
 # サービスを開始
 docker-compose up -d
@@ -404,19 +404,19 @@ docker-compose ps
 
 #### Helm Kubernetesデプロイ
 
-公式Helm chartを使用して、Kubernetes上にAxonHubをデプロイします：
+公式Helm chartを使用して、Kubernetes上にllm-proxyをデプロイします：
 
 ```bash
 # クイックインストール
 git clone https://github.com/mutallipp/llm-proxy.git
-cd axonhub
-helm install axonhub ./deploy/helm
+cd llm-proxy
+helm install llm-proxy ./deploy/helm
 
 # 本番デプロイ
-helm install axonhub ./deploy/helm -f ./deploy/helm/values-production.yaml
+helm install llm-proxy ./deploy/helm -f ./deploy/helm/values-production.yaml
 
-# AxonHubにアクセス
-kubectl port-forward svc/axonhub 8090:8090
+# llm-proxyにアクセス
+kubectl port-forward svc/llm-proxy 8090:8090
 # http://localhost:8090 にアクセス
 ```
 
@@ -424,8 +424,8 @@ kubectl port-forward svc/axonhub 8090:8090
 
 | パラメータ | 説明 | デフォルト |
 |-----------|-------------|---------|
-| `axonhub.replicaCount` | レプリカ数 | `1` |
-| `axonhub.dbPassword` | DBパスワード | `axonhub_password` |
+| `llm-proxy.replicaCount` | レプリカ数 | `1` |
+| `llm-proxy.dbPassword` | DBパスワード | `llm-proxy_password` |
 | `postgresql.enabled` | 組み込みPostgreSQL | `true` |
 | `ingress.enabled` | Ingressの有効化 | `false` |
 | `persistence.enabled` | データ永続化 | `false` |
@@ -438,20 +438,20 @@ kubectl port-forward svc/axonhub 8090:8090
 
 ```bash
 # 展開して実行
-unzip axonhub_*.zip
-cd axonhub_*
+unzip llm-proxy_*.zip
+cd llm-proxy_*
 
 # 環境変数を設定
-export AXONHUB_DB_DIALECT="tidb"
-export AXONHUB_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
+export LLM_PROXY_DB_DIALECT="tidb"
+export LLM_PROXY_DB_DSN="<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/llm-proxy?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4"
 
 sudo ./install.sh
 
 # 設定ファイルを確認
-axonhub config check
+llm-proxy config check
 
 # サービスを開始
-#  簡便のため、ヘルパースクリプトでAxonHubを管理することを推奨します：
+#  簡便のため、ヘルパースクリプトでllm-proxyを管理することを推奨します：
 
 # 開始
 ./start.sh
@@ -466,12 +466,12 @@ axonhub config check
 
 ### 統合APIの概要
 
-AxonHubは、OpenAI Chat CompletionsとAnthropic Messages APIの両方をサポートする統合APIゲートウェイを提供します。これにより以下が可能になります：
+llm-proxyは、OpenAI Chat CompletionsとAnthropic Messages APIの両方をサポートする統合APIゲートウェイを提供します。これにより以下が可能になります：
 
 - **OpenAI APIでAnthropicモデルを呼び出し** - OpenAI SDKを使いながらClaudeモデルにアクセス
 - **Anthropic APIでOpenAIモデルを呼び出し** - Anthropicのネイティブフォーマットを使いながらGPTモデルにアクセス
 - **Gemini APIでOpenAIモデルを呼び出し** - Geminiのネイティブフォーマットを使いながらGPTモデルにアクセス
-- **自動API変換** - AxonHubがフォーマット変換を自動的に処理
+- **自動API変換** - llm-proxyがフォーマット変換を自動的に処理
 - **コード変更ゼロ** - 既存のOpenAIまたはAnthropicクライアントコードがそのまま動作
 
 ### 1. 初期セットアップ
@@ -497,7 +497,7 @@ AxonHubは、OpenAI Chat CompletionsとAnthropic Messages APIの両方をサポ�
 
 ### 3. モデル管理
 
-AxonHubは、モデルアソシエーションを通じて抽象モデルを特定のチャネルおよびモデル実装にマッピングする柔軟なモデル管理システムを提供します。これにより以下が可能になります：
+llm-proxyは、モデルアソシエーションを通じて抽象モデルを特定のチャネルおよびモデル実装にマッピングする柔軟なモデル管理システムを提供します。これにより以下が可能になります：
 
 - **統一モデルインターフェース** - チャネル固有の名前ではなく、抽象モデルID（例：`gpt-4`、`claude-3-opus`）を使用
 - **インテリジェントなチャネル選択** - アソシエーションルールとロードバランシングに基づいて、最適なチャネルに自動ルーティング
@@ -508,7 +508,7 @@ AxonHubは、モデルアソシエーションを通じて抽象モデルを特�
 
 ### 4. APIキーの作成
 
-AxonHubでアプリケーションを認証するためのAPIキーを作成します。各APIキーには、以下を定義する複数のプロファイルを設定できます：
+llm-proxyでアプリケーションを認証するためのAPIキーを作成します。各APIキーには、以下を定義する複数のプロファイルを設定できます：
 
 - **モデルマッピング** - 完全一致または正規表現パターンを使用して、ユーザーがリクエストしたモデルを実際に利用可能なモデルに変換
 - **チャネル制限** - チャネルIDまたはタグによって、APIキーが使用できるチャネルを制限
@@ -519,7 +519,7 @@ APIキープロファイルの詳細（設定例、バリデーションルー�
 
 ### 5. AIコーディングツール連携
 
-詳細なセットアップ手順、トラブルシューティング、およびAxonHubモデルプロファイルとの組み合わせに関するヒントについては、以下の専用ガイドを参照してください：
+詳細なセットアップ手順、トラブルシューティング、およびllm-proxyモデルプロファイルとの組み合わせに関するヒントについては、以下の専用ガイドを参照してください：
 - [OpenCode連携ガイド](docs/en/guides/opencode-integration.md)
 - [Claude Code連携ガイド](docs/en/guides/claude-code-integration.md)
 - [Codex連携ガイド](docs/en/guides/codex-integration.md)
@@ -560,10 +560,10 @@ SDKの詳細な使用例とコードサンプルについては、APIドキュ�
 
 <div align="center">
 
-**AxonHub** - オールインワンAI開発プラットフォーム、AI開発をよりシンプルに
+**llm-proxy** - オールインワンAI開発プラットフォーム、AI開発をよりシンプルに
 
 [🏠 ホームページ](https://github.com/mutallipp/llm-proxy) • [📚 ドキュメント](https://deepwiki.com/mutallipp/llm-proxy) • [🐛 問題報告](https://github.com/mutallipp/llm-proxy/issues)
 
-AxonHubチームが ❤️ を込めて開発
+llm-proxyチームが ❤️ を込めて開発
 
 </div>

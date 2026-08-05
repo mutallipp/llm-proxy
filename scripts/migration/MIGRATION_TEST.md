@@ -1,10 +1,10 @@
-# AxonHub 迁移测试脚本
+# llm-proxy 迁移测试脚本
 
 自动化测试数据库版本升级迁移的脚本。
 
 ## 概述
 
-`migration-test.sh` 脚本用于验证 AxonHub 的数据库迁移功能。它会自动下载指定发布标签的二进制文件，初始化数据库，然后使用当前分支的代码执行迁移，并可选地运行 E2E 测试来验证数据的完整性。
+`migration-test.sh` 脚本用于验证 llm-proxy 的数据库迁移功能。它会自动下载指定发布标签的二进制文件，初始化数据库，然后使用当前分支的代码执行迁移，并可选地运行 E2E 测试来验证数据的完整性。
 
 ## 快速开始
 
@@ -35,8 +35,8 @@
 E2E 测试从以下环境变量读取本地测试账号和密码：
 
 ```bash
-export AXONHUB_TEST_EMAIL="your-test-email"
-export AXONHUB_TEST_PASSWORD="your-test-password"
+export LLM_PROXY_TEST_EMAIL="your-test-email"
+export LLM_PROXY_TEST_PASSWORD="your-test-password"
 ```
 
 缺少任一变量时，相关测试会跳过并提示。请勿将真实凭据写入版本控制文件。
@@ -81,17 +81,17 @@ export AXONHUB_TEST_PASSWORD="your-test-password"
 
 ### MySQL
 
-- **容器名称**: `axonhub-migration-mysql`
+- **容器名称**: `llm-proxy-migration-mysql`
 - **端口**: 13306
-- **数据库/用户/密码**: `axonhub_test` / `axonhub` / `axonhub_test`
-- **连接命令**: `docker exec -it axonhub-migration-mysql mysql -u axonhub -paxonhub_test axonhub_test`
+- **数据库/用户/密码**: `axonhub_test` / `llm-proxy` / `axonhub_test`
+- **连接命令**: `docker exec -it llm-proxy-migration-mysql mysql -u llm-proxy -paxonhub_test axonhub_test`
 
 ### PostgreSQL
 
-- **容器名称**: `axonhub-migration-postgres`
+- **容器名称**: `llm-proxy-migration-postgres`
 - **端口**: 15432
-- **数据库/用户/密码**: `axonhub_test` / `axonhub` / `axonhub_test`
-- **连接命令**: `docker exec -it axonhub-migration-postgres psql -U axonhub -d axonhub_test`
+- **数据库/用户/密码**: `axonhub_test` / `llm-proxy` / `axonhub_test`
+- **连接命令**: `docker exec -it llm-proxy-migration-postgres psql -U llm-proxy -d axonhub_test`
 
 ### SQLite
 
@@ -130,9 +130,9 @@ scripts/
 ├── migration-test/             # 测试工作根目录
 │   ├── cache/                  # 二进制文件缓存
 │   │   └── v0.1.0/
-│   │       └── axonhub         # 缓存的 v0.1.0 二进制
+│   │       └── llm-proxy         # 缓存的 v0.1.0 二进制
 │   └── work/                   # 工作目录（测试后默认清理）
-│       ├── axonhub-current     # 当前分支编译的二进制
+│       ├── llm-proxy-current     # 当前分支编译的二进制
 │       ├── migration-test.db   # 测试数据库（SQLite）
 │       ├── migration-test.log  # 测试详细日志
 │       └── migration-plan.json # 迁移步骤计划

@@ -1,4 +1,4 @@
-# AxonHub 后端技术架构与开发规范
+# llm-proxy 后端技术架构与开发规范
 
 本文描述当前源码中的后端边界、请求链路和 Adapter Gateway 约束。路径均相对于仓库根目录。
 
@@ -6,14 +6,14 @@
 
 | 层次 | 选型与职责 | 主要路径 |
 | --- | --- | --- |
-| 运行时 | Go 1.26；Uber FX 负责依赖注入和模块装配 | [`go.mod`](../../go.mod)、[`cmd/axonhub/main.go`](../../cmd/axonhub/main.go)、[`internal/server/biz/fx_module.go`](../../internal/server/biz/fx_module.go) |
+| 运行时 | Go 1.26；Uber FX 负责依赖注入和模块装配 | [`go.mod`](../../go.mod)、[`cmd/llm-proxy/main.go`](../../cmd/llm-proxy/main.go)、[`internal/server/biz/fx_module.go`](../../internal/server/biz/fx_module.go) |
 | HTTP/API | Gin 路由、中间件、REST/协议兼容 handler | [`internal/server/routes.go`](../../internal/server/routes.go)、[`internal/server/api/`](../../internal/server/api/)、[`internal/server/middleware/`](../../internal/server/middleware/) |
 | 数据访问 | Ent schema 驱动 ORM；SQLite 为配置示例和默认开发数据库，PostgreSQL 用于部署 | [`internal/ent/schema/`](../../internal/ent/schema/)、[`config.example.yml`](../../config.example.yml)、[`docker-compose.yml`](../../docker-compose.yml) |
 | GraphQL | gqlgen 管理管理端 GraphQL schema/resolver；OpenAPI GraphQL 单独生成 | [`internal/server/gql/`](../../internal/server/gql/)、[`internal/server/gql/openapi/`](../../internal/server/gql/openapi/)、[`internal/server/gql/generate.go`](../../internal/server/gql/generate.go) |
 | LLM 核心 | 统一 `llm.Request`/`llm.Response`、协议 transformer、pipeline、HTTP executor；是独立 Go module | [`llm/go.mod`](../../llm/go.mod)、[`llm/model.go`](../../llm/model.go)、[`llm/pipeline/`](../../llm/pipeline/)、[`llm/transformer/`](../../llm/transformer/) |
 | 业务编排 | 渠道候选选择、负载均衡、重试、请求/用量持久化 | [`internal/server/orchestrator/`](../../internal/server/orchestrator/)、[`internal/server/biz/`](../../internal/server/biz/) |
 
-数据库方言由 `AXONHUB_DB_DIALECT`/`AXONHUB_DB_DSN` 或配置文件提供：开发示例使用 SQLite，Compose/Helm 示例使用 PostgreSQL。不要在代码中写死个人数据库地址。
+数据库方言由 `LLM_PROXY_DB_DIALECT`/`LLM_PROXY_DB_DSN` 或配置文件提供：开发示例使用 SQLite，Compose/Helm 示例使用 PostgreSQL。不要在代码中写死个人数据库地址。
 
 ## 2. 请求链路
 

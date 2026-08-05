@@ -44,7 +44,7 @@ type TestState = 'idle' | 'testing' | 'success' | 'failed';
 
 const EMPTY_MODELS: Model[] = [];
 const NUMERIC_MODEL_ID_PATTERN = /^[1-9]\d*$/;
-const MODEL_RELAY_GID_PATTERN = /^gid:\/\/axonhub\/Model\/[1-9]\d*$/;
+const MODEL_RELAY_GID_PATTERN = /^gid:\/\/llm-proxy\/Model\/[1-9]\d*$/;
 
 function parseModelIdFromSelectValue(value: string): number | null {
   const isNumericId = NUMERIC_MODEL_ID_PATTERN.test(value);

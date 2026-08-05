@@ -1,6 +1,6 @@
 # Data Migration (数据迁移)
 
-Data migration provides one-off backfill or repair logic for **upgrading an existing AxonHub instance to a newer version**.
+Data migration provides one-off backfill or repair logic for **upgrading an existing llm-proxy instance to a newer version**.
 
 ## When it runs
 
@@ -29,7 +29,7 @@ Data migration provides one-off backfill or repair logic for **upgrading an exis
 
 # 数据迁移（Data Migration）
 
-数据迁移用于在 **已有 AxonHub 实例升级到新版本** 时，为历史数据执行一次性的补齐或修复逻辑。
+数据迁移用于在 **已有 llm-proxy 实例升级到新版本** 时，为历史数据执行一次性的补齐或修复逻辑。
 
 ## 何时会执行
 

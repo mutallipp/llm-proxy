@@ -1,6 +1,6 @@
 # Adaptive Load Balancing Guide
 
-AxonHub provides an intelligent adaptive load balancing system that automatically selects optimal AI channels based on multiple dimensions, ensuring high availability and optimal performance.
+llm-proxy provides an intelligent adaptive load balancing system that automatically selects optimal AI channels based on multiple dimensions, ensuring high availability and optimal performance.
 
 ## 🎯 Core Features
 
@@ -64,7 +64,7 @@ Use standard OpenAI API format:
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -133,19 +133,19 @@ View detailed load balancing decision process by setting the environment variabl
 
 ```bash
 # Set environment variable
-export AXONHUB_DEBUG_LOAD_BALANCER_ENABLED=true
+export LLM_PROXY_DEBUG_LOAD_BALANCER_ENABLED=true
 ```
 
 ### View Decision Logs
 ```bash
 # View load balancing decisions
-tail -f axonhub.log | grep "Load balancing decision"
+tail -f llm-proxy.log | grep "Load balancing decision"
 
 # View specific channel scoring
-tail -f axonhub.log | grep "Channel load balancing details"
+tail -f llm-proxy.log | grep "Channel load balancing details"
 
 # Use jq to format JSON logs
-tail -f axonhub.log | jq 'select(.msg | contains("Load balancing"))'
+tail -f llm-proxy.log | jq 'select(.msg | contains("Load balancing"))'
 ```
 
 ## 📈 Monitoring and Troubleshooting

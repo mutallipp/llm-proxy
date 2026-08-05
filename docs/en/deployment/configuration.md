@@ -2,13 +2,13 @@
 
 ## Overview
 
-AxonHub uses a flexible configuration system that supports both YAML configuration files and environment variables. This guide covers all available configuration options and best practices for different deployment scenarios.
+llm-proxy uses a flexible configuration system that supports both YAML configuration files and environment variables. This guide covers all available configuration options and best practices for different deployment scenarios.
 
 ## Configuration Methods
 
 ### Configuration Priority
 
-AxonHub uses Viper for configuration management, which can read from multiple configuration sources and merges them together into one set of configuration keys and values. Viper uses the following precedence for merging (highest to lowest):
+llm-proxy uses Viper for configuration management, which can read from multiple configuration sources and merges them together into one set of configuration keys and values. Viper uses the following precedence for merging (highest to lowest):
 
 1. **Environment variables** - System environment variables
 2. **Config files** - YAML configuration files
@@ -25,11 +25,11 @@ Create a `config.yml` file:
 # config.yml
 server:
   port: 8090
-  name: "AxonHub"
+  name: "llm-proxy"
 
 db:
   dialect: "sqlite3"
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+  dsn: "file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
 
 log:
   level: "info"
@@ -41,10 +41,10 @@ log:
 All configuration options can be set via environment variables:
 
 ```bash
-export AXONHUB_SERVER_PORT=8090
-export AXONHUB_DB_DIALECT="sqlite3"
-export AXONHUB_DB_DSN="file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
-export AXONHUB_LOG_LEVEL="info"
+export LLM_PROXY_SERVER_PORT=8090
+export LLM_PROXY_DB_DIALECT="sqlite3"
+export LLM_PROXY_DB_DSN="file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+export LLM_PROXY_LOG_LEVEL="info"
 ```
 
 ### 3. Mixed Configuration
@@ -58,7 +58,7 @@ Environment variables override YAML configuration values.
 ```yaml
 server:
   port: 8090                    # Server port
-  name: "AxonHub"               # Server name
+  name: "llm-proxy"               # Server name
   base_path: ""                 # Base path for API routes
   request_timeout: "30s"        # Request timeout duration
   llm_request_timeout: "600s"   # LLM request timeout duration
@@ -73,25 +73,25 @@ server:
 ```
 
 **Environment Variables:**
-- `AXONHUB_SERVER_PORT`
-- `AXONHUB_SERVER_NAME`
-- `AXONHUB_SERVER_BASE_PATH`
-- `AXONHUB_SERVER_REQUEST_TIMEOUT`
-- `AXONHUB_SERVER_LLM_REQUEST_TIMEOUT`
-- `AXONHUB_SERVER_TRACE_THREAD_HEADER`
-- `AXONHUB_SERVER_TRACE_TRACE_HEADER`
-- `AXONHUB_SERVER_TRACE_EXTRA_TRACE_HEADERS`
-- `AXONHUB_SERVER_TRACE_CLAUDE_CODE_TRACE_ENABLED`
-- `AXONHUB_SERVER_TRACE_CODEX_TRACE_ENABLED`
-- `AXONHUB_SERVER_DEBUG`
-- `AXONHUB_SERVER_DISABLE_SSL_VERIFY`
+- `LLM_PROXY_SERVER_PORT`
+- `LLM_PROXY_SERVER_NAME`
+- `LLM_PROXY_SERVER_BASE_PATH`
+- `LLM_PROXY_SERVER_REQUEST_TIMEOUT`
+- `LLM_PROXY_SERVER_LLM_REQUEST_TIMEOUT`
+- `LLM_PROXY_SERVER_TRACE_THREAD_HEADER`
+- `LLM_PROXY_SERVER_TRACE_TRACE_HEADER`
+- `LLM_PROXY_SERVER_TRACE_EXTRA_TRACE_HEADERS`
+- `LLM_PROXY_SERVER_TRACE_CLAUDE_CODE_TRACE_ENABLED`
+- `LLM_PROXY_SERVER_TRACE_CODEX_TRACE_ENABLED`
+- `LLM_PROXY_SERVER_DEBUG`
+- `LLM_PROXY_SERVER_DISABLE_SSL_VERIFY`
 
 ### Database Configuration
 
 ```yaml
 db:
   dialect: "sqlite3"            # sqlite3, postgres, mysql, tidb
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"  # Master connection string
+  dsn: "file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"  # Master connection string
   debug: false                  # Enable database debug logging
   read_replica:
     read_dsn: ""                # Read replica connection string (empty = no read-write separation)
@@ -106,16 +106,16 @@ db:
 - **TiDB**: `tidb` (production/cloud)
 
 **Environment Variables:**
-- `AXONHUB_DB_DIALECT`
-- `AXONHUB_DB_DSN`
-- `AXONHUB_DB_DEBUG`
-- `AXONHUB_DB_READ_REPLICA_READ_DSN`
-- `AXONHUB_DB_READ_REPLICA_READ_MAX_OPEN_CONNS`
-- `AXONHUB_DB_READ_REPLICA_READ_MAX_IDLE_CONNS`
+- `LLM_PROXY_DB_DIALECT`
+- `LLM_PROXY_DB_DSN`
+- `LLM_PROXY_DB_DEBUG`
+- `LLM_PROXY_DB_READ_REPLICA_READ_DSN`
+- `LLM_PROXY_DB_READ_REPLICA_READ_MAX_OPEN_CONNS`
+- `LLM_PROXY_DB_READ_REPLICA_READ_MAX_IDLE_CONNS`
 
 #### Read-Write Separation
 
-When `read_replica.read_dsn` is configured, AxonHub automatically routes queries based on SQL statement type:
+When `read_replica.read_dsn` is configured, llm-proxy automatically routes queries based on SQL statement type:
 
 | Operation | Target | Examples |
 |-----------|--------|----------|
@@ -127,9 +127,9 @@ When `read_replica.read_dsn` is configured, AxonHub automatically routes queries
 ```yaml
 db:
   dialect: "postgres"
-  dsn: "postgres://axonhub:password@master.db:5432/axonhub?sslmode=disable"
+  dsn: "postgres://llm-proxy:password@master.db:5432/llm-proxy?sslmode=disable"
   read_replica:
-    read_dsn: "postgres://axonhub:password@replica.db:5432/axonhub?sslmode=disable"
+    read_dsn: "postgres://llm-proxy:password@replica.db:5432/llm-proxy?sslmode=disable"
 ```
 
 ### Cache Configuration
@@ -166,24 +166,24 @@ cache:
 ```
 
 **Environment Variables:**
-- `AXONHUB_CACHE_MODE`
-- `AXONHUB_CACHE_MEMORY_EXPIRATION`
-- `AXONHUB_CACHE_MEMORY_CLEANUP_INTERVAL`
-- `AXONHUB_CACHE_REDIS_URL`
-- `AXONHUB_CACHE_REDIS_ADDR`
-- `AXONHUB_CACHE_REDIS_ADDRS`
-- `AXONHUB_CACHE_REDIS_USERNAME`
-- `AXONHUB_CACHE_REDIS_PASSWORD`
-- `AXONHUB_CACHE_REDIS_MASTER_NAME`
-- `AXONHUB_CACHE_REDIS_SENTINEL_USERNAME`
-- `AXONHUB_CACHE_REDIS_SENTINEL_PASSWORD`
-- `AXONHUB_CACHE_REDIS_ROUTE_BY_LATENCY`
-- `AXONHUB_CACHE_REDIS_ROUTE_RANDOMLY`
-- `AXONHUB_CACHE_REDIS_IS_CLUSTER_MODE`
-- `AXONHUB_CACHE_REDIS_DB`
-- `AXONHUB_CACHE_REDIS_TLS`
-- `AXONHUB_CACHE_REDIS_TLS_INSECURE_SKIP_VERIFY`
-- `AXONHUB_CACHE_REDIS_EXPIRATION`
+- `LLM_PROXY_CACHE_MODE`
+- `LLM_PROXY_CACHE_MEMORY_EXPIRATION`
+- `LLM_PROXY_CACHE_MEMORY_CLEANUP_INTERVAL`
+- `LLM_PROXY_CACHE_REDIS_URL`
+- `LLM_PROXY_CACHE_REDIS_ADDR`
+- `LLM_PROXY_CACHE_REDIS_ADDRS`
+- `LLM_PROXY_CACHE_REDIS_USERNAME`
+- `LLM_PROXY_CACHE_REDIS_PASSWORD`
+- `LLM_PROXY_CACHE_REDIS_MASTER_NAME`
+- `LLM_PROXY_CACHE_REDIS_SENTINEL_USERNAME`
+- `LLM_PROXY_CACHE_REDIS_SENTINEL_PASSWORD`
+- `LLM_PROXY_CACHE_REDIS_ROUTE_BY_LATENCY`
+- `LLM_PROXY_CACHE_REDIS_ROUTE_RANDOMLY`
+- `LLM_PROXY_CACHE_REDIS_IS_CLUSTER_MODE`
+- `LLM_PROXY_CACHE_REDIS_DB`
+- `LLM_PROXY_CACHE_REDIS_TLS`
+- `LLM_PROXY_CACHE_REDIS_TLS_INSECURE_SKIP_VERIFY`
+- `LLM_PROXY_CACHE_REDIS_EXPIRATION`
 
 #### Configure more parameters using URL
 **Standard URL for standalone mode**
@@ -207,7 +207,7 @@ redis://127.0.0.1:7000?is_cluster_mode=true
 | Parameter | Description | Example |
 |------|------|------|
 | addrs | Specify multiple addresses in the format addrs=host:port, repeatable | addrs=127.0.0.1:7000&addrs=127.0.0.1:7001 |
-| client_name | Client name, will be set as the Redis client's ClientName | client_name=axonhub |
+| client_name | Client name, will be set as the Redis client's ClientName | client_name=llm-proxy |
 | db | Specify Redis DB number | db=1 or /1 in path |
 | protocol | Protocol version (integer, used internally by the library) | protocol=3 |
 | username | Connection username (for ACL) | username=default |
@@ -237,7 +237,7 @@ redis://127.0.0.1:7000?is_cluster_mode=true
 | route_randomly | Route randomly (true/false) | route_randomly=true |
 | master_name | Master name in sentinel mode | master_name=mymaster |
 | disable_identity | Disable client identity (true/false) | disable_identity=true |
-| identity_suffix | Client identity suffix | identity_suffix=-axonhub |
+| identity_suffix | Client identity suffix | identity_suffix=-llm-proxy |
 | failing_timeout_seconds | Failure detection timeout (seconds) | failing_timeout_seconds=30 |
 | unstable_resp3 | Use unstable RESP3 (true/false) | unstable_resp3=true |
 | is_cluster_mode | Force cluster mode (true/false) | is_cluster_mode=true |
@@ -249,7 +249,7 @@ redis://127.0.0.1:7000?is_cluster_mode=true
 
 ```yaml
 log:
-  name: "axonhub"               # Logger name
+  name: "llm-proxy"               # Logger name
   debug: false                  # Enable debug logging
   level: "info"                 # debug, info, warn, error, panic, fatal
   level_key: "level"            # Key name for log level field
@@ -262,7 +262,7 @@ log:
   excludes: []                  # Logger names to exclude
   output: "stdio"               # file or stdio
   file:                         # File-based logging
-    path: "logs/axonhub.log"   # Log file path
+    path: "logs/llm-proxy.log"   # Log file path
     max_size: 100               # Max size in MB before rotation
     max_age: 30                 # Max age in days to retain
     max_backups: 10             # Max number of old log files
@@ -270,23 +270,23 @@ log:
 ```
 
 **Environment Variables:**
-- `AXONHUB_LOG_NAME`
-- `AXONHUB_LOG_DEBUG`
-- `AXONHUB_LOG_LEVEL`
-- `AXONHUB_LOG_LEVEL_KEY`
-- `AXONHUB_LOG_TIME_KEY`
-- `AXONHUB_LOG_CALLER_KEY`
-- `AXONHUB_LOG_FUNCTION_KEY`
-- `AXONHUB_LOG_NAME_KEY`
-- `AXONHUB_LOG_ENCODING`
-- `AXONHUB_LOG_INCLUDES`
-- `AXONHUB_LOG_EXCLUDES`
-- `AXONHUB_LOG_OUTPUT`
-- `AXONHUB_LOG_FILE_PATH`
-- `AXONHUB_LOG_FILE_MAX_SIZE`
-- `AXONHUB_LOG_FILE_MAX_AGE`
-- `AXONHUB_LOG_FILE_MAX_BACKUPS`
-- `AXONHUB_LOG_FILE_LOCAL_TIME`
+- `LLM_PROXY_LOG_NAME`
+- `LLM_PROXY_LOG_DEBUG`
+- `LLM_PROXY_LOG_LEVEL`
+- `LLM_PROXY_LOG_LEVEL_KEY`
+- `LLM_PROXY_LOG_TIME_KEY`
+- `LLM_PROXY_LOG_CALLER_KEY`
+- `LLM_PROXY_LOG_FUNCTION_KEY`
+- `LLM_PROXY_LOG_NAME_KEY`
+- `LLM_PROXY_LOG_ENCODING`
+- `LLM_PROXY_LOG_INCLUDES`
+- `LLM_PROXY_LOG_EXCLUDES`
+- `LLM_PROXY_LOG_OUTPUT`
+- `LLM_PROXY_LOG_FILE_PATH`
+- `LLM_PROXY_LOG_FILE_MAX_SIZE`
+- `LLM_PROXY_LOG_FILE_MAX_AGE`
+- `LLM_PROXY_LOG_FILE_MAX_BACKUPS`
+- `LLM_PROXY_LOG_FILE_LOCAL_TIME`
 
 ### Metrics Configuration
 
@@ -300,10 +300,10 @@ metrics:
 ```
 
 **Environment Variables:**
-- `AXONHUB_METRICS_ENABLED`
-- `AXONHUB_METRICS_EXPORTER_TYPE`
-- `AXONHUB_METRICS_EXPORTER_ENDPOINT`
-- `AXONHUB_METRICS_EXPORTER_INSECURE`
+- `LLM_PROXY_METRICS_ENABLED`
+- `LLM_PROXY_METRICS_EXPORTER_TYPE`
+- `LLM_PROXY_METRICS_EXPORTER_ENDPOINT`
+- `LLM_PROXY_METRICS_EXPORTER_INSECURE`
 
 ### Garbage Collection Configuration
 
@@ -313,7 +313,7 @@ gc:
 ```
 
 **Environment Variables:**
-- `AXONHUB_GC_CRON`
+- `LLM_PROXY_GC_CRON`
 
 ### Provider Quota Configuration
 
@@ -324,11 +324,11 @@ provider_quota:
 ```
 
 **Description:**
-This setting controls how frequently AxonHub polls provider API endpoints to check quota status for supported providers (Claude Code, Codex). Quota data is stored in the database and displayed as battery icons in the UI.
+This setting controls how frequently llm-proxy polls provider API endpoints to check quota status for supported providers (Claude Code, Codex). Quota data is stored in the database and displayed as battery icons in the UI.
 
 **Environment Variables:**
-- `AXONHUB_PROVIDER_QUOTA_CHECK_INTERVAL`
-- `AXONHUB_PROVIDER_QUOTA_WARNING_CHECK_INTERVAL_RATIO`
+- `LLM_PROXY_PROVIDER_QUOTA_CHECK_INTERVAL`
+- `LLM_PROXY_PROVIDER_QUOTA_WARNING_CHECK_INTERVAL_RATIO`
 
 **Supported Values:**
 - Minute intervals that divide evenly into 60: `1m`, `2m`, `3m`, `4m`, `5m`, `6m`, `10m`, `12m`, `15m`, `20m`, `30m`
@@ -338,7 +338,7 @@ This setting controls how frequently AxonHub polls provider API endpoints to che
 
 **Warning Check Interval Ratio:**
 - `warning_check_interval_ratio` — Ratio used to reduce the check frequency for channels in warning state. Warning channels are checked at `check_interval / ratio` instead of the full interval. Default: `4`
-- **Environment Variable:** `AXONHUB_PROVIDER_QUOTA_WARNING_CHECK_INTERVAL_RATIO`
+- **Environment Variable:** `LLM_PROXY_PROVIDER_QUOTA_WARNING_CHECK_INTERVAL_RATIO`
 - **Example:** With `check_interval: 5m` and `warning_check_interval_ratio: 4`, warning channels are checked every 20 minutes instead of every 5 minutes
 
 **Recommendations:**
@@ -354,8 +354,8 @@ provider_quota:
 ```
 
 ```bash
-export AXONHUB_PROVIDER_QUOTA_CHECK_INTERVAL="30m"
-export AXONHUB_PROVIDER_QUOTA_WARNING_CHECK_INTERVAL_RATIO=3
+export LLM_PROXY_PROVIDER_QUOTA_CHECK_INTERVAL="30m"
+export LLM_PROXY_PROVIDER_QUOTA_WARNING_CHECK_INTERVAL_RATIO=3
 ```
 
 ### GitHub Copilot OAuth Configuration
@@ -366,7 +366,7 @@ copilot:
 ```
 
 **Description:**
-Configures the OAuth client ID used for GitHub Copilot device flow authentication. By default, AxonHub uses the VS Code public client ID. For production deployments or to comply with GitHub's Terms of Service, you should register your own OAuth application and configure your custom client ID.
+Configures the OAuth client ID used for GitHub Copilot device flow authentication. By default, llm-proxy uses the VS Code public client ID. For production deployments or to comply with GitHub's Terms of Service, you should register your own OAuth application and configure your custom client ID.
 
 **Environment Variables:**
 - `GITHUB_COPILOT_CLIENT_ID`
@@ -382,9 +382,9 @@ Configures the OAuth client ID used for GitHub Copilot device flow authenticatio
 1. Go to GitHub Settings → Developer Settings → OAuth Apps
 2. Click "New OAuth App"
 3. Fill in the application details:
-   - Application name: `Your AxonHub Instance`
-   - Homepage URL: `https://your-axonhub-domain.com`
-   - Authorization callback URL: `https://your-axonhub-domain.com/api/copilot/oauth/callback`
+   - Application name: `Your llm-proxy Instance`
+   - Homepage URL: `https://your-llm-proxy-domain.com`
+   - Authorization callback URL: `https://your-llm-proxy-domain.com/api/copilot/oauth/callback`
 4. Click "Register application"
 5. Copy the Client ID and set it as the environment variable
 
@@ -405,12 +405,12 @@ export GITHUB_COPILOT_CLIENT_ID="Iv1.your-custom-client-id"
 ```yaml
 server:
   port: 8090
-  name: "AxonHub Dev"
+  name: "llm-proxy Dev"
   debug: true
 
 db:
   dialect: "sqlite3"
-  dsn: "file:axonhub.db?cache=shared&_fk=1"
+  dsn: "file:llm-proxy.db?cache=shared&_fk=1"
   debug: true
 
 log:
@@ -424,14 +424,14 @@ log:
 ```yaml
 server:
   port: 8090
-  name: "AxonHub Production"
+  name: "llm-proxy Production"
   debug: false
   request_timeout: "30s"
   llm_request_timeout: "600s"
 
 db:
   dialect: "postgres"
-  dsn: "postgres://axonhub:password@localhost:5432/axonhub?sslmode=disable"
+  dsn: "postgres://llm-proxy:password@localhost:5432/llm-proxy?sslmode=disable"
   debug: false
 
 cache:
@@ -465,7 +465,7 @@ log:
   encoding: "json"
   output: "file"
   file:
-    path: "/var/log/axonhub/axonhub.log"
+    path: "/var/log/llm-proxy/llm-proxy.log"
     max_size: 200
     max_age: 14
     max_backups: 7
@@ -476,7 +476,7 @@ log:
 ### SQLite
 
 ```
-file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
+file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
 ```
 
 ### PostgreSQL
@@ -494,7 +494,7 @@ username:password@tcp(host:3306)/database?parseTime=True&multiStatements=true&ch
 ### Tidb 
 
 ```
-<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/axonhub?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4
+<USER>.root:<PASSWORD>@tcp(gateway01.us-west-2.prod.aws.tidbcloud.com:4000)/llm-proxy?tls=true&parseTime=true&multiStatements=true&charset=utf8mb4
 ```
 
 ## Best Practices
@@ -503,12 +503,12 @@ username:password@tcp(host:3306)/database?parseTime=True&multiStatements=true&ch
 
 1. **Use environment variables for secrets**
    ```bash
-   export AXONHUB_DB_DSN="postgres://axonhub:$(cat /run/secrets/db-password)@localhost:5432/axonhub"
+   export LLM_PROXY_DB_DSN="postgres://llm-proxy:$(cat /run/secrets/db-password)@localhost:5432/llm-proxy"
    ```
 
 2. **Enable TLS for database connections**
    ```yaml
-   dsn: "postgres://user:pass@host:5432/axonhub?sslmode=verify-full"
+   dsn: "postgres://user:pass@host:5432/llm-proxy?sslmode=verify-full"
    ```
 
 3. **Use file-based logging in production**
@@ -516,7 +516,7 @@ username:password@tcp(host:3306)/database?parseTime=True&multiStatements=true&ch
    log:
      output: "file"
      file:
-       path: "/var/log/axonhub/axonhub.log"
+       path: "/var/log/llm-proxy/llm-proxy.log"
    ```
 
 ### Performance
@@ -595,7 +595,7 @@ username:password@tcp(host:3306)/database?parseTime=True&multiStatements=true&ch
 Validate your configuration:
 
 ```bash
-./axonhub config check
+./llm-proxy config check
 ```
 
 This command will validate your configuration file and report any errors.

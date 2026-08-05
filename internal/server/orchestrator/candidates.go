@@ -76,7 +76,7 @@ const (
 // DefaultSelector directly selects enabled channels supporting the requested model.
 type DefaultSelector struct {
 	ChannelService *biz.ChannelService
-	ModelService   *biz.ModelService // Optional: for AxonHub Model resolution
+	ModelService   *biz.ModelService // Optional: for llm-proxy Model resolution
 	SystemService  *biz.SystemService
 
 	// Association resolution cache
@@ -152,7 +152,7 @@ func (s *DefaultSelector) selectChannelCadidates(ctx context.Context, req *llm.R
 func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Request) ([]*ChannelModelsCandidate, error) {
 	model, err := s.ModelService.GetModelByModelID(ctx, req.Model, model.StatusEnabled)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query AxonHub Model: %w", err)
+		return nil, fmt.Errorf("failed to query llm-proxy Model: %w", err)
 	}
 
 	systemSettings := s.SystemService.ModelSettingsOrDefault(ctx)

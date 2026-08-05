@@ -51,31 +51,31 @@ export function ApiKeysViewDialog() {
       codex: {
         baseUrl: `${currentOrigin}/v1`,
         display: `# Set your API key as an environment variable
-export AXONHUB_API_KEY="${maskedApiKey}"
+export LLM_PROXY_API_KEY="${maskedApiKey}"
 
-# Edit \${HOME}/.codex/config.toml and configure AxonHub:
+# Edit \${HOME}/.codex/config.toml and configure llm-proxy:
 model = "gpt-5"
-model_provider = "axonhub-responses"
+model_provider = "llm-proxy-responses"
 
-[model_providers.axonhub-responses]
-name = "AxonHub using Chat Completions"
+[model_providers.llm-proxy-responses]
+name = "llm-proxy using Chat Completions"
 base_url = "${currentOrigin}/v1"
-env_key = "AXONHUB_API_KEY"
+env_key = "LLM_PROXY_API_KEY"
 wire_api = "responses"
 query_params = {}
 
 # Restart Codex to apply the configuration`,
         real: `# Set your API key as an environment variable
-export AXONHUB_API_KEY="${apiKey}"
+export LLM_PROXY_API_KEY="${apiKey}"
 
-# Edit \${HOME}/.codex/config.toml and configure AxonHub:
+# Edit \${HOME}/.codex/config.toml and configure llm-proxy:
 model = "gpt-5"
-model_provider = "axonhub-responses"
+model_provider = "llm-proxy-responses"
 
-[model_providers.axonhub-responses]
-name = "AxonHub using Chat Completions"
+[model_providers.llm-proxy-responses]
+name = "llm-proxy using Chat Completions"
 base_url = "${currentOrigin}/v1"
-env_key = "AXONHUB_API_KEY"
+env_key = "LLM_PROXY_API_KEY"
 wire_api = "responses"
 query_params = {}
 

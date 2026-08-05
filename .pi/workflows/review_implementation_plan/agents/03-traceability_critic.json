@@ -21,7 +21,7 @@
       "severity": "medium",
       "category": "产品契约与实施矛盾",
       "description": "R1b 要求端点保存后复核、『不再被支持的声明按撤销处理并提示』，AE12 要求『渠道侧提示该变更』。但 saveChannelEndpoints 现返回 Channel!，KTD18 的 revoked{autoDisabledCount, manualNotices[]} 只存在于 SaveChannelCapabilitiesPayload；U6 的 schema 修改清单没有改 saveChannelEndpoints 返回类型，也没有其他通知通道。R1b 复核即使被 U3 触发，前端也拿不到撤销统计与手动条目提示。",
-      "evidence": "internal/server/gql/axonhub.graphql:830 saveChannelEndpoints(input: SaveChannelEndpointsInput!): Channel!；internal/server/biz/channel.go:867-887 现实现仅返回 *ent.Channel；KTD18 payload 定义仅挂在 saveChannelCapabilities",
+      "evidence": "internal/server/gql/llm-proxy.graphql:830 saveChannelEndpoints(input: SaveChannelEndpointsInput!): Channel!；internal/server/biz/channel.go:867-887 现实现仅返回 *ent.Channel；KTD18 payload 定义仅挂在 saveChannelCapabilities",
       "suggested_fix": "KTD18/U6 二选一明确：将 saveChannelEndpoints 返回改为含 revoked 统计的 payload 类型，或定义 R1b 提示的替代获取方式（如复核结果随 Channel.protocolCapabilities 暴露+前端 diff），并同步 AE12 验收方式。"
     },
     {

@@ -14,7 +14,7 @@ type ChannelIdentity = Pick<Channel, 'id'>;
 
 export function parseChannelIdFromSelectValue(value: string): number | null {
   const isNumericId = /^[1-9]\d*$/.test(value);
-  const isRelayGid = /^gid:\/\/axonhub\/Channel\/[1-9]\d*$/.test(value);
+  const isRelayGid = /^gid:\/\/llm-proxy\/Channel\/[1-9]\d*$/.test(value);
   if (!isNumericId && !isRelayGid) return null;
 
   const channelId = Number(extractNumberID(value));

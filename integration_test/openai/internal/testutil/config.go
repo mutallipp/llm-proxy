@@ -36,7 +36,7 @@ func DefaultConfigWithPrefix(prefix string) *Config {
 	disableThread := strings.EqualFold(getEnvOrDefault("TEST_DISABLE_THREAD", "false"), "true")
 
 	config := &Config{
-		APIKey:        getEnvOrDefault("TEST_AXONHUB_API_KEY", ""),
+		APIKey:        getEnvOrDefault("TEST_LLM_PROXY_API_KEY", ""),
 		BaseURL:       getEnvOrDefault("TEST_OPENAI_BASE_URL", "http://localhost:8090/v1"),
 		Timeout:       30 * time.Second,
 		MaxRetries:    3,
@@ -69,7 +69,7 @@ func DefaultConfigWithPrefix(prefix string) *Config {
 // NewClient creates a new OpenAI client with the given configuration
 func (c *Config) NewClient() openai.Client {
 	if c.APIKey == "" {
-		panic("TEST_AXONHUB_API_KEY environment variable is required")
+		panic("TEST_LLM_PROXY_API_KEY environment variable is required")
 	}
 
 	opts := []option.RequestOption{
@@ -140,7 +140,7 @@ func (c *Config) GetHeaderOptions() []option.RequestOption {
 	return opts
 }
 
-// GetHeaders returns the standard headers used in axonhub
+// GetHeaders returns the standard headers used in llm-proxy
 func (c *Config) GetHeaders() map[string]string {
 	headers := make(map[string]string)
 
@@ -169,7 +169,7 @@ func getEnvOrDefault(key, defaultValue string) string {
 // ValidateConfig validates the test configuration
 func (c *Config) ValidateConfig() error {
 	if c.APIKey == "" {
-		return fmt.Errorf("API key is required (set TEST_AXONHUB_API_KEY environment variable)")
+		return fmt.Errorf("API key is required (set TEST_LLM_PROXY_API_KEY environment variable)")
 	}
 
 	// Only validate trace ID if not disabled

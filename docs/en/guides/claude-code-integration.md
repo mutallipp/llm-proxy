@@ -3,28 +3,28 @@
 ---
 
 ## Overview
-AxonHub can act as a drop-in replacement for Anthropic endpoints, letting Claude Code connect through your own infrastructure. This guide explains how to configure Claude Code and how to combine it with AxonHub model profiles for flexible routing.
+llm-proxy can act as a drop-in replacement for Anthropic endpoints, letting Claude Code connect through your own infrastructure. This guide explains how to configure Claude Code and how to combine it with llm-proxy model profiles for flexible routing.
 
 ### Key Points
-- AxonHub performs AI protocol/format transformation. You can configure multiple upstream channels (providers) and expose a single Anthropic-compatible interface for Claude Code.
+- llm-proxy performs AI protocol/format transformation. You can configure multiple upstream channels (providers) and expose a single Anthropic-compatible interface for Claude Code.
 - You can aggregate Claude Code requests from the same session into one trace (see "Configure Claude Code").
 
 ### Prerequisites
-- AxonHub instance reachable from your development machine.
-- Valid AxonHub API key with project access.
+- llm-proxy instance reachable from your development machine.
+- Valid llm-proxy API key with project access.
 - Access to Claude Code (Anthropic) application.
-- Optional: one or more model profiles configured in the AxonHub console.
+- Optional: one or more model profiles configured in the llm-proxy console.
 
 ### Configure Claude Code
-1. Open your shell environment and export the AxonHub credentials:
+1. Open your shell environment and export the llm-proxy credentials:
    ```bash
-   export ANTHROPIC_AUTH_TOKEN="<your-axonhub-api-key>"
+   export ANTHROPIC_AUTH_TOKEN="<your-llm-proxy-api-key>"
    export ANTHROPIC_BASE_URL="http://localhost:8090/anthropic"
    # Or using the root path:
    # export ANTHROPIC_BASE_URL="http://localhost:8090"
    ```
-2. Launch Claude Code. It will read the environment variables and route all Anthropic requests through AxonHub.
-3. (Optional) Confirm the integration by triggering a chat completion and checking AxonHub traces.
+2. Launch Claude Code. It will read the environment variables and route all Anthropic requests through llm-proxy.
+3. (Optional) Confirm the integration by triggering a chat completion and checking llm-proxy traces.
 
 #### Trace aggregation (important)
 To aggregate requests from the same Claude Code session into a single trace, enable the following in `config.yml`:
@@ -39,19 +39,19 @@ server:
 
 #### Tips
 - Keep your API key secret; store it in a shell profile or secret manager.
-- If your AxonHub endpoint uses HTTPS with a self-signed certificate, configure trust settings in your OS.
+- If your llm-proxy endpoint uses HTTPS with a self-signed certificate, configure trust settings in your OS.
 
 ### Working with Model Profiles
-AxonHub model profiles remap incoming model names to provider-specific equivalents:
-- Create a profile in the AxonHub console and add mapping rules (exact name or regex).
+llm-proxy model profiles remap incoming model names to provider-specific equivalents:
+- Create a profile in the llm-proxy console and add mapping rules (exact name or regex).
 - Assign the profile to your API key.
 - Switch active profiles to alter Claude Code/Codex behavior without changing tool settings.
 
 <table>
   <tr align="center">
     <td align="center">
-      <a href="../../screenshots/axonhub-profiles.png">
-        <img src="../../screenshots/axonhub-profiles.png" alt="Model Profiles" width="250"/>
+      <a href="../../screenshots/llm-proxy-profiles.png">
+        <img src="../../screenshots/llm-proxy-profiles.png" alt="Model Profiles" width="250"/>
       </a>
       <br/>
       Model Profiles
@@ -65,7 +65,7 @@ AxonHub model profiles remap incoming model names to provider-specific equivalen
 
 ### Troubleshooting
 - **Claude Code cannot connect**: verify `ANTHROPIC_BASE_URL` points to the `/anthropic` path and that your firewall allows outbound calls.
-- **Unexpected model responses**: review active profile mappings in the AxonHub console; disable or adjust rules if necessary.
+- **Unexpected model responses**: review active profile mappings in the llm-proxy console; disable or adjust rules if necessary.
 
 ---
 
@@ -75,12 +75,12 @@ AxonHub model profiles remap incoming model names to provider-specific equivalen
 > 
 > Due to the complexity of Claude Code's risk control mechanisms and the scope of this project, we will no longer prioritize maintaining this channel. If you have related needs, we recommend using alternative projects like CLIProxyAPI or sub2api. Existing functionality may not receive updates or optimizations. Please use with caution.
 
-AxonHub can also use your Claude Code subscription as a backend provider, allowing non-Claude Code tools to leverage Claude Code's capabilities. This is useful when you want to route requests from other applications (OpenAI-compatible clients, custom tools, etc.) through Claude Code.
+llm-proxy can also use your Claude Code subscription as a backend provider, allowing non-Claude Code tools to leverage Claude Code's capabilities. This is useful when you want to route requests from other applications (OpenAI-compatible clients, custom tools, etc.) through Claude Code.
 
 ### Prerequisites
 - Claude Code CLI installed (https://claude.com/claude-code)
 - Valid Anthropic account with Claude Code subscription
-- AxonHub instance with channel management access
+- llm-proxy instance with channel management access
 
 ### Getting an Authentication Token
 
@@ -98,16 +98,16 @@ To configure Claude Code as a provider channel, you need a long-lived authentica
    Your authentication token: sk-ant-api03-xyz...
    ```
 
-4. Copy this token - you'll use it in the AxonHub channel configuration
+4. Copy this token - you'll use it in the llm-proxy channel configuration
 
 ### Configuring the Channel
 
-1. Navigate to the **Channels** section in the AxonHub management interface
+1. Navigate to the **Channels** section in the llm-proxy management interface
 
 2. Create a new channel with the following configuration:
    - **Type**: `claude-code`
    - **Name**: A descriptive name (e.g., "Claude Code Provider")
-   - **Base URL**: Defaults to `https://api.anthropic.com/v1`. You can point this to a reverse proxy or compatible gateway; AxonHub will send requests to `{baseURL}/messages` (or `{baseURL}/v1/messages` depending on whether your base URL ends with `/v1`).
+   - **Base URL**: Defaults to `https://api.anthropic.com/v1`. You can point this to a reverse proxy or compatible gateway; llm-proxy will send requests to `{baseURL}/messages` (or `{baseURL}/v1/messages` depending on whether your base URL ends with `/v1`).
    - **API Key**: The token from `claude setup-token` (starts with `sk-ant`)
    - **Supported Models**: Add the Claude models you want to expose:
      - `claude-haiku-4-5`
@@ -122,7 +122,7 @@ To configure Claude Code as a provider channel, you need a long-lived authentica
 
 ### Use Cases
 
-- **Multi-Tool Access**: Allow multiple applications to share your Claude Code subscription through AxonHub
+- **Multi-Tool Access**: Allow multiple applications to share your Claude Code subscription through llm-proxy
 - **Cost Management**: Use Claude Code alongside other providers with load balancing and failover
 - **Extended Context**: Route requests requiring large context windows through Claude Code
 - **Model Flexibility**: Combine Claude Code with other providers using model profiles for intelligent routing
@@ -138,11 +138,11 @@ To configure Claude Code as a provider channel, you need a long-lived authentica
 
 ## Provider Quota Tracking
 
-AxonHub automatically tracks quota usage for Claude Code provider channels, displaying the current status with battery icons in the interface.
+llm-proxy automatically tracks quota usage for Claude Code provider channels, displaying the current status with battery icons in the interface.
 
 ### How It Works
 
-- **Automatic Polling**: AxonHub periodically polls your Claude Code account to check quota status
+- **Automatic Polling**: llm-proxy periodically polls your Claude Code account to check quota status
 - **Storage**: Quota data is stored in the database and updated based on the configured check interval
 - **Visual Indicators**: Battery icons show your remaining quota at a glance.
 
@@ -166,7 +166,7 @@ provider_quota:
 Or via environment variable:
 
 ```bash
-export AXONHUB_PROVIDER_QUOTA_CHECK_INTERVAL="30m"
+export LLM_PROXY_PROVIDER_QUOTA_CHECK_INTERVAL="30m"
 ```
 
 Supported intervals: `1m`, `2m`, `3m`, `4m`, `5m`, `6m`, `10m`, `12m`, `15m`, `20m`, `30m`, `1h`, `2h`, etc.

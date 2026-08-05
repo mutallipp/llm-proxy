@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# AxonHub Helm Installation Script
+# llm-proxy Helm Installation Script
 
 set -e
 
-RELEASE_NAME=${1:-axonhub}
+RELEASE_NAME=${1:-llm-proxy}
 NAMESPACE=${2:-default}
 
-echo "Installing AxonHub with Helm..."
+echo "Installing llm-proxy with Helm..."
 echo "Release name: $RELEASE_NAME"
 echo "Namespace: $NAMESPACE"
 
@@ -22,7 +22,7 @@ helm install $RELEASE_NAME ./deploy/helm \
 echo ""
 echo "Installation completed!"
 echo ""
-echo "To access AxonHub:"
+echo "To access llm-proxy:"
 echo "1. Port forward the service:"
 echo "   kubectl port-forward svc/$RELEASE_NAME 8090:8090 -n $NAMESPACE"
 echo ""
@@ -32,7 +32,7 @@ echo "To check the status:"
 echo "   kubectl get pods -n $NAMESPACE"
 echo ""
 echo "To view logs:"
-echo "   kubectl logs -l app.kubernetes.io/name=axonhub -n $NAMESPACE"
+echo "   kubectl logs -l app.kubernetes.io/name=llm-proxy -n $NAMESPACE"
 echo ""
 echo "To uninstall:"
 echo "   helm uninstall $RELEASE_NAME -n $NAMESPACE"

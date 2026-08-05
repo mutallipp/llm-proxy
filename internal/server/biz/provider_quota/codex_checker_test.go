@@ -20,7 +20,7 @@ func TestCodexQuotaChecker_UsesMinimalUsageHeaders(t *testing.T) {
 
 	httpClient := httpclient.NewHttpClientWithClient(&http.Client{
 		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-			require.Equal(t, "axonhub/1.0", req.Header.Get("User-Agent"))
+			require.Equal(t, "llm-proxy/1.0", req.Header.Get("User-Agent"))
 			require.Empty(t, req.Header.Get("Originator"))
 			require.Empty(t, req.Header.Get("Chatgpt-Account-Id"))
 			require.Equal(t, "Bearer "+accessToken, req.Header.Get("Authorization"))

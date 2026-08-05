@@ -1,8 +1,8 @@
-# AxonHub Entity Relationship Diagram (ERD)
+# llm-proxy Entity Relationship Diagram (ERD)
 
 ## Overview
 
-AxonHub adopts a multi-level permission management architecture, supporting both Global and Project levels. The system manages user permissions through an RBAC (Role-Based Access Control) model, enabling fine-grained resource access control.
+llm-proxy adopts a multi-level permission management architecture, supporting both Global and Project levels. The system manages user permissions through an RBAC (Role-Based Access Control) model, enabling fine-grained resource access control.
 
 ---
 
@@ -24,7 +24,7 @@ AxonHub adopts a multi-level permission management architecture, supporting both
 
 ### 1. User
 
-**Description**: System user entity representing individuals or service accounts using AxonHub.
+**Description**: System user entity representing individuals or service accounts using llm-proxy.
 
 **Level**: Global
 
@@ -477,13 +477,13 @@ AxonHub adopts a multi-level permission management architecture, supporting both
 
 ```mermaid
 erDiagram
-    AxonHub ||--o{ User : "manages"
-    AxonHub ||--o{ Project : "manages"
-    AxonHub ||--o{ Model : "defines"
-    AxonHub ||--o{ Channel : "manages"
-    AxonHub ||--o{ System : "configures"
-    AxonHub ||--o{ Role : "defines"
-    AxonHub ||--o{ DataStorage : "configures"
+    llm-proxy ||--o{ User : "manages"
+    llm-proxy ||--o{ Project : "manages"
+    llm-proxy ||--o{ Model : "defines"
+    llm-proxy ||--o{ Channel : "manages"
+    llm-proxy ||--o{ System : "configures"
+    llm-proxy ||--o{ Role : "defines"
+    llm-proxy ||--o{ DataStorage : "configures"
 
     User ||--o{ ProjectUser : "belongs to"
     Project ||--o{ ProjectUser : "has"
@@ -525,7 +525,7 @@ erDiagram
 
     Role ||--o{ RoleScope : "contains"
 
-    AxonHub {    }
+    llm-proxy {    }
 
     User {
         uuid id PK
@@ -922,7 +922,7 @@ Soft delete is implemented through the `deleted_at` field. When deleting, a time
 
 ## Summary
 
-AxonHub's data model design follows these principles:
+llm-proxy's data model design follows these principles:
 
 1. **Hierarchical Separation**: Clear separation between Global and Project levels with reasonable resource sharing and isolation
 2. **Fine-grained Permissions**: Fine-grained permission control through RBAC model
@@ -932,7 +932,7 @@ AxonHub's data model design follows these principles:
 6. **Performance Optimization**: Reasonable index design supporting efficient queries
 7. **Data Security**: Sensitive field marking and soft delete mechanism ensuring data security
 
-This design provides AxonHub with flexible, secure, and efficient data management capabilities, supporting request tracing, link analysis, and observability requirements.
+This design provides llm-proxy with flexible, secure, and efficient data management capabilities, supporting request tracing, link analysis, and observability requirements.
 
 ## Related Resources
 

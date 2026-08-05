@@ -12,16 +12,16 @@
       "title": "protocolCapabilities 字段会与 entgql 自动生成的 ent.graphql 冲突（U6 描述按字面执行会使 make generate 失败）",
       "severity": "high",
       "category": "生成链/Schema 归属错误",
-      "description": "KTD18/U6 写『Channel 增加 protocolCapabilities 字段，schema 写在 axonhub.graphql』。但 entc.go 启用了 entgql.WithSchemaGenerator()+WithSchemaPath(\"ent.graphql\")，ent schema 中无注解的 JSON 字段会被自动写进生成的 ent.graphql——先例即 endpoints/settings：U2 加 field.JSON(\"protocol_capabilities\") 后跑 make generate（U2 自己的步骤），ent.graphql 的 type Channel 就会自动多出 protocolCapabilities 字段。此时若再按 U6 在 axonhub.graphql 的 extend type Channel 里声明同名字段，gqlgen 会报重复字段定义，生成失败。计划没有给出两条出路中的任何一条（entgql.Skip 注解 + forceResolver 手工扩展，或完全依赖生成字段）。",
-      "evidence": "internal/ent/entc.go:16-25（WithSchemaGenerator/WithSchemaPath(\"ent.graphql\")）；internal/server/gql/ent.graphql:438 `endpoints: [ChannelEndpoint!]` 由无 entgql 注解的 JSON 字段自动生成（internal/ent/schema/channel.go:153-159 无注解）；internal/server/gql/axonhub.graphql:664 已有 `extend type Channel`（defaultEndpoints 等 forceResolver 字段先例）；计划 KTD18/U6 要求字段写入 axonhub.graphql。",
-      "suggested_fix": "二选一并写进 U2/U6：方案 A（推荐，与 defaultEndpoints 先例一致）——U2 字段加 .Annotations(entgql.Skip(...)) 使其不进 ent.graphql，U6 在 axonhub.graphql extend type Channel 用 @goField(forceResolver: true) 声明 protocolCapabilities 并在 axonhub.resolvers.go 实现；方案 B——不加注解，U6 不在 axonhub.graphql 重复声明该字段，只补类型定义。"
+      "description": "KTD18/U6 写『Channel 增加 protocolCapabilities 字段，schema 写在 llm-proxy.graphql』。但 entc.go 启用了 entgql.WithSchemaGenerator()+WithSchemaPath(\"ent.graphql\")，ent schema 中无注解的 JSON 字段会被自动写进生成的 ent.graphql——先例即 endpoints/settings：U2 加 field.JSON(\"protocol_capabilities\") 后跑 make generate（U2 自己的步骤），ent.graphql 的 type Channel 就会自动多出 protocolCapabilities 字段。此时若再按 U6 在 llm-proxy.graphql 的 extend type Channel 里声明同名字段，gqlgen 会报重复字段定义，生成失败。计划没有给出两条出路中的任何一条（entgql.Skip 注解 + forceResolver 手工扩展，或完全依赖生成字段）。",
+      "evidence": "internal/ent/entc.go:16-25（WithSchemaGenerator/WithSchemaPath(\"ent.graphql\")）；internal/server/gql/ent.graphql:438 `endpoints: [ChannelEndpoint!]` 由无 entgql 注解的 JSON 字段自动生成（internal/ent/schema/channel.go:153-159 无注解）；internal/server/gql/llm-proxy.graphql:664 已有 `extend type Channel`（defaultEndpoints 等 forceResolver 字段先例）；计划 KTD18/U6 要求字段写入 llm-proxy.graphql。",
+      "suggested_fix": "二选一并写进 U2/U6：方案 A（推荐，与 defaultEndpoints 先例一致）——U2 字段加 .Annotations(entgql.Skip(...)) 使其不进 ent.graphql，U6 在 llm-proxy.graphql extend type Channel 用 @goField(forceResolver: true) 声明 protocolCapabilities 并在 llm-proxy.resolvers.go 实现；方案 B——不加注解，U6 不在 llm-proxy.graphql 重复声明该字段，只补类型定义。"
     },
     {
       "title": "U6 遗漏新 types 的 gqlgen.yml models 映射（ChannelProtocolCapabilities/ChannelModelCapability）",
       "severity": "medium",
       "category": "遗漏集成点",
-      "description": "JSON 结构体对应的 GraphQL 类型在本仓库的既有模式是：类型手写 axonhub.graphql + gqlgen.yml models 映射到 objects.* 结构体。U6 只写了改 axonhub.graphql 和 resolvers，未提 gqlgen.yml。若不给 ChannelProtocolCapabilities/ChannelModelCapability 加 models 映射，gqlgen 会在 models_gen.go 生成平行结构体，与 ent.Channel.ProtocolCapabilities 的 objects.ChannelProtocolCapabilities 类型不匹配，resolver 绑定报错或需要额外 field resolver。SaveChannelCapabilitiesPayload 等新 payload 类型可不映射（生成即可，有 FetchModelsPayload 等先例），但 objects 直绑类型必须映射。",
-      "evidence": "internal/server/gql/gqlgen.yml:124-141（ChannelEndpoint/ChannelPolicies/ChannelSettings → internal/objects.* 映射先例）；internal/server/gql/axonhub.graphql:98（ChannelEndpoint 类型手写定义）；计划 U6 Modify 清单无 gqlgen.yml。",
+      "description": "JSON 结构体对应的 GraphQL 类型在本仓库的既有模式是：类型手写 llm-proxy.graphql + gqlgen.yml models 映射到 objects.* 结构体。U6 只写了改 llm-proxy.graphql 和 resolvers，未提 gqlgen.yml。若不给 ChannelProtocolCapabilities/ChannelModelCapability 加 models 映射，gqlgen 会在 models_gen.go 生成平行结构体，与 ent.Channel.ProtocolCapabilities 的 objects.ChannelProtocolCapabilities 类型不匹配，resolver 绑定报错或需要额外 field resolver。SaveChannelCapabilitiesPayload 等新 payload 类型可不映射（生成即可，有 FetchModelsPayload 等先例），但 objects 直绑类型必须映射。",
+      "evidence": "internal/server/gql/gqlgen.yml:124-141（ChannelEndpoint/ChannelPolicies/ChannelSettings → internal/objects.* 映射先例）；internal/server/gql/llm-proxy.graphql:98（ChannelEndpoint 类型手写定义）；计划 U6 Modify 清单无 gqlgen.yml。",
       "suggested_fix": "U6 Modify 清单加入 internal/server/gql/gqlgen.yml：ChannelProtocolCapabilities(+Input)/ChannelModelCapability(+Input) 映射到 internal/objects.*，与 ChannelEndpoint 模式一致。"
     },
     {

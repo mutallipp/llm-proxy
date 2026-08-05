@@ -1,10 +1,10 @@
 # Channel Configuration Guide
 
-This guide explains how to configure AI provider channels (like OpenAI, Anthropic, DeepSeek) in AxonHub.
+This guide explains how to configure AI provider channels (like OpenAI, Anthropic, DeepSeek) in llm-proxy.
 
 ## What is a Channel?
 
-A **channel** is AxonHub's connection to an AI provider. Think of it as a "provider connection line" — each channel connects to one AI service (like OpenAI, Claude, or DeepSeek).
+A **channel** is llm-proxy's connection to an AI provider. Think of it as a "provider connection line" — each channel connects to one AI service (like OpenAI, Claude, or DeepSeek).
 
 Through channels, you can:
 - Connect to multiple AI providers simultaneously
@@ -22,7 +22,7 @@ In short: **API Key Profile renames → Model Association selects channel → Ch
 
 ### Basic Steps
 
-1. Go to AxonHub management interface → **Channel Management**
+1. Go to llm-proxy management interface → **Channel Management**
 2. Click **New Channel**
 3. Fill in basic information:
    - **Name**: Give your channel a name (e.g., "OpenAI Main", "DeepSeek Backup")
@@ -54,7 +54,7 @@ In short: **API Key Profile renames → Model Association selects channel → Ch
 
 ## Multiple API Keys
 
-When an account has multiple API Keys, you can configure them all in the same channel. AxonHub will automatically rotate between them for better stability.
+When an account has multiple API Keys, you can configure them all in the same channel. llm-proxy will automatically rotate between them for better stability.
 
 Simply add all keys in the API Keys field, one per line:
 ```
@@ -71,7 +71,7 @@ sk-key-3
 
 ## Model Renaming
 
-AxonHub provides multiple mechanisms to rename or alias models at the channel level. When a request arrives, the channel resolves the request model to the actual upstream model through the following priority chain:
+llm-proxy provides multiple mechanisms to rename or alias models at the channel level. When a request arrives, the channel resolves the request model to the actual upstream model through the following priority chain:
 
 1. **Direct match** — the request model is directly in the Supported Models list
 2. **Extra Model Prefix** — adds a prefix alias for all supported models

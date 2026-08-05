@@ -2,13 +2,13 @@
 
 ## 概述
 
-AxonHub 原生支持 Gemini API，可访问 Gemini 强大的多模态功能。您可以使用 Gemini SDK 访问 Gemini 模型，也可以访问 OpenAI、Anthropic 和其他支持的模型。
+llm-proxy 原生支持 Gemini API，可访问 Gemini 强大的多模态功能。您可以使用 Gemini SDK 访问 Gemini 模型，也可以访问 OpenAI、Anthropic 和其他支持的模型。
 
 ## 核心优势
 
 - **API 互操作性**：使用 Gemini API 调用 OpenAI、Anthropic 和其他支持的模型
 - **零代码变更**：继续使用现有的 Gemini 客户端 SDK，无需修改
-- **自动转换**：AxonHub 在需要时自动在 API 格式之间进行转换
+- **自动转换**：llm-proxy 在需要时自动在 API 格式之间进行转换
 - **多模态支持**：通过 Gemini API 格式访问文本和图像功能
 
 ## 支持的端点
@@ -26,10 +26,10 @@ import (
     "google.golang.org/genai"
 )
 
-// 使用 AxonHub 配置创建 Gemini 客户端
+// 使用 llm-proxy 配置创建 Gemini 客户端
 ctx := context.Background()
 client, err := genai.NewClient(ctx, &genai.ClientConfig{
-    APIKey:  "your-axonhub-api-key",
+    APIKey:  "your-llm-proxy-api-key",
     Backend: genai.Backend(genai.APIBackendUnspecified), // 使用默认后端
     HTTPOptions: genai.HTTPOptions{
 			BaseURL: "http://localhost:8090/gemini",
@@ -102,7 +102,7 @@ if len(response2.Candidates) > 0 {
 
 ## API 转换能力
 
-AxonHub 自动在 API 格式之间进行转换，实现以下强大场景：
+llm-proxy 自动在 API 格式之间进行转换，实现以下强大场景：
 
 ### 使用 Gemini SDK 调用 OpenAI 模型
 ```go
@@ -126,7 +126,7 @@ if len(response.Candidates) > 0 &&
     text := response.Candidates[0].Content.Parts[0].Text
     fmt.Println(*text)
 }
-// AxonHub 自动转换 Gemini 格式 → OpenAI 格式
+// llm-proxy 自动转换 Gemini 格式 → OpenAI 格式
 ```
 
 ### 使用 Gemini SDK 调用 Anthropic 模型
@@ -151,7 +151,7 @@ if len(response.Candidates) > 0 &&
     text := response.Candidates[0].Content.Parts[0].Text
     fmt.Println(*text)
 }
-// AxonHub 自动转换 Gemini 格式 → Anthropic 格式
+// llm-proxy 自动转换 Gemini 格式 → Anthropic 格式
 ```
 
 ## 认证
@@ -160,7 +160,7 @@ Gemini API 格式使用以下认证方式：
 
 - **头部**：`X-Goog-API-Key: <your-api-key>`
 
-API 密钥通过 AxonHub 的 API 密钥管理系统进行管理，无论使用哪种 API 格式，都提供相同的权限。
+API 密钥通过 llm-proxy 的 API 密钥管理系统进行管理，无论使用哪种 API 格式，都提供相同的权限。
 
 ## 流式支持
 
@@ -172,7 +172,7 @@ Gemini 格式错误响应遵循标准 Gemini API 错误格式。
 
 ## 工具支持
 
-AxonHub 通过 Gemini API 格式支持**函数工具**（自定义函数调用）。但是，**不支持**各提供商特有的工具：
+llm-proxy 通过 Gemini API 格式支持**函数工具**（自定义函数调用）。但是，**不支持**各提供商特有的工具：
 
 | 工具类型 | 支持状态 | 说明 |
 | -------- | -------- | ---- |
@@ -182,7 +182,7 @@ AxonHub 通过 Gemini API 格式支持**函数工具**（自定义函数调用�
 | **文件搜索（File Search）** | ❌ 不支持 | 提供商特有功能 |
 | **计算机使用（Computer Use）** | ❌ 不支持 | Anthropic 特有功能 |
 
-> **注意**：仅支持可跨提供商转换的通用函数工具。提供商特有工具需要直接访问提供商的基础设施，无法通过 AxonHub 代理。
+> **注意**：仅支持可跨提供商转换的通用函数工具。提供商特有工具需要直接访问提供商的基础设施，无法通过 llm-proxy 代理。
 
 ## 最佳实践
 
@@ -194,7 +194,7 @@ AxonHub 通过 Gemini API 格式支持**函数工具**（自定义函数调用�
 
 ## 迁移指南
 
-### 从 Gemini 迁移到 AxonHub
+### 从 Gemini 迁移到 llm-proxy
 ```go
 // 之前：直接 Gemini
 ctx := context.Background()
@@ -202,10 +202,10 @@ client, err := genai.NewClient(ctx, &genai.ClientConfig{
     APIKey: "gemini-api-key",
 })
 
-// 之后：使用 Gemini API 的 AxonHub
+// 之后：使用 Gemini API 的 llm-proxy
 ctx := context.Background()
 client, err := genai.NewClient(ctx, &genai.ClientConfig{
-    APIKey: "your-axonhub-api-key",
+    APIKey: "your-llm-proxy-api-key",
     HTTPOptions: genai.HTTPOptions{
         BaseURL: "http://localhost:8090/gemini",
     },

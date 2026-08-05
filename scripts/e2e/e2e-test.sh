@@ -12,7 +12,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
 
 # Prioritize environment variables from migration tests, fallback to command line args
-DB_TYPE="${AXONHUB_E2E_DB_TYPE:-$DB_TYPE}"
+DB_TYPE="${LLM_PROXY_E2E_DB_TYPE:-$DB_TYPE}"
 
 # Parse command line arguments only if DB_TYPE not set via environment
 if [[ -z "$DB_TYPE" ]]; then
@@ -20,19 +20,19 @@ if [[ -z "$DB_TYPE" ]]; then
 fi
 
 # Parse command line arguments
-KEEP_DB="${AXONHUB_E2E_KEEP_DB:-false}"
+KEEP_DB="${LLM_PROXY_E2E_KEEP_DB:-false}"
 ARGS=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     -d|--db-type)
-      if [[ -z "$AXONHUB_E2E_DB_TYPE" ]]; then
+      if [[ -z "$LLM_PROXY_E2E_DB_TYPE" ]]; then
         # Only override if not set via environment variable
         DB_TYPE="$2"
       fi
       shift 2
       ;;
     --keep-db)
-      if [[ -z "$AXONHUB_E2E_KEEP_DB" ]]; then
+      if [[ -z "$LLM_PROXY_E2E_KEEP_DB" ]]; then
         # Only override if not set via environment variable
         KEEP_DB=true
       fi
@@ -43,23 +43,23 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "Options:"
       echo "  -d, --db-type TYPE    Database type: sqlite, mysql, postgres (default: sqlite)"
-      echo "                       Can also be set via AXONHUB_E2E_DB_TYPE environment variable"
+      echo "                       Can also be set via LLM_PROXY_E2E_DB_TYPE environment variable"
       echo "  --keep-db           Keep database after tests complete (don't cleanup)"
-      echo "                       Can also be set via AXONHUB_E2E_KEEP_DB environment variable"
+      echo "                       Can also be set via LLM_PROXY_E2E_KEEP_DB environment variable"
       echo "  --help              Show this help message"
       echo ""
       echo "Environment Variables:"
-      echo "  AXONHUB_E2E_DB_TYPE   Database type (takes precedence over --db-type)"
-      echo "  AXONHUB_E2E_DB_DSN    Database DSN for MySQL/PostgreSQL"
-      echo "  AXONHUB_E2E_USE_EXISTING_DB  Use existing database (don't create new)"
-      echo "  AXONHUB_E2E_KEEP_DB   Keep database after tests (takes precedence over --keep-db)"
+      echo "  LLM_PROXY_E2E_DB_TYPE   Database type (takes precedence over --db-type)"
+      echo "  LLM_PROXY_E2E_DB_DSN    Database DSN for MySQL/PostgreSQL"
+      echo "  LLM_PROXY_E2E_USE_EXISTING_DB  Use existing database (don't create new)"
+      echo "  LLM_PROXY_E2E_KEEP_DB   Keep database after tests (takes precedence over --keep-db)"
       echo ""
       echo "Examples:"
       echo "  $0                           # Run tests with sqlite"
       echo "  $0 -d mysql                  # Run tests with MySQL"
       echo "  $0 --keep-db                 # Run tests and keep database"
-      echo "  AXONHUB_E2E_DB_TYPE=mysql $0  # Set via environment variable"
-      echo "  AXONHUB_E2E_KEEP_DB=true $0   # Keep database via environment variable"
+      echo "  LLM_PROXY_E2E_DB_TYPE=mysql $0  # Set via environment variable"
+      echo "  LLM_PROXY_E2E_KEEP_DB=true $0   # Keep database via environment variable"
       exit 0
       ;;
     *)
@@ -108,11 +108,11 @@ cd "$PROJECT_ROOT"
 rm -f ./scripts/e2e/.e2e-backend-db-type
 
 # Pass environment variables to backend script
-export AXONHUB_E2E_DB_TYPE="$DB_TYPE"
-export AXONHUB_E2E_DB_DSN="${AXONHUB_E2E_DB_DSN:-}"
-export AXONHUB_E2E_DB_DIALECT="${AXONHUB_E2E_DB_DIALECT:-}"
-export AXONHUB_E2E_USE_EXISTING_DB="${AXONHUB_E2E_USE_EXISTING_DB:-false}"
-export AXONHUB_E2E_KEEP_DB="$KEEP_DB"
+export LLM_PROXY_E2E_DB_TYPE="$DB_TYPE"
+export LLM_PROXY_E2E_DB_DSN="${LLM_PROXY_E2E_DB_DSN:-}"
+export LLM_PROXY_E2E_DB_DIALECT="${LLM_PROXY_E2E_DB_DIALECT:-}"
+export LLM_PROXY_E2E_USE_EXISTING_DB="${LLM_PROXY_E2E_USE_EXISTING_DB:-false}"
+export LLM_PROXY_E2E_KEEP_DB="$KEEP_DB"
 
 # Start backend with specified database type
 ./scripts/e2e/e2e-backend.sh start
@@ -144,13 +144,13 @@ if [ $TEST_EXIT_CODE -eq 0 ]; then
     echo "📊 Database location:"
     case "$DB_TYPE" in
       sqlite)
-        echo "   SQLite: ./scripts/e2e/axonhub-e2e.db"
+        echo "   SQLite: ./scripts/e2e/llm-proxy-e2e.db"
         ;;
       mysql)
-        echo "   MySQL container: axonhub-e2e-mysql (port 13306)"
+        echo "   MySQL container: llm-proxy-e2e-mysql (port 13306)"
         ;;
       postgres)
-        echo "   PostgreSQL container: axonhub-e2e-postgres (port 15432)"
+        echo "   PostgreSQL container: llm-proxy-e2e-postgres (port 15432)"
         ;;
     esac
   fi
@@ -161,13 +161,13 @@ else
     echo "📊 Database location:"
     case "$DB_TYPE" in
       sqlite)
-        echo "   SQLite: ./scripts/e2e/axonhub-e2e.db"
+        echo "   SQLite: ./scripts/e2e/llm-proxy-e2e.db"
         ;;
       mysql)
-        echo "   MySQL container: axonhub-e2e-mysql (port 13306)"
+        echo "   MySQL container: llm-proxy-e2e-mysql (port 13306)"
         ;;
       postgres)
-        echo "   PostgreSQL container: axonhub-e2e-postgres (port 15432)"
+        echo "   PostgreSQL container: llm-proxy-e2e-postgres (port 15432)"
         ;;
     esac
   else
@@ -175,7 +175,7 @@ else
     echo "💡 Tips:"
     echo "  - View report: pnpm test:e2e:report"
     echo "  - Check backend logs: cat ../scripts/e2e/e2e-backend.log"
-    echo "  - Inspect database: sqlite3 ../scripts/e2e/axonhub-e2e.db"
+    echo "  - Inspect database: sqlite3 ../scripts/e2e/llm-proxy-e2e.db"
   fi
 fi
 

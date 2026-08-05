@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AxonHub Migration Test - Test All Versions
+# llm-proxy Migration Test - Test All Versions
 # Tests migration from multiple tags to current branch
 
 set -e
@@ -28,7 +28,7 @@ print_error() {
 
 usage() {
     cat <<EOF
-AxonHub Migration Test - Test All Versions
+llm-proxy Migration Test - Test All Versions
 
 Usage:
   ./migration-test-all.sh [options]

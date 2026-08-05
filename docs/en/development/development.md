@@ -4,10 +4,10 @@
 
 ## Architecture Design
 
-AxonHub implements a bidirectional data transformation pipeline that ensures seamless communication between clients and AI providers.
+llm-proxy implements a bidirectional data transformation pipeline that ensures seamless communication between clients and AI providers.
 
 <div align="center">
-  <img src="../../transformation-flow.svg" alt="AxonHub Transformation Flow" width="900"/>
+  <img src="../../transformation-flow.svg" alt="llm-proxy Transformation Flow" width="900"/>
 </div>
 
 ### Pipeline Components
@@ -84,10 +84,10 @@ cd frontend
 pnpm install --frozen-lockfile
 cd ..
 make build
-./axonhub
+./llm-proxy
 ```
 
-Do not run only `go run ./cmd/axonhub`: the repository does not commit the generated frontend dist, so the latest Adapter and Model pages may not be available.
+Do not run only `go run ./cmd/llm-proxy`: the repository does not commit the generated frontend dist, so the latest Adapter and Model pages may not be available.
 
 The backend server will start at `http://localhost:8090`.
 

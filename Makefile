@@ -4,7 +4,9 @@
 	migration-test migration-test-all migration-test-all-dbs \
 	sync-faq sync-models filter-logs \
 	lint lint-privacy \
-	generate-schema
+	generate-schema \
+	start stop restart logs \
+	dev-up dev-down dev-logs dev-restart dev-clean dev-frontend dev
 
 # Generate GraphQL and Ent code
 generate:
@@ -19,13 +21,13 @@ generate-openapi:
 
 # Build the backend application
 build-backend:
-	@echo "Building axonhub backend..."
-	go build -ldflags "-s -w" -tags=nomsgpack -o axonhub ./cmd/axonhub
+	@echo "Building llm-proxy backend..."
+	go build -ldflags "-s -w" -tags=nomsgpack -o llm-proxy ./cmd/llm-proxy
 	@echo "Backend build completed!"
 
 # Build the frontend application
 build-frontend:
-	@echo "Building axonhub frontend..."
+	@echo "Building llm-proxy frontend..."
 	cd frontend && pnpm vite build
 	@echo "Copying frontend dist to server static directory..."
 	rm -rf internal/server/static/dist/assets
@@ -40,18 +42,18 @@ build: build-frontend build-backend
 # Cleanup test database - remove all playwright test data
 cleanup-db:
 	@echo "Cleaning up playwright test data from database..."
-	@sqlite3 axonhub.db "DELETE FROM user_roles WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
-	@sqlite3 axonhub.db "DELETE FROM user_projects WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
-	@sqlite3 axonhub.db "DELETE FROM user_projects WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM api_keys WHERE name LIKE 'pw-test-%';"
-	@sqlite3 axonhub.db "DELETE FROM api_keys WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
-	@sqlite3 axonhub.db "DELETE FROM api_keys WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM roles WHERE code LIKE 'pw-test-%' OR name LIKE 'pw-test-%';"
-	@sqlite3 axonhub.db "DELETE FROM roles WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM usage_logs WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM requests WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
-	@sqlite3 axonhub.db "DELETE FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%';"
-	@sqlite3 axonhub.db "DELETE FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%';"
+	@sqlite3 llm-proxy.db "DELETE FROM user_roles WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
+	@sqlite3 llm-proxy.db "DELETE FROM user_projects WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
+	@sqlite3 llm-proxy.db "DELETE FROM user_projects WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM api_keys WHERE name LIKE 'pw-test-%';"
+	@sqlite3 llm-proxy.db "DELETE FROM api_keys WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%');"
+	@sqlite3 llm-proxy.db "DELETE FROM api_keys WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM roles WHERE code LIKE 'pw-test-%' OR name LIKE 'pw-test-%';"
+	@sqlite3 llm-proxy.db "DELETE FROM roles WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM usage_logs WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM requests WHERE project_id IN (SELECT id FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%');"
+	@sqlite3 llm-proxy.db "DELETE FROM users WHERE email LIKE 'pw-test-%' OR first_name LIKE 'pw-test%';"
+	@sqlite3 llm-proxy.db "DELETE FROM projects WHERE slug LIKE 'pw-test-%' OR name LIKE 'pw-test-%';"
 	@echo "Cleanup completed!"
 
 # --- Testing ---
@@ -160,6 +162,46 @@ lint-all:
 
 # Generate JSON schema for configuration
 generate-schema:
+
+# ── Production (docker-compose.yml, port 8090) ─────────────────
+start:        ## Build + start prod llm-proxy (port 8090)
+	docker compose build llm-proxy
+	docker compose up -d llm-proxy
+
+stop:         ## Stop prod container (keeps image)
+	docker compose stop llm-proxy
+
+restart:      ## Recreate prod container
+	docker compose up -d --force-recreate llm-proxy
+
+logs:         ## Tail prod container logs
+	docker compose logs -f llm-proxy
+
+# ── Development (docker-compose.dev.yml, port 18090) ─────────
+dev-up:       ## Build + start dev llm-proxy (port 18090)
+	docker compose -f docker-compose.dev.yml build llm-proxy
+	docker compose -f docker-compose.dev.yml up -d llm-proxy
+
+dev-down:     ## Stop + remove dev container
+	docker compose -f docker-compose.dev.yml down
+
+dev-logs:     ## Tail dev container logs
+	docker compose -f docker-compose.dev.yml logs -f llm-proxy
+
+dev-restart:  ## Recreate dev container
+	docker compose -f docker-compose.dev.yml up -d --force-recreate llm-proxy
+
+dev-clean:    ## Stop dev + remove dev image (drops dev DB manually: DROP DATABASE "llm-proxy-dev")
+	docker compose -f docker-compose.dev.yml down --rmi local
+
+dev-frontend: ## Run frontend Vite dev server (assumes dev backend on 18090)
+	cd frontend && VITE_API_URL=http://localhost:18090 pnpm dev --port 15173
+
+dev:          ## Start dev backend, then run Vite dev in foreground (Ctrl+C exits frontend; run dev-down to stop backend)
+	@echo "Starting dev backend on :18090 (Ctrl+C exits frontend only, run 'make dev-down' to stop backend)..."
+	$(MAKE) dev-up
+	$(MAKE) dev-frontend
+
 	@echo "Generating JSON schema for configuration..."
 	@cd cmd/schema && go run . > ../../config.schema.json
 	@echo "JSON schema generated at config.schema.json"

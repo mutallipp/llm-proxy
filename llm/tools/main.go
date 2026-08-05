@@ -48,11 +48,11 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Println("Usage: axonhub-tool <command> [arguments]")
+	fmt.Println("Usage: llm-proxy-tool <command> [arguments]")
 	fmt.Println("\nCommands:")
 	fmt.Println("  convert  Convert JSON responses file to JSONL stream events")
 	fmt.Println("  capture  Capture SSE stream from an upstream provider and save to JSONL")
-	fmt.Println("\nUse 'axonhub-tool <command> -h' for more information about a command.")
+	fmt.Println("\nUse 'llm-proxy-tool <command> -h' for more information about a command.")
 }
 
 func runConvert(args []string) {

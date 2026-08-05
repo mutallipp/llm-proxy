@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AxonHub Installation Script
-# This script downloads and installs the latest AxonHub release for direct start/stop usage (no systemd)
+# llm-proxy Installation Script
+# This script downloads and installs the latest llm-proxy release for direct start/stop usage (no systemd)
 
 set -e
 
@@ -20,11 +20,11 @@ if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
 else
     USER_HOME="$HOME"
 fi
-BASE_DIR="${USER_HOME}/.config/axonhub"
+BASE_DIR="${USER_HOME}/.config/llm-proxy"
 CONFIG_DIR="${BASE_DIR}"
 DATA_DIR="${BASE_DIR}"
 LOG_DIR="${BASE_DIR}"
-SERVICE_USER="axonhub"
+SERVICE_USER="llm-proxy"
 
 # GitHub repository
 REPO="mutallipp/llm-proxy"
@@ -45,7 +45,7 @@ curl_gh() {
     local headers=(
         -H "Accept: application/vnd.github+json"
         -H "X-GitHub-Api-Version: 2022-11-28"
-        -H "User-Agent: axonhub-installer"
+        -H "User-Agent: llm-proxy-installer"
     )
     if [[ -n "$GITHUB_TOKEN" ]]; then
         headers+=( -H "Authorization: Bearer $GITHUB_TOKEN" )
@@ -74,7 +74,7 @@ debug() {
 
 usage() {
     cat 1>&2 <<EOF
-AxonHub Installer
+llm-proxy Installer
 
 Usage:
   sudo ./install.sh [options] [version]
@@ -145,7 +145,7 @@ get_latest_release() {
     if [[ -z "$tag_name" ]]; then
         print_warning "API failed or rate-limited, falling back to HTML redirect..."
         local final_url
-        final_url=$(curl -fsSL -H "User-Agent: axonhub-installer" -o /dev/null -w "%{url_effective}" "https://github.com/${REPO}/releases/latest" || true)
+        final_url=$(curl -fsSL -H "User-Agent: llm-proxy-installer" -o /dev/null -w "%{url_effective}" "https://github.com/${REPO}/releases/latest" || true)
         tag_name=$(echo "$final_url" | sed -nE 's#.*/tag/([^/]+).*#\1#p' | head -1)
     fi
     
@@ -309,10 +309,10 @@ download_and_extract() {
     local filename
     filename=$(basename "$download_url")
     
-    print_info "Downloading AxonHub ${version} for ${platform}..."
+    print_info "Downloading llm-proxy ${version} for ${platform}..."
     
     if ! curl -fSL -o "${temp_dir}/${filename}" "$download_url"; then
-        print_error "Failed to download AxonHub asset"
+        print_error "Failed to download llm-proxy asset"
         rm -rf "$temp_dir"
         exit 1
     fi
@@ -333,10 +333,10 @@ download_and_extract() {
     
     # Find the extracted binary
     local binary_path
-    binary_path=$(find "$temp_dir" -name "axonhub" -type f | head -1)
+    binary_path=$(find "$temp_dir" -name "llm-proxy" -type f | head -1)
     
     if [[ -z "$binary_path" ]]; then
-        print_error "Could not find axonhub binary in archive"
+        print_error "Could not find llm-proxy binary in archive"
         rm -rf "$temp_dir"
         exit 1
     fi
@@ -366,11 +366,11 @@ setup_directories() {
 install_binary() {
     local binary_path=$1
     
-    print_info "Installing AxonHub binary to $INSTALL_DIR..."
+    print_info "Installing llm-proxy binary to $INSTALL_DIR..."
     
     # Install binary
-    cp "$binary_path" "$INSTALL_DIR/axonhub"
-    chmod +x "$INSTALL_DIR/axonhub"
+    cp "$binary_path" "$INSTALL_DIR/llm-proxy"
+    chmod +x "$INSTALL_DIR/llm-proxy"
     
     # Clean up temp directory only if it looks like a system temp path
     local dir
@@ -390,12 +390,12 @@ create_default_config() {
         cat > "$config_file" << EOF
 server:
   port: 8090
-  name: "AxonHub"
+  name: "llm-proxy"
   debug: false
 
 db:
   dialect: "sqlite3"
-  dsn: "${BASE_DIR}/axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+  dsn: "${BASE_DIR}/llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
 
 cache:
   mode: "memory"
@@ -408,7 +408,7 @@ log:
   encoding: "json"
   output: "file"
   file:
-    path: "${BASE_DIR}/logs/axonhub.log"
+    path: "${BASE_DIR}/logs/llm-proxy.log"
     max_size: 100
     max_age: 30
     max_backups: 10
@@ -427,10 +427,10 @@ EOF
     fi
 }
 
-# Note: systemd service installation removed; use deploy/start.sh and deploy/stop.sh to manage AxonHub
+# Note: systemd service installation removed; use deploy/start.sh and deploy/stop.sh to manage llm-proxy
 
 main() {
-    print_info "Starting AxonHub installation..."
+    print_info "Starting llm-proxy installation..."
     
     # Check if running as root
     check_root
@@ -440,9 +440,9 @@ main() {
     platform=$(detect_architecture)
     print_info "Detected platform: $platform"
     
-    # Determine target version (env AXONHUB_VERSION, positional arg, or latest)
+    # Determine target version (env LLM_PROXY_VERSION, positional arg, or latest)
     local version version_arg
-    version="${AXONHUB_VERSION:-}"
+    version="${LLM_PROXY_VERSION:-}"
 
     # Parse CLI flags and optional version argument
     if [[ -z "$version" ]]; then
@@ -480,11 +480,11 @@ main() {
     local binary_path
     local script_dir
     script_dir=$(cd "$(dirname "$0")" && pwd)
-    if [[ -x "$script_dir/axonhub" ]]; then
-        print_info "Found local binary: $script_dir/axonhub"
+    if [[ -x "$script_dir/llm-proxy" ]]; then
+        print_info "Found local binary: $script_dir/llm-proxy"
         # Try to read local version from the binary
         local local_version norm_local norm_target
-        if local_version=$("$script_dir/axonhub" version 2>/dev/null | head -n1 | tr -d '\r'); then
+        if local_version=$("$script_dir/llm-proxy" version 2>/dev/null | head -n1 | tr -d '\r'); then
             print_info "Local binary version: $local_version"
             norm_local=$(normalize_version "$local_version")
         else
@@ -500,11 +500,11 @@ main() {
                 binary_path=$(download_and_extract "$version" "$platform")
             else
                 print_info "Using existing local binary as requested."
-                binary_path="$script_dir/axonhub"
+                binary_path="$script_dir/llm-proxy"
             fi
         else
             print_info "Local binary is up-to-date. Using existing local binary."
-            binary_path="$script_dir/axonhub"
+            binary_path="$script_dir/llm-proxy"
         fi
     else
         # Download and extract
@@ -523,14 +523,14 @@ main() {
     # Create default configuration
     create_default_config
     
-    print_success "AxonHub installation completed!"
+    print_success "llm-proxy installation completed!"
     echo
     
     # Get configured port for display
     local port=8090
-    if [[ -x "$INSTALL_DIR/axonhub" ]]; then
+    if [[ -x "$INSTALL_DIR/llm-proxy" ]]; then
         local config_port
-        config_port=$("$INSTALL_DIR/axonhub" config get server.port 2>/dev/null) || true
+        config_port=$("$INSTALL_DIR/llm-proxy" config get server.port 2>/dev/null) || true
         if [[ -n "$config_port" && "$config_port" =~ ^[0-9]+$ ]]; then
             port="$config_port"
         fi
@@ -538,13 +538,13 @@ main() {
     
     print_info "Next steps:"
     echo "  1. Edit configuration: nano $CONFIG_DIR/config.yml"
-    echo "  2. Start AxonHub: ./start.sh"
-    echo "  3. Stop AxonHub: ./stop.sh"
-    echo "  4. View logs: tail -f $LOG_DIR/axonhub.log"
+    echo "  2. Start llm-proxy: ./start.sh"
+    echo "  3. Stop llm-proxy: ./stop.sh"
+    echo "  4. View logs: tail -f $LOG_DIR/llm-proxy.log"
     echo "  5. Access web interface: http://localhost:${port}"
     echo "  6. Setup auto-start: ./setup.sh install-autostart"
     echo
-    print_info "To start AxonHub now, run: ./start.sh"
+    print_info "To start llm-proxy now, run: ./start.sh"
 }
 
 # Run main function

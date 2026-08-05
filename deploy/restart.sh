@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AxonHub Restart Script
-# This script restarts AxonHub by stopping and starting it
+# llm-proxy Restart Script
+# This script restarts llm-proxy by stopping and starting it
 
 set -e
 
@@ -33,17 +33,17 @@ print_error() {
 show_usage() {
     echo "Usage: $0 [--force]"
     echo
-    echo "This script restarts AxonHub by stopping and starting it."
+    echo "This script restarts llm-proxy by stopping and starting it."
     echo "Options:"
     echo "  --force     Force kill before restart"
     echo "  --help, -h  Show this help message"
 }
 
 main() {
-    print_info "Restarting AxonHub..."
+    print_info "Restarting llm-proxy..."
     
-    # Stop AxonHub
-    print_info "Stopping AxonHub..."
+    # Stop llm-proxy
+    print_info "Stopping llm-proxy..."
     if [[ "$FORCE" == "true" ]]; then
         "$SCRIPT_DIR/stop.sh" --force || true
     else
@@ -53,11 +53,11 @@ main() {
     # Brief pause to ensure clean shutdown
     sleep 5
     
-    # Start AxonHub
-    print_info "Starting AxonHub..."
+    # Start llm-proxy
+    print_info "Starting llm-proxy..."
     "$SCRIPT_DIR/start.sh"
     
-    print_success "AxonHub has been restarted"
+    print_success "llm-proxy has been restarted"
 }
 
 # Handle script arguments

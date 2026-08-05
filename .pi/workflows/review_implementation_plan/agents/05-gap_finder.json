@@ -5,7 +5,7 @@
       "severity": "high",
       "category": "集成点遗漏",
       "description": "计划 Technical Design 的触发点装配与 U3 修改清单只把 R13 清理挂到 DeleteChannel（channel.go:890）。但批量删除是独立代码路径：GraphQL mutation bulkDeleteChannels → resolver → BulkDeleteChannels，后者直接执行 ent Channel.Delete，不经过 DeleteChannel。按此实施，批量删除渠道后：指向该渠道的 auto 派生条目永不清理（成为孤儿条目），手动条目也不会被置为禁用并附原因『渠道已删除』，R13/AE10 语义在真实 UI 路径（channels-bulk-delete-dialog）上失效。",
-      "evidence": "internal/server/biz/channel_bulk.go:214-230（BulkDeleteChannels 直接 svc.entFromContext(ctx).Channel.Delete().Where(channel.IDIn(ids...)).Exec(ctx)，仅 forgetLimiter+asyncReloadChannels）；internal/server/gql/axonhub.resolvers.go:239-244（BulkDeleteChannels resolver）；internal/server/gql/axonhub.graphql:837（bulkDeleteChannels(ids:[ID!]!): Boolean!）；frontend/src/features/channels/data/channels.ts:1414 前端已在使用该 mutation。计划 U3 Modify 清单仅列 channel.go 的 DeleteChannel。",
+      "evidence": "internal/server/biz/channel_bulk.go:214-230（BulkDeleteChannels 直接 svc.entFromContext(ctx).Channel.Delete().Where(channel.IDIn(ids...)).Exec(ctx)，仅 forgetLimiter+asyncReloadChannels）；internal/server/gql/llm-proxy.resolvers.go:239-244（BulkDeleteChannels resolver）；internal/server/gql/llm-proxy.graphql:837（bulkDeleteChannels(ids:[ID!]!): Boolean!）；frontend/src/features/channels/data/channels.ts:1414 前端已在使用该 mutation。计划 U3 Modify 清单仅列 channel.go 的 DeleteChannel。",
       "suggested_fix": "把 R13 清理抽成可复用函数（或并入 U4 reconcile 引擎的清理操作），在 DeleteChannel 与 BulkDeleteChannels 两处接线；U3/U4 测试与 AE10 增加批量删除场景。"
     },
     {

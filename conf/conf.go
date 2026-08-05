@@ -91,7 +91,7 @@ func loadConfig(configFile string) (Config, string, error) {
 	setDefaults(v)
 
 	v.AutomaticEnv()
-	v.SetEnvPrefix("AXONHUB")
+	v.SetEnvPrefix("LLM_PROXY")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	if configFile != "" {
@@ -100,8 +100,8 @@ func loadConfig(configFile string) (Config, string, error) {
 		v.SetConfigName("config")
 		v.SetConfigType("yml")
 		v.AddConfigPath(".")
-		v.AddConfigPath("/etc/axonhub/")
-		v.AddConfigPath("$HOME/.config/axonhub/")
+		v.AddConfigPath("/etc/llm-proxy/")
+		v.AddConfigPath("$HOME/.config/llm-proxy/")
 		v.AddConfigPath("./conf")
 	}
 
@@ -217,7 +217,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("server.port", 8090)
 	v.SetDefault("server.pid_file", "")
 	v.SetDefault("server.public_url", "")
-	v.SetDefault("server.name", "AxonHub")
+	v.SetDefault("server.name", "llm-proxy")
 	v.SetDefault("server.base_path", "")
 	v.SetDefault("server.request_timeout", "30s")
 	v.SetDefault("server.llm_request_timeout", "600s")
@@ -250,7 +250,7 @@ func setDefaults(v *viper.Viper) {
 
 	// Database defaults
 	v.SetDefault("db.dialect", "sqlite3")
-	v.SetDefault("db.dsn", "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)")
+	v.SetDefault("db.dsn", "file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)")
 	v.SetDefault("db.disable_auto_migration", false)
 	v.SetDefault("db.disable_sqlite_auto_wal", false)
 	v.SetDefault("db.debug", false)
@@ -263,7 +263,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("db.read_replica.read_max_idle_conns", 0)
 
 	// Log defaults
-	v.SetDefault("log.name", "axonhub")
+	v.SetDefault("log.name", "llm-proxy")
 	v.SetDefault("log.debug", false)
 	v.SetDefault("log.skip_level", 1)
 	v.SetDefault("log.level", "info")
@@ -276,7 +276,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("log.includes", []string{})
 	v.SetDefault("log.excludes", []string{})
 	v.SetDefault("log.output", "stdio")
-	v.SetDefault("log.file.path", "logs/axonhub.log")
+	v.SetDefault("log.file.path", "logs/llm-proxy.log")
 	v.SetDefault("log.file.max_size", 100)   // MB
 	v.SetDefault("log.file.max_age", 30)     // days
 	v.SetDefault("log.file.max_backups", 10) // files

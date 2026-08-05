@@ -94,7 +94,7 @@ func TestTokenProviderExchangeSuccess(t *testing.T) {
 	provider := NewTokenProvider(TokenProviderParams{
 		HTTPClient: httpclient.NewHttpClientWithClient(server.Client()),
 		OAuthUrls:  OAuthUrls{TokenUrl: server.URL + "/token"},
-		UserAgent:  "axonhub-test",
+		UserAgent:  "llm-proxy-test",
 	})
 
 	ctx := context.Background()
@@ -106,7 +106,7 @@ func TestTokenProviderExchangeSuccess(t *testing.T) {
 		RedirectURI:  "https://example.com/callback",
 	})
 	require.NoError(t, err)
-	require.Equal(t, "axonhub-test", gotUA)
+	require.Equal(t, "llm-proxy-test", gotUA)
 	require.Equal(t, "client-1", creds.ClientID)
 	require.Equal(t, "access-1", creds.AccessToken)
 	require.Equal(t, "refresh-1", creds.RefreshToken)

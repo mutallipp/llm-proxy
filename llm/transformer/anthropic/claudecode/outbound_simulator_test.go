@@ -201,7 +201,7 @@ func TestClaudeCodeTransformer_WithSimulator_InboundHeadersPassthrough(t *testin
 	}{
 		{
 			name:            "non-claude UA passthrough headers override defaults",
-			inboundUA:       "axonhub-test/0.0.1",
+			inboundUA:       "llm-proxy-test/0.0.1",
 			wantFinalUA:     UserAgent,
 			wantFinalBeta:   "injected",
 			wantFinalXApp:   "web",

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide covers deploying AxonHub using Docker and Docker Compose. Docker provides an isolated, reproducible environment that simplifies deployment and scaling.
+This guide covers deploying llm-proxy using Docker and Docker Compose. Docker provides an isolated, reproducible environment that simplifies deployment and scaling.
 
 ## Quick Start
 
@@ -19,10 +19,10 @@ Compose automatically loads `.env` from the project root:
 
 ```bash
 cp .env.example .env
-# Edit .env and set AXONHUB_DB_DSN and other local settings
+# Edit .env and set LLM_PROXY_DB_DSN and other local settings
 ```
 
-Keep `.env` local; it is ignored by Git. The Compose file injects database, authentication, and proxy settings through `AXONHUB_*` variables.
+Keep `.env` local; it is ignored by Git. The Compose file injects database, authentication, and proxy settings through `LLM_PROXY_*` variables.
 
 ### 3. Build and Start Services
 
@@ -58,9 +58,9 @@ services:
       - ./config.yml:/app/config.yml
       - llm-proxy_data:/app/data
     environment:
-      - AXONHUB_SERVER_PORT=8090
-      - AXONHUB_DB_DIALECT=sqlite3
-      - AXONHUB_DB_DSN=file:axonhub.db?cache=shared&_fk=1
+      - LLM_PROXY_SERVER_PORT=8090
+      - LLM_PROXY_DB_DIALECT=sqlite3
+      - LLM_PROXY_DB_DSN=file:llm-proxy.db?cache=shared&_fk=1
     restart: unless-stopped
 
 volumes:
@@ -82,12 +82,12 @@ services:
       - llm-proxy_data:/app/data
       - ./logs:/app/logs
     environment:
-      - AXONHUB_SERVER_PORT=8090
-      - AXONHUB_DB_DIALECT=postgres
-      - AXONHUB_DB_DSN=postgres://axonhub:password@postgres:5432/axonhub
-      - AXONHUB_LOG_LEVEL=warn
-      - AXONHUB_LOG_OUTPUT=file
-      - AXONHUB_LOG_FILE_PATH=/app/logs/axonhub.log
+      - LLM_PROXY_SERVER_PORT=8090
+      - LLM_PROXY_DB_DIALECT=postgres
+      - LLM_PROXY_DB_DSN=postgres://llm-proxy:password@postgres:5432/llm-proxy
+      - LLM_PROXY_LOG_LEVEL=warn
+      - LLM_PROXY_LOG_OUTPUT=file
+      - LLM_PROXY_LOG_FILE_PATH=/app/logs/llm-proxy.log
     depends_on:
       - postgres
     restart: unless-stopped
@@ -95,8 +95,8 @@ services:
   postgres:
     image: postgres:15
     environment:
-      - POSTGRES_DB=axonhub
-      - POSTGRES_USER=axonhub
+      - POSTGRES_DB=llm-proxy
+      - POSTGRES_USER=llm-proxy
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -114,8 +114,8 @@ volumes:
 ```yaml
 llm-proxy:
   environment:
-    - AXONHUB_DB_DIALECT=sqlite3
-    - AXONHUB_DB_DSN=file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
+    - LLM_PROXY_DB_DIALECT=sqlite3
+    - LLM_PROXY_DB_DSN=file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
 ```
 
 ### PostgreSQL (Production)
@@ -123,8 +123,8 @@ llm-proxy:
 ```yaml
 llm-proxy:
   environment:
-    - AXONHUB_DB_DIALECT=postgres
-    - AXONHUB_DB_DSN=postgres://user:pass@host:5432/axonhub
+    - LLM_PROXY_DB_DIALECT=postgres
+    - LLM_PROXY_DB_DSN=postgres://user:pass@host:5432/llm-proxy
 ```
 
 ### MySQL (Production)
@@ -132,8 +132,8 @@ llm-proxy:
 ```yaml
 llm-proxy:
   environment:
-    - AXONHUB_DB_DIALECT=mysql
-    - AXONHUB_DB_DSN=user:pass@tcp(host:3306)/axonhub?charset=utf8mb4&parseTime=True
+    - LLM_PROXY_DB_DIALECT=mysql
+    - LLM_PROXY_DB_DSN=user:pass@tcp(host:3306)/llm-proxy?charset=utf8mb4&parseTime=True
 ```
 
 ## Environment Variables
@@ -141,27 +141,27 @@ llm-proxy:
 ### Server Configuration
 
 ```bash
-AXONHUB_SERVER_PORT=8090
-AXONHUB_SERVER_NAME="llm-proxy"
-AXONHUB_SERVER_DEBUG=false
-AXONHUB_SERVER_REQUEST_TIMEOUT="30s"
-AXONHUB_SERVER_LLM_REQUEST_TIMEOUT="600s"
+LLM_PROXY_SERVER_PORT=8090
+LLM_PROXY_SERVER_NAME="llm-proxy"
+LLM_PROXY_SERVER_DEBUG=false
+LLM_PROXY_SERVER_REQUEST_TIMEOUT="30s"
+LLM_PROXY_SERVER_LLM_REQUEST_TIMEOUT="600s"
 ```
 
 ### Database Configuration
 
 ```bash
-AXONHUB_DB_DIALECT="postgres"
-AXONHUB_DB_DSN="postgres://user:pass@host:5432/axonhub"
-AXONHUB_DB_DEBUG=false
+LLM_PROXY_DB_DIALECT="postgres"
+LLM_PROXY_DB_DSN="postgres://user:pass@host:5432/llm-proxy"
+LLM_PROXY_DB_DEBUG=false
 ```
 
 ### Logging Configuration
 
 ```bash
-AXONHUB_LOG_LEVEL="info"
-AXONHUB_LOG_ENCODING="json"
-AXONHUB_LOG_OUTPUT="stdio"
+LLM_PROXY_LOG_LEVEL="info"
+LLM_PROXY_LOG_ENCODING="json"
+LLM_PROXY_LOG_OUTPUT="stdio"
 ```
 
 ## Security Considerations
@@ -169,7 +169,7 @@ AXONHUB_LOG_OUTPUT="stdio"
 ### Network Security
 
 ```yaml
-axonhub:
+llm-proxy:
   networks:
     - axonhub_network
   ports:
@@ -191,7 +191,7 @@ API_KEY_SECRET=your-api-key-secret
 ```
 
 ```yaml
-axonhub:
+llm-proxy:
   env_file:
     - .env
 ```
@@ -201,7 +201,7 @@ axonhub:
 ### Health Checks
 
 ```yaml
-axonhub:
+llm-proxy:
   healthcheck:
     test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
     interval: 30s
@@ -213,7 +213,7 @@ axonhub:
 ### Log Collection
 
 ```yaml
-axonhub:
+llm-proxy:
   logging:
     driver: "json-file"
     options:
@@ -226,7 +226,7 @@ axonhub:
 ### Horizontal Scaling
 
 ```yaml
-axonhub:
+llm-proxy:
   deploy:
     replicas: 3
     resources:
@@ -256,7 +256,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - axonhub
+      - llm-proxy
     networks:
       - axonhub_network
 ```
@@ -274,7 +274,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     command: |
       bash -c '
-        pg_dump -h postgres -U axonhub axonhub > /backup/axonhub-$(date +%Y%m%d).sql
+        pg_dump -h postgres -U llm-proxy llm-proxy > /backup/llm-proxy-$(date +%Y%m%d).sql
       '
     depends_on:
       - postgres
@@ -287,11 +287,11 @@ services:
 ```bash
 # Backup data volume
 docker run --rm -v llm-proxy_data:/source -v $(pwd)/backup:/backup alpine \
-  tar czf /backup/axonhub-data-$(date +%Y%m%d).tar.gz -C /source .
+  tar czf /backup/llm-proxy-data-$(date +%Y%m%d).tar.gz -C /source .
 
 # Restore data volume
 docker run --rm -v llm-proxy_data:/target -v $(pwd)/backup:/backup alpine \
-  tar xzf /backup/axonhub-data-20231110.tar.gz -C /target
+  tar xzf /backup/llm-proxy-data-20231110.tar.gz -C /target
 ```
 
 ## Troubleshooting
@@ -299,7 +299,7 @@ docker run --rm -v llm-proxy_data:/target -v $(pwd)/backup:/backup alpine \
 ### Common Issues
 
 **Container fails to start**
-- Check Docker logs: `docker-compose logs axonhub`
+- Check Docker logs: `docker-compose logs llm-proxy`
 - Verify configuration file permissions
 - Ensure database connection is working
 
@@ -319,8 +319,8 @@ Enable debug logging for troubleshooting:
 ```yaml
 llm-proxy:
   environment:
-    - AXONHUB_SERVER_DEBUG=true
-    - AXONHUB_LOG_LEVEL=debug
+    - LLM_PROXY_SERVER_DEBUG=true
+    - LLM_PROXY_LOG_LEVEL=debug
 ```
 
 ## Next Steps

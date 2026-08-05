@@ -11,8 +11,8 @@ export interface AdminCredentials {
 }
 
 const defaultCredentials: AdminCredentials = {
-  email: process.env.AXONHUB_ADMIN_EMAIL || 'my@example.com',
-  password: process.env.AXONHUB_ADMIN_PASSWORD || 'pwd123456',
+  email: process.env.LLM_PROXY_ADMIN_EMAIL || 'my@example.com',
+  password: process.env.LLM_PROXY_ADMIN_PASSWORD || 'pwd123456',
 }
 
 export async function signInAsAdmin(page: Page, credentials: AdminCredentials = defaultCredentials) {

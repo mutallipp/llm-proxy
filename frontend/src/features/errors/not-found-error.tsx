@@ -35,7 +35,7 @@ export default function NotFoundError() {
   const suggestedPages: SuggestedPage[] = [
     {
       title: 'Dashboard',
-      description: 'Overview of your AxonHub instance',
+      description: 'Overview of your llm-proxy instance',
       path: '/',
       icon: <IconHome className='h-5 w-5' />,
       keywords: ['dashboard', 'home', 'overview', 'main'],

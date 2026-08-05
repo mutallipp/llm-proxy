@@ -762,7 +762,7 @@ func TestBuildHttpRequest_UserAgentPassThrough(t *testing.T) {
 				Method: http.MethodPost,
 				URL:    "https://api.example.com/test",
 			},
-			wantUserAgent: "axonhub/1.0",
+			wantUserAgent: "llm-proxy/1.0",
 		},
 		{
 			name: "third_existing_ua_is_preserved",
@@ -781,7 +781,7 @@ func TestBuildHttpRequest_UserAgentPassThrough(t *testing.T) {
 				Method: http.MethodPost,
 				URL:    "https://api.example.com/test",
 			},
-			wantUserAgent: "axonhub/1.0",
+			wantUserAgent: "llm-proxy/1.0",
 		},
 	}
 

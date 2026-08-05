@@ -1,12 +1,12 @@
 apiVersion: v2
-name: axonhub
+name: llm-proxy
 version: 0.1.0
 appVersion: "latest"
-description: A Helm chart for deploying AxonHub on Kubernetes
+description: A Helm chart for deploying llm-proxy on Kubernetes
 type: application
 home: https://github.com/mutallipp/llm-proxy
 sources:
   - https://github.com/mutallipp/llm-proxy
 maintainers:
-  - name: AxonHub Team
-    email: team@axonhub.ai
+  - name: llm-proxy Team
+    email: team@llm-proxy.ai

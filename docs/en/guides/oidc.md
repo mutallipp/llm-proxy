@@ -1,15 +1,15 @@
 # OpenID Connect (OIDC) Integration Guide
 
-AxonHub supports authentication via any OIDC-compliant Identity Provider (IdP) such as Google, GitHub, or Logto.
+llm-proxy supports authentication via any OIDC-compliant Identity Provider (IdP) such as Google, GitHub, or Logto.
 
 ## Configuration
 
 Configure your OIDC providers in the `conf/config.yml` file under the `oidc` section.
 
 ```yaml
-# Public URL of your AxonHub instance (critical for building redirect URIs)
+# Public URL of your llm-proxy instance (critical for building redirect URIs)
 server:
-  public_url: "https://axonhub.example.com"
+  public_url: "https://llm-proxy.example.com"
 
 oidc:
   providers:
@@ -55,7 +55,7 @@ oidc:
 
 ### Role Mapping
 
-You can automatically assign AxonHub roles or specific permission scopes to users based on groups or claims returned by the OIDC provider.
+You can automatically assign llm-proxy roles or specific permission scopes to users based on groups or claims returned by the OIDC provider.
 
 ```yaml
 oidc:
@@ -65,7 +65,7 @@ oidc:
       group_claims: ["groups", "roles"] # Claim keys to look for group info
       role_mappings:
         - match_group: "admin-group"    # Group name from OIDC
-          db_role: "system:owner"       # Mapped AxonHub role (System Owner)
+          db_role: "system:owner"       # Mapped llm-proxy role (System Owner)
           priority: 100
         - match_group: "viewer-*"       # Supports wildcard matching
           db_role: "Viewer"
@@ -93,7 +93,7 @@ oidc:
    - If you have **multiple** OIDC providers: `<public_url>/oauth/oidc/callback/logto`
    - If this is the **only** provider: `<public_url>/oauth/oidc/callback`
 3. Set the **Post sign-out URI** to `<public_url>/sign-in`.
-4. Add the following to your AxonHub config:
+4. Add the following to your llm-proxy config:
 
 ```yaml
 oidc:
@@ -111,6 +111,6 @@ oidc:
 
 ## Security Considerations
 
-- **Public URL (Critical)**: Always set `server.public_url` in production environments. If not set, AxonHub will fall back to the `Host` header of the request to build redirect URIs, which can be vulnerable to **Host Header Injection** attacks in reverse proxy setups.
+- **Public URL (Critical)**: Always set `server.public_url` in production environments. If not set, llm-proxy will fall back to the `Host` header of the request to build redirect URIs, which can be vulnerable to **Host Header Injection** attacks in reverse proxy setups.
 - **PKCE**: It is highly recommended to enable `enable_pkce: true` for all providers.
 - **SSO Only**: If you want to enforce SSO and block password-based logins for specific users, you can enable `oidc_login_only: true` for a provider. **Note: When enabled, the frontend login page will automatically hide the password form and only show SSO options.** You can also use the user management UI to set an individual user's password to the magic placeholder `!OIDC_SSO_ONLY!` to lock specific accounts.

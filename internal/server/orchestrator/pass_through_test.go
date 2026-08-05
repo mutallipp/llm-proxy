@@ -1415,7 +1415,7 @@ func TestApplyUserAgentPassThrough(t *testing.T) {
 			channelUASetting: new(false),
 			globalUAEnabled:  true,
 			clientUA:         "Client/1.0",
-			wantUAHeader:     "axonhub/1.0", // Pass-through disabled: middleware sets default UA
+			wantUAHeader:     "llm-proxy/1.0", // Pass-through disabled: middleware sets default UA
 		},
 		{
 			name:             "channel_enabled_ignores_global",
@@ -1429,7 +1429,7 @@ func TestApplyUserAgentPassThrough(t *testing.T) {
 			channelUASetting: nil,
 			globalUAEnabled:  false,
 			clientUA:         "Client/1.0",
-			wantUAHeader:     "axonhub/1.0", // Pass-through disabled: middleware sets default UA
+			wantUAHeader:     "llm-proxy/1.0", // Pass-through disabled: middleware sets default UA
 		},
 		{
 			name:             "channel_nil_inherits_global_enabled",

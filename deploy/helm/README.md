@@ -1,6 +1,6 @@
-# AxonHub Helm Chart
+# llm-proxy Helm Chart
 
-This Helm chart deploys AxonHub on Kubernetes with PostgreSQL database.
+This Helm chart deploys llm-proxy on Kubernetes with PostgreSQL database.
 
 ## Prerequisites
 
@@ -10,15 +10,15 @@ This Helm chart deploys AxonHub on Kubernetes with PostgreSQL database.
 
 ## Installing the Chart
 
-To install the chart with the release name `axonhub`:
+To install the chart with the release name `llm-proxy`:
 
 ```bash
-helm install axonhub ./deploy/helm
+helm install llm-proxy ./deploy/helm
 ```
 
 ## Configuration
 
-The following table lists the configurable parameters of the AxonHub chart and their default values.
+The following table lists the configurable parameters of the llm-proxy chart and their default values.
 
 ### Global Parameters
 
@@ -26,20 +26,20 @@ The following table lists the configurable parameters of the AxonHub chart and t
 |-----------|-------------|---------|
 | `global.imagePullSecrets` | Global Docker registry secret names as an array | `[]` |
 
-### AxonHub Parameters
+### llm-proxy Parameters
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `axonhub.replicaCount` | Number of AxonHub replicas | `1` |
-| `axonhub.image.repository` | AxonHub image repository | `llm-proxy` |
-| `axonhub.image.tag` | AxonHub image tag override. Defaults to chart `appVersion` when empty | `""` |
-| `axonhub.image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `axonhub.dbPassword` | Database password | `axonhub_password` |
-| `axonhub.service.type` | Kubernetes service type | `ClusterIP` |
-| `axonhub.service.port` | Service port | `8090` |
-| `axonhub.resources` | CPU/Memory resource requests/limits | `{}` |
-| `axonhub.persistence.enabled` | Enable persistence using PVC | `false` |
-| `axonhub.persistence.size` | PVC storage request size | `10Gi` |
+| `llm-proxy.replicaCount` | Number of llm-proxy replicas | `1` |
+| `llm-proxy.image.repository` | llm-proxy image repository | `llm-proxy` |
+| `llm-proxy.image.tag` | llm-proxy image tag override. Defaults to chart `appVersion` when empty | `""` |
+| `llm-proxy.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `llm-proxy.dbPassword` | Database password | `axonhub_password` |
+| `llm-proxy.service.type` | Kubernetes service type | `ClusterIP` |
+| `llm-proxy.service.port` | Service port | `8090` |
+| `llm-proxy.resources` | CPU/Memory resource requests/limits | `{}` |
+| `llm-proxy.persistence.enabled` | Enable persistence using PVC | `false` |
+| `llm-proxy.persistence.size` | PVC storage request size | `10Gi` |
 
 ### PostgreSQL Parameters
 
@@ -50,9 +50,9 @@ The following table lists the configurable parameters of the AxonHub chart and t
 | `postgresql.image.repository` | PostgreSQL image repository | `postgres` |
 | `postgresql.image.tag` | PostgreSQL image tag | `16-alpine` |
 | `postgresql.auth.postgresPassword` | PostgreSQL admin password | `axonhub_password` |
-| `postgresql.auth.username` | PostgreSQL user name | `axonhub` |
+| `postgresql.auth.username` | PostgreSQL user name | `llm-proxy` |
 | `postgresql.auth.password` | PostgreSQL user password | `axonhub_password` |
-| `postgresql.auth.database` | PostgreSQL database name | `axonhub` |
+| `postgresql.auth.database` | PostgreSQL database name | `llm-proxy` |
 | `postgresql.service.type` | Kubernetes service type | `ClusterIP` |
 | `postgresql.service.port` | PostgreSQL service port | `5432` |
 | `postgresql.primary.persistence.enabled` | Enable PostgreSQL persistence | `true` |
@@ -65,7 +65,7 @@ The following table lists the configurable parameters of the AxonHub chart and t
 | `ingress.enabled` | Enable ingress controller resource | `false` |
 | `ingress.className` | IngressClass that will be used | `""` |
 | `ingress.annotations` | Ingress annotations | `{}` |
-| `ingress.hosts` | Ingress hostnames | `[{host: axonhub.local, paths: [{path: /, pathType: Prefix}]}]` |
+| `ingress.hosts` | Ingress hostnames | `[{host: llm-proxy.local, paths: [{path: /, pathType: Prefix}]}]` |
 | `ingress.tls` | Ingress TLS configuration | `[]` |
 
 ## Database Configuration Options
@@ -90,9 +90,9 @@ Disable internal PostgreSQL and configure external database connection:
 postgresql:
   enabled: false
 
-axonhub:
+llm-proxy:
   env:
-    AXONHUB_DB_DSN: "postgres://username:password@external-db-host:5432/database?sslmode=require"
+    LLM_PROXY_DB_DSN: "postgres://username:password@external-db-host:5432/database?sslmode=require"
 ```
 
 ## Production Deployment
@@ -101,7 +101,7 @@ For production deployments, you should:
 
 1. Change default passwords:
 ```yaml
-axonhub:
+llm-proxy:
   dbPassword: "your-secure-password"
 
 postgresql:
@@ -112,7 +112,7 @@ postgresql:
 
 2. Enable persistence:
 ```yaml
-axonhub:
+llm-proxy:
   persistence:
     enabled: true
     size: 20Gi
@@ -126,7 +126,7 @@ postgresql:
 
 3. Configure resource limits:
 ```yaml
-axonhub:
+llm-proxy:
   resources:
     limits:
       cpu: 2000m
@@ -151,7 +151,7 @@ ingress:
   enabled: true
   className: "nginx"
   hosts:
-    - host: axonhub.yourdomain.com
+    - host: llm-proxy.yourdomain.com
       paths:
         - path: /
           pathType: Prefix
@@ -162,7 +162,7 @@ ingress:
 To upgrade the chart:
 
 ```bash
-helm upgrade axonhub ./deploy/helm -f values-production.yaml
+helm upgrade llm-proxy ./deploy/helm -f values-production.yaml
 ```
 
 ## Uninstalling
@@ -170,7 +170,7 @@ helm upgrade axonhub ./deploy/helm -f values-production.yaml
 To uninstall/delete the release:
 
 ```bash
-helm uninstall axonhub
+helm uninstall llm-proxy
 ```
 
 ## Verification
@@ -185,7 +185,7 @@ kubectl get pods
 kubectl get svc
 
 # Port forward to test
-kubectl port-forward svc/axonhub 8090:8090
+kubectl port-forward svc/llm-proxy 8090:8090
 
 # Test health endpoint
 curl http://localhost:8090/health
@@ -203,7 +203,7 @@ Common issues and solutions:
 ## Architecture
 
 The chart deploys:
-- AxonHub application as a Deployment
+- llm-proxy application as a Deployment
 - PostgreSQL database as a StatefulSet
 - Services for both components
 - Optional ingress for external access

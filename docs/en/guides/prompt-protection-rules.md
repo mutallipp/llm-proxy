@@ -1,6 +1,6 @@
 # Prompt Protection Rules
 
-AxonHub provides a regex-based prompt protection system that allows you to mask or reject sensitive content in API requests before they are sent to AI providers.
+llm-proxy provides a regex-based prompt protection system that allows you to mask or reject sensitive content in API requests before they are sent to AI providers.
 
 ## Overview
 

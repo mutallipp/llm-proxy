@@ -118,7 +118,7 @@ func NewChannelService(params ChannelServiceParams) *ChannelService {
 		Mode:  watcherMode,
 		Redis: params.CacheConfig.Redis,
 	}, watcher.WatcherFromConfigOptions{
-		RedisChannel: "axonhub:cache:channels",
+		RedisChannel: "llm-proxy:cache:channels",
 		Buffer:       32,
 	})
 	if err != nil {
@@ -128,7 +128,7 @@ func NewChannelService(params ChannelServiceParams) *ChannelService {
 	svc.channelNotifier = notifier
 
 	svc.enabledChannelsCache = live.NewCache(live.Options[[]*Channel]{
-		Name:            "axonhub:enabled_channels",
+		Name:            "llm-proxy:enabled_channels",
 		InitialValue:    []*Channel{},
 		RefreshInterval: time.Minute,
 		RefreshFunc:     svc.onCacheRefreshed,

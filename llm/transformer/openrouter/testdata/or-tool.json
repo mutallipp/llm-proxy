@@ -12,7 +12,7 @@
             "type": "function",
             "function": {
               "name": "Read",
-              "arguments": "{\"file_path\": \"/axonhub/internal/server/middleware/trace_test.go\"}"
+              "arguments": "{\"file_path\": \"/llm-proxy/internal/server/middleware/trace_test.go\"}"
             }
           }
         ]

@@ -1,8 +1,8 @@
 # schema tells gqlgen where the GraphQL schema is located.
 schema:
-  # axonhub.graphql must be loaded before ent.graphql because it defines DisabledAPIKey
+  # llm-proxy.graphql must be loaded before ent.graphql because it defines DisabledAPIKey
   # which is referenced by the disabled_api_keys field in Channel schema
-  - axonhub.graphql
+  - llm-proxy.graphql
   - ent.graphql
   - dashboard.graphql
   - scopes.graphql

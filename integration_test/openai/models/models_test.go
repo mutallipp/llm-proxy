@@ -54,7 +54,7 @@ func getBaseURL() string {
 }
 
 func getAPIKey() string {
-	return os.Getenv("TEST_AXONHUB_API_KEY")
+	return os.Getenv("TEST_LLM_PROXY_API_KEY")
 }
 
 func fetchModels(t *testing.T, query string) *ModelResponse {
@@ -62,7 +62,7 @@ func fetchModels(t *testing.T, query string) *ModelResponse {
 	apiKey := getAPIKey()
 
 	if apiKey == "" {
-		t.Skip("TEST_AXONHUB_API_KEY not set, skipping integration test")
+		t.Skip("TEST_LLM_PROXY_API_KEY not set, skipping integration test")
 	}
 
 	url := baseURL + "/models"

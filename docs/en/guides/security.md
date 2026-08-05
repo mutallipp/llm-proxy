@@ -1,16 +1,16 @@
 # Security Features
 
-AxonHub provides multiple layers of IP-based access control to secure your AI gateway.
+llm-proxy provides multiple layers of IP-based access control to secure your AI gateway.
 
 ## IP Access Control (Global Allowlist)
 
-IP Access Control is a global middleware that restricts access to the entire AxonHub instance. When enabled, only requests from IP addresses or CIDR ranges in the allowlist are accepted; all others are denied.
+IP Access Control is a global middleware that restricts access to the entire llm-proxy instance. When enabled, only requests from IP addresses or CIDR ranges in the allowlist are accepted; all others are denied.
 
-This is useful when you want to lock down your AxonHub instance to only accept traffic from known networks (e.g., your corporate VPN or cloud VPC).
+This is useful when you want to lock down your llm-proxy instance to only accept traffic from known networks (e.g., your corporate VPN or cloud VPC).
 
 ### Configuration
 
-IP Access Control is configured via the AxonHub configuration file or environment variables:
+IP Access Control is configured via the llm-proxy configuration file or environment variables:
 
 ```yaml
 ip_access_control:
@@ -54,17 +54,17 @@ API Key IP Restriction allows you to restrict individual API keys to only accept
 
 ### How It Works
 
-When an API key has `allowed_ips` configured, AxonHub checks the source IP of every request made with that key. If the source IP does not match any entry in the allowlist, the request is rejected with a 403 Forbidden response.
+When an API key has `allowed_ips` configured, llm-proxy checks the source IP of every request made with that key. If the source IP does not match any entry in the allowlist, the request is rejected with a 403 Forbidden response.
 
 ### Source IP Detection
 
-AxonHub checks the source IP from multiple headers, in order of priority:
+llm-proxy checks the source IP from multiple headers, in order of priority:
 
 1. **X-Forwarded-For**: The first IP in the X-Forwarded-For header
 2. **X-Real-IP**: The value of the X-Real-IP header
 3. **Client IP**: The direct TCP connection IP
 
-This ensures correct IP detection when AxonHub is behind a reverse proxy (e.g., Nginx, Cloudflare, AWS ALB).
+This ensures correct IP detection when llm-proxy is behind a reverse proxy (e.g., Nginx, Cloudflare, AWS ALB).
 
 ### Configuration
 
@@ -87,7 +87,7 @@ Both IPv4 and IPv6 are supported.
 
 ```bash
 # Create an API key with IP restriction
-curl -X POST https://your-axonhub-instance/api/api-keys \
+curl -X POST https://your-llm-proxy-instance/api/api-keys \
   -H "Authorization: Bearer your-admin-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -96,12 +96,12 @@ curl -X POST https://your-axonhub-instance/api/api-keys \
   }'
 
 # Request from an allowed IP - succeeds
-curl https://your-axonhub-instance/v1/chat/completions \
+curl https://your-llm-proxy-instance/v1/chat/completions \
   -H "Authorization: Bearer your-api-key" \
   -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
 
 # Request from a non-allowed IP - 403 Forbidden
-curl https://your-axonhub-instance/v1/chat/completions \
+curl https://your-llm-proxy-instance/v1/chat/completions \
   -H "Authorization: Bearer your-api-key" \
   -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
 # Returns: 403 IP address is not allowed for this API key

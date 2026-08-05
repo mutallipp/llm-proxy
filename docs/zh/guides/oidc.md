@@ -1,15 +1,15 @@
 # OpenID Connect (OIDC) 集成指南
 
-AxonHub 支持通过任何符合 OIDC 标准的身份提供商（IdP）进行身份验证，例如 Google、GitHub 或 Logto。
+llm-proxy 支持通过任何符合 OIDC 标准的身份提供商（IdP）进行身份验证，例如 Google、GitHub 或 Logto。
 
 ## 配置
 
 在 `conf/config.yml` 文件的 `oidc` 部分配置您的 OIDC 提供商。
 
 ```yaml
-# AxonHub 实例的公共 URL（对于构建重定向 URI 至关重要）
+# llm-proxy 实例的公共 URL（对于构建重定向 URI 至关重要）
 server:
-  public_url: "https://axonhub.example.com"
+  public_url: "https://llm-proxy.example.com"
 
 oidc:
   providers:
@@ -55,7 +55,7 @@ oidc:
 
 ### 角色映射 (Role Mapping)
 
-您可以根据 OIDC 返回的组（Groups）或声明（Claims）自动为用户分配 AxonHub 角色或特定的权限作用域（Scopes）。
+您可以根据 OIDC 返回的组（Groups）或声明（Claims）自动为用户分配 llm-proxy 角色或特定的权限作用域（Scopes）。
 
 ```yaml
 oidc:
@@ -65,7 +65,7 @@ oidc:
       group_claims: ["groups", "roles"] # 查找组信息的 Claim 键名
       role_mappings:
         - match_group: "admin-group"    # OIDC 端的组名
-          db_role: "system:owner"       # 映射到的 AxonHub 角色 (系统所有者)
+          db_role: "system:owner"       # 映射到的 llm-proxy 角色 (系统所有者)
           priority: 100
         - match_group: "viewer-*"       # 支持通配符匹配
           db_role: "Viewer"
@@ -93,7 +93,7 @@ oidc:
    - 如果您有**多个** OIDC 提供商：`<public_url>/oauth/oidc/callback/logto`
    - 如果这是**唯一**的提供商：`<public_url>/oauth/oidc/callback`
 3. 设置 **Post sign-out URI** 为 `<public_url>/sign-in`。
-4. 在 AxonHub 配置中添加以下内容：
+4. 在 llm-proxy 配置中添加以下内容：
 
 ```yaml
 oidc:
@@ -111,6 +111,6 @@ oidc:
 
 ## 安全注意事项
 
-- **Public URL (重要)**: 在生产环境中，请务必设置 `server.public_url`。如果未设置，AxonHub 将回退到请求中的 `Host` 标头来构建回调地址，这在反向代理环境下可能导致 **Host 标头注入攻击**。
+- **Public URL (重要)**: 在生产环境中，请务必设置 `server.public_url`。如果未设置，llm-proxy 将回退到请求中的 `Host` 标头来构建回调地址，这在反向代理环境下可能导致 **Host 标头注入攻击**。
 - **PKCE**: 强烈建议为所有提供商启用 `enable_pkce: true`。
 - **仅限 SSO**: 如果您想强制执行 SSO 并阻止特定用户的密码登录，可以为提供商启用 `oidc_login_only: true`。**注意：开启此项后，前端登录页面将自动隐藏账号密码登录表单，仅显示 SSO 选项。** 您也可以在用户管理 UI 中将个别用户的密码设置为魔法占位符 `!OIDC_SSO_ONLY!` 来实现单用户锁定。

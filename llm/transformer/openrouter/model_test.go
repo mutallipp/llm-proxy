@@ -97,7 +97,7 @@ func TestResponse_ToOpenAIResponse(t *testing.T) {
 									Type: "function",
 									Function: llm.FunctionCall{
 										Name:      "Read",
-										Arguments: "{\"file_path\": \"/axonhub/internal/server/middleware/trace_test.go\"}",
+										Arguments: "{\"file_path\": \"/llm-proxy/internal/server/middleware/trace_test.go\"}",
 									},
 								},
 							},
@@ -135,7 +135,7 @@ func TestResponse_ToOpenAIResponse(t *testing.T) {
 									Type: "function",
 									Function: llm.FunctionCall{
 										Name:      "Read",
-										Arguments: "{\"file_path\": \"/axonhub/internal/llm/transformer/openrouter/outbound.go\"}",
+										Arguments: "{\"file_path\": \"/llm-proxy/internal/llm/transformer/openrouter/outbound.go\"}",
 									},
 								},
 							},

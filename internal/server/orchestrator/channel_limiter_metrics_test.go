@@ -38,7 +38,7 @@ func TestChannelLimiterMetrics_GaugeCallbackEmitsLimiterStats(t *testing.T) {
 	provider := metric.NewMeterProvider(metric.WithReader(reader))
 	t.Cleanup(func() { _ = provider.Shutdown(context.Background()) })
 
-	meter := provider.Meter("axonhub-test")
+	meter := provider.Meter("llm-proxy-test")
 	mgr := NewChannelLimiterManager()
 
 	_, err := NewChannelLimiterMetrics(meter, mgr)
@@ -83,7 +83,7 @@ func TestChannelLimiterMetrics_CountersAndHistogram(t *testing.T) {
 	provider := metric.NewMeterProvider(metric.WithReader(reader))
 	t.Cleanup(func() { _ = provider.Shutdown(context.Background()) })
 
-	meter := provider.Meter("axonhub-test")
+	meter := provider.Meter("llm-proxy-test")
 	m, err := NewChannelLimiterMetrics(meter, nil)
 	require.NoError(t, err)
 

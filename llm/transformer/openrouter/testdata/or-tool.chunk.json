@@ -16,7 +16,7 @@
             "type": "function",
             "function": {
               "name": "Read",
-              "arguments": "{\"file_path\": \"/axonhub/internal/llm/transformer/openrouter/outbound.go\"}"
+              "arguments": "{\"file_path\": \"/llm-proxy/internal/llm/transformer/openrouter/outbound.go\"}"
             },
             "index": 0
           }

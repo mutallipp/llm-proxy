@@ -14,7 +14,7 @@ export interface TwoColumnAuthProps {
 /**
  * TwoColumnAuth
  * Reusable left/right layout used by Sign-In and Initialization pages.
- * Left panel: shared AxonHub brand section and diagram.
+ * Left panel: shared llm-proxy brand section and diagram.
  * Right panel: gradient background with a Card shell for page-specific forms.
  */
 export default function TwoColumnAuth({
@@ -41,7 +41,7 @@ export default function TwoColumnAuth({
             <div className='mb-8'>
               <h1 className='mb-4 text-4xl font-light text-slate-100'>{t('auth.brand.title')}</h1>
               <h2 className='mb-6 bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-5xl font-bold text-transparent'>
-                AxonHub
+                llm-proxy
               </h2>
               <p className='text-lg leading-relaxed text-slate-300'>{t('auth.brand.description')}</p>
             </div>

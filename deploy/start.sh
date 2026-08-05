@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AxonHub Start Script
-# This script starts AxonHub directly (no systemd), with proper error handling and logging
+# llm-proxy Start Script
+# This script starts llm-proxy directly (no systemd), with proper error handling and logging
 
 set -e
 
@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-SERVICE_NAME="axonhub"
+SERVICE_NAME="llm-proxy"
 # Resolve non-root user's HOME when running via sudo
 if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
     USER_HOME="$(eval echo ~${SUDO_USER})"
@@ -23,12 +23,12 @@ else
     TARGET_USER="$USER"
 fi
 TARGET_GROUP="$(id -gn "$TARGET_USER" 2>/dev/null || echo "$TARGET_USER")"
-BASE_DIR="${USER_HOME}/.config/axonhub"
+BASE_DIR="${USER_HOME}/.config/llm-proxy"
 CONFIG_FILE="${BASE_DIR}/config.yml"
-BINARY_PATH="/usr/local/bin/axonhub"
+BINARY_PATH="/usr/local/bin/llm-proxy"
 DEFAULT_PORT=8090
-PID_FILE="${BASE_DIR}/axonhub.pid"
-LOG_FILE="${BASE_DIR}/axonhub.log"
+PID_FILE="${BASE_DIR}/llm-proxy.pid"
+LOG_FILE="${BASE_DIR}/llm-proxy.log"
 
 print_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -49,13 +49,13 @@ print_error() {
 # Note: systemd-related logic removed for simplicity; this script always starts directly
 
 start_directly() {
-    print_info "Starting AxonHub directly..."
+    print_info "Starting llm-proxy directly..."
     
     # Check if already running
     if [[ -f "$PID_FILE" ]]; then
         local pid=$(cat "$PID_FILE")
         if kill -0 "$pid" 2>/dev/null; then
-            print_warning "AxonHub is already running (PID: $pid)"
+            print_warning "llm-proxy is already running (PID: $pid)"
             return 0
         else
             print_info "Removing stale PID file"
@@ -65,7 +65,7 @@ start_directly() {
     
     # Check if binary exists
     if [[ ! -x "$BINARY_PATH" ]]; then
-        print_error "AxonHub binary not found at $BINARY_PATH"
+        print_error "llm-proxy binary not found at $BINARY_PATH"
         print_info "Please run the install script first: ./deploy/install.sh"
         return 1
     fi
@@ -76,7 +76,7 @@ start_directly() {
         print_info "Starting with default configuration..."
         CONFIG_ARGS=""
     else
-        # Config exists, binary will auto-detect it from $HOME/.config/axonhub/
+        # Config exists, binary will auto-detect it from $HOME/.config/llm-proxy/
         CONFIG_ARGS=""
     fi
     
@@ -84,8 +84,8 @@ start_directly() {
     mkdir -p "$BASE_DIR"
     chown "$TARGET_USER:$TARGET_GROUP" "$BASE_DIR" 2>/dev/null || true
     
-    # Start AxonHub in background
-    print_info "Starting AxonHub process..."
+    # Start llm-proxy in background
+    print_info "Starting llm-proxy process..."
     
     if [[ $EUID -eq 0 ]]; then
         # Running with sudo/root; start as invoking user so files live under their HOME
@@ -103,7 +103,7 @@ start_directly() {
     sleep 2
     
     if kill -0 "$pid" 2>/dev/null; then
-        print_success "AxonHub started successfully (PID: $pid)"
+        print_success "llm-proxy started successfully (PID: $pid)"
         print_info "Process information:"
         echo "  • PID: $pid"
         echo "  • Log file: $LOG_FILE"
@@ -112,10 +112,10 @@ start_directly() {
         port=$(get_configured_port)
         echo "  • Web interface: http://localhost:${port}"
         echo
-        print_info "To stop AxonHub: ./stop.sh"
+        print_info "To stop llm-proxy: ./stop.sh"
         print_info "To view logs: tail -f $LOG_FILE"
     else
-        print_error "AxonHub failed to start"
+        print_error "llm-proxy failed to start"
         if [[ -f "$LOG_FILE" ]]; then
             print_info "Last few log lines:"
             tail -n 10 "$LOG_FILE"
@@ -128,7 +128,7 @@ start_directly() {
 get_configured_port() {
     local port="$DEFAULT_PORT"
     
-    # Try to get port from config using axonhub binary
+    # Try to get port from config using llm-proxy binary
     if [[ -x "$BINARY_PATH" ]]; then
         local config_port
         config_port=$("$BINARY_PATH" config get server.port 2>/dev/null) || true
@@ -163,7 +163,7 @@ check_port() {
 }
 
 main() {
-    print_info "Starting AxonHub..."
+    print_info "Starting llm-proxy..."
     
     # Get configured port
     local port
@@ -171,7 +171,7 @@ main() {
     
     # Check if port is available
     if ! check_port "$port"; then
-        print_error "Cannot start AxonHub: port $port is already in use"
+        print_error "Cannot start llm-proxy: port $port is already in use"
         return 1
     fi
     
@@ -184,7 +184,7 @@ case "${1:-}" in
     --help|-h)
         echo "Usage: $0"
         echo
-        echo "This script starts AxonHub directly (no systemd)."
+        echo "This script starts llm-proxy directly (no systemd)."
         echo "Logs: $LOG_FILE"
         echo "PID file: $PID_FILE"
         exit 0

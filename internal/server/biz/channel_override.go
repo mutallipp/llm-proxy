@@ -83,7 +83,7 @@ func (c *Channel) GetHeaderOverrideOperations() []objects.OverrideOperation {
 	return c.cachedOverrideHeaders
 }
 
-const ClearHeaderDirective = "__AXONHUB_CLEAR__"
+const ClearHeaderDirective = "__LLM_PROXY_CLEAR__"
 
 // MergeOverrideHeaders merges existing header operations with a template.
 // - For set/delete ops, matching is by Path (case-insensitive). Template overrides existing.

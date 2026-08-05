@@ -34,7 +34,7 @@ import (
 
 const (
 	//nolint:gosec // Checked.
-	NoAuthAPIKeyValue = "AXONHUB_API_KEY_NO_AUTH"
+	NoAuthAPIKeyValue = "LLM_PROXY_API_KEY_NO_AUTH"
 
 	//nolint:gosec // Checked.
 	NoAuthAPIKeyName = "No Auth System Key"
@@ -81,7 +81,7 @@ func NewAPIKeyService(params APIKeyServiceParams) *APIKeyService {
 		Mode:  watcherMode,
 		Redis: params.CacheConfig.Redis,
 	}, watcher.WatcherFromConfigOptions{
-		RedisChannel: "axonhub:cache:api_keys",
+		RedisChannel: "llm-proxy:cache:api_keys",
 		Buffer:       32,
 	})
 	if err != nil {
@@ -95,7 +95,7 @@ func NewAPIKeyService(params APIKeyServiceParams) *APIKeyService {
 
 	svc.apiKeyNotifier = notifier
 	svc.APIKeyCache = live.NewIndexedCache(live.IndexedOptions[string, *ent.APIKey]{
-		Name:            "axonhub:api_keys",
+		Name:            "llm-proxy:api_keys",
 		TTL:             ttl,
 		RefreshInterval: 30 * time.Second,
 		DebounceDelay:   500 * time.Millisecond,

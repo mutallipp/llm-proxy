@@ -2,13 +2,13 @@
 
 ## Overview
 
-AxonHub provides full support for the OpenAI API specification, allowing you to use any OpenAI-compatible client SDK to access models from multiple providers.
+llm-proxy provides full support for the OpenAI API specification, allowing you to use any OpenAI-compatible client SDK to access models from multiple providers.
 
 ## Key Benefits
 
 - **API Interoperability**: Use OpenAI Chat Completions API to call Anthropic, Gemini, and other supported models
 - **Zero Code Changes**: Continue using your existing OpenAI client SDK without modification
-- **Automatic Translation**: AxonHub automatically converts between API formats when needed
+- **Automatic Translation**: llm-proxy automatically converts between API formats when needed
 - **Provider Flexibility**: Access any supported AI provider using the OpenAI API format
 
 ## Supported Endpoints
@@ -26,9 +26,9 @@ import (
     "github.com/openai/openai-go/v3/option"
 )
 
-// Create OpenAI client with AxonHub configuration
+// Create OpenAI client with llm-proxy configuration
 client := openai.NewClient(
-    option.WithAPIKey("your-axonhub-api-key"),
+    option.WithAPIKey("your-llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/v1"),
     
 )
@@ -54,7 +54,7 @@ fmt.Println(responseText)
 
 ### OpenAI Responses API
 
-AxonHub provides partial support for the OpenAI Responses API. This API offers a simplified interface for single-turn interactions.
+llm-proxy provides partial support for the OpenAI Responses API. This API offers a simplified interface for single-turn interactions.
 
 **Endpoints:**
 - `POST /v1/responses` - Generate a response
@@ -76,9 +76,9 @@ import (
     "github.com/openai/openai-go/v3/shared"
 )
 
-// Create OpenAI client with AxonHub configuration
+// Create OpenAI client with llm-proxy configuration
 client := openai.NewClient(
-    option.WithAPIKey("your-axonhub-api-key"),
+    option.WithAPIKey("your-llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/v1"),
 )
 
@@ -117,7 +117,7 @@ import (
 )
 
 client := openai.NewClient(
-    option.WithAPIKey("your-axonhub-api-key"),
+    option.WithAPIKey("your-llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/v1"),
 )
 
@@ -152,7 +152,7 @@ fmt.Println("\nComplete response:", fullContent.String())
 
 ## API Translation Capabilities
 
-AxonHub automatically translates between API formats, enabling powerful scenarios:
+llm-proxy automatically translates between API formats, enabling powerful scenarios:
 
 ### Use OpenAI SDK with Anthropic Models
 ```go
@@ -167,7 +167,7 @@ completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewPara
 // Access response
 responseText := completion.Choices[0].Message.Content
 fmt.Println(responseText)
-// AxonHub automatically translates OpenAI format → Anthropic format
+// llm-proxy automatically translates OpenAI format → Anthropic format
 ```
 
 ### Use OpenAI SDK with Gemini Models
@@ -183,12 +183,12 @@ completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewPara
 // Access response
 responseText := completion.Choices[0].Message.Content
 fmt.Println(responseText)
-// AxonHub automatically translates OpenAI format → Gemini format
+// llm-proxy automatically translates OpenAI format → Gemini format
 ```
 
 ## Embedding API
 
-AxonHub provides comprehensive support for text and multimodal embedding generation through OpenAI-compatible API.
+llm-proxy provides comprehensive support for text and multimodal embedding generation through OpenAI-compatible API.
 
 **Endpoints:**
 - `POST /v1/embeddings` - OpenAI-compatible embedding API
@@ -252,7 +252,7 @@ AxonHub provides comprehensive support for text and multimodal embedding generat
 import openai
 
 client = openai.OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -279,7 +279,7 @@ import (
 
 func main() {
     client := openai.NewClient(
-        option.WithAPIKey("your-axonhub-api-key"),
+        option.WithAPIKey("your-llm-proxy-api-key"),
         option.WithBaseURL("http://localhost:8090/v1"),
     )
 
@@ -311,7 +311,7 @@ for i, data in enumerate(response.data):
 
 ## Models API
 
-AxonHub provides an enhanced `/v1/models` endpoint that lists available models with optional extended metadata.
+llm-proxy provides an enhanced `/v1/models` endpoint that lists available models with optional extended metadata.
 
 ### Supported Endpoints
 
@@ -450,7 +450,7 @@ curl -s "http://localhost:8090/v1/models?include=name,pricing" \
 import openai
 
 client = openai.OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -499,7 +499,7 @@ The OpenAI API format uses Bearer token authentication:
 
 - **Header**: `Authorization: Bearer <your-api-key>`
 
-The API keys are managed through AxonHub's API Key management system.
+The API keys are managed through llm-proxy's API Key management system.
 
 ## Streaming Support
 
@@ -547,7 +547,7 @@ OpenAI format error responses:
 
 ## Tool Support
 
-AxonHub supports **function tools** (custom function calling) through the OpenAI API format. However, provider-specific tools are **not supported**:
+llm-proxy supports **function tools** (custom function calling) through the OpenAI API format. However, provider-specific tools are **not supported**:
 
 | Tool Type | Support Status | Notes |
 | --------- | -------------- | ----- |
@@ -557,7 +557,7 @@ AxonHub supports **function tools** (custom function calling) through the OpenAI
 | **File Search** | ❌ Not Supported | Provider-specific |
 | **Computer Use** | ❌ Not Supported | Anthropic-specific |
 
-> **Note**: Only generic function tools that can be translated across providers are supported. Provider-specific tools like web search, code interpreter, and computer use require direct access to the provider's infrastructure and cannot be proxied through AxonHub.
+> **Note**: Only generic function tools that can be translated across providers are supported. Provider-specific tools like web search, code interpreter, and computer use require direct access to the provider's infrastructure and cannot be proxied through llm-proxy.
 
 ## Best Practices
 
@@ -569,16 +569,16 @@ AxonHub supports **function tools** (custom function calling) through the OpenAI
 
 ## Migration Guide
 
-### From OpenAI to AxonHub
+### From OpenAI to llm-proxy
 ```go
 // Before: Direct OpenAI
 client := openai.NewClient(
     option.WithAPIKey("openai-key"),
 )
 
-// After: AxonHub with OpenAI API
+// After: llm-proxy with OpenAI API
 client := openai.NewClient(
-    option.WithAPIKey("axonhub-api-key"),
+    option.WithAPIKey("llm-proxy-api-key"),
     option.WithBaseURL("http://localhost:8090/v1"),
 )
 // Your existing code continues to work!

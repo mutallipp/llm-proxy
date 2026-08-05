@@ -17,7 +17,7 @@ function Show-Usage {
   Write-Host @" 
 Usage: restart.bat [--force]
 
-This script restarts AxonHub by stopping and starting it.
+This script restarts llm-proxy by stopping and starting it.
 Options:
   --force     Force kill before restart
   --help, -h  Show this help message
@@ -33,10 +33,10 @@ foreach($a in $ArgsFromCmd){
   }
 }
 
-Write-Info 'Restarting AxonHub...'
+Write-Info 'Restarting llm-proxy...'
 
-# Stop AxonHub
-Write-Info 'Stopping AxonHub...'
+# Stop llm-proxy
+Write-Info 'Stopping llm-proxy...'
 $stopScript = Join-Path $ScriptDir 'stop.ps1'
 if($Force){
   & $stopScript --force
@@ -47,9 +47,9 @@ if($Force){
 # Brief pause to ensure clean shutdown
 Start-Sleep -Seconds 5
 
-# Start AxonHub
-Write-Info 'Starting AxonHub...'
+# Start llm-proxy
+Write-Info 'Starting llm-proxy...'
 $startScript = Join-Path $ScriptDir 'start.ps1'
 & $startScript
 
-Write-Success 'AxonHub has been restarted'
+Write-Success 'llm-proxy has been restarted'

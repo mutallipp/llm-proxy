@@ -3,34 +3,34 @@
 ---
 
 ## Overview
-AxonHub can act as a drop-in replacement for OpenAI endpoints, letting Codex connect through your own infrastructure. This guide explains how to configure Codex and how to combine it with AxonHub model profiles for flexible routing.
+llm-proxy can act as a drop-in replacement for OpenAI endpoints, letting Codex connect through your own infrastructure. This guide explains how to configure Codex and how to combine it with llm-proxy model profiles for flexible routing.
 
 ### Key Points
-- AxonHub performs AI protocol/format transformation. You can configure multiple upstream channels (providers) and expose a single OpenAI-compatible interface for Codex.
+- llm-proxy performs AI protocol/format transformation. You can configure multiple upstream channels (providers) and expose a single OpenAI-compatible interface for Codex.
 - You can aggregate Codex requests from the same conversation by enabling `server.trace.codex_trace_enabled` (uses `Session_id`) or adding extra headers via `server.trace.extra_trace_headers`.
 
 ### Prerequisites
-- AxonHub instance reachable from your development machine.
-- Valid AxonHub API key with project access.
+- llm-proxy instance reachable from your development machine.
+- Valid llm-proxy API key with project access.
 - Access to Codex (OpenAI compatible) application.
-- Optional: one or more model profiles configured in the AxonHub console.
+- Optional: one or more model profiles configured in the llm-proxy console.
 
 ### Configure Codex
-1. Edit `${HOME}/.codex/config.toml` and register AxonHub as a provider:
+1. Edit `${HOME}/.codex/config.toml` and register llm-proxy as a provider:
    ```toml
    model = "gpt-5"
-   model_provider = "axonhub-responses"
+   model_provider = "llm-proxy-responses"
 
-   [model_providers.axonhub-responses]
-   name = "AxonHub using Chat Completions"
+   [model_providers.llm-proxy-responses]
+   name = "llm-proxy using Chat Completions"
    base_url = "http://127.0.0.1:8090/v1"
-   env_key = "AXONHUB_API_KEY"
+   env_key = "LLM_PROXY_API_KEY"
    wire_api = "responses"
    query_params = {}
    ```
 2. Export the API key for Codex to read:
    ```bash
-   export AXONHUB_API_KEY="<your-axonhub-api-key>"
+   export LLM_PROXY_API_KEY="<your-llm-proxy-api-key>"
    ```
 3. Restart Codex to apply the configuration.
 
@@ -43,7 +43,7 @@ server:
     codex_trace_enabled: true
 ```
 
-If Codex sends a different stable conversation identifier header (for example `Conversation_id`), you can configure AxonHub to use it as a fallback trace header in `config.yml`:
+If Codex sends a different stable conversation identifier header (for example `Conversation_id`), you can configure llm-proxy to use it as a fallback trace header in `config.yml`:
 
 ```yaml
 server:
@@ -55,20 +55,20 @@ server:
 **Note**: Enabling this also ensures that requests from the same trace are prioritized to be sent to the same upstream channel, significantly improving provider-side cache hit rates (e.g., Anthropic Prompt Caching).
 
 #### Testing
-- Send a sample prompt; AxonHub's request logs should show a `/v1/chat/completions` call.
-- Enable tracing in AxonHub to inspect prompts, responses, and latency.
+- Send a sample prompt; llm-proxy's request logs should show a `/v1/chat/completions` call.
+- Enable tracing in llm-proxy to inspect prompts, responses, and latency.
 
 ### Working with Model Profiles
-AxonHub model profiles remap incoming model names to provider-specific equivalents:
-- Create a profile in the AxonHub console and add mapping rules (exact name or regex).
+llm-proxy model profiles remap incoming model names to provider-specific equivalents:
+- Create a profile in the llm-proxy console and add mapping rules (exact name or regex).
 - Assign the profile to your API key.
 - Switch active profiles to alter Codex behavior without changing tool settings.
 
 <table>
   <tr align="center">
     <td align="center">
-      <a href="../../screenshots/axonhub-profiles.png">
-        <img src="../../screenshots/axonhub-profiles.png" alt="Model Profiles" width="250"/>
+      <a href="../../screenshots/llm-proxy-profiles.png">
+        <img src="../../screenshots/llm-proxy-profiles.png" alt="Model Profiles" width="250"/>
       </a>
       <br/>
       Model Profiles
@@ -81,18 +81,18 @@ AxonHub model profiles remap incoming model names to provider-specific equivalen
 - Request `gpt-3.5-turbo` → mapped to `deepseek-chat` for reducing costs.
 
 ### Troubleshooting
-- **Codex reports authentication errors**: ensure `AXONHUB_API_KEY` is exported in the same shell session that launches Codex.
-- **Unexpected model responses**: review active profile mappings in the AxonHub console; disable or adjust rules if necessary.
+- **Codex reports authentication errors**: ensure `LLM_PROXY_API_KEY` is exported in the same shell session that launches Codex.
+- **Unexpected model responses**: review active profile mappings in the llm-proxy console; disable or adjust rules if necessary.
 
 ---
 
 ## Provider Quota Tracking
 
-AxonHub automatically tracks quota usage for Codex provider channels, displaying the current status with battery icons in the interface.
+llm-proxy automatically tracks quota usage for Codex provider channels, displaying the current status with battery icons in the interface.
 
 ### How It Works
 
-- **Automatic Polling**: AxonHub periodically polls your Codex account to check quota status
+- **Automatic Polling**: llm-proxy periodically polls your Codex account to check quota status
 - **Storage**: Quota data is stored in the database and updated based on the configured check interval
 - **Visual Indicators**: Battery icons show your remaining quota at a glance.
 
@@ -116,7 +116,7 @@ provider_quota:
 Or via environment variable:
 
 ```bash
-export AXONHUB_PROVIDER_QUOTA_CHECK_INTERVAL="30m"
+export LLM_PROXY_PROVIDER_QUOTA_CHECK_INTERVAL="30m"
 ```
 
 Supported intervals: `1m`, `2m`, `3m`, `4m`, `5m`, `6m`, `10m`, `12m`, `15m`, `20m`, `30m`, `1h`, `2h`, etc.

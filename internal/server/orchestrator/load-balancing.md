@@ -1,6 +1,6 @@
 # Channel Load Balancing
 
-This document describes the load balancing system for channel selection in AxonHub.
+This document describes the load balancing system for channel selection in llm-proxy.
 
 ## Overview
 
@@ -8,7 +8,7 @@ After channels are selected based on model compatibility, they are sorted using 
 
 ### Animated Demonstration
 
-The load balancing flow now has an accompanying SVG animation (`load-balancing.svg`) that visualizes how requests move between AxonHub and backend channels while their **Score** and progress bars fluctuate in real time. Open the file directly or embed it in documentation sites to see:
+The load balancing flow now has an accompanying SVG animation (`load-balancing.svg`) that visualizes how requests move between llm-proxy and backend channels while their **Score** and progress bars fluctuate in real time. Open the file directly or embed it in documentation sites to see:
 
 - Channel A degrading and recovering, with its score oscillating between 95 → 80 → 45 → 60 while the bar shrinks and regrows
 - Channel B absorbing extra load when Channel A degrades, showing 65 → 33 → 65 score transitions
@@ -264,22 +264,22 @@ export LOG_LEVEL=info  # will see warnings and errors
 **Filter Load Balancer Logs**:
 ```bash
 # View all load balancer decisions
-tail -f axonhub.log | grep "Load balancing decision"
+tail -f llm-proxy.log | grep "Load balancing decision"
 
 # View specific channel details
-tail -f axonhub.log | grep "Channel load balancing details"
+tail -f llm-proxy.log | grep "Channel load balancing details"
 
 # View ErrorAware strategy logs
-tail -f axonhub.log | grep "ErrorAwareStrategy"
+tail -f llm-proxy.log | grep "ErrorAwareStrategy"
 
 # Use jq for structured JSON logs
- tail -f axonhub.log | jq 'select(.msg | contains("Load balancing"))'
+ tail -f llm-proxy.log | jq 'select(.msg | contains("Load balancing"))'
  ```
 
 **Production Log Analysis**:
 ```bash
 # Find channels with low scores due to errors
-grep "ErrorAwareStrategy.*penalty" axonhub.log | \
+grep "ErrorAwareStrategy.*penalty" llm-proxy.log | \
   jq '{channel: .channel_name, penalty_reason: .details} | select(.penalty_reason != null)'
 
 ```
@@ -312,12 +312,12 @@ curl -X POST http://localhost:8090/v1/chat/completions \
 **Verify ErrorAwareStrategy**:
 ```bash
 # Force channel errors by using invalid API key# Then check logs for penalty application
-tail -f axonhub.log | grep "consecutive_failures_penalty"
-tail -f axonhub.log | grep "recent_failure_penalty"
+tail -f llm-proxy.log | grep "consecutive_failures_penalty"
+tail -f llm-proxy.log | grep "recent_failure_penalty"
 
 # Monitor recovery after fixing errors
-tail -f axonhub.log | grep "recent_success_boost"
-tail -f axonhub.log | grep "high_success_rate_boost"
+tail -f llm-proxy.log | grep "recent_success_boost"
+tail -f llm-proxy.log | grep "high_success_rate_boost"
 ```
 
 **Verify WeightStrategy**:
@@ -327,7 +327,7 @@ tail -f axonhub.log | grep "high_success_rate_boost"
 # Channel B: weight 50
 
 # Send multiple requests and check rankings
-tail -f axonhub.log | grep "WeightStrategy" | jq '{channel: .channel_name, score: .score}'
+tail -f llm-proxy.log | grep "WeightStrategy" | jq '{channel: .channel_name, score: .score}'
 # Should see Channel A with double the score of Channel B
 ```
 

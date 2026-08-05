@@ -8,10 +8,10 @@
 // whose DSN env var is set (an unset dialect is skipped). SQLite needs no server —
 // point it at a temp file:
 //
-//	AXONHUB_TEST_PG_DSN="postgres://postgres:postgres@localhost:55432/axonhub?sslmode=disable" \
-//	AXONHUB_TEST_MYSQL_DSN="root:root@tcp(localhost:3306)/axonhub?parseTime=true" \
-//	AXONHUB_TEST_TIDB_DSN="root@tcp(localhost:4000)/axonhub?parseTime=true" \
-//	AXONHUB_TEST_SQLITE_DSN="file:/tmp/race.db" \
+//	LLM_PROXY_TEST_PG_DSN="postgres://postgres:postgres@localhost:55432/llm-proxy?sslmode=disable" \
+//	LLM_PROXY_TEST_MYSQL_DSN="root:root@tcp(localhost:3306)/llm-proxy?parseTime=true" \
+//	LLM_PROXY_TEST_TIDB_DSN="root@tcp(localhost:4000)/llm-proxy?parseTime=true" \
+//	LLM_PROXY_TEST_SQLITE_DSN="file:/tmp/race.db" \
 //	  go test ./internal/server/biz/racetest/ -tags dbrace -run TestAPIKeyNameRace -v -count=1
 //
 // For a high-latency TiDB (e.g. TiDB Cloud across regions) raise the lock wait so

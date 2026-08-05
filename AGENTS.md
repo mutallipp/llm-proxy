@@ -24,14 +24,26 @@ This file provides guidance to AI coding assistants when working with code in th
 - Backend API: port 8090, Frontend dev server: port 5173 (proxies to backend).
 - Configuration: `conf/conf.go` (YAML + env var), SQLite by default.
 
+### 环境变量命名约定
+
+- 当前生效前缀：`LLM_PROXY_`（2026-08 起硬切换，旧 `AXONHUB_` 已彻底移除，无向后兼容）
+- 常见示例：`LLM_PROXY_DB_DSN`、`LLM_PROXY_DB_DIALECT`、`LLM_PROXY_SERVER_PORT`、`LLM_PROXY_SERVER_HOST`、`LLM_PROXY_SERVER_API_AUTH_ALLOW_NO_AUTH`、`LLM_PROXY_LOG_LEVEL`、`LLM_PROXY_HTTP_PROXY`
+- 配置优先级仍按现有规则：环境变量 > 配置文件 > 默认值
+- 详细字段定义见 `conf/conf.go` 和 `config.example.yml`
+
 ## Project Overview
 
-AxonHub is an all-in-one AI development platform that serves as a unified API gateway for multiple AI providers. It provides OpenAI and Anthropic-compatible API interfaces with automatic request transformation, enabling seamless communication between clients and various AI providers through a sophisticated bidirectional data transformation pipeline.
+llm-proxy is an all-in-one AI development platform that serves as a unified API gateway for multiple AI providers. It provides OpenAI and Anthropic-compatible API interfaces with automatic request transformation, enabling seamless communication between clients and various AI providers through a sophisticated bidirectional data transformation pipeline.
 
 ### 项目定位
 
-llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协议转换、渠道路由、模型组和 Adapter 入口。
-内部 Go module、包路径和 `AXONHUB_*` 环境变量暂时保持兼容，不要因为产品改名直接批量重命名内部标识。
+llm-proxy 是基于原 AxonHub 核心能力维护的统一 AI 网关（前身名为 AxonHub，2026-08 完成品牌切换）。提供多协议转换、渠道路由、模型组和 Adapter 入口。
+
+### 命名一致性
+
+- **环境变量 / 数据库 / 部署配置 / 产品名**：已统一为 `llm-proxy` / `LLM_PROXY_*`
+- **Go module 路径 / 包导入路径**：保持 `github.com/mutallipp/llm-proxy`（与 GitHub 仓库名一致；如需整体改为 `llmproxy` 等无连字符名以避免 gqlgen 生成函数名包含连字符，需同步重新生成 gqlgen 代码，本次未做）
+- **GraphQL Relay GID 命名空间**：保持 `gid://axonhub/<Type>/<id>` 格式（数据库内已存大量该格式的 ID，切换需数据迁移，本次未做）
 
 ## Technology Stack
 
@@ -40,7 +52,7 @@ llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协
 
 ## Backend Structure
 
-- `cmd/axonhub/main.go` — Application entry point
+- `cmd/llm-proxy/main.go` — Application entry point
 - `internal/server/` — HTTP server and route handling with Gin
 - `internal/server/biz/` — Core business logic and services
 - `internal/server/api/` — REST and GraphQL API handlers
@@ -87,6 +99,24 @@ llm-proxy 是基于 AxonHub 核心能力维护的统一 AI 网关，提供多协
 - [Docker 部署](docs/zh/deployment/docker.md)
 - [Adapter/Model 绑定规则](.agent/rules/adapter-model-binding.md)
 - [定向测试、curl、浏览器验收与 E2E 规则](.agent/rules/e2e.md)
+
+## 本地开发与部署脚本
+
+| 命令 | 说明 |
+|---|---|
+| `make start` | 构建 + 启动 prod 容器（端口 8090，使用 `docker-compose.yml`） |
+| `make stop` | 停止 prod 容器（保留镜像） |
+| `make restart` | 重新创建 prod 容器 |
+| `make logs` | tail prod 容器日志 |
+| `make dev-up` | 构建 + 启动 dev 容器（端口 18090，使用 `docker-compose.dev.yml` + `.env.dev`） |
+| `make dev-down` | 停止并删除 dev 容器 |
+| `make dev-logs` | tail dev 容器日志 |
+| `make dev-restart` | 重新创建 dev 容器 |
+| `make dev-clean` | 停止 dev + 删除 dev 镜像 |
+| `make dev-frontend` | 本地起 Vite dev（端口 15173，代理到 18090） |
+| `make dev` | 一键：起 dev 后端 + 前台跑 Vite（Ctrl+C 退出前端后需 `make dev-down` 停后端） |
+
+dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。
 
 ## Rules Index
 

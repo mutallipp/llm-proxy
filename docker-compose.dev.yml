@@ -1,0 +1,38 @@
+# llm-proxy Docker Compose — Development
+#
+# 与 prod (docker-compose.yml) 错开端口和数据库，状态完全隔离。
+# - 端口：18090:8090（不抢 prod 的 8090）
+# - 容器名：llm-proxy-dev
+# - 镜像：llm-proxy:dev
+# - 数据库：llm-proxy-dev（独立库，与 prod 的 llm-proxy 分离）
+# - 配置文件：.env.dev
+# - 网络：shared-net（与 prod 共享 postgres/redis）
+#
+# 典型用法：
+#   make dev-up              # 启动 dev 容器
+#   make dev-frontend        # 在另一个终端本地跑 Vite dev（端口 15173）
+#   make dev-down            # 停止 dev 容器
+#   make dev-clean           # 同时删除 dev 镜像和 dev 数据库
+
+services:
+  llm-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: llm-proxy:dev
+    container_name: llm-proxy-dev
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env.dev
+    ports:
+      - "18090:8090"
+    volumes:
+      - ./config.yml:/app/config.yml:ro
+    networks:
+      - shared-net
+    restart: unless-stopped
+
+networks:
+  shared-net:
+    external: true

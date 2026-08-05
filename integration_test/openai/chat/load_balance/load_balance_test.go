@@ -306,7 +306,7 @@ func TestLoadBalancingDebugMode(t *testing.T) {
 	ctx := helper.CreateTestContext()
 
 	t.Log("=== Testing load balancing debug mode ===")
-	t.Log("When AXONHUB_DEBUG_LOAD_BALANCER_ENABLED=true or AH-Debug header is set,")
+	t.Log("When LLM_PROXY_DEBUG_LOAD_BALANCER_ENABLED=true or AH-Debug header is set,")
 	t.Log("the system should log detailed scoring information for each channel")
 
 	// Make a request with debug context

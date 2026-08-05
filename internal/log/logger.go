@@ -146,7 +146,7 @@ func New(config Config) *Logger {
 	case "file":
 		path := config.File.Path
 		if path == "" {
-			path = "logs/axonhub.log"
+			path = "logs/llm-proxy.log"
 		}
 
 		if dir := filepath.Dir(path); dir != "." && dir != "" {

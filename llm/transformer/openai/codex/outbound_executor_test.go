@@ -66,8 +66,8 @@ func TestCodexOutbound_StreamAcceptHeader(t *testing.T) {
 
 	assert.Equal(t, "text/event-stream", headers.Get("Accept"))
 	assert.Equal(t, "application/json", headers.Get("Content-Type"))
-	assert.Equal(t, AxonHubOriginator, headers.Get("Originator"))
-	assert.Equal(t, "axonhub/1.0", headers.Get("User-Agent"))
+	assert.Equal(t, LLMProxyOriginator, headers.Get("Originator"))
+	assert.Equal(t, "llm-proxy/1.0", headers.Get("User-Agent"))
 	assert.Equal(t, testChatAccountID, headers.Get("Chatgpt-Account-Id"))
 	assert.Equal(t, "Bearer "+accessToken, headers.Get("Authorization"))
 }

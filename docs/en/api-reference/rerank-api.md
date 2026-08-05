@@ -2,7 +2,7 @@
 
 ## Overview
 
-AxonHub supports document reranking through Jina AI rerank API, allowing you to reorder documents based on relevance to a query. This is useful for improving search results, RAG (Retrieval-Augmented Generation) pipelines, and other applications that need to rank documents by relevance.
+llm-proxy supports document reranking through Jina AI rerank API, allowing you to reorder documents based on relevance to a query. This is useful for improving search results, RAG (Retrieval-Augmented Generation) pipelines, and other applications that need to rank documents by relevance.
 
 ## Key Benefits
 
@@ -89,7 +89,7 @@ import requests
 response = requests.post(
     "http://localhost:8090/v1/rerank",
     headers={
-        "Authorization": "Bearer your-axonhub-api-key",
+        "Authorization": "Bearer your-llm-proxy-api-key",
         "Content-Type": "application/json"
     },
     json={
@@ -118,7 +118,7 @@ import requests
 response = requests.post(
     "http://localhost:8090/jina/v1/rerank",
     headers={
-        "Authorization": "Bearer your-axonhub-api-key",
+        "Authorization": "Bearer your-llm-proxy-api-key",
         "Content-Type": "application/json"
     },
     json={
@@ -195,7 +195,7 @@ func main() {
         "http://localhost:8090/v1/rerank",
         bytes.NewBuffer(jsonData),
     )
-    httpReq.Header.Set("Authorization", "Bearer your-axonhub-api-key")
+    httpReq.Header.Set("Authorization", "Bearer your-llm-proxy-api-key")
     httpReq.Header.Set("Content-Type", "application/json")
     httpReq.Header.Set("AH-Trace-Id", "trace-example-123")
     httpReq.Header.Set("AH-Thread-Id", "thread-example-abc")

@@ -17,11 +17,11 @@ dumper:
 
 Or use environment variables:
 ```bash
-export AXONHUB_DUMPER_ENABLED=true
-export AXONHUB_DUMPER_DUMP_PATH="./dumps"
-export AXONHUB_DUMPER_MAX_SIZE=100
-export AXONHUB_DUMPER_MAX_AGE="24h"
-export AXONHUB_DUMPER_MAX_BACKUPS=10
+export LLM_PROXY_DUMPER_ENABLED=true
+export LLM_PROXY_DUMPER_DUMP_PATH="./dumps"
+export LLM_PROXY_DUMPER_MAX_SIZE=100
+export LLM_PROXY_DUMPER_MAX_AGE="24h"
+export LLM_PROXY_DUMPER_MAX_BACKUPS=10
 ```
 
 ## Usage

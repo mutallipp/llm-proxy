@@ -255,7 +255,7 @@ func (c *ClineQuotaChecker) getJSON(ctx context.Context, hc *httpclient.HttpClie
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("User-Agent", "axonhub/1.0")
+	req.Header.Set("User-Agent", "llm-proxy/1.0")
 
 	resp, err := clineNativeHTTPClient(hc).Do(req)
 	if err != nil {
@@ -782,7 +782,7 @@ func clineUsageLimitsFetchRawData(meta clineUsageLimitsFetchMeta) map[string]any
 
 func clineBalanceRawData(balance *int64) map[string]any {
 	result := map[string]any{
-		"unit_note": "Cline API response field name is balance; AxonHub displays it using Cline's Cline credits terminology.",
+		"unit_note": "Cline API response field name is balance; llm-proxy displays it using Cline's Cline credits terminology.",
 	}
 	if balance != nil {
 		result["raw_balance"] = *balance

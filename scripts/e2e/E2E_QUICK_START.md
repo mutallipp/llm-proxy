@@ -18,8 +18,8 @@ pnpm test:e2e
 
 ## Test Execution Flow
 
-1. ✅ **Remove old database** - Delete `axonhub-e2e.db`
-2. ✅ **Start backend server** - Start on port 8099 with `axonhub-e2e.db`
+1. ✅ **Remove old database** - Delete `llm-proxy-e2e.db`
+2. ✅ **Start backend server** - Start on port 8099 with `llm-proxy-e2e.db`
 3. ✅ **Start frontend server** - Start on port 5173
 4. ✅ **Initialize system** - Run `setup.spec.ts`, create random owner account
 5. ✅ **Parallel tests** - All other tests run in parallel
@@ -57,9 +57,9 @@ The E2E test suite supports multiple database types:
 - **SQLite**: No additional requirements
 
 **Database configuration:**
-- SQLite uses `scripts/e2e/axonhub-e2e.db`
-- MySQL uses Docker container `axonhub-e2e-mysql` on port 13306
-- PostgreSQL uses Docker container `axonhub-e2e-postgres` on port 15432
+- SQLite uses `scripts/e2e/llm-proxy-e2e.db`
+- MySQL uses Docker container `llm-proxy-e2e-mysql` on port 13306
+- PostgreSQL uses Docker container `llm-proxy-e2e-postgres` on port 15432
 
 ## Output Example
 
@@ -67,9 +67,9 @@ The E2E test suite supports multiple database types:
 🚀 Starting E2E Test Suite...
 
 📦 Starting E2E backend server...
-Removing old E2E database: axonhub-e2e.db
+Removing old E2E database: llm-proxy-e2e.db
 Building backend...
-Starting backend on port 8099 with database axonhub-e2e.db...
+Starting backend on port 8099 with database llm-proxy-e2e.db...
 E2E backend server started (PID: 12345)
 Waiting for server to be ready...
 E2E backend server is ready!
@@ -165,23 +165,23 @@ cat ../../scripts/e2e-backend.log
 
 # Check database (varies by type)
 # SQLite
-sqlite3 ../../scripts/axonhub-e2e.db ".tables"
+sqlite3 ../../scripts/llm-proxy-e2e.db ".tables"
 
 # MySQL (if using Docker)
-docker exec axonhub-e2e-mysql mysql -u axonhub -p axonhub_e2e -e "SHOW TABLES;"
+docker exec llm-proxy-e2e-mysql mysql -u llm-proxy -p axonhub_e2e -e "SHOW TABLES;"
 
 # PostgreSQL (if using Docker)
-docker exec axonhub-e2e-postgres psql -U axonhub -d axonhub_e2e -c "\dt"
+docker exec llm-proxy-e2e-postgres psql -U llm-proxy -d axonhub_e2e -c "\dt"
 
 # View users (example)
-sqlite3 ../../scripts/axonhub-e2e.db "SELECT * FROM users;"
+sqlite3 ../../scripts/llm-proxy-e2e.db "SELECT * FROM users;"
 ```
 
 ## Important Files
 
-- `../../scripts/axonhub-e2e.db` - E2E test database (preserved after tests for debugging)
+- `../../scripts/llm-proxy-e2e.db` - E2E test database (preserved after tests for debugging)
 - `../../scripts/e2e-backend.log` - Backend service logs
-- `../../scripts/axonhub-e2e` - E2E backend executable
+- `../../scripts/llm-proxy-e2e` - E2E backend executable
 - `../../scripts/.e2e-backend.pid` - Backend process ID
 - `playwright-report/` - Test report directory
 
@@ -189,15 +189,15 @@ sqlite3 ../../scripts/axonhub-e2e.db "SELECT * FROM users;"
 
 ```bash
 # Defaults
-AXONHUB_ADMIN_PASSWORD=pwd123456  # Owner password
-AXONHUB_API_URL=http://localhost:8099  # Backend API URL
+LLM_PROXY_ADMIN_PASSWORD=pwd123456  # Owner password
+LLM_PROXY_API_URL=http://localhost:8099  # Backend API URL
 ```
 
 ## Configuration
 
 **Backend configuration:**
 - Port: 8099
-- Database: Configurable (SQLite `axonhub-e2e.db`, MySQL, PostgreSQL)
+- Database: Configurable (SQLite `llm-proxy-e2e.db`, MySQL, PostgreSQL)
 - Logs: `e2e-backend.log`
 
 **Frontend configuration:**
@@ -234,14 +234,14 @@ pnpm test:e2e:debug
 
 # Check database (varies by type)
 # SQLite
-sqlite3 ../../scripts/axonhub-e2e.db ".tables"
-sqlite3 ../../scripts/axonhub-e2e.db "SELECT * FROM users;"
+sqlite3 ../../scripts/llm-proxy-e2e.db ".tables"
+sqlite3 ../../scripts/llm-proxy-e2e.db "SELECT * FROM users;"
 
 # MySQL (if using Docker)
-docker exec axonhub-e2e-mysql mysql -u axonhub -p axonhub_e2e -e "SHOW TABLES; SELECT * FROM users;"
+docker exec llm-proxy-e2e-mysql mysql -u llm-proxy -p axonhub_e2e -e "SHOW TABLES; SELECT * FROM users;"
 
 # PostgreSQL (if using Docker)
-docker exec axonhub-e2e-postgres psql -U axonhub -d axonhub_e2e -c "\dt; SELECT * FROM users;"
+docker exec llm-proxy-e2e-postgres psql -U llm-proxy -d axonhub_e2e -c "\dt; SELECT * FROM users;"
 ```
 
 ### Test Stuck
@@ -343,8 +343,8 @@ pnpm test:e2e
 
 ## 测试执行流程
 
-1. ✅ **删除旧数据库** - 删除 `axonhub-e2e.db`
-2. ✅ **启动后端服务** - 在端口 8099 上启动，使用 `axonhub-e2e.db`
+1. ✅ **删除旧数据库** - 删除 `llm-proxy-e2e.db`
+2. ✅ **启动后端服务** - 在端口 8099 上启动，使用 `llm-proxy-e2e.db`
 3. ✅ **启动前端服务** - 在端口 5173 上启动
 4. ✅ **初始化系统** - 运行 `setup.spec.ts`，创建随机 owner 账户
 5. ✅ **并行测试** - 所有其他测试并行运行
@@ -382,9 +382,9 @@ E2E 测试套件支持多种数据库类型：
 - **SQLite**: 无额外要求
 
 **数据库配置：**
-- SQLite 使用 `scripts/axonhub-e2e.db`
-- MySQL 使用 Docker 容器 `axonhub-e2e-mysql` 端口 13306
-- PostgreSQL 使用 Docker 容器 `axonhub-e2e-postgres` 端口 15432
+- SQLite 使用 `scripts/llm-proxy-e2e.db`
+- MySQL 使用 Docker 容器 `llm-proxy-e2e-mysql` 端口 13306
+- PostgreSQL 使用 Docker 容器 `llm-proxy-e2e-postgres` 端口 15432
 
 ## 输出示例
 
@@ -392,9 +392,9 @@ E2E 测试套件支持多种数据库类型：
 🚀 Starting E2E Test Suite...
 
 📦 Starting E2E backend server...
-Removing old E2E database: axonhub-e2e.db
+Removing old E2E database: llm-proxy-e2e.db
 Building backend...
-Starting backend on port 8099 with database axonhub-e2e.db...
+Starting backend on port 8099 with database llm-proxy-e2e.db...
 E2E backend server started (PID: 12345)
 Waiting for server to be ready...
 E2E backend server is ready!
@@ -490,23 +490,23 @@ cat ../../scripts/e2e-backend.log
 
 # 检查数据库（根据类型不同）
 # SQLite
-sqlite3 ../../scripts/axonhub-e2e.db ".tables"
+sqlite3 ../../scripts/llm-proxy-e2e.db ".tables"
 
 # MySQL (如果使用 Docker)
-docker exec axonhub-e2e-mysql mysql -u axonhub -p axonhub_e2e -e "SHOW TABLES;"
+docker exec llm-proxy-e2e-mysql mysql -u llm-proxy -p axonhub_e2e -e "SHOW TABLES;"
 
 # PostgreSQL (如果使用 Docker)
-docker exec axonhub-e2e-postgres psql -U axonhub -d axonhub_e2e -c "\dt"
+docker exec llm-proxy-e2e-postgres psql -U llm-proxy -d axonhub_e2e -c "\dt"
 
 # 查看用户（示例）
-sqlite3 ../../scripts/axonhub-e2e.db "SELECT * FROM users;"
+sqlite3 ../../scripts/llm-proxy-e2e.db "SELECT * FROM users;"
 ```
 
 ## 重要文件
 
-- `../../scripts/axonhub-e2e.db` - E2E 测试数据库（测试后保留，用于复现问题）
+- `../../scripts/llm-proxy-e2e.db` - E2E 测试数据库（测试后保留，用于复现问题）
 - `../../scripts/e2e-backend.log` - 后端服务日志
-- `../../scripts/axonhub-e2e` - E2E 后端可执行文件
+- `../../scripts/llm-proxy-e2e` - E2E 后端可执行文件
 - `../../scripts/.e2e-backend.pid` - 后端进程 ID
 - `playwright-report/` - 测试报告目录
 
@@ -514,15 +514,15 @@ sqlite3 ../../scripts/axonhub-e2e.db "SELECT * FROM users;"
 
 ```bash
 # 默认值
-AXONHUB_ADMIN_PASSWORD=pwd123456  # Owner 密码
-AXONHUB_API_URL=http://localhost:8099  # 后端 API 地址
+LLM_PROXY_ADMIN_PASSWORD=pwd123456  # Owner 密码
+LLM_PROXY_API_URL=http://localhost:8099  # 后端 API 地址
 ```
 
 ## 配置说明
 
 **后端配置:**
 - 端口: 8099
-- 数据库: 可配置 (SQLite `axonhub-e2e.db`, MySQL, PostgreSQL)
+- 数据库: 可配置 (SQLite `llm-proxy-e2e.db`, MySQL, PostgreSQL)
 - 日志: `e2e-backend.log`
 
 **前端配置:**
@@ -559,14 +559,14 @@ pnpm test:e2e:debug
 
 # 检查数据库（根据类型不同）
 # SQLite
-sqlite3 ../../scripts/axonhub-e2e.db ".tables"
-sqlite3 ../../scripts/axonhub-e2e.db "SELECT * FROM users;"
+sqlite3 ../../scripts/llm-proxy-e2e.db ".tables"
+sqlite3 ../../scripts/llm-proxy-e2e.db "SELECT * FROM users;"
 
 # MySQL (如果使用 Docker)
-docker exec axonhub-e2e-mysql mysql -u axonhub -p axonhub_e2e -e "SHOW TABLES; SELECT * FROM users;"
+docker exec llm-proxy-e2e-mysql mysql -u llm-proxy -p axonhub_e2e -e "SHOW TABLES; SELECT * FROM users;"
 
 # PostgreSQL (如果使用 Docker)
-docker exec axonhub-e2e-postgres psql -U axonhub -d axonhub_e2e -c "\dt; SELECT * FROM users;"
+docker exec llm-proxy-e2e-postgres psql -U llm-proxy -d axonhub_e2e -c "\dt; SELECT * FROM users;"
 ```
 
 ### 测试卡住不动

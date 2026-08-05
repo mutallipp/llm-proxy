@@ -596,7 +596,7 @@ func (r *queryResolver) GetCacheDiagnostics(ctx context.Context, input *GetCache
 	}
 
 	return &GetCacheDiagnosticsPayload{
-		FileName: fmt.Sprintf("axonhub-channel-model-cache-diagnostics-%s.json", time.Now().UTC().Format("20060102T150405Z")),
+		FileName: fmt.Sprintf("llm-proxy-channel-model-cache-diagnostics-%s.json", time.Now().UTC().Format("20060102T150405Z")),
 		Content:  content,
 		Targets:  normalizeDiagnosticsTargets(targets),
 	}, nil

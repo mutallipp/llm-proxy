@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AxonHub Upgrade Script
-# This script checks for new versions and upgrades AxonHub
+# llm-proxy Upgrade Script
+# This script checks for new versions and upgrades llm-proxy
 
 set -e
 
@@ -20,7 +20,7 @@ if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
 else
     USER_HOME="$HOME"
 fi
-BASE_DIR="${USER_HOME}/.config/axonhub"
+BASE_DIR="${USER_HOME}/.config/llm-proxy"
 INSTALL_DIR="/usr/local/bin"
 
 # GitHub repository
@@ -58,7 +58,7 @@ debug() {
 
 show_usage() {
     cat <<EOF
-AxonHub Upgrade Script
+llm-proxy Upgrade Script
 
 Usage: $0 [options]
 
@@ -82,7 +82,7 @@ curl_gh() {
     local headers=(
         -H "Accept: application/vnd.github+json"
         -H "X-GitHub-Api-Version: 2022-11-28"
-        -H "User-Agent: axonhub-upgrader"
+        -H "User-Agent: llm-proxy-upgrader"
     )
     if [[ -n "$GITHUB_TOKEN" ]]; then
         headers+=( -H "Authorization: Bearer $GITHUB_TOKEN" )
@@ -148,7 +148,7 @@ get_latest_release() {
     if [[ -z "$tag_name" ]]; then
         print_warning "API failed or rate-limited, falling back to HTML redirect..."
         local final_url
-        final_url=$(curl -fsSL -H "User-Agent: axonhub-upgrader" -o /dev/null -w "%{url_effective}" "https://github.com/${REPO}/releases/latest" || true)
+        final_url=$(curl -fsSL -H "User-Agent: llm-proxy-upgrader" -o /dev/null -w "%{url_effective}" "https://github.com/${REPO}/releases/latest" || true)
         tag_name=$(echo "$final_url" | sed -nE 's#.*/tag/([^/]+).*#\1#p' | head -1)
     fi
     
@@ -299,10 +299,10 @@ download_and_extract() {
     local filename
     filename=$(basename "$download_url")
     
-    print_info "Downloading AxonHub ${version} for ${platform}..."
+    print_info "Downloading llm-proxy ${version} for ${platform}..."
     
     if ! curl -fSL -o "${temp_dir}/${filename}" "$download_url"; then
-        print_error "Failed to download AxonHub asset"
+        print_error "Failed to download llm-proxy asset"
         rm -rf "$temp_dir"
         exit 1
     fi
@@ -322,10 +322,10 @@ download_and_extract() {
     fi
     
     local binary_path
-    binary_path=$(find "$temp_dir" -name "axonhub" -type f | head -1)
+    binary_path=$(find "$temp_dir" -name "llm-proxy" -type f | head -1)
     
     if [[ -z "$binary_path" ]]; then
-        print_error "Could not find axonhub binary in archive"
+        print_error "Could not find llm-proxy binary in archive"
         rm -rf "$temp_dir"
         exit 1
     fi
@@ -341,14 +341,14 @@ check_root() {
 }
 
 main() {
-    print_info "Checking for AxonHub updates..."
+    print_info "Checking for llm-proxy updates..."
     
     check_root
     
-    local binary_path="$INSTALL_DIR/axonhub"
+    local binary_path="$INSTALL_DIR/llm-proxy"
     
     if [[ ! -x "$binary_path" ]]; then
-        print_error "AxonHub is not installed at $binary_path"
+        print_error "llm-proxy is not installed at $binary_path"
         print_info "Please run install.sh first"
         exit 1
     fi
@@ -372,7 +372,7 @@ main() {
     norm_latest=$(normalize_version "$latest_version")
     
     if [[ "$current_version" != "unknown" ]] && ! version_lt "$norm_current" "$norm_latest" && [[ "$FORCE" != "true" ]]; then
-        print_success "AxonHub is already up to date ($current_version)"
+        print_success "llm-proxy is already up to date ($current_version)"
         exit 0
     fi
     
@@ -381,7 +381,7 @@ main() {
     fi
     
     if [[ "$YES" != "true" ]]; then
-        echo -n "Upgrade AxonHub from ${current_version} to ${latest_version}? [y/N]: "
+        echo -n "Upgrade llm-proxy from ${current_version} to ${latest_version}? [y/N]: "
         read -r reply
         if [[ ! "$reply" =~ ^[Yy]$ ]]; then
             print_info "Upgrade cancelled"
@@ -397,8 +397,8 @@ main() {
     new_binary=$(download_and_extract "$latest_version" "$platform")
     
     print_info "Installing new binary..."
-    cp "$new_binary" "$INSTALL_DIR/axonhub"
-    chmod +x "$INSTALL_DIR/axonhub"
+    cp "$new_binary" "$INSTALL_DIR/llm-proxy"
+    chmod +x "$INSTALL_DIR/llm-proxy"
     
     local temp_dir
     temp_dir="$(dirname "$new_binary")"
@@ -407,13 +407,13 @@ main() {
         rm -rf "$temp_dir" 2>/dev/null || true
     fi
     
-    print_success "AxonHub upgraded to ${latest_version}"
+    print_success "llm-proxy upgraded to ${latest_version}"
     
-    print_info "Restarting AxonHub..."
+    print_info "Restarting llm-proxy..."
     if [[ -x "$SCRIPT_DIR/restart.sh" ]]; then
         "$SCRIPT_DIR/restart.sh"
     else
-        print_warning "restart.sh not found, please restart AxonHub manually"
+        print_warning "restart.sh not found, please restart llm-proxy manually"
     fi
     
     print_success "Upgrade completed!"

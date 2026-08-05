@@ -1,7 +1,7 @@
 ### Image Generation
 POST http://localhost:8090/v1/chat/completions
 Content-Type: application/json
-Authorization: Bearer {{AXONHUB_API_KEY}}
+Authorization: Bearer {{LLM_PROXY_API_KEY}}
 
 {
     "model": "cogview-3-flash",
@@ -28,7 +28,7 @@ Authorization: Bearer {{AXONHUB_API_KEY}}
 ### Image Generation with Image
 POST http://localhost:8090/v1/chat/completions
 Content-Type: application/json
-Authorization: Bearer {{AXONHUB_API_KEY}}
+Authorization: Bearer {{LLM_PROXY_API_KEY}}
 
 < ./edit_image.json
     

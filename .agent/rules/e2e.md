@@ -6,7 +6,7 @@ globs: "frontend/tests/**/*.ts, scripts/e2e/**/*.sh"
 # E2E 测试规则
 
 1. 为稳定定位元素添加 `data-testid`。
-2. 本地前端登录优先从环境变量读取账号，不把真实凭据写入代码、文档、日志或提交。现有 Playwright 配置使用 `AXONHUB_ADMIN_EMAIL`、`AXONHUB_ADMIN_PASSWORD`；未配置时才使用测试夹具约定的本地默认值 `my@example.com` / `pwd123456`。
+2. 本地前端登录优先从环境变量读取账号，不把真实凭据写入代码、文档、日志或提交。现有 Playwright 配置使用 `LLM_PROXY_ADMIN_EMAIL`、`LLM_PROXY_ADMIN_PASSWORD`；未配置时才使用测试夹具约定的本地默认值 `my@example.com` / `pwd123456`。
 
 ## Adapter Gateway 定向验证（2026-08-02）
 
@@ -45,8 +45,8 @@ curl -X POST http://localhost:8090/<adapter>/v1/chat/completions \
 - 测试前必须初始化 owner 并登录；Adapter Gateway 本地测试凭据通过仓库根目录 `.env` 提供：
 
 ```text
-AXONHUB_TEST_EMAIL=...
-AXONHUB_TEST_PASSWORD=...
+LLM_PROXY_TEST_EMAIL=...
+LLM_PROXY_TEST_PASSWORD=...
 ```
 
 - 不提交 `.env` 中的真实值。浏览器至少验证 Model 协议池编辑、Channel endpoint 过滤、GID 回显、Adapter binding、刷新后的列表和错误状态。
@@ -56,8 +56,8 @@ AXONHUB_TEST_PASSWORD=...
 修改前端或后端后，需按环境需要重建并强制重建容器，再硬刷新浏览器：
 
 ```bash
-docker compose build axonhub
-docker compose up -d --force-recreate axonhub
+docker compose build llm-proxy
+docker compose up -d --force-recreate llm-proxy
 ```
 
 确认容器 healthy 后再做 curl/UI 验证；不要把旧容器或旧静态资源的结果当作当前改动结果。

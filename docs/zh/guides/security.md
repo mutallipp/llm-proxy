@@ -1,16 +1,16 @@
 # 安全功能
 
-AxonHub 提供多层基于 IP 的访问控制，以保护您的 AI 网关。
+llm-proxy 提供多层基于 IP 的访问控制，以保护您的 AI 网关。
 
 ## IP 访问控制（全局白名单）
 
-IP 访问控制是一个全局中间件，限制对整个 AxonHub 实例的访问。启用后，只接受来自白名单中 IP 地址或 CIDR 范围的请求，其他请求将被拒绝。
+IP 访问控制是一个全局中间件，限制对整个 llm-proxy 实例的访问。启用后，只接受来自白名单中 IP 地址或 CIDR 范围的请求，其他请求将被拒绝。
 
-当您想将 AxonHub 实例限制为仅接受来自已知网络（例如企业 VPN 或云 VPC）的流量时，此功能非常有用。
+当您想将 llm-proxy 实例限制为仅接受来自已知网络（例如企业 VPN 或云 VPC）的流量时，此功能非常有用。
 
 ### 配置
 
-IP 访问控制通过 AxonHub 配置文件或环境变量进行配置：
+IP 访问控制通过 llm-proxy 配置文件或环境变量进行配置：
 
 ```yaml
 ip_access_control:
@@ -54,17 +54,17 @@ API Key IP 限制允许您将单个 API 密钥限制为仅接受来自指定源 
 
 ### 工作原理
 
-当 API 密钥配置了 `allowed_ips` 时，AxonHub 会检查使用该密钥发出的每个请求的源 IP。如果源 IP 不匹配白名单中的任何条目，请求将被拒绝并返回 403 Forbidden 响应。
+当 API 密钥配置了 `allowed_ips` 时，llm-proxy 会检查使用该密钥发出的每个请求的源 IP。如果源 IP 不匹配白名单中的任何条目，请求将被拒绝并返回 403 Forbidden 响应。
 
 ### 源 IP 检测
 
-AxonHub 从多个请求头中检查源 IP，按优先级顺序：
+llm-proxy 从多个请求头中检查源 IP，按优先级顺序：
 
 1. **X-Forwarded-For**：X-Forwarded-For 头中的第一个 IP
 2. **X-Real-IP**：X-Real-IP 头的值
 3. **Client IP**：直接的 TCP 连接 IP
 
-这确保了当 AxonHub 位于反向代理（例如 Nginx、Cloudflare、AWS ALB）之后时，能正确检测 IP。
+这确保了当 llm-proxy 位于反向代理（例如 Nginx、Cloudflare、AWS ALB）之后时，能正确检测 IP。
 
 ### 配置
 
@@ -87,7 +87,7 @@ AxonHub 从多个请求头中检查源 IP，按优先级顺序：
 
 ```bash
 # 创建带 IP 限制的 API 密钥
-curl -X POST https://your-axonhub-instance/api/api-keys \
+curl -X POST https://your-llm-proxy-instance/api/api-keys \
   -H "Authorization: Bearer your-admin-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -96,12 +96,12 @@ curl -X POST https://your-axonhub-instance/api/api-keys \
   }'
 
 # 来自允许 IP 的请求 - 成功
-curl https://your-axonhub-instance/v1/chat/completions \
+curl https://your-llm-proxy-instance/v1/chat/completions \
   -H "Authorization: Bearer your-api-key" \
   -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
 
 # 来自不允许 IP 的请求 - 403 Forbidden
-curl https://your-axonhub-instance/v1/chat/completions \
+curl https://your-llm-proxy-instance/v1/chat/completions \
   -H "Authorization: Bearer your-api-key" \
   -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
 # 返回：403 IP address is not allowed for this API key

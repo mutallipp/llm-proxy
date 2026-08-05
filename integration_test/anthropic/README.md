@@ -1,6 +1,6 @@
 # Anthropic Go SDK Integration Tests
 
-This directory contains comprehensive integration tests for the Anthropic Go SDK, demonstrating various API usage patterns with proper header handling for AxonHub integration.
+This directory contains comprehensive integration tests for the Anthropic Go SDK, demonstrating various API usage patterns with proper header handling for llm-proxy integration.
 
 ## Test Structure
 
@@ -27,7 +27,7 @@ Each test case is organized in its own directory with dedicated tests and docume
 ## Common Integration Features
 
 ### Headers Integration
-All tests include proper AxonHub header handling:
+All tests include proper llm-proxy header handling:
 - `AH-Trace-Id`: Request tracing identifier
 - `AH-Thread-Id`: Conversation thread identifier
 
@@ -47,12 +47,12 @@ All tests include proper AxonHub header handling:
 
 ### Environment Setup
 1. **Go 1.25+**: Ensure Go is installed and configured
-2. **AxonHub API Key**: Set the `TEST_AXONHUB_API_KEY` environment variable (Anthropic API key)
+2. **llm-proxy API Key**: Set the `TEST_LLM_PROXY_API_KEY` environment variable (Anthropic API key)
 3. **Dependencies**: Run `go mod tidy` to install required packages
 
 ### Required Environment Variables
 ```bash
-export TEST_AXONHUB_API_KEY="your-anthropic-api-key"
+export TEST_LLM_PROXY_API_KEY="your-anthropic-api-key"
 export TEST_ANTHROPIC_BASE_URL="https://api.anthropic.com"  # Optional, defaults to Anthropic
 export TEST_MODEL="claude-3-5-sonnet-20241022"              # Optional, defaults to Claude 3.5 Sonnet
 export TEST_TRACE_ID="test-trace-123"                       # Optional, auto-generated
@@ -64,7 +64,7 @@ export TEST_THREAD_ID="test-thread-456"                     # Optional, auto-gen
 ### Run All Tests
 ```bash
 # From the integration test directory
-cd /path/to/axonhub/integration_test/anthropic
+cd /path/to/llm-proxy/integration_test/anthropic
 
 # Run all tests
 go test -v ./...
@@ -121,7 +121,7 @@ Tests use a centralized configuration system defined in `internal/testutil/`:
 
 - **Config**: Environment variable management
 - **Client**: Anthropic client setup with authentication
-- **Headers**: AxonHub header generation
+- **Headers**: llm-proxy header generation
 - **Helper**: Common test utilities and validation
 
 ### Custom Configuration
@@ -174,12 +174,12 @@ params := anthropic.MessageNewParams{
 
 If no `TEST_MODEL` is specified, the system defaults to `claude-3-5-sonnet-20241022`.
 
-## Integration with AxonHub
+## Integration with llm-proxy
 
-These tests demonstrate proper integration patterns for AxonHub:
+These tests demonstrate proper integration patterns for llm-proxy:
 
 ### Header Propagation
-All requests include standard AxonHub headers for tracing and threading:
+All requests include standard llm-proxy headers for tracing and threading:
 
 ```go
 headers := map[string]string{
@@ -189,10 +189,10 @@ headers := map[string]string{
 ```
 
 ### Context Management
-Tests show how to maintain conversation context and state across multiple API calls, which is essential for AxonHub's conversation threading system.
+Tests show how to maintain conversation context and state across multiple API calls, which is essential for llm-proxy's conversation threading system.
 
 ### Error Handling
-Proper error handling and validation patterns that integrate well with AxonHub's error reporting and logging systems.
+Proper error handling and validation patterns that integrate well with llm-proxy's error reporting and logging systems.
 
 ## Development
 
@@ -224,8 +224,8 @@ Follow these patterns for consistency:
 
 **Missing API Key**
 ```
-Error: TEST_AXONHUB_API_KEY environment variable is required
-Solution: Set TEST_AXONHUB_API_KEY environment variable
+Error: TEST_LLM_PROXY_API_KEY environment variable is required
+Solution: Set TEST_LLM_PROXY_API_KEY environment variable
 ```
 
 **Import Errors**

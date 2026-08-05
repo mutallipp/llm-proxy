@@ -36,17 +36,17 @@ const raceConcurrency = 50
 // even though the row lock is a NO-OP there (SQLite rejects SELECT ... FOR UPDATE):
 // it proves SQLite's own single-writer + WAL BUSY/BUSY_SNAPSHOT semantics make the
 // burst fail closed (loser gets DuplicateNameError or SQLITE_BUSY, never a
-// duplicate live row). SQLite needs no server — point AXONHUB_TEST_SQLITE_DSN at a
+// duplicate live row). SQLite needs no server — point LLM_PROXY_TEST_SQLITE_DSN at a
 // temp file, e.g. file:/tmp/race.db.
 var raceDialects = []struct {
 	name    string
 	dialect string
 	envVar  string
 }{
-	{name: "postgres", dialect: "postgres", envVar: "AXONHUB_TEST_PG_DSN"},
-	{name: "mysql", dialect: "mysql", envVar: "AXONHUB_TEST_MYSQL_DSN"},
-	{name: "tidb", dialect: "tidb", envVar: "AXONHUB_TEST_TIDB_DSN"},
-	{name: "sqlite", dialect: "sqlite3", envVar: "AXONHUB_TEST_SQLITE_DSN"},
+	{name: "postgres", dialect: "postgres", envVar: "LLM_PROXY_TEST_PG_DSN"},
+	{name: "mysql", dialect: "mysql", envVar: "LLM_PROXY_TEST_MYSQL_DSN"},
+	{name: "tidb", dialect: "tidb", envVar: "LLM_PROXY_TEST_TIDB_DSN"},
+	{name: "sqlite", dialect: "sqlite3", envVar: "LLM_PROXY_TEST_SQLITE_DSN"},
 }
 
 // TestAPIKeyNameRace proves API key name uniqueness is race-safe WITHOUT any DB
@@ -86,7 +86,7 @@ func TestAPIKeyNameRace(t *testing.T) {
 	}
 
 	if ran == 0 {
-		t.Skip("set AXONHUB_TEST_PG_DSN / AXONHUB_TEST_MYSQL_DSN / AXONHUB_TEST_TIDB_DSN to run the concurrency test")
+		t.Skip("set LLM_PROXY_TEST_PG_DSN / LLM_PROXY_TEST_MYSQL_DSN / LLM_PROXY_TEST_TIDB_DSN to run the concurrency test")
 	}
 }
 

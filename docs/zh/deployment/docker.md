@@ -2,7 +2,7 @@
 
 ## 概述
 
-本指南涵盖了使用 Docker 和 Docker Compose 部署 AxonHub 的方法。Docker 提供了一个隔离的、可重复的环境，简化了部署和扩展。
+本指南涵盖了使用 Docker 和 Docker Compose 部署 llm-proxy 的方法。Docker 提供了一个隔离的、可重复的环境，简化了部署和扩展。
 
 ## 快速入门
 
@@ -19,10 +19,10 @@ Compose 会自动读取项目根目录的 `.env` 文件。先复制示例并填�
 
 ```bash
 cp .env.example .env
-# 编辑 .env，至少填写 AXONHUB_DB_DSN
+# 编辑 .env，至少填写 LLM_PROXY_DB_DSN
 ```
 
-`.env` 只保留在本机，不要提交到 Git。`docker-compose.yml` 会通过 `AXONHUB_*` 环境变量注入数据库、鉴权和代理配置。
+`.env` 只保留在本机，不要提交到 Git。`docker-compose.yml` 会通过 `LLM_PROXY_*` 环境变量注入数据库、鉴权和代理配置。
 
 ### 3. 构建并启动服务
 
@@ -67,9 +67,9 @@ services:
       - ./config.yml:/app/config.yml
       - llm-proxy_data:/app/data
     environment:
-      - AXONHUB_SERVER_PORT=8090
-      - AXONHUB_DB_DIALECT=sqlite3
-      - AXONHUB_DB_DSN=file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
+      - LLM_PROXY_SERVER_PORT=8090
+      - LLM_PROXY_DB_DIALECT=sqlite3
+      - LLM_PROXY_DB_DSN=file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
     restart: unless-stopped
 
 volumes:
@@ -91,12 +91,12 @@ services:
       - llm-proxy_data:/app/data
       - ./logs:/app/logs
     environment:
-      - AXONHUB_SERVER_PORT=8090
-      - AXONHUB_DB_DIALECT=postgres
-      - AXONHUB_DB_DSN=postgres://axonhub:password@postgres:5432/axonhub
-      - AXONHUB_LOG_LEVEL=warn
-      - AXONHUB_LOG_OUTPUT=file
-      - AXONHUB_LOG_FILE_PATH=/app/logs/axonhub.log
+      - LLM_PROXY_SERVER_PORT=8090
+      - LLM_PROXY_DB_DIALECT=postgres
+      - LLM_PROXY_DB_DSN=postgres://llm-proxy:password@postgres:5432/llm-proxy
+      - LLM_PROXY_LOG_LEVEL=warn
+      - LLM_PROXY_LOG_OUTPUT=file
+      - LLM_PROXY_LOG_FILE_PATH=/app/logs/llm-proxy.log
     depends_on:
       - postgres
     restart: unless-stopped
@@ -104,8 +104,8 @@ services:
   postgres:
     image: postgres:15
     environment:
-      - POSTGRES_DB=axonhub
-      - POSTGRES_USER=axonhub
+      - POSTGRES_DB=llm-proxy
+      - POSTGRES_USER=llm-proxy
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -123,8 +123,8 @@ volumes:
 ```yaml
 llm-proxy:
   environment:
-    - AXONHUB_DB_DIALECT=sqlite3
-    - AXONHUB_DB_DSN=file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
+    - LLM_PROXY_DB_DIALECT=sqlite3
+    - LLM_PROXY_DB_DSN=file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)
 ```
 
 ### PostgreSQL (生产环境)
@@ -132,8 +132,8 @@ llm-proxy:
 ```yaml
 llm-proxy:
   environment:
-    - AXONHUB_DB_DIALECT=postgres
-    - AXONHUB_DB_DSN=postgres://user:pass@host:5432/axonhub
+    - LLM_PROXY_DB_DIALECT=postgres
+    - LLM_PROXY_DB_DSN=postgres://user:pass@host:5432/llm-proxy
 ```
 
 ### MySQL (生产环境)
@@ -141,8 +141,8 @@ llm-proxy:
 ```yaml
 llm-proxy:
   environment:
-    - AXONHUB_DB_DIALECT=mysql
-    - AXONHUB_DB_DSN=user:pass@tcp(host:3306)/axonhub?charset=utf8mb4&parseTime=True
+    - LLM_PROXY_DB_DIALECT=mysql
+    - LLM_PROXY_DB_DSN=user:pass@tcp(host:3306)/llm-proxy?charset=utf8mb4&parseTime=True
 ```
 
 ## 环境变量
@@ -150,27 +150,27 @@ llm-proxy:
 ### 服务器配置
 
 ```bash
-AXONHUB_SERVER_PORT=8090
-AXONHUB_SERVER_NAME="llm-proxy"
-AXONHUB_SERVER_DEBUG=false
-AXONHUB_SERVER_REQUEST_TIMEOUT="30s"
-AXONHUB_SERVER_LLM_REQUEST_TIMEOUT="600s"
+LLM_PROXY_SERVER_PORT=8090
+LLM_PROXY_SERVER_NAME="llm-proxy"
+LLM_PROXY_SERVER_DEBUG=false
+LLM_PROXY_SERVER_REQUEST_TIMEOUT="30s"
+LLM_PROXY_SERVER_LLM_REQUEST_TIMEOUT="600s"
 ```
 
 ### 数据库配置
 
 ```bash
-AXONHUB_DB_DIALECT="postgres"
-AXONHUB_DB_DSN="postgres://user:pass@host:5432/axonhub"
-AXONHUB_DB_DEBUG=false
+LLM_PROXY_DB_DIALECT="postgres"
+LLM_PROXY_DB_DSN="postgres://user:pass@host:5432/llm-proxy"
+LLM_PROXY_DB_DEBUG=false
 ```
 
 ### 日志配置
 
 ```bash
-AXONHUB_LOG_LEVEL="info"
-AXONHUB_LOG_ENCODING="json"
-AXONHUB_LOG_OUTPUT="stdio"
+LLM_PROXY_LOG_LEVEL="info"
+LLM_PROXY_LOG_ENCODING="json"
+LLM_PROXY_LOG_OUTPUT="stdio"
 ```
 
 ## 安全考虑
@@ -178,7 +178,7 @@ AXONHUB_LOG_OUTPUT="stdio"
 ### 网络安全
 
 ```yaml
-axonhub:
+llm-proxy:
   networks:
     - axonhub_network
   ports:
@@ -200,7 +200,7 @@ API_KEY_SECRET=your-api-key-secret
 ```
 
 ```yaml
-axonhub:
+llm-proxy:
   env_file:
     - .env
 ```
@@ -210,7 +210,7 @@ axonhub:
 ### 健康检查
 
 ```yaml
-axonhub:
+llm-proxy:
   healthcheck:
     test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
     interval: 30s
@@ -222,7 +222,7 @@ axonhub:
 ### 日志收集
 
 ```yaml
-axonhub:
+llm-proxy:
   logging:
     driver: "json-file"
     options:
@@ -235,7 +235,7 @@ axonhub:
 ### 水平扩展
 
 ```yaml
-axonhub:
+llm-proxy:
   deploy:
     replicas: 3
     resources:
@@ -265,7 +265,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - axonhub
+      - llm-proxy
     networks:
       - axonhub_network
 ```
@@ -283,7 +283,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     command: |
       bash -c '
-        pg_dump -h postgres -U axonhub axonhub > /backup/axonhub-$(date +%Y%m%d).sql
+        pg_dump -h postgres -U llm-proxy llm-proxy > /backup/llm-proxy-$(date +%Y%m%d).sql
       '
     depends_on:
       - postgres
@@ -296,11 +296,11 @@ services:
 ```bash
 # 备份数据卷
 docker run --rm -v llm-proxy_data:/source -v $(pwd)/backup:/backup alpine \
-  tar czf /backup/axonhub-data-$(date +%Y%m%d).tar.gz -C /source .
+  tar czf /backup/llm-proxy-data-$(date +%Y%m%d).tar.gz -C /source .
 
 # 恢复数据卷
 docker run --rm -v llm-proxy_data:/target -v $(pwd)/backup:/backup alpine \
-  tar xzf /backup/axonhub-data-20231110.tar.gz -C /target
+  tar xzf /backup/llm-proxy-data-20231110.tar.gz -C /target
 ```
 
 ## 故障排除
@@ -308,7 +308,7 @@ docker run --rm -v llm-proxy_data:/target -v $(pwd)/backup:/backup alpine \
 ### 常见问题
 
 **容器无法启动**
-- 检查 Docker 日志：`docker-compose logs axonhub`
+- 检查 Docker 日志：`docker-compose logs llm-proxy`
 - 验证配置文件权限
 - 确保数据库连接正常
 
@@ -328,8 +328,8 @@ docker run --rm -v llm-proxy_data:/target -v $(pwd)/backup:/backup alpine \
 ```yaml
 llm-proxy:
   environment:
-    - AXONHUB_SERVER_DEBUG=true
-    - AXONHUB_LOG_LEVEL=debug
+    - LLM_PROXY_SERVER_DEBUG=true
+    - LLM_PROXY_LOG_LEVEL=debug
 ```
 
 ## 后续步骤

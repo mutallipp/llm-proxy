@@ -23,7 +23,7 @@ $Yes         = $false
 
 function Show-Usage {
   Write-Host @'
-AxonHub Upgrade Script (Windows)
+llm-proxy Upgrade Script (Windows)
 
 Usage: upgrade.bat [options]
 
@@ -67,7 +67,7 @@ function Invoke-GHApi([string]$url){
   $headers = @{
     'Accept'='application/vnd.github+json'
     'X-GitHub-Api-Version'='2022-11-28'
-    'User-Agent'='axonhub-upgrader'
+    'User-Agent'='llm-proxy-upgrader'
   }
   if($env:GITHUB_TOKEN){ $headers['Authorization'] = "Bearer $($env:GITHUB_TOKEN)" }
   return Invoke-RestMethod -Method GET -Uri $url -Headers $headers -ErrorAction Stop
@@ -80,7 +80,7 @@ function Get-LatestReleaseTag {
   } catch {
     Write-Warn "API failed or rate-limited, falling back to HTML redirect..."
     try {
-      $resp = Invoke-WebRequest -Uri "https://github.com/$Repo/releases/latest" -Headers @{ 'User-Agent'='axonhub-upgrader' } -MaximumRedirection 0 -ErrorAction Stop
+      $resp = Invoke-WebRequest -Uri "https://github.com/$Repo/releases/latest" -Headers @{ 'User-Agent'='llm-proxy-upgrader' } -MaximumRedirection 0 -ErrorAction Stop
     } catch { $resp = $_.Exception.Response }
     if($resp -and $resp.Headers['Location']){
       $loc = $resp.Headers['Location']
@@ -166,13 +166,13 @@ function Compare-Version([string]$a,[string]$b){
 
 function Ensure-Dirs([string]$path){ if(-not (Test-Path $path)){ New-Item -ItemType Directory -Force -Path $path | Out-Null } }
 
-Write-Info 'Checking for AxonHub updates...'
+Write-Info 'Checking for llm-proxy updates...'
 
-$BaseDir = Join-Path $env:LOCALAPPDATA 'AxonHub'
-$BinaryPath = Join-Path $BaseDir 'axonhub.exe'
+$BaseDir = Join-Path $env:LOCALAPPDATA 'llm-proxy'
+$BinaryPath = Join-Path $BaseDir 'llm-proxy.exe'
 
 if(-not (Test-Path $BinaryPath)){
-  Write-Err "AxonHub is not installed at $BinaryPath"
+  Write-Err "llm-proxy is not installed at $BinaryPath"
   Write-Info 'Please run install.bat first'
   exit 1
 }
@@ -197,7 +197,7 @@ if($CurrentVersion -eq 'unknown'){
 }
 
 if(-not $NeedsUpgrade -and -not $Force){
-  Write-Success "AxonHub is already up to date ($CurrentVersion)"
+  Write-Success "llm-proxy is already up to date ($CurrentVersion)"
   exit 0
 }
 
@@ -206,7 +206,7 @@ if($Force -and $CurrentVersion -ne 'unknown'){
 }
 
 if(-not $Yes){
-  $reply = Read-Host "Upgrade AxonHub from $CurrentVersion to $LatestVersion? [y/N]"
+  $reply = Read-Host "Upgrade llm-proxy from $CurrentVersion to $LatestVersion? [y/N]"
   if($reply -notmatch '^[Yy]$'){
     Write-Info 'Upgrade cancelled'
     exit 0
@@ -218,7 +218,7 @@ Write-Info "Detected platform: $Platform"
 
 $AssetUrl = Get-AssetUrl $LatestVersion $Platform
 $TempDir = New-Item -ItemType Directory -Path (Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())) -Force
-$ZipPath = Join-Path $TempDir 'axonhub.zip'
+$ZipPath = Join-Path $TempDir 'llm-proxy.zip'
 
 Write-Info "Downloading: $AssetUrl"
 Invoke-WebRequest -Uri $AssetUrl -OutFile $ZipPath -UseBasicParsing
@@ -226,20 +226,20 @@ Invoke-WebRequest -Uri $AssetUrl -OutFile $ZipPath -UseBasicParsing
 Write-Info 'Extracting archive...'
 Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
 
-$NewBinary = Get-ChildItem -Path $TempDir -Recurse -Filter 'axonhub.exe' -File | Select-Object -First 1 | ForEach-Object { $_.FullName }
-if(-not $NewBinary){ Write-Err 'axonhub.exe not found in archive'; exit 1 }
+$NewBinary = Get-ChildItem -Path $TempDir -Recurse -Filter 'llm-proxy.exe' -File | Select-Object -First 1 | ForEach-Object { $_.FullName }
+if(-not $NewBinary){ Write-Err 'llm-proxy.exe not found in archive'; exit 1 }
 
 Write-Info 'Installing new binary...'
 Copy-Item -Path $NewBinary -Destination $BinaryPath -Force
 
-Write-Success "AxonHub upgraded to $LatestVersion"
+Write-Success "llm-proxy upgraded to $LatestVersion"
 
-Write-Info 'Restarting AxonHub...'
+Write-Info 'Restarting llm-proxy...'
 $restartScript = Join-Path $ScriptDir 'restart.ps1'
 if(Test-Path $restartScript){
   & $restartScript
 } else {
-  Write-Warn 'restart.ps1 not found, please restart AxonHub manually'
+  Write-Warn 'restart.ps1 not found, please restart llm-proxy manually'
 }
 
 Write-Success 'Upgrade completed!'

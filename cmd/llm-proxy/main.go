@@ -195,7 +195,7 @@ func expandHome(path string) string {
 
 func handleConfigCommand() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: axonhub config <preview|validate|get>")
+		fmt.Println("Usage: llm-proxy config <preview|validate|get>")
 		os.Exit(1)
 	}
 
@@ -207,7 +207,7 @@ func handleConfigCommand() {
 	case "get":
 		configGet()
 	default:
-		fmt.Println("Usage: axonhub config <preview|validate|get>")
+		fmt.Println("Usage: llm-proxy config <preview|validate|get>")
 		os.Exit(1)
 	}
 }
@@ -307,7 +307,7 @@ func validateConfig(config conf.Config) []string {
 
 func configGet() {
 	if len(os.Args) < 4 {
-		fmt.Println("Usage: axonhub config get <key>")
+		fmt.Println("Usage: llm-proxy config get <key>")
 		fmt.Println("")
 		fmt.Println("Available keys:")
 		fmt.Println("  server.port    Server port number")
@@ -349,16 +349,16 @@ func configGet() {
 }
 
 func showHelp() {
-	fmt.Println("AxonHub AI Gateway")
+	fmt.Println("llm-proxy AI Gateway")
 	fmt.Println("")
 	fmt.Println("Usage:")
-	fmt.Println("  axonhub                    Start the server (default)")
-	fmt.Println("  axonhub reload             Send SIGHUP to reload configuration")
-	fmt.Println("  axonhub config preview     Preview configuration")
-	fmt.Println("  axonhub config validate    Validate configuration")
-	fmt.Println("  axonhub config get <key>   Get a specific config value")
-	fmt.Println("  axonhub version            Show version")
-	fmt.Println("  axonhub help               Show this help message")
+	fmt.Println("  llm-proxy                    Start the server (default)")
+	fmt.Println("  llm-proxy reload             Send SIGHUP to reload configuration")
+	fmt.Println("  llm-proxy config preview     Preview configuration")
+	fmt.Println("  llm-proxy config validate    Validate configuration")
+	fmt.Println("  llm-proxy config get <key>   Get a specific config value")
+	fmt.Println("  llm-proxy version            Show version")
+	fmt.Println("  llm-proxy help               Show this help message")
 	fmt.Println("")
 	fmt.Println("Options:")
 	fmt.Println("  -f, --format FORMAT       Output format for config preview (yml, json)")

@@ -10,7 +10,7 @@ import (
 var global *Dumper
 
 func init() {
-	if os.Getenv("AXONHUB_DEBUG_DUMPER_ENABLED") == "true" {
+	if os.Getenv("LLM_PROXY_DEBUG_DUMPER_ENABLED") == "true" {
 		// Create default config when enabled via environment variable
 		config := DefaultConfig()
 		config.Enabled = true

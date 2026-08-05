@@ -31,8 +31,8 @@ export function ThemeProvider({
   children,
   defaultTheme = 'system',
   defaultColorScheme = 'claude',
-  storageKey = 'axonhub-ui-theme',
-  colorSchemeStorageKey = 'axonhub-ui-color-scheme',
+  storageKey = 'llm-proxy-ui-theme',
+  colorSchemeStorageKey = 'llm-proxy-ui-color-scheme',
   ...props
 }: ThemeProviderProps) {
   const [theme, _setTheme] = useState<Theme>(() => (localStorage.getItem(storageKey) as Theme) || defaultTheme);

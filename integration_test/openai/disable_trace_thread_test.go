@@ -11,12 +11,12 @@ func TestDisableTraceAndThread(t *testing.T) {
 	// Test with both trace and thread disabled
 	os.Setenv("TEST_DISABLE_TRACE", "true")
 	os.Setenv("TEST_DISABLE_THREAD", "true")
-	os.Setenv("TEST_AXONHUB_API_KEY", "test-key")
+	os.Setenv("TEST_LLM_PROXY_API_KEY", "test-key")
 
 	defer func() {
 		os.Unsetenv("TEST_DISABLE_TRACE")
 		os.Unsetenv("TEST_DISABLE_THREAD")
-		os.Unsetenv("TEST_AXONHUB_API_KEY")
+		os.Unsetenv("TEST_LLM_PROXY_API_KEY")
 	}()
 
 	config := testutil.DefaultConfig()
@@ -55,11 +55,11 @@ func TestDisableTraceAndThread(t *testing.T) {
 func TestDisableTraceOnly(t *testing.T) {
 	// Test with only trace disabled
 	os.Setenv("TEST_DISABLE_TRACE", "true")
-	os.Setenv("TEST_AXONHUB_API_KEY", "test-key")
+	os.Setenv("TEST_LLM_PROXY_API_KEY", "test-key")
 
 	defer func() {
 		os.Unsetenv("TEST_DISABLE_TRACE")
-		os.Unsetenv("TEST_AXONHUB_API_KEY")
+		os.Unsetenv("TEST_LLM_PROXY_API_KEY")
 	}()
 
 	config := testutil.DefaultConfig()
@@ -100,11 +100,11 @@ func TestDisableTraceOnly(t *testing.T) {
 func TestDisableThreadOnly(t *testing.T) {
 	// Test with only thread disabled
 	os.Setenv("TEST_DISABLE_THREAD", "true")
-	os.Setenv("TEST_AXONHUB_API_KEY", "test-key")
+	os.Setenv("TEST_LLM_PROXY_API_KEY", "test-key")
 
 	defer func() {
 		os.Unsetenv("TEST_DISABLE_THREAD")
-		os.Unsetenv("TEST_AXONHUB_API_KEY")
+		os.Unsetenv("TEST_LLM_PROXY_API_KEY")
 	}()
 
 	config := testutil.DefaultConfig()

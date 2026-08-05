@@ -2,7 +2,7 @@
 
 ## 概述
 
-本指南将帮助您快速开始使用 AxonHub。只需几分钟，您就可以运行 AxonHub 并发出第一个 API 调用。
+本指南将帮助您快速开始使用 llm-proxy。只需几分钟，您就可以运行 llm-proxy 并发出第一个 API 调用。
 
 ## 先决条件
 
@@ -23,7 +23,7 @@
 2. **配置环境变量**
    ```bash
    cp .env.example .env
-   # 编辑 .env，填写 AXONHUB_DB_DSN 等配置
+   # 编辑 .env，填写 LLM_PROXY_DB_DSN 等配置
    ```
 
 3. **构建并启动服务**
@@ -40,7 +40,7 @@
 
 ### 方法 2：本地开发启动
 
-如果不使用 Docker，不能只执行 `go run ./cmd/axonhub`，因为前端页面需要先构建并嵌入后端：
+如果不使用 Docker，不能只执行 `go run ./cmd/llm-proxy`，因为前端页面需要先构建并嵌入后端：
 
 ```bash
 cd llm-proxy
@@ -49,7 +49,7 @@ cp .env.example .env
 set -a && source .env && set +a
 cd frontend && pnpm install --frozen-lockfile && cd ..
 make build
-./axonhub
+./llm-proxy
 ```
 
 访问：http://localhost:8090。
@@ -64,8 +64,8 @@ make build
    ```bash
    unzip axonhub_*.zip
    cd axonhub_*
-   chmod +x axonhub
-   ./axonhub
+   chmod +x llm-proxy
+   ./llm-proxy
    ```
 
 3. **访问应用程序**
@@ -93,7 +93,7 @@ make build
 
 ### 3. 发出您的第一个 API 调用
 
-AxonHub 支持 OpenAI 聊天补全和 Anthropic 消息 API，允许您使用首选的 API 格式访问任何支持的模型。
+llm-proxy 支持 OpenAI 聊天补全和 Anthropic 消息 API，允许您使用首选的 API 格式访问任何支持的模型。
 
 #### 使用 OpenAI API 格式
 
@@ -101,7 +101,7 @@ AxonHub 支持 OpenAI 聊天补全和 Anthropic 消息 API，允许您使用首�
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="your-axonhub-api-key",
+    api_key="your-llm-proxy-api-key",
     base_url="http://localhost:8090/v1"
 )
 
@@ -109,7 +109,7 @@ client = OpenAI(
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=[
-        {"role": "user", "content": "Hello, AxonHub!"}
+        {"role": "user", "content": "Hello, llm-proxy!"}
     ]
 )
 print(response.choices[0].message.content)
@@ -134,7 +134,7 @@ response = requests.post(
     "http://localhost:8090/anthropic/v1/messages",
     headers={
         "Content-Type": "application/json",
-        "X-API-Key": "your-axonhub-api-key"
+        "X-API-Key": "your-llm-proxy-api-key"
     },
     json={
         "model": "claude-3-5-sonnet",
@@ -154,7 +154,7 @@ response = requests.post(
     "http://localhost:8090/anthropic/v1/messages",
     headers={
         "Content-Type": "application/json",
-        "X-API-Key": "your-axonhub-api-key"
+        "X-API-Key": "your-llm-proxy-api-key"
     },
     json={
         "model": "gpt-4o",
@@ -174,7 +174,7 @@ print(response.json()["content"][0]["text"])
 
 - **API 互操作性**：使用 OpenAI API 调用 Anthropic 模型，或使用 Anthropic API 调用 OpenAI 模型
 - **零代码更改**：继续使用您现有的 OpenAI 或 Anthropic 客户端 SDK
-- **自动翻译**：AxonHub 自动处理 API 格式转换
+- **自动翻译**：llm-proxy 自动处理 API 格式转换
 - **提供商灵活性**：使用您首选的 API 格式访问任何支持的 AI 提供商
 
 ### 4. 高级渠道配置
@@ -339,11 +339,11 @@ settings:
 # config.yml
 server:
   port: 8090
-  name: "AxonHub"
+  name: "llm-proxy"
 
 db:
   dialect: "sqlite3"
-  dsn: "file:axonhub.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
+  dsn: "file:llm-proxy.db?cache=shared&_fk=1&_pragma=journal_mode(WAL)"
 
 log:
   level: "info"
@@ -355,19 +355,19 @@ log:
 ```yaml
 server:
   port: 8090
-  name: "AxonHub Production"
+  name: "llm-proxy Production"
   debug: false
 
 db:
   dialect: "postgres"
-  dsn: "postgres://user:pass@localhost/axonhub?sslmode=disable"
+  dsn: "postgres://user:pass@localhost/llm-proxy?sslmode=disable"
 
 log:
   level: "warn"
   encoding: "json"
   output: "file"
   file:
-    path: "/var/log/axonhub/axonhub.log"
+    path: "/var/log/llm-proxy/llm-proxy.log"
 ```
 
 ## 下一步
@@ -392,7 +392,7 @@ log:
 
 ### 常见问题
 
-**无法连接到 AxonHub**
+**无法连接到 llm-proxy**
 - 检查服务是否正在运行：`docker compose ps`
 - 验证端口 8090 是否可用
 - 检查防火墙设置
@@ -414,7 +414,7 @@ log:
 
 ## 下一步是什么？
 
-现在您已经运行了 AxonHub，探索这些高级功能：
+现在您已经运行了 llm-proxy，探索这些高级功能：
 
 - 设置多个渠道以实现故障转移
 - 配置模型映射以优化成本
