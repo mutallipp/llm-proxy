@@ -540,9 +540,9 @@ For detailed development instructions, architecture design, and contribution gui
 | 场景 | 端口 | 配置文件 | 数据库 | 启动命令 |
 |---|---|---|---|---|
 | **prod**（生产） | 8090 | `docker-compose.yml` + `.env` | `llm-proxy` | `make start` / `make stop` / `make restart` / `make logs` |
-| **dev**（本地开发） | 后端 18090、前端 15173 | `docker-compose.dev.yml` + `.env.dev` | `llm-proxy-dev`（独立库） | `make dev-up` / `make dev-frontend` / `make dev-down` |
+| **dev**（本地开发） | 后端 18090、前端 15173 | `docker-compose.dev.yml` + `.env.dev` + `.env.dev.local` | `llm-proxy-dev`（独立库） | `make dev-up` / `make dev-frontend` / `make dev-down` |
 
-dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立 PostgreSQL 库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。如需以线上库的最新表结构初始化**空** dev 库，执行 `make dev-db-sync-schema`：它同步表、索引、约束与序列，但不会复制业务数据、API Key、OAuth token 或渠道 Cookie；dev 库非空时会拒绝执行，避免误覆盖开发数据。
+dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立 PostgreSQL 库），dev 容器名为 `llm-proxy-dev`，互不冲突。`.env.dev` 是可提交的默认配置；首次运行前，在被 Git 忽略的 `.env.dev.local` 写入完整 `LLM_PROXY_DB_DSN`。如需以线上库的最新表结构初始化**空** dev 库，执行 `make dev-db-sync-schema`：它同步表、索引、约束与序列，但不会复制业务数据、API Key、OAuth token 或渠道 Cookie；dev 库非空时会拒绝执行，避免误覆盖开发数据。需要完整复刻线上数据时，执行 `make dev-db-sync-full`：它会先停止 dev、销毁并重建 dev DB，再导入完整 prod 快照，**包括 API Key、OAuth token 与渠道 Cookie，且会覆盖现有 dev 数据**。
 
 环境变量已统一为 `LLM_PROXY_*` 前缀（旧 `AXONHUB_*` 已彻底移除）。常见字段：
 

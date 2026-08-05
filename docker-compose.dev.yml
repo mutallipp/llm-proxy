@@ -5,7 +5,7 @@
 # - 容器名：llm-proxy-dev
 # - 镜像：llm-proxy:dev
 # - 数据库：llm-proxy-dev（独立库，与 prod 的 llm-proxy 分离）
-# - 配置文件：.env.dev
+# - 配置文件：.env.dev（可提交的非敏感默认值）+ .env.dev.local（本机忽略的凭据覆盖）
 # - 网络：shared-net（与 prod 共享 postgres/redis）
 #
 # 典型用法：
@@ -25,6 +25,8 @@ services:
       - "host.docker.internal:host-gateway"
     env_file:
       - .env.dev
+      - path: .env.dev.local
+        required: false
     ports:
       - "18090:8090"
     volumes:

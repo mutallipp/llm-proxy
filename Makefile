@@ -6,7 +6,7 @@
 	lint lint-privacy \
 	generate-schema \
 	start stop restart logs status \
-	dev-up dev-down dev-logs dev-restart dev-clean dev-db-sync-schema dev-frontend dev
+	dev-up dev-down dev-logs dev-restart dev-clean dev-db-sync-schema dev-db-sync-full dev-frontend dev
 
 # Generate GraphQL and Ent code
 generate:
@@ -191,6 +191,7 @@ status:       ## Show prod + dev container status
 
 # ── Development (docker-compose.dev.yml, port 18090) ─────────
 dev-up:       ## Stop any running dev, then build + start fresh (port 18090)
+	@test -f .env.dev.local || { echo "ERROR: 缺少本机凭据文件 .env.dev.local（仅需设置 LLM_PROXY_DB_DSN）" >&2; exit 1; }
 	@if docker ps --format '{{.Names}}' | grep -qx 'llm-proxy-dev'; then \
 		echo "==> Stopping existing llm-proxy-dev container..."; \
 		docker compose -f docker-compose.dev.yml stop llm-proxy; \
@@ -225,6 +226,20 @@ dev-db-sync-schema: ## Copy prod schema into EMPTY dev DB only (no data or crede
 	echo "==> Applying schema to empty dev database llm-proxy-dev..."; \
 	docker exec -i postgres psql -U dev -d 'llm-proxy-dev' -v ON_ERROR_STOP=1 < "$$dump_file"; \
 	echo "==> Done. No prod data, API Keys, OAuth tokens, or channel Cookies were copied."
+
+dev-db-sync-full: dev-down ## Replace dev DB with a full prod snapshot (includes secrets)
+	@set -eu; \
+	dump_file=$$(mktemp); \
+	trap 'rm -f "$$dump_file"' EXIT; \
+	echo "==> Dumping full prod database llm-proxy..."; \
+	docker exec postgres pg_dump -U dev -d 'llm-proxy' --clean --if-exists --no-owner --no-privileges > "$$dump_file"; \
+	echo "==> Terminating dev DB connections and recreating llm-proxy-dev..."; \
+	docker exec postgres psql -U dev -d postgres -v ON_ERROR_STOP=1 -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'llm-proxy-dev' AND pid <> pg_backend_pid();"; \
+	docker exec postgres dropdb -U dev --if-exists 'llm-proxy-dev'; \
+	docker exec postgres createdb -U dev -O dev 'llm-proxy-dev'; \
+	echo "==> Restoring full prod snapshot into llm-proxy-dev..."; \
+	docker exec -i postgres psql -U dev -d 'llm-proxy-dev' -v ON_ERROR_STOP=1 < "$$dump_file"; \
+	echo "==> Done. dev now contains a full prod copy, including credentials."
 
 dev-frontend: ## Run frontend Vite dev server (assumes dev backend on 18090)
 	cd frontend && VITE_API_URL=http://localhost:18090 pnpm dev --port 15173

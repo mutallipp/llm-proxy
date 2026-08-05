@@ -112,16 +112,17 @@ llm-proxy 是基于原 AxonHub 核心能力维护的统一 AI 网关（前身名
 | `make restart` | 重新创建 prod 容器 |
 | `make logs` | tail prod 容器日志 |
 | `make status` | 查看 prod / dev 容器运行状态 |
-| `make dev-up` | **幂等部署**：先停掉已有 `llm-proxy-dev` 容器，再 build + up 新容器（端口 18090） |
+| `make dev-up` | **幂等部署**：先停掉已有 `llm-proxy-dev` 容器，再 build + up 新容器（端口 18090；需本机 `.env.dev.local` 提供 DB DSN） |
 | `make dev-down` | 停止并删除 dev 容器 |
 | `make dev-logs` | tail dev 容器日志 |
 | `make dev-restart` | 重新创建 dev 容器 |
 | `make dev-clean` | 停止 dev + 删除 dev 镜像 |
 | `make dev-db-sync-schema` | 将 prod 的表/索引/约束复制到**空** dev DB；不复制任何数据或凭据 |
+| `make dev-db-sync-full` | **破坏性操作**：停掉 dev、重建 dev DB，并复制完整 prod 数据（含 API Key、OAuth token、Channel Cookie） |
 | `make dev-frontend` | 本地起 Vite dev（端口 15173，代理到 18090） |
 | `make dev` | 一键：起 dev 后端 + 前台跑 Vite（Ctrl+C 退出前端后需 `make dev-down` 停后端） |
 
-dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。需要按线上结构初始化空 dev 库时，执行 `make dev-db-sync-schema`；该 target 非破坏性地拒绝非空 dev 库，且只同步 schema，不会复制 API Key、OAuth token 或 Channel Cookie。
+dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立库），dev 容器名为 `llm-proxy-dev`，互不冲突。`.env.dev` 只放可提交的默认配置；本机创建被忽略的 `.env.dev.local` 并在其中设置 `LLM_PROXY_DB_DSN` 后才能运行 `make dev-up`。需要按线上结构初始化空 dev 库时，执行 `make dev-db-sync-schema`；该 target 非破坏性地拒绝非空 dev 库，且只同步 schema，不会复制 API Key、OAuth token 或 Channel Cookie。需要完整复刻线上数据时，执行 `make dev-db-sync-full`；它会停止 dev、销毁并重建 dev DB，再导入 prod 全量快照，**会复制敏感凭据，且覆盖现有 dev 数据**。
 
 ## 已知问题（不阻塞部署）
 
