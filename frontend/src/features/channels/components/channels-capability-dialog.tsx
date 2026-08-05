@@ -176,14 +176,14 @@ export function ChannelsCapabilityDialog({ channel, open, onOpenChange }: Props)
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className='flex max-h-[90vh] flex-col overflow-hidden sm:max-w-3xl'>
-        <DialogHeader className='text-left'>
+      <DialogContent className='grid max-h-[90vh] min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-3xl'>
+        <DialogHeader className='min-h-0 text-left'>
           <DialogTitle>{t('channels.capability.title')}</DialogTitle>
           <DialogDescription>{t('channels.capability.description')}</DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className='min-h-0 flex-1 pr-4'>
-          <div className='space-y-5'>
+        <ScrollArea className='min-h-0 pr-4'>
+          <div className='space-y-5 pb-1'>
             <section className='space-y-3 rounded-md border p-3'>
               <div>
                 <h3 className='font-medium'>{t('channels.capability.protocols.title')}</h3>
@@ -273,7 +273,7 @@ export function ChannelsCapabilityDialog({ channel, open, onOpenChange }: Props)
           </div>
         </ScrollArea>
 
-        <DialogFooter className='shrink-0 border-t pt-4'>
+        <DialogFooter className='min-h-0 border-t bg-background pt-4'>
           <Button variant='outline' onClick={() => onOpenChange(false)}>{t('common.buttons.cancel')}</Button>
           <Button onClick={handleSave} disabled={saveCapabilities.isPending}>{t('common.buttons.save')}</Button>
         </DialogFooter>
