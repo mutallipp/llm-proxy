@@ -96,6 +96,7 @@ bun.lock
 .env
 .env.*
 !.env.example
+!.env.dev
 # Docker Compose 本地覆盖配置（不入仓）
 docker-compose.override.yml
 docker-compose.*.local.yml
