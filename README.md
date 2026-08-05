@@ -542,7 +542,7 @@ For detailed development instructions, architecture design, and contribution gui
 | **prod**（生产） | 8090 | `docker-compose.yml` + `.env` | `llm-proxy` | `make start` / `make stop` / `make restart` / `make logs` |
 | **dev**（本地开发） | 后端 18090、前端 15173 | `docker-compose.dev.yml` + `.env.dev` | `llm-proxy-dev`（独立库） | `make dev-up` / `make dev-frontend` / `make dev-down` |
 
-dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立 PostgreSQL 库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。
+dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立 PostgreSQL 库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。如需以线上库的最新表结构初始化**空** dev 库，执行 `make dev-db-sync-schema`：它同步表、索引、约束与序列，但不会复制业务数据、API Key、OAuth token 或渠道 Cookie；dev 库非空时会拒绝执行，避免误覆盖开发数据。
 
 环境变量已统一为 `LLM_PROXY_*` 前缀（旧 `AXONHUB_*` 已彻底移除）。常见字段：
 

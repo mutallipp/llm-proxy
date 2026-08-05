@@ -6,7 +6,7 @@
 	lint lint-privacy \
 	generate-schema \
 	start stop restart logs status \
-	dev-up dev-down dev-logs dev-restart dev-clean dev-frontend dev
+	dev-up dev-down dev-logs dev-restart dev-clean dev-db-sync-schema dev-frontend dev
 
 # Generate GraphQL and Ent code
 generate:
@@ -162,6 +162,9 @@ lint-all:
 
 # Generate JSON schema for configuration
 generate-schema:
+	@echo "Generating JSON schema for configuration..."
+	@cd cmd/schema && go run . > ../../config.schema.json
+	@echo "JSON schema generated at config.schema.json"
 
 # ── Production (docker-compose.yml, port 8090) ─────────────────
 start:        ## Stop any running prod, then build + start fresh (port 8090)
@@ -208,6 +211,21 @@ dev-restart:  ## Force-recreate dev container
 dev-clean:    ## Stop dev + remove dev image (drops dev DB manually: DROP DATABASE "llm-proxy-dev")
 	docker compose -f docker-compose.dev.yml down --rmi local
 
+dev-db-sync-schema: ## Copy prod schema into EMPTY dev DB only (no data or credentials)
+	@set -eu; \
+	table_count=$$(docker exec postgres psql -U dev -d 'llm-proxy-dev' -Atc "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';"); \
+	if [ "$$table_count" -ne 0 ]; then \
+		echo "ERROR: llm-proxy-dev already has $$table_count public tables; refusing to overwrite dev data." >&2; \
+		exit 1; \
+	fi; \
+	dump_file=$$(mktemp); \
+	trap 'rm -f "$$dump_file"' EXIT; \
+	echo "==> Dumping schema from prod database llm-proxy..."; \
+	docker exec postgres pg_dump -U dev -d 'llm-proxy' --schema-only --no-owner --no-privileges > "$$dump_file"; \
+	echo "==> Applying schema to empty dev database llm-proxy-dev..."; \
+	docker exec -i postgres psql -U dev -d 'llm-proxy-dev' -v ON_ERROR_STOP=1 < "$$dump_file"; \
+	echo "==> Done. No prod data, API Keys, OAuth tokens, or channel Cookies were copied."
+
 dev-frontend: ## Run frontend Vite dev server (assumes dev backend on 18090)
 	cd frontend && VITE_API_URL=http://localhost:18090 pnpm dev --port 15173
 
@@ -215,10 +233,6 @@ dev:          ## Start dev backend, then run Vite dev in foreground (Ctrl+C exit
 	@echo "Starting dev backend on :18090 (Ctrl+C exits frontend only, run 'make dev-down' to stop backend)..."
 	$(MAKE) dev-up
 	$(MAKE) dev-frontend
-
-	@echo "Generating JSON schema for configuration..."
-	@cd cmd/schema && go run . > ../../config.schema.json
-	@echo "JSON schema generated at config.schema.json"
 
 # Run all lint checks
 lint: lint-all lint-privacy

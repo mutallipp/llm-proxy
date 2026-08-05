@@ -117,10 +117,11 @@ llm-proxy 是基于原 AxonHub 核心能力维护的统一 AI 网关（前身名
 | `make dev-logs` | tail dev 容器日志 |
 | `make dev-restart` | 重新创建 dev 容器 |
 | `make dev-clean` | 停止 dev + 删除 dev 镜像 |
+| `make dev-db-sync-schema` | 将 prod 的表/索引/约束复制到**空** dev DB；不复制任何数据或凭据 |
 | `make dev-frontend` | 本地起 Vite dev（端口 15173，代理到 18090） |
 | `make dev` | 一键：起 dev 后端 + 前台跑 Vite（Ctrl+C 退出前端后需 `make dev-down` 停后端） |
 
-dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。
+dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。需要按线上结构初始化空 dev 库时，执行 `make dev-db-sync-schema`；该 target 非破坏性地拒绝非空 dev 库，且只同步 schema，不会复制 API Key、OAuth token 或 Channel Cookie。
 
 ## 已知问题（不阻塞部署）
 
