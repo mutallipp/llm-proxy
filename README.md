@@ -535,6 +535,28 @@ For detailed SDK usage examples and code samples, please refer to the API docume
 
 For detailed development instructions, architecture design, and contribution guidelines, please see [docs/en/development/development.md](docs/en/development/development.md).
 
+### 本地开发 vs 生产部署
+
+| 场景 | 端口 | 配置文件 | 数据库 | 启动命令 |
+|---|---|---|---|---|
+| **prod**（生产） | 8090 | `docker-compose.yml` + `.env` | `llm-proxy` | `make start` / `make stop` / `make restart` / `make logs` |
+| **dev**（本地开发） | 后端 18090、前端 15173 | `docker-compose.dev.yml` + `.env.dev` | `llm-proxy-dev`（独立库） | `make dev-up` / `make dev-frontend` / `make dev-down` |
+
+dev 与 prod 状态完全隔离：dev DB 库名为 `llm-proxy-dev`（独立 PostgreSQL 库），dev 容器名为 `llm-proxy-dev`，互不冲突。dev 首次启动前需手动 `CREATE DATABASE "llm-proxy-dev"`。
+
+环境变量已统一为 `LLM_PROXY_*` 前缀（旧 `AXONHUB_*` 已彻底移除）。常见字段：
+
+```bash
+LLM_PROXY_DB_DSN          # 数据库连接串
+LLM_PROXY_DB_DIALECT      # postgres | sqlite | mysql | tidb
+LLM_PROXY_SERVER_PORT     # 监听端口
+LLM_PROXY_SERVER_HOST     # 监听地址
+LLM_PROXY_LOG_LEVEL       # debug | info | warn | error
+LLM_PROXY_HTTP_PROXY      # 出口代理（可选）
+```
+
+完整配置字段见 [`conf/conf.go`](conf/conf.go) 和 [`config.example.yml`](config.example.yml)。
+
 ---
 
 ## 🤝 Acknowledgments
