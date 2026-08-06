@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { IconEdit, IconFlask, IconLoader2, IconPencil, IconPlus, IconRefresh, IconTrash, IconPower } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -723,7 +724,7 @@ export default function AdaptersManagement() {
     <div className='flex flex-1 flex-col overflow-hidden'>
       <Header fixed>
         <div>
-          <h1 className='text-xl font-semibold'>Adapter 管理</h1>
+          <h1 data-testid='adapters-page-heading' className='text-xl font-semibold'>Adapter 管理</h1>
           <p className='text-muted-foreground text-sm'>配置消费入口与逻辑模型绑定</p>
         </div>
         <div className='ml-auto flex gap-2'>
