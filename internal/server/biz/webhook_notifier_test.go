@@ -49,7 +49,7 @@ func TestWebhookNotifier_NotifyChannelAutoDisabled(t *testing.T) {
 		require.NoError(t, err)
 
 		receivedBody = string(body)
-		receivedHeader = r.Header.Get("X-Axonhub-Event")
+		receivedHeader = r.Header.Get("X-llm-proxy-Event")
 
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))

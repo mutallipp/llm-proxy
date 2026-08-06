@@ -581,7 +581,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                   <div className='bg-muted/20 flex h-[500px] items-center justify-center rounded-lg border p-4 text-center'>
                     <p className='text-muted-foreground text-sm'>{t('requests.availability.requestBody')}</p>
                   </div>
-                )
+                )}
               </div>
             </TabsContent>
 
@@ -957,14 +957,14 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                       </Card>
                     );
                   })}
+                  {hasMoreExecutions && (
+                    <div className='flex justify-center pt-2'>
+                      <Button variant='outline' onClick={() => fetchMoreExecutions()} disabled={isFetchingMoreExecutions}>
+                        {isFetchingMoreExecutions ? t('requests.detail.executions.loadingMore') : t('requests.detail.executions.loadMore')}
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {hasMoreExecutions && (
-                  <div className='flex justify-center pt-2'>
-                    <Button variant='outline' onClick={() => fetchMoreExecutions()} disabled={isFetchingMoreExecutions}>
-                      {isFetchingMoreExecutions ? t('requests.detail.executions.loadingMore') : t('requests.detail.executions.loadMore')}
-                    </Button>
-                  </div>
-                )}
               ) : (
                 <div className='py-16 text-center'>
                   <div className='space-y-4'>
