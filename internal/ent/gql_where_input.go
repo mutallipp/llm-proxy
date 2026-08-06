@@ -6510,6 +6510,24 @@ type RequestWhereInput struct {
 	FormatEqualFold    *string  `json:"formatEqualFold,omitempty"`
 	FormatContainsFold *string  `json:"formatContainsFold,omitempty"`
 
+	// "request_body_availability" field predicates.
+	RequestBodyAvailability      *request.RequestBodyAvailability  `json:"requestBodyAvailability,omitempty"`
+	RequestBodyAvailabilityNEQ   *request.RequestBodyAvailability  `json:"requestBodyAvailabilityNEQ,omitempty"`
+	RequestBodyAvailabilityIn    []request.RequestBodyAvailability `json:"requestBodyAvailabilityIn,omitempty"`
+	RequestBodyAvailabilityNotIn []request.RequestBodyAvailability `json:"requestBodyAvailabilityNotIn,omitempty"`
+
+	// "response_body_availability" field predicates.
+	ResponseBodyAvailability      *request.ResponseBodyAvailability  `json:"responseBodyAvailability,omitempty"`
+	ResponseBodyAvailabilityNEQ   *request.ResponseBodyAvailability  `json:"responseBodyAvailabilityNEQ,omitempty"`
+	ResponseBodyAvailabilityIn    []request.ResponseBodyAvailability `json:"responseBodyAvailabilityIn,omitempty"`
+	ResponseBodyAvailabilityNotIn []request.ResponseBodyAvailability `json:"responseBodyAvailabilityNotIn,omitempty"`
+
+	// "response_chunks_availability" field predicates.
+	ResponseChunksAvailability      *request.ResponseChunksAvailability  `json:"responseChunksAvailability,omitempty"`
+	ResponseChunksAvailabilityNEQ   *request.ResponseChunksAvailability  `json:"responseChunksAvailabilityNEQ,omitempty"`
+	ResponseChunksAvailabilityIn    []request.ResponseChunksAvailability `json:"responseChunksAvailabilityIn,omitempty"`
+	ResponseChunksAvailabilityNotIn []request.ResponseChunksAvailability `json:"responseChunksAvailabilityNotIn,omitempty"`
+
 	// "channel_id" field predicates.
 	ChannelID       *int  `json:"channelID,omitempty"`
 	ChannelIDNEQ    *int  `json:"channelIDNEQ,omitempty"`
@@ -6517,6 +6535,43 @@ type RequestWhereInput struct {
 	ChannelIDNotIn  []int `json:"channelIDNotIn,omitempty"`
 	ChannelIDIsNil  bool  `json:"channelIDIsNil,omitempty"`
 	ChannelIDNotNil bool  `json:"channelIDNotNil,omitempty"`
+
+	// "test_origin_type" field predicates.
+	TestOriginType       *request.TestOriginType  `json:"testOriginType,omitempty"`
+	TestOriginTypeNEQ    *request.TestOriginType  `json:"testOriginTypeNEQ,omitempty"`
+	TestOriginTypeIn     []request.TestOriginType `json:"testOriginTypeIn,omitempty"`
+	TestOriginTypeNotIn  []request.TestOriginType `json:"testOriginTypeNotIn,omitempty"`
+	TestOriginTypeIsNil  bool                     `json:"testOriginTypeIsNil,omitempty"`
+	TestOriginTypeNotNil bool                     `json:"testOriginTypeNotNil,omitempty"`
+
+	// "test_origin_id" field predicates.
+	TestOriginID       *int  `json:"testOriginID,omitempty"`
+	TestOriginIDNEQ    *int  `json:"testOriginIDNEQ,omitempty"`
+	TestOriginIDIn     []int `json:"testOriginIDIn,omitempty"`
+	TestOriginIDNotIn  []int `json:"testOriginIDNotIn,omitempty"`
+	TestOriginIDGT     *int  `json:"testOriginIDGT,omitempty"`
+	TestOriginIDGTE    *int  `json:"testOriginIDGTE,omitempty"`
+	TestOriginIDLT     *int  `json:"testOriginIDLT,omitempty"`
+	TestOriginIDLTE    *int  `json:"testOriginIDLTE,omitempty"`
+	TestOriginIDIsNil  bool  `json:"testOriginIDIsNil,omitempty"`
+	TestOriginIDNotNil bool  `json:"testOriginIDNotNil,omitempty"`
+
+	// "test_origin_label" field predicates.
+	TestOriginLabel             *string  `json:"testOriginLabel,omitempty"`
+	TestOriginLabelNEQ          *string  `json:"testOriginLabelNEQ,omitempty"`
+	TestOriginLabelIn           []string `json:"testOriginLabelIn,omitempty"`
+	TestOriginLabelNotIn        []string `json:"testOriginLabelNotIn,omitempty"`
+	TestOriginLabelGT           *string  `json:"testOriginLabelGT,omitempty"`
+	TestOriginLabelGTE          *string  `json:"testOriginLabelGTE,omitempty"`
+	TestOriginLabelLT           *string  `json:"testOriginLabelLT,omitempty"`
+	TestOriginLabelLTE          *string  `json:"testOriginLabelLTE,omitempty"`
+	TestOriginLabelContains     *string  `json:"testOriginLabelContains,omitempty"`
+	TestOriginLabelHasPrefix    *string  `json:"testOriginLabelHasPrefix,omitempty"`
+	TestOriginLabelHasSuffix    *string  `json:"testOriginLabelHasSuffix,omitempty"`
+	TestOriginLabelIsNil        bool     `json:"testOriginLabelIsNil,omitempty"`
+	TestOriginLabelNotNil       bool     `json:"testOriginLabelNotNil,omitempty"`
+	TestOriginLabelEqualFold    *string  `json:"testOriginLabelEqualFold,omitempty"`
+	TestOriginLabelContainsFold *string  `json:"testOriginLabelContainsFold,omitempty"`
 
 	// "external_id" field predicates.
 	ExternalID             *string  `json:"externalID,omitempty"`
@@ -7014,6 +7069,42 @@ func (i *RequestWhereInput) P() (predicate.Request, error) {
 	if i.FormatContainsFold != nil {
 		predicates = append(predicates, request.FormatContainsFold(*i.FormatContainsFold))
 	}
+	if i.RequestBodyAvailability != nil {
+		predicates = append(predicates, request.RequestBodyAvailabilityEQ(*i.RequestBodyAvailability))
+	}
+	if i.RequestBodyAvailabilityNEQ != nil {
+		predicates = append(predicates, request.RequestBodyAvailabilityNEQ(*i.RequestBodyAvailabilityNEQ))
+	}
+	if len(i.RequestBodyAvailabilityIn) > 0 {
+		predicates = append(predicates, request.RequestBodyAvailabilityIn(i.RequestBodyAvailabilityIn...))
+	}
+	if len(i.RequestBodyAvailabilityNotIn) > 0 {
+		predicates = append(predicates, request.RequestBodyAvailabilityNotIn(i.RequestBodyAvailabilityNotIn...))
+	}
+	if i.ResponseBodyAvailability != nil {
+		predicates = append(predicates, request.ResponseBodyAvailabilityEQ(*i.ResponseBodyAvailability))
+	}
+	if i.ResponseBodyAvailabilityNEQ != nil {
+		predicates = append(predicates, request.ResponseBodyAvailabilityNEQ(*i.ResponseBodyAvailabilityNEQ))
+	}
+	if len(i.ResponseBodyAvailabilityIn) > 0 {
+		predicates = append(predicates, request.ResponseBodyAvailabilityIn(i.ResponseBodyAvailabilityIn...))
+	}
+	if len(i.ResponseBodyAvailabilityNotIn) > 0 {
+		predicates = append(predicates, request.ResponseBodyAvailabilityNotIn(i.ResponseBodyAvailabilityNotIn...))
+	}
+	if i.ResponseChunksAvailability != nil {
+		predicates = append(predicates, request.ResponseChunksAvailabilityEQ(*i.ResponseChunksAvailability))
+	}
+	if i.ResponseChunksAvailabilityNEQ != nil {
+		predicates = append(predicates, request.ResponseChunksAvailabilityNEQ(*i.ResponseChunksAvailabilityNEQ))
+	}
+	if len(i.ResponseChunksAvailabilityIn) > 0 {
+		predicates = append(predicates, request.ResponseChunksAvailabilityIn(i.ResponseChunksAvailabilityIn...))
+	}
+	if len(i.ResponseChunksAvailabilityNotIn) > 0 {
+		predicates = append(predicates, request.ResponseChunksAvailabilityNotIn(i.ResponseChunksAvailabilityNotIn...))
+	}
 	if i.ChannelID != nil {
 		predicates = append(predicates, request.ChannelIDEQ(*i.ChannelID))
 	}
@@ -7031,6 +7122,99 @@ func (i *RequestWhereInput) P() (predicate.Request, error) {
 	}
 	if i.ChannelIDNotNil {
 		predicates = append(predicates, request.ChannelIDNotNil())
+	}
+	if i.TestOriginType != nil {
+		predicates = append(predicates, request.TestOriginTypeEQ(*i.TestOriginType))
+	}
+	if i.TestOriginTypeNEQ != nil {
+		predicates = append(predicates, request.TestOriginTypeNEQ(*i.TestOriginTypeNEQ))
+	}
+	if len(i.TestOriginTypeIn) > 0 {
+		predicates = append(predicates, request.TestOriginTypeIn(i.TestOriginTypeIn...))
+	}
+	if len(i.TestOriginTypeNotIn) > 0 {
+		predicates = append(predicates, request.TestOriginTypeNotIn(i.TestOriginTypeNotIn...))
+	}
+	if i.TestOriginTypeIsNil {
+		predicates = append(predicates, request.TestOriginTypeIsNil())
+	}
+	if i.TestOriginTypeNotNil {
+		predicates = append(predicates, request.TestOriginTypeNotNil())
+	}
+	if i.TestOriginID != nil {
+		predicates = append(predicates, request.TestOriginIDEQ(*i.TestOriginID))
+	}
+	if i.TestOriginIDNEQ != nil {
+		predicates = append(predicates, request.TestOriginIDNEQ(*i.TestOriginIDNEQ))
+	}
+	if len(i.TestOriginIDIn) > 0 {
+		predicates = append(predicates, request.TestOriginIDIn(i.TestOriginIDIn...))
+	}
+	if len(i.TestOriginIDNotIn) > 0 {
+		predicates = append(predicates, request.TestOriginIDNotIn(i.TestOriginIDNotIn...))
+	}
+	if i.TestOriginIDGT != nil {
+		predicates = append(predicates, request.TestOriginIDGT(*i.TestOriginIDGT))
+	}
+	if i.TestOriginIDGTE != nil {
+		predicates = append(predicates, request.TestOriginIDGTE(*i.TestOriginIDGTE))
+	}
+	if i.TestOriginIDLT != nil {
+		predicates = append(predicates, request.TestOriginIDLT(*i.TestOriginIDLT))
+	}
+	if i.TestOriginIDLTE != nil {
+		predicates = append(predicates, request.TestOriginIDLTE(*i.TestOriginIDLTE))
+	}
+	if i.TestOriginIDIsNil {
+		predicates = append(predicates, request.TestOriginIDIsNil())
+	}
+	if i.TestOriginIDNotNil {
+		predicates = append(predicates, request.TestOriginIDNotNil())
+	}
+	if i.TestOriginLabel != nil {
+		predicates = append(predicates, request.TestOriginLabelEQ(*i.TestOriginLabel))
+	}
+	if i.TestOriginLabelNEQ != nil {
+		predicates = append(predicates, request.TestOriginLabelNEQ(*i.TestOriginLabelNEQ))
+	}
+	if len(i.TestOriginLabelIn) > 0 {
+		predicates = append(predicates, request.TestOriginLabelIn(i.TestOriginLabelIn...))
+	}
+	if len(i.TestOriginLabelNotIn) > 0 {
+		predicates = append(predicates, request.TestOriginLabelNotIn(i.TestOriginLabelNotIn...))
+	}
+	if i.TestOriginLabelGT != nil {
+		predicates = append(predicates, request.TestOriginLabelGT(*i.TestOriginLabelGT))
+	}
+	if i.TestOriginLabelGTE != nil {
+		predicates = append(predicates, request.TestOriginLabelGTE(*i.TestOriginLabelGTE))
+	}
+	if i.TestOriginLabelLT != nil {
+		predicates = append(predicates, request.TestOriginLabelLT(*i.TestOriginLabelLT))
+	}
+	if i.TestOriginLabelLTE != nil {
+		predicates = append(predicates, request.TestOriginLabelLTE(*i.TestOriginLabelLTE))
+	}
+	if i.TestOriginLabelContains != nil {
+		predicates = append(predicates, request.TestOriginLabelContains(*i.TestOriginLabelContains))
+	}
+	if i.TestOriginLabelHasPrefix != nil {
+		predicates = append(predicates, request.TestOriginLabelHasPrefix(*i.TestOriginLabelHasPrefix))
+	}
+	if i.TestOriginLabelHasSuffix != nil {
+		predicates = append(predicates, request.TestOriginLabelHasSuffix(*i.TestOriginLabelHasSuffix))
+	}
+	if i.TestOriginLabelIsNil {
+		predicates = append(predicates, request.TestOriginLabelIsNil())
+	}
+	if i.TestOriginLabelNotNil {
+		predicates = append(predicates, request.TestOriginLabelNotNil())
+	}
+	if i.TestOriginLabelEqualFold != nil {
+		predicates = append(predicates, request.TestOriginLabelEqualFold(*i.TestOriginLabelEqualFold))
+	}
+	if i.TestOriginLabelContainsFold != nil {
+		predicates = append(predicates, request.TestOriginLabelContainsFold(*i.TestOriginLabelContainsFold))
 	}
 	if i.ExternalID != nil {
 		predicates = append(predicates, request.ExternalIDEQ(*i.ExternalID))
@@ -7588,6 +7772,24 @@ type RequestExecutionWhereInput struct {
 	FormatEqualFold    *string  `json:"formatEqualFold,omitempty"`
 	FormatContainsFold *string  `json:"formatContainsFold,omitempty"`
 
+	// "request_body_availability" field predicates.
+	RequestBodyAvailability      *requestexecution.RequestBodyAvailability  `json:"requestBodyAvailability,omitempty"`
+	RequestBodyAvailabilityNEQ   *requestexecution.RequestBodyAvailability  `json:"requestBodyAvailabilityNEQ,omitempty"`
+	RequestBodyAvailabilityIn    []requestexecution.RequestBodyAvailability `json:"requestBodyAvailabilityIn,omitempty"`
+	RequestBodyAvailabilityNotIn []requestexecution.RequestBodyAvailability `json:"requestBodyAvailabilityNotIn,omitempty"`
+
+	// "response_body_availability" field predicates.
+	ResponseBodyAvailability      *requestexecution.ResponseBodyAvailability  `json:"responseBodyAvailability,omitempty"`
+	ResponseBodyAvailabilityNEQ   *requestexecution.ResponseBodyAvailability  `json:"responseBodyAvailabilityNEQ,omitempty"`
+	ResponseBodyAvailabilityIn    []requestexecution.ResponseBodyAvailability `json:"responseBodyAvailabilityIn,omitempty"`
+	ResponseBodyAvailabilityNotIn []requestexecution.ResponseBodyAvailability `json:"responseBodyAvailabilityNotIn,omitempty"`
+
+	// "response_chunks_availability" field predicates.
+	ResponseChunksAvailability      *requestexecution.ResponseChunksAvailability  `json:"responseChunksAvailability,omitempty"`
+	ResponseChunksAvailabilityNEQ   *requestexecution.ResponseChunksAvailability  `json:"responseChunksAvailabilityNEQ,omitempty"`
+	ResponseChunksAvailabilityIn    []requestexecution.ResponseChunksAvailability `json:"responseChunksAvailabilityIn,omitempty"`
+	ResponseChunksAvailabilityNotIn []requestexecution.ResponseChunksAvailability `json:"responseChunksAvailabilityNotIn,omitempty"`
+
 	// "error_message" field predicates.
 	ErrorMessage             *string  `json:"errorMessage,omitempty"`
 	ErrorMessageNEQ          *string  `json:"errorMessageNEQ,omitempty"`
@@ -8034,6 +8236,42 @@ func (i *RequestExecutionWhereInput) P() (predicate.RequestExecution, error) {
 	}
 	if i.FormatContainsFold != nil {
 		predicates = append(predicates, requestexecution.FormatContainsFold(*i.FormatContainsFold))
+	}
+	if i.RequestBodyAvailability != nil {
+		predicates = append(predicates, requestexecution.RequestBodyAvailabilityEQ(*i.RequestBodyAvailability))
+	}
+	if i.RequestBodyAvailabilityNEQ != nil {
+		predicates = append(predicates, requestexecution.RequestBodyAvailabilityNEQ(*i.RequestBodyAvailabilityNEQ))
+	}
+	if len(i.RequestBodyAvailabilityIn) > 0 {
+		predicates = append(predicates, requestexecution.RequestBodyAvailabilityIn(i.RequestBodyAvailabilityIn...))
+	}
+	if len(i.RequestBodyAvailabilityNotIn) > 0 {
+		predicates = append(predicates, requestexecution.RequestBodyAvailabilityNotIn(i.RequestBodyAvailabilityNotIn...))
+	}
+	if i.ResponseBodyAvailability != nil {
+		predicates = append(predicates, requestexecution.ResponseBodyAvailabilityEQ(*i.ResponseBodyAvailability))
+	}
+	if i.ResponseBodyAvailabilityNEQ != nil {
+		predicates = append(predicates, requestexecution.ResponseBodyAvailabilityNEQ(*i.ResponseBodyAvailabilityNEQ))
+	}
+	if len(i.ResponseBodyAvailabilityIn) > 0 {
+		predicates = append(predicates, requestexecution.ResponseBodyAvailabilityIn(i.ResponseBodyAvailabilityIn...))
+	}
+	if len(i.ResponseBodyAvailabilityNotIn) > 0 {
+		predicates = append(predicates, requestexecution.ResponseBodyAvailabilityNotIn(i.ResponseBodyAvailabilityNotIn...))
+	}
+	if i.ResponseChunksAvailability != nil {
+		predicates = append(predicates, requestexecution.ResponseChunksAvailabilityEQ(*i.ResponseChunksAvailability))
+	}
+	if i.ResponseChunksAvailabilityNEQ != nil {
+		predicates = append(predicates, requestexecution.ResponseChunksAvailabilityNEQ(*i.ResponseChunksAvailabilityNEQ))
+	}
+	if len(i.ResponseChunksAvailabilityIn) > 0 {
+		predicates = append(predicates, requestexecution.ResponseChunksAvailabilityIn(i.ResponseChunksAvailabilityIn...))
+	}
+	if len(i.ResponseChunksAvailabilityNotIn) > 0 {
+		predicates = append(predicates, requestexecution.ResponseChunksAvailabilityNotIn(i.ResponseChunksAvailabilityNotIn...))
 	}
 	if i.ErrorMessage != nil {
 		predicates = append(predicates, requestexecution.ErrorMessageEQ(*i.ErrorMessage))

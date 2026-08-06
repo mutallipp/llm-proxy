@@ -49,9 +49,12 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
   const { data: requestData, isLoading } = useRequest(requestId, { projectId, disableAutoRefresh: isPreviewStreaming });
   const request = previewRequest ?? requestData;
   const {
-    data: executions,
+    data: executionPages,
     isLoading: isExecutionsLoading,
     isError: isExecutionsError,
+    hasNextPage: hasMoreExecutions,
+    fetchNextPage: fetchMoreExecutions,
+    isFetchingNextPage: isFetchingMoreExecutions,
   } = useRequestExecutions(
     requestId,
     {
@@ -60,6 +63,16 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
     },
     { projectId }
   );
+  const executions = useMemo(() => {
+    const pages = executionPages?.pages ?? [];
+    const lastPage = pages[pages.length - 1];
+    return {
+      edges: pages.flatMap((page) => page.edges),
+      pageInfo: lastPage?.pageInfo,
+      totalCount: lastPage?.totalCount ?? 0,
+    };
+  }, [executionPages]);
+
   const { data: usageLogs } = useUsageLogs(
     {
       first: 1,
@@ -69,18 +82,25 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
     { projectId, enabled: true }
   );
 
+  const hasPersistedResponseChunks = request?.responseChunksPersistedAvailability === 'available';
+  const hasLiveResponseChunks = request?.responseChunksLive === true && request?.stream === true && request?.status === 'processing' && Array.isArray(request.responseChunks) && request.responseChunks.length > 0;
+  const canShowResponseChunks = hasPersistedResponseChunks || hasLiveResponseChunks;
+  const responseChunksForDisplay = canShowResponseChunks ? request?.responseChunks : undefined;
+
   const parsedResponse = useMemo(() => {
     if (!request) return { content: '', reasoning: '', toolCalls: [] };
+    const responseBody = request.responseBodyAvailability === 'available' ? request.responseBody : undefined;
     if (previewRequest) {
-      return parseResponse(undefined, previewRequest.responseChunks);
+      return parseResponse(undefined, responseChunksForDisplay);
     }
-    return parseResponse(request.responseBody, request.responseChunks);
-  }, [previewRequest, request]);
+    return parseResponse(responseBody, responseChunksForDisplay);
+  }, [previewRequest, request, responseChunksForDisplay]);
 
   const hasPreviewData = !!(parsedResponse.content || parsedResponse.reasoning || parsedResponse.toolCalls.length > 0);
-  const isLive = isPreviewStreaming || !!(request?.status === 'processing' && request?.stream);
-  const hasResponseBody = !!(request?.responseBody && Object.keys(request.responseBody).length > 0);
-  const hasResponseChunks = !!(request?.responseChunks && request.responseChunks.length > 0);
+  const isLive = isPreviewStreaming || hasLiveResponseChunks;
+  const hasRequestBody = request?.requestBodyAvailability === 'available';
+  const hasResponseBody = request?.responseBodyAvailability === 'available';
+  const hasResponseChunks = canShowResponseChunks;
 
   const extractResponseText = useCallback(() => {
     if (!request) return '';
@@ -259,17 +279,15 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
   }, [isSpeechRequest, hasStoredContent, request?.id]);
 
   const showResponseChunksModal = useCallback(() => {
-    if (request?.responseChunks) {
-      setSelectedResponseChunks(request.responseChunks);
+    if (canShowResponseChunks) {
+      setSelectedResponseChunks(responseChunksForDisplay ?? []);
       setShowResponseChunks(true);
     }
-  }, [request]);
+  }, [canShowResponseChunks, responseChunksForDisplay]);
 
   const showExecutionChunksModal = useCallback((chunks: any[]) => {
-    if (chunks && chunks.length > 0) {
-      setSelectedExecutionChunks(chunks);
-      setShowExecutionChunks(true);
-    }
+    setSelectedExecutionChunks(chunks);
+    setShowExecutionChunks(true);
   }, []);
 
   const formatJson = (data: any) => {
@@ -508,7 +526,8 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                   variant='outline'
                   size='sm'
                   onClick={() => showRequestCurlPreview(request.requestHeaders, request.requestBody, request.format)}
-                  className='hover:bg-primary hover:text-primary-foreground'
+                  disabled={!hasRequestBody || request.requestBody == null}
+                  className='hover:bg-primary hover:text-primary-foreground disabled:opacity-50'
                 >
                   <Terminal className='mr-2 h-4 w-4' />
                   {t('requests.actions.copyCurl')}
@@ -544,19 +563,25 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                     {t('requests.columns.requestBody')}
                   </h4>
                   <div className='flex gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => copyToClipboard(formatJson(request.requestBody))} className='hover:bg-primary hover:text-primary-foreground'>
+                    <Button variant='outline' size='sm' onClick={() => copyToClipboard(formatJson(request.requestBody))} disabled={!hasRequestBody} className='hover:bg-primary hover:text-primary-foreground disabled:opacity-50'>
                       <Copy className='mr-2 h-4 w-4' />
                       {t('requests.dialogs.jsonViewer.copy')}
                     </Button>
-                    <Button variant='outline' size='sm' onClick={() => downloadFile(formatJson(request.requestBody), `request-body-${request.id}.json`)} className='hover:bg-primary hover:text-primary-foreground'>
+                    <Button variant='outline' size='sm' onClick={() => downloadFile(formatJson(request.requestBody), `request-body-${request.id}.json`)} disabled={!hasRequestBody} className='hover:bg-primary hover:text-primary-foreground disabled:opacity-50'>
                       <Download className='mr-2 h-4 w-4' />
                       {t('requests.dialogs.jsonViewer.download')}
                     </Button>
                   </div>
                 </div>
-                <div className='bg-muted/20 h-[500px] w-full overflow-auto rounded-lg border p-4'>
-                  <JsonViewer data={request.requestBody} rootName='' defaultExpanded={true} expandDepth='all' hideArrayIndices={true} className='text-sm' />
-                </div>
+                {hasRequestBody ? (
+                  <div className='bg-muted/20 h-[500px] w-full overflow-auto rounded-lg border p-4'>
+                    <JsonViewer data={request.requestBody} rootName='' defaultExpanded={true} expandDepth='all' hideArrayIndices={true} className='text-sm' />
+                  </div>
+                ) : (
+                  <div className='bg-muted/20 flex h-[500px] items-center justify-center rounded-lg border p-4 text-center'>
+                    <p className='text-muted-foreground text-sm'>{t('requests.availability.requestBody')}</p>
+                  </div>
+                )
               </div>
             </TabsContent>
 
@@ -605,6 +630,15 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                         ? t('requests.actions.preview')
                         : t('requests.columns.responseChunks')}
                     </Button>
+                    {hasLiveResponseChunks ? (
+                      <span className='text-muted-foreground text-xs'>{t('requests.availability.responseChunksLive')}</span>
+                    ) : !hasPersistedResponseChunks ? (
+                      <span className='text-muted-foreground text-xs'>
+                        {request.responseChunksPersistedAvailability === 'not_applicable'
+                          ? t('requests.availability.responseChunksNotApplicable')
+                          : t('requests.availability.responseChunks')}
+                      </span>
+                    ) : null}
                     <Button
                       variant='outline'
                       size='sm'
@@ -662,11 +696,15 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                       </div>
                     ) : hasPreviewData || isLive ? (
                       <ResponseFlow
-                        chunks={request.responseChunks}
-                        body={request.responseBody}
+                        chunks={responseChunksForDisplay}
+                        body={request.responseBodyAvailability === 'available' ? request.responseBody : undefined}
                         isLive={isLive}
                         reasoningDurationMs={request.metricsReasoningDurationMs}
                       />
+                    ) : request.responseBodyAvailability !== 'available' && !canShowResponseChunks ? (
+                      <div className='bg-muted/20 flex h-[400px] w-full items-center justify-center rounded-lg border p-4 text-center'>
+                        <p className='text-muted-foreground text-sm'>{t('requests.availability.response')}</p>
+                      </div>
                     ) : request.status === 'processing' ? (
                       <div className='bg-muted/20 flex h-[400px] w-full items-center justify-center rounded-lg border'>
                         <div className='space-y-4 text-center'>
@@ -688,6 +726,10 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                     {hasResponseBody ? (
                       <div className='bg-muted/20 h-[500px] w-full overflow-auto rounded-lg border p-4'>
                         <JsonViewer data={request.responseBody} rootName='' defaultExpanded={true} expandDepth='all' hideArrayIndices={true} className='text-sm' />
+                      </div>
+                    ) : request.responseBodyAvailability !== 'available' ? (
+                      <div className='bg-muted/20 flex h-[500px] w-full items-center justify-center rounded-lg border p-4 text-center'>
+                        <p className='text-muted-foreground text-sm'>{t('requests.availability.responseBody')}</p>
                       </div>
                     ) : request.status === 'processing' ? (
                       <div className='bg-muted/20 flex h-[500px] w-full items-center justify-center rounded-lg border'>
@@ -741,6 +783,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                             <Badge className={getStatusColor(execution.status)} variant='secondary'>
                               {t(`requests.status.${execution.status}`)}
                             </Badge>
+                            {request.source === 'test' && <Badge variant='outline'>{t('requests.testOrigin.badge')}</Badge>}
                             {execution.passThroughApplied && (
                               <Badge className='border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300'>
                                 {t('requests.passThrough.applied')}
@@ -814,7 +857,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                             </div>
                           )}
 
-                          {(execution.requestHeaders || execution.requestBody) && (
+                          {execution.requestBodyAvailability === 'available' && execution.requestBody != null && (
                             <div className='flex justify-end'>
                               <Button variant='outline' size='sm' onClick={() => showExecutionCurlPreview(execution.requestHeaders, execution.requestBody, execution.channel, execution.format, execution.requestURL)} className='hover:bg-primary hover:text-primary-foreground'>
                                 <Terminal className='mr-2 h-4 w-4' />
@@ -847,7 +890,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                             </div>
                           )}
 
-                          {execution.requestBody && (
+                          {execution.requestBodyAvailability === 'available' ? (
                             <div className='space-y-3'>
                               <div className='flex items-center justify-between'>
                                 <span className='flex items-center gap-2 text-sm font-semibold'>
@@ -869,9 +912,11 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                                 <JsonViewer data={execution.requestBody} rootName='' defaultExpanded={false} hideArrayIndices={true} className='text-xs' />
                               </div>
                             </div>
+                          ) : (
+                            <p className='text-muted-foreground text-sm'>{t('requests.availability.requestBody')}</p>
                           )}
 
-                          {execution.responseBody && (
+                          {execution.responseBodyAvailability === 'available' ? (
                             <div className='space-y-3'>
                               <div className='flex items-center justify-between'>
                                 <span className='flex items-center gap-2 text-sm font-semibold'>
@@ -887,22 +932,39 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                                     <Download className='mr-2 h-4 w-4' />
                                     {t('requests.dialogs.jsonViewer.download')}
                                   </Button>
-                                  <Button variant='outline' size='sm' onClick={() => showExecutionChunksModal(execution.responseChunks || [])} disabled={!execution.responseChunks || execution.responseChunks.length === 0} className='hover:bg-primary hover:text-primary-foreground'>
-                                    <Layers className='mr-2 h-4 w-4' />
-                                    {t('requests.columns.responseChunks')}
-                                  </Button>
                                 </div>
                               </div>
                               <div className='bg-background h-80 w-full overflow-auto rounded-lg border p-3'>
                                 <JsonViewer data={execution.responseBody} rootName='' defaultExpanded={false} hideArrayIndices={true} className='text-xs' />
                               </div>
                             </div>
+                          ) : (
+                            <p className='text-muted-foreground text-sm'>{t('requests.availability.responseBody')}</p>
+                          )}
+                          {execution.responseChunksPersistedAvailability === 'available' ? (
+                            <Button variant='outline' size='sm' onClick={() => showExecutionChunksModal(execution.responseChunks ?? [])} className='hover:bg-primary hover:text-primary-foreground'>
+                              <Layers className='mr-2 h-4 w-4' />
+                              {t('requests.columns.responseChunks')}
+                            </Button>
+                          ) : (
+                            <p className='text-muted-foreground text-sm'>
+                              {execution.responseChunksPersistedAvailability === 'not_applicable'
+                                ? t('requests.availability.responseChunksNotApplicable')
+                                : t('requests.availability.responseChunks')}
+                            </p>
                           )}
                         </CardContent>
                       </Card>
                     );
                   })}
                 </div>
+                {hasMoreExecutions && (
+                  <div className='flex justify-center pt-2'>
+                    <Button variant='outline' onClick={() => fetchMoreExecutions()} disabled={isFetchingMoreExecutions}>
+                      {isFetchingMoreExecutions ? t('requests.detail.executions.loadingMore') : t('requests.detail.executions.loadMore')}
+                    </Button>
+                  </div>
+                )}
               ) : (
                 <div className='py-16 text-center'>
                   <div className='space-y-4'>
@@ -919,8 +981,8 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
       <ChunksDialog
         open={showResponseChunks}
         onOpenChange={setShowResponseChunks}
-        chunks={request?.responseChunks ?? []}
-        isLive={request?.stream === true && request?.status === 'processing'}
+        chunks={responseChunksForDisplay ?? []}
+        isLive={hasLiveResponseChunks}
         title={t('requests.dialogs.jsonViewer.responseChunks')}
       />
       <ChunksDialog

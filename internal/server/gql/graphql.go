@@ -68,6 +68,7 @@ type Dependencies struct {
 	ChannelOverrideTemplateService *biz.ChannelOverrideTemplateService
 	APIKeyProfileTemplateService   *biz.APIKeyProfileTemplateService
 	ModelService                   *biz.ModelService
+	AdapterService                 *biz.AdapterService
 	BackupService                  *backup.BackupService
 	ChannelProbeService            *biz.ChannelProbeService
 	PromptService                  *biz.PromptService
@@ -107,6 +108,7 @@ func NewGraphqlHandlers(deps Dependencies) *GraphqlHandler {
 			deps.ChannelOverrideTemplateService,
 			deps.APIKeyProfileTemplateService,
 			deps.ModelService,
+			deps.AdapterService,
 			deps.BackupService,
 			deps.ChannelProbeService,
 			deps.PromptService,
@@ -134,13 +136,12 @@ func NewGraphqlHandlers(deps Dependencies) *GraphqlHandler {
 		Cache: lru.New[string](1024),
 	})
 	gqlSrv.Use(&loggingTracer{})
-	skipTestChannelTransaction := entgql.SkipOperations("TestChannel", "TestChannelAPIKeys")
+	skipTestChannelTransaction := entgql.SkipOperations("TestChannel", "TestChannelAPIKeys", "TestModel", "TestAdapter")
 	skipBulkImportTransaction := entgql.SkipIfHasFields("bulkImportChannels")
 	gqlSrv.Use(entgql.Transactioner{
 		TxOpener: deps.Ent,
-		// TestChannel performs long-running parallel provider requests whose database
-		// operations do not require one transaction. BulkImportChannels manages one
-		// transaction per row to preserve its partial-success behavior.
+		// 三类测试入口会执行长时间的 Provider 请求，不应持有 GraphQL 数据库事务；
+		// BulkImportChannels 仍按行管理事务以保留部分成功语义。
 		SkipTxFunc: func(op *ast.OperationDefinition) bool {
 			return skipTestChannelTransaction(op) || skipBulkImportTransaction(op)
 		},

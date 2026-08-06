@@ -534,3 +534,76 @@ func TestContextContainerWithOtherValues(t *testing.T) {
 		t.Error("Our context values should also be accessible")
 	}
 }
+
+func TestWithTestOrigin(t *testing.T) {
+	ctx := t.Context()
+
+	if origin := GetTestOrigin(ctx); origin != nil {
+		t.Fatalf("expected nil origin on empty context, got %+v", origin)
+	}
+
+	origin := &TestOrigin{Kind: TestOriginChannel, ID: 7, Label: "demo"}
+	ctx = WithTestOrigin(ctx, origin)
+
+	got := GetTestOrigin(ctx)
+	if got == nil {
+		t.Fatal("expected origin to be retrievable")
+	}
+
+	if got.Kind != TestOriginChannel || got.ID != 7 || got.Label != "demo" {
+		t.Errorf("unexpected origin: %+v", got)
+	}
+}
+
+func TestTestOriginValid(t *testing.T) {
+	if !(&TestOrigin{Kind: TestOriginModel, ID: 1}).Valid() {
+		t.Fatal("expected a valid model test origin")
+	}
+	if (&TestOrigin{Kind: TestOriginKind("unknown"), ID: 1}).Valid() {
+		t.Fatal("unknown test origin kind must be rejected")
+	}
+	if (&TestOrigin{Kind: TestOriginModel}).Valid() {
+		t.Fatal("test origin without an ID must be rejected")
+	}
+}
+
+func TestWithTestOriginNil(t *testing.T) {
+	ctx := t.Context()
+
+	ctx = WithTestOrigin(ctx, nil)
+
+	if origin := GetTestOrigin(ctx); origin != nil {
+		t.Fatalf("expected nil origin after WithTestOrigin(nil), got %+v", origin)
+	}
+}
+
+func TestSetTestRequestCapture(t *testing.T) {
+	ctx := t.Context()
+
+	if capture := GetTestRequestCapture(ctx); capture != nil {
+		t.Fatalf("expected nil capture on empty context, got %+v", capture)
+	}
+
+	capture := &TestRequestCapture{RequestID: 42, RelayID: "gid://axonhub/Request/42"}
+	ctx = SetTestRequestCapture(ctx, capture)
+
+	got := GetTestRequestCapture(ctx)
+	if got == nil {
+		t.Fatal("expected capture to be retrievable")
+	}
+
+	if got.RequestID != 42 || got.RelayID != capture.RelayID {
+		t.Errorf("unexpected capture: %+v", got)
+	}
+
+	// SetTestRequestCapture(nil) is a no-op to avoid wiping a captured value.
+	ctx = SetTestRequestCapture(ctx, nil)
+	if got = GetTestRequestCapture(ctx); got == nil || got.RequestID != 42 {
+		t.Errorf("nil assignment must not erase existing capture, got %+v", got)
+	}
+
+	ctx = ClearTestRequestCapture(ctx)
+	if got = GetTestRequestCapture(ctx); got != nil {
+		t.Errorf("clear must remove the capture, got %+v", got)
+	}
+}

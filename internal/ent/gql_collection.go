@@ -3782,20 +3782,50 @@ func (_q *RequestQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 				selectedFields = append(selectedFields, request.FieldRequestBody)
 				fieldSeen[request.FieldRequestBody] = struct{}{}
 			}
+		case "requestBodyAvailability":
+			if _, ok := fieldSeen[request.FieldRequestBodyAvailability]; !ok {
+				selectedFields = append(selectedFields, request.FieldRequestBodyAvailability)
+				fieldSeen[request.FieldRequestBodyAvailability] = struct{}{}
+			}
 		case "responseBody":
 			if _, ok := fieldSeen[request.FieldResponseBody]; !ok {
 				selectedFields = append(selectedFields, request.FieldResponseBody)
 				fieldSeen[request.FieldResponseBody] = struct{}{}
+			}
+		case "responseBodyAvailability":
+			if _, ok := fieldSeen[request.FieldResponseBodyAvailability]; !ok {
+				selectedFields = append(selectedFields, request.FieldResponseBodyAvailability)
+				fieldSeen[request.FieldResponseBodyAvailability] = struct{}{}
 			}
 		case "responseChunks":
 			if _, ok := fieldSeen[request.FieldResponseChunks]; !ok {
 				selectedFields = append(selectedFields, request.FieldResponseChunks)
 				fieldSeen[request.FieldResponseChunks] = struct{}{}
 			}
+		case "responseChunksAvailability":
+			if _, ok := fieldSeen[request.FieldResponseChunksAvailability]; !ok {
+				selectedFields = append(selectedFields, request.FieldResponseChunksAvailability)
+				fieldSeen[request.FieldResponseChunksAvailability] = struct{}{}
+			}
 		case "channelID":
 			if _, ok := fieldSeen[request.FieldChannelID]; !ok {
 				selectedFields = append(selectedFields, request.FieldChannelID)
 				fieldSeen[request.FieldChannelID] = struct{}{}
+			}
+		case "testOriginType":
+			if _, ok := fieldSeen[request.FieldTestOriginType]; !ok {
+				selectedFields = append(selectedFields, request.FieldTestOriginType)
+				fieldSeen[request.FieldTestOriginType] = struct{}{}
+			}
+		case "testOriginID":
+			if _, ok := fieldSeen[request.FieldTestOriginID]; !ok {
+				selectedFields = append(selectedFields, request.FieldTestOriginID)
+				fieldSeen[request.FieldTestOriginID] = struct{}{}
+			}
+		case "testOriginLabel":
+			if _, ok := fieldSeen[request.FieldTestOriginLabel]; !ok {
+				selectedFields = append(selectedFields, request.FieldTestOriginLabel)
+				fieldSeen[request.FieldTestOriginLabel] = struct{}{}
 			}
 		case "externalID":
 			if _, ok := fieldSeen[request.FieldExternalID]; !ok {
@@ -4031,15 +4061,30 @@ func (_q *RequestExecutionQuery) collectField(ctx context.Context, oneNode bool,
 				selectedFields = append(selectedFields, requestexecution.FieldRequestBody)
 				fieldSeen[requestexecution.FieldRequestBody] = struct{}{}
 			}
+		case "requestBodyAvailability":
+			if _, ok := fieldSeen[requestexecution.FieldRequestBodyAvailability]; !ok {
+				selectedFields = append(selectedFields, requestexecution.FieldRequestBodyAvailability)
+				fieldSeen[requestexecution.FieldRequestBodyAvailability] = struct{}{}
+			}
 		case "responseBody":
 			if _, ok := fieldSeen[requestexecution.FieldResponseBody]; !ok {
 				selectedFields = append(selectedFields, requestexecution.FieldResponseBody)
 				fieldSeen[requestexecution.FieldResponseBody] = struct{}{}
 			}
+		case "responseBodyAvailability":
+			if _, ok := fieldSeen[requestexecution.FieldResponseBodyAvailability]; !ok {
+				selectedFields = append(selectedFields, requestexecution.FieldResponseBodyAvailability)
+				fieldSeen[requestexecution.FieldResponseBodyAvailability] = struct{}{}
+			}
 		case "responseChunks":
 			if _, ok := fieldSeen[requestexecution.FieldResponseChunks]; !ok {
 				selectedFields = append(selectedFields, requestexecution.FieldResponseChunks)
 				fieldSeen[requestexecution.FieldResponseChunks] = struct{}{}
+			}
+		case "responseChunksAvailability":
+			if _, ok := fieldSeen[requestexecution.FieldResponseChunksAvailability]; !ok {
+				selectedFields = append(selectedFields, requestexecution.FieldResponseChunksAvailability)
+				fieldSeen[requestexecution.FieldResponseChunksAvailability] = struct{}{}
 			}
 		case "errorMessage":
 			if _, ok := fieldSeen[requestexecution.FieldErrorMessage]; !ok {

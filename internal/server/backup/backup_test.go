@@ -392,6 +392,9 @@ func TestBackupService_Backup_WithRequestLogs(t *testing.T) {
 	require.Equal(t, "Project1", backupData.UsageRequests[0].ProjectName)
 	require.Equal(t, "Channel 1", backupData.UsageRequests[0].ChannelName)
 	require.Empty(t, backupData.UsageRequests[0].APIKeyKey)
+	require.Equal(t, request.RequestBodyAvailabilityUnknown, backupData.UsageRequests[0].RequestBodyAvailability)
+	require.Equal(t, request.ResponseBodyAvailabilityUnknown, backupData.UsageRequests[0].ResponseBodyAvailability)
+	require.Equal(t, request.ResponseChunksAvailabilityUnknown, backupData.UsageRequests[0].ResponseChunksAvailability)
 
 	data, err = service.Backup(ctx, BackupOptions{
 		IncludeAPIKeys:     true,

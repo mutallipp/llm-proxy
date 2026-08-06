@@ -105,6 +105,16 @@ func ChannelID(v int) predicate.Request {
 	return predicate.Request(sql.FieldEQ(FieldChannelID, v))
 }
 
+// TestOriginID applies equality check predicate on the "test_origin_id" field. It's identical to TestOriginIDEQ.
+func TestOriginID(v int) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldTestOriginID, v))
+}
+
+// TestOriginLabel applies equality check predicate on the "test_origin_label" field. It's identical to TestOriginLabelEQ.
+func TestOriginLabel(v string) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldTestOriginLabel, v))
+}
+
 // ExternalID applies equality check predicate on the "external_id" field. It's identical to ExternalIDEQ.
 func ExternalID(v string) predicate.Request {
 	return predicate.Request(sql.FieldEQ(FieldExternalID, v))
@@ -580,6 +590,26 @@ func RequestHeadersNotNil() predicate.Request {
 	return predicate.Request(sql.FieldNotNull(FieldRequestHeaders))
 }
 
+// RequestBodyAvailabilityEQ applies the EQ predicate on the "request_body_availability" field.
+func RequestBodyAvailabilityEQ(v RequestBodyAvailability) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldRequestBodyAvailability, v))
+}
+
+// RequestBodyAvailabilityNEQ applies the NEQ predicate on the "request_body_availability" field.
+func RequestBodyAvailabilityNEQ(v RequestBodyAvailability) predicate.Request {
+	return predicate.Request(sql.FieldNEQ(FieldRequestBodyAvailability, v))
+}
+
+// RequestBodyAvailabilityIn applies the In predicate on the "request_body_availability" field.
+func RequestBodyAvailabilityIn(vs ...RequestBodyAvailability) predicate.Request {
+	return predicate.Request(sql.FieldIn(FieldRequestBodyAvailability, vs...))
+}
+
+// RequestBodyAvailabilityNotIn applies the NotIn predicate on the "request_body_availability" field.
+func RequestBodyAvailabilityNotIn(vs ...RequestBodyAvailability) predicate.Request {
+	return predicate.Request(sql.FieldNotIn(FieldRequestBodyAvailability, vs...))
+}
+
 // ResponseBodyIsNil applies the IsNil predicate on the "response_body" field.
 func ResponseBodyIsNil() predicate.Request {
 	return predicate.Request(sql.FieldIsNull(FieldResponseBody))
@@ -590,6 +620,26 @@ func ResponseBodyNotNil() predicate.Request {
 	return predicate.Request(sql.FieldNotNull(FieldResponseBody))
 }
 
+// ResponseBodyAvailabilityEQ applies the EQ predicate on the "response_body_availability" field.
+func ResponseBodyAvailabilityEQ(v ResponseBodyAvailability) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldResponseBodyAvailability, v))
+}
+
+// ResponseBodyAvailabilityNEQ applies the NEQ predicate on the "response_body_availability" field.
+func ResponseBodyAvailabilityNEQ(v ResponseBodyAvailability) predicate.Request {
+	return predicate.Request(sql.FieldNEQ(FieldResponseBodyAvailability, v))
+}
+
+// ResponseBodyAvailabilityIn applies the In predicate on the "response_body_availability" field.
+func ResponseBodyAvailabilityIn(vs ...ResponseBodyAvailability) predicate.Request {
+	return predicate.Request(sql.FieldIn(FieldResponseBodyAvailability, vs...))
+}
+
+// ResponseBodyAvailabilityNotIn applies the NotIn predicate on the "response_body_availability" field.
+func ResponseBodyAvailabilityNotIn(vs ...ResponseBodyAvailability) predicate.Request {
+	return predicate.Request(sql.FieldNotIn(FieldResponseBodyAvailability, vs...))
+}
+
 // ResponseChunksIsNil applies the IsNil predicate on the "response_chunks" field.
 func ResponseChunksIsNil() predicate.Request {
 	return predicate.Request(sql.FieldIsNull(FieldResponseChunks))
@@ -598,6 +648,26 @@ func ResponseChunksIsNil() predicate.Request {
 // ResponseChunksNotNil applies the NotNil predicate on the "response_chunks" field.
 func ResponseChunksNotNil() predicate.Request {
 	return predicate.Request(sql.FieldNotNull(FieldResponseChunks))
+}
+
+// ResponseChunksAvailabilityEQ applies the EQ predicate on the "response_chunks_availability" field.
+func ResponseChunksAvailabilityEQ(v ResponseChunksAvailability) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldResponseChunksAvailability, v))
+}
+
+// ResponseChunksAvailabilityNEQ applies the NEQ predicate on the "response_chunks_availability" field.
+func ResponseChunksAvailabilityNEQ(v ResponseChunksAvailability) predicate.Request {
+	return predicate.Request(sql.FieldNEQ(FieldResponseChunksAvailability, v))
+}
+
+// ResponseChunksAvailabilityIn applies the In predicate on the "response_chunks_availability" field.
+func ResponseChunksAvailabilityIn(vs ...ResponseChunksAvailability) predicate.Request {
+	return predicate.Request(sql.FieldIn(FieldResponseChunksAvailability, vs...))
+}
+
+// ResponseChunksAvailabilityNotIn applies the NotIn predicate on the "response_chunks_availability" field.
+func ResponseChunksAvailabilityNotIn(vs ...ResponseChunksAvailability) predicate.Request {
+	return predicate.Request(sql.FieldNotIn(FieldResponseChunksAvailability, vs...))
 }
 
 // ChannelIDEQ applies the EQ predicate on the "channel_id" field.
@@ -628,6 +698,161 @@ func ChannelIDIsNil() predicate.Request {
 // ChannelIDNotNil applies the NotNil predicate on the "channel_id" field.
 func ChannelIDNotNil() predicate.Request {
 	return predicate.Request(sql.FieldNotNull(FieldChannelID))
+}
+
+// TestOriginTypeEQ applies the EQ predicate on the "test_origin_type" field.
+func TestOriginTypeEQ(v TestOriginType) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldTestOriginType, v))
+}
+
+// TestOriginTypeNEQ applies the NEQ predicate on the "test_origin_type" field.
+func TestOriginTypeNEQ(v TestOriginType) predicate.Request {
+	return predicate.Request(sql.FieldNEQ(FieldTestOriginType, v))
+}
+
+// TestOriginTypeIn applies the In predicate on the "test_origin_type" field.
+func TestOriginTypeIn(vs ...TestOriginType) predicate.Request {
+	return predicate.Request(sql.FieldIn(FieldTestOriginType, vs...))
+}
+
+// TestOriginTypeNotIn applies the NotIn predicate on the "test_origin_type" field.
+func TestOriginTypeNotIn(vs ...TestOriginType) predicate.Request {
+	return predicate.Request(sql.FieldNotIn(FieldTestOriginType, vs...))
+}
+
+// TestOriginTypeIsNil applies the IsNil predicate on the "test_origin_type" field.
+func TestOriginTypeIsNil() predicate.Request {
+	return predicate.Request(sql.FieldIsNull(FieldTestOriginType))
+}
+
+// TestOriginTypeNotNil applies the NotNil predicate on the "test_origin_type" field.
+func TestOriginTypeNotNil() predicate.Request {
+	return predicate.Request(sql.FieldNotNull(FieldTestOriginType))
+}
+
+// TestOriginIDEQ applies the EQ predicate on the "test_origin_id" field.
+func TestOriginIDEQ(v int) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldTestOriginID, v))
+}
+
+// TestOriginIDNEQ applies the NEQ predicate on the "test_origin_id" field.
+func TestOriginIDNEQ(v int) predicate.Request {
+	return predicate.Request(sql.FieldNEQ(FieldTestOriginID, v))
+}
+
+// TestOriginIDIn applies the In predicate on the "test_origin_id" field.
+func TestOriginIDIn(vs ...int) predicate.Request {
+	return predicate.Request(sql.FieldIn(FieldTestOriginID, vs...))
+}
+
+// TestOriginIDNotIn applies the NotIn predicate on the "test_origin_id" field.
+func TestOriginIDNotIn(vs ...int) predicate.Request {
+	return predicate.Request(sql.FieldNotIn(FieldTestOriginID, vs...))
+}
+
+// TestOriginIDGT applies the GT predicate on the "test_origin_id" field.
+func TestOriginIDGT(v int) predicate.Request {
+	return predicate.Request(sql.FieldGT(FieldTestOriginID, v))
+}
+
+// TestOriginIDGTE applies the GTE predicate on the "test_origin_id" field.
+func TestOriginIDGTE(v int) predicate.Request {
+	return predicate.Request(sql.FieldGTE(FieldTestOriginID, v))
+}
+
+// TestOriginIDLT applies the LT predicate on the "test_origin_id" field.
+func TestOriginIDLT(v int) predicate.Request {
+	return predicate.Request(sql.FieldLT(FieldTestOriginID, v))
+}
+
+// TestOriginIDLTE applies the LTE predicate on the "test_origin_id" field.
+func TestOriginIDLTE(v int) predicate.Request {
+	return predicate.Request(sql.FieldLTE(FieldTestOriginID, v))
+}
+
+// TestOriginIDIsNil applies the IsNil predicate on the "test_origin_id" field.
+func TestOriginIDIsNil() predicate.Request {
+	return predicate.Request(sql.FieldIsNull(FieldTestOriginID))
+}
+
+// TestOriginIDNotNil applies the NotNil predicate on the "test_origin_id" field.
+func TestOriginIDNotNil() predicate.Request {
+	return predicate.Request(sql.FieldNotNull(FieldTestOriginID))
+}
+
+// TestOriginLabelEQ applies the EQ predicate on the "test_origin_label" field.
+func TestOriginLabelEQ(v string) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelNEQ applies the NEQ predicate on the "test_origin_label" field.
+func TestOriginLabelNEQ(v string) predicate.Request {
+	return predicate.Request(sql.FieldNEQ(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelIn applies the In predicate on the "test_origin_label" field.
+func TestOriginLabelIn(vs ...string) predicate.Request {
+	return predicate.Request(sql.FieldIn(FieldTestOriginLabel, vs...))
+}
+
+// TestOriginLabelNotIn applies the NotIn predicate on the "test_origin_label" field.
+func TestOriginLabelNotIn(vs ...string) predicate.Request {
+	return predicate.Request(sql.FieldNotIn(FieldTestOriginLabel, vs...))
+}
+
+// TestOriginLabelGT applies the GT predicate on the "test_origin_label" field.
+func TestOriginLabelGT(v string) predicate.Request {
+	return predicate.Request(sql.FieldGT(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelGTE applies the GTE predicate on the "test_origin_label" field.
+func TestOriginLabelGTE(v string) predicate.Request {
+	return predicate.Request(sql.FieldGTE(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelLT applies the LT predicate on the "test_origin_label" field.
+func TestOriginLabelLT(v string) predicate.Request {
+	return predicate.Request(sql.FieldLT(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelLTE applies the LTE predicate on the "test_origin_label" field.
+func TestOriginLabelLTE(v string) predicate.Request {
+	return predicate.Request(sql.FieldLTE(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelContains applies the Contains predicate on the "test_origin_label" field.
+func TestOriginLabelContains(v string) predicate.Request {
+	return predicate.Request(sql.FieldContains(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelHasPrefix applies the HasPrefix predicate on the "test_origin_label" field.
+func TestOriginLabelHasPrefix(v string) predicate.Request {
+	return predicate.Request(sql.FieldHasPrefix(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelHasSuffix applies the HasSuffix predicate on the "test_origin_label" field.
+func TestOriginLabelHasSuffix(v string) predicate.Request {
+	return predicate.Request(sql.FieldHasSuffix(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelIsNil applies the IsNil predicate on the "test_origin_label" field.
+func TestOriginLabelIsNil() predicate.Request {
+	return predicate.Request(sql.FieldIsNull(FieldTestOriginLabel))
+}
+
+// TestOriginLabelNotNil applies the NotNil predicate on the "test_origin_label" field.
+func TestOriginLabelNotNil() predicate.Request {
+	return predicate.Request(sql.FieldNotNull(FieldTestOriginLabel))
+}
+
+// TestOriginLabelEqualFold applies the EqualFold predicate on the "test_origin_label" field.
+func TestOriginLabelEqualFold(v string) predicate.Request {
+	return predicate.Request(sql.FieldEqualFold(FieldTestOriginLabel, v))
+}
+
+// TestOriginLabelContainsFold applies the ContainsFold predicate on the "test_origin_label" field.
+func TestOriginLabelContainsFold(v string) predicate.Request {
+	return predicate.Request(sql.FieldContainsFold(FieldTestOriginLabel, v))
 }
 
 // ExternalIDEQ applies the EQ predicate on the "external_id" field.

@@ -11,6 +11,8 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"github.com/mutallipp/llm-proxy/internal/ent"
+	"github.com/mutallipp/llm-proxy/internal/ent/request"
+	"github.com/mutallipp/llm-proxy/internal/ent/requestexecution"
 	"github.com/mutallipp/llm-proxy/internal/log"
 	"github.com/mutallipp/llm-proxy/internal/objects"
 	"github.com/samber/lo"
@@ -610,6 +612,11 @@ func (r *requestResolver) RequestBody(ctx context.Context, obj *ent.Request) (ob
 	return value, nil
 }
 
+// RequestBodyAvailability is the resolver for the requestBodyAvailability field.
+func (r *requestResolver) RequestBodyAvailability(ctx context.Context, obj *ent.Request) (request.RequestBodyAvailability, error) {
+	return r.requestService.ResolveRequestBodyAvailability(ctx, obj), nil
+}
+
 // ResponseBody is the resolver for the responseBody field.
 func (r *requestResolver) ResponseBody(ctx context.Context, obj *ent.Request) (objects.JSONRawMessage, error) {
 	value, err := r.requestService.LoadResponseBody(ctx, obj)
@@ -619,6 +626,11 @@ func (r *requestResolver) ResponseBody(ctx context.Context, obj *ent.Request) (o
 	}
 
 	return value, nil
+}
+
+// ResponseBodyAvailability is the resolver for the responseBodyAvailability field.
+func (r *requestResolver) ResponseBodyAvailability(ctx context.Context, obj *ent.Request) (request.ResponseBodyAvailability, error) {
+	return r.requestService.ResolveResponseBodyAvailability(ctx, obj), nil
 }
 
 // ResponseChunks is the resolver for the responseChunks field.
@@ -636,6 +648,15 @@ func (r *requestResolver) ResponseChunks(ctx context.Context, obj *ent.Request) 
 	}
 
 	return value, nil
+}
+
+// ResponseChunksAvailability is the resolver for the responseChunksAvailability field.
+func (r *requestResolver) ResponseChunksAvailability(ctx context.Context, obj *ent.Request) (request.ResponseChunksAvailability, error) {
+	if r.requestService.IsRequestResponseChunksLive(obj) {
+		return request.ResponseChunksAvailabilityAvailable, nil
+	}
+
+	return obj.ResponseChunksAvailability, nil
 }
 
 // ChannelID is the resolver for the channelID field.
@@ -704,6 +725,11 @@ func (r *requestExecutionResolver) RequestBody(ctx context.Context, obj *ent.Req
 	return value, nil
 }
 
+// RequestBodyAvailability is the resolver for the requestBodyAvailability field.
+func (r *requestExecutionResolver) RequestBodyAvailability(ctx context.Context, obj *ent.RequestExecution) (requestexecution.RequestBodyAvailability, error) {
+	return r.requestService.ResolveExecutionRequestBodyAvailability(ctx, obj), nil
+}
+
 // ResponseBody is the resolver for the responseBody field.
 func (r *requestExecutionResolver) ResponseBody(ctx context.Context, obj *ent.RequestExecution) (objects.JSONRawMessage, error) {
 	value, err := r.requestService.LoadRequestExecutionResponseBody(ctx, obj)
@@ -713,6 +739,11 @@ func (r *requestExecutionResolver) ResponseBody(ctx context.Context, obj *ent.Re
 	}
 
 	return value, nil
+}
+
+// ResponseBodyAvailability is the resolver for the responseBodyAvailability field.
+func (r *requestExecutionResolver) ResponseBodyAvailability(ctx context.Context, obj *ent.RequestExecution) (requestexecution.ResponseBodyAvailability, error) {
+	return r.requestService.ResolveExecutionResponseBodyAvailability(ctx, obj), nil
 }
 
 // ResponseChunks is the resolver for the responseChunks field.
@@ -728,6 +759,15 @@ func (r *requestExecutionResolver) ResponseChunks(ctx context.Context, obj *ent.
 	}
 
 	return value, nil
+}
+
+// ResponseChunksAvailability is the resolver for the responseChunksAvailability field.
+func (r *requestExecutionResolver) ResponseChunksAvailability(ctx context.Context, obj *ent.RequestExecution) (requestexecution.ResponseChunksAvailability, error) {
+	if r.requestService.IsRequestExecutionResponseChunksLive(obj) {
+		return requestexecution.ResponseChunksAvailabilityAvailable, nil
+	}
+
+	return obj.ResponseChunksAvailability, nil
 }
 
 // Channel is the resolver for the channel field.

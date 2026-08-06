@@ -286,6 +286,7 @@ export default function RequestDetailPage() {
                   ? {
                       ...currentRequest,
                       responseChunks: [...(currentRequest.responseChunks ?? []), nextChunk],
+                      responseChunksLive: true,
                     }
                   : currentRequest
               );

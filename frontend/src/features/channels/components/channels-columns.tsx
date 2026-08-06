@@ -1,5 +1,6 @@
 import { useCallback, useState, memo, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
+import { useNavigate } from '@tanstack/react-router';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row, Table } from '@tanstack/react-table';
 import {
@@ -86,6 +87,7 @@ const ActionCell = memo(({ row }: { row: Row<Channel> }) => {
   const channel = row.original;
   const { setOpen, setCurrentRow } = useChannels();
   const { channelPermissions } = usePermissions();
+  const navigate = useNavigate();
   const testChannel = useTestChannel();
   const isArchived = channel.status === 'archived';
   const hasError = !!channel.errorMessage;
@@ -95,10 +97,14 @@ const ActionCell = memo(({ row }: { row: Row<Channel> }) => {
 
   const handleDefaultTest = async () => {
     try {
-      await testChannel.mutateAsync({
+      const result = await testChannel.mutateAsync({
         channelID: channel.id,
         modelID: channel.defaultTestModel || undefined,
+        protocol: channel.protocolCapabilities?.declaredProtocols[0],
       });
+      if (result.requestID) {
+        await navigate({ to: '/requests/$requestId', params: { requestId: result.requestID } });
+      }
     } catch (_error) {}
   };
 

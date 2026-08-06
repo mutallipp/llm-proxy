@@ -80,6 +80,9 @@ func NewEntClient(cfg Config) *ent.Client {
 		if err := migrator.Run(context.Background()); err != nil {
 			panic(err)
 		}
+		if err := backfillRequestContentAvailability(context.Background(), client); err != nil {
+			panic(err)
+		}
 	}
 
 	return client

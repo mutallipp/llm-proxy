@@ -1,28 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { IconSearch, IconPlayerPlay } from '@tabler/icons-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { IconLoader2, IconPlayerPlay } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import LongText from '@/components/long-text';
-import { useTestChannel, useUpdateChannel } from '../data/channels';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTestChannel } from '../data/channels';
 import { Channel } from '../data/schema';
-import { ErrorDisplay } from '../utils/error-formatter';
-
-type TestStatus = 'not_started' | 'testing' | 'success' | 'failed';
-
-interface ModelTestResult {
-  modelName: string;
-  status: TestStatus;
-  latency?: number;
-  error?: string;
-}
 
 interface Props {
   open: boolean;
@@ -30,274 +18,99 @@ interface Props {
   channel: Channel;
 }
 
+const protocolLabelKeys: Record<string, string> = {
+  openai: 'channels.dialogs.test.protocolName.openai',
+  openai_responses: 'channels.dialogs.test.protocolName.openaiResponses',
+  anthropic: 'channels.dialogs.test.protocolName.anthropic',
+};
+
 export function ChannelsTestDialog({ open, onOpenChange, channel }: Props) {
   const { t } = useTranslation();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [testResults, setTestResults] = useState<Record<string, ModelTestResult>>({});
-  const [localSupportedModels, setLocalSupportedModels] = useState<string[]>(channel.supportedModels);
-  const [isTesting, setIsTesting] = useState(false);
-  const [isRemovePopoverOpen, setIsRemovePopoverOpen] = useState(false);
-  const testChannel = useTestChannel();
-  const updateChannel = useUpdateChannel();
+  const navigate = useNavigate();
+  const testChannel = useTestChannel({ silent: true });
+  const protocols = useMemo(() => channel.protocolCapabilities?.declaredProtocols ?? [], [channel.protocolCapabilities]);
+  const [protocol, setProtocol] = useState('');
+  const [modelID, setModelID] = useState('');
+  const models = useMemo(() => {
+    const capabilityModels = channel.protocolCapabilities?.models
+      .filter((model) => !protocol || model.protocols.includes(protocol))
+      .map((model) => model.modelId) ?? [];
+    return capabilityModels.length > 0 ? capabilityModels : channel.supportedModels;
+  }, [channel.protocolCapabilities, channel.supportedModels, protocol]);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter models based on search query
-  const filteredModels = localSupportedModels.filter((model) => model.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  // Initialize test results when dialog opens
   useEffect(() => {
-    if (open) {
-      const initialResults: Record<string, ModelTestResult> = {};
-      channel.supportedModels.forEach((model) => {
-        initialResults[model] = {
-          modelName: model,
-          status: 'not_started',
-        };
-      });
-      setTestResults(initialResults);
-      setLocalSupportedModels(channel.supportedModels);
-      setSelectedModels([]);
-      setSearchQuery('');
-    }
-  }, [open, channel.supportedModels]);
+    if (!open) return;
+    const nextProtocol = protocols[0] ?? '';
+    setProtocol(nextProtocol);
+    const protocolModels = channel.protocolCapabilities?.models.filter((model) => model.protocols.includes(nextProtocol)).map((model) => model.modelId) ?? [];
+    setModelID(channel.defaultTestModel && protocolModels.includes(channel.defaultTestModel) ? channel.defaultTestModel : protocolModels[0] || models[0] || '');
+    setError(null);
+  }, [open, channel.defaultTestModel, models, protocols]);
 
-  // Handle model selection
-  const handleModelSelect = (modelName: string, checked: boolean) => {
-    if (checked) {
-      setSelectedModels((prev) => [...prev, modelName]);
-    } else {
-      setSelectedModels((prev) => prev.filter((m) => m !== modelName));
-    }
-  };
-
-  // Handle select all
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedModels(filteredModels);
-    } else {
-      setSelectedModels([]);
-    }
-  };
-
-  // Test a single model
-  const testModel = async (modelName: string) => {
-    setTestResults((prev) => ({
-      ...prev,
-      [modelName]: { ...prev[modelName], status: 'testing' },
-    }));
-
+  const runTest = async () => {
+    if (!protocol || !modelID) return;
+    setError(null);
     try {
-      const startTime = Date.now();
-      const result = await testChannel.mutateAsync({
-        channelID: channel.id,
-        modelID: modelName,
-      });
-      const latency = (Date.now() - startTime) / 1000;
-
-      setTestResults((prev) => ({
-        ...prev,
-        [modelName]: {
-          ...prev[modelName],
-          status: result.success ? 'success' : 'failed',
-          latency: result.success ? result.latency || latency : undefined,
-          error: result.success ? undefined : result.error || 'Test failed',
-        },
-      }));
-    } catch (error) {
-      setTestResults((prev) => ({
-        ...prev,
-        [modelName]: {
-          ...prev[modelName],
-          status: 'failed',
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
-      }));
-    }
-  };
-
-  // Test selected models
-  const handleTestSelected = async () => {
-    if (selectedModels.length === 0) return;
-
-    setIsTesting(true);
-
-    // Test models in parallel
-    await Promise.all(selectedModels.map((model) => testModel(model)));
-
-    setIsTesting(false);
-  };
-
-  // Get status badge
-  const getStatusBadge = (status: TestStatus) => {
-    switch (status) {
-      case 'testing':
-        return <Badge variant='secondary'>{t('channels.dialogs.test.testingModel')}</Badge>;
-      case 'success':
-        return (
-          <Badge variant='default' className='border-green-200 bg-green-100 text-green-800'>
-            {t('channels.dialogs.test.testSuccess')}
-          </Badge>
-        );
-      case 'failed':
-        return <Badge variant='destructive'>{t('channels.dialogs.test.testFailed')}</Badge>;
-      default:
-        return <Badge variant='outline'>{t('channels.dialogs.test.notStarted')}</Badge>;
-    }
-  };
-
-  const isAllSelected = filteredModels.length > 0 && filteredModels.every((model) => selectedModels.includes(model));
-  const isIndeterminate = selectedModels.length > 0 && !isAllSelected;
-
-  const failedModels = selectedModels.filter((model) => testResults[model]?.status === 'failed');
-
-  const handleRemoveFailed = async () => {
-    const failedModelNames = new Set(failedModels);
-    const newSupportedModels = localSupportedModels.filter((model) => !failedModelNames.has(model));
-
-    try {
-      await updateChannel.mutateAsync({
-        id: channel.id,
-        input: {
-          supportedModels: newSupportedModels,
-        },
-      });
-      setLocalSupportedModels(newSupportedModels);
-      setSelectedModels((prev) => prev.filter((model) => !failedModelNames.has(model)));
-      setIsRemovePopoverOpen(false);
-    } catch (error) {
-      // Error is handled by useUpdateChannel toast
+      const result = await testChannel.mutateAsync({ channelID: channel.id, modelID, protocol });
+      if (result.requestID) {
+        onOpenChange(false);
+        await navigate({ to: '/requests/$requestId', params: { requestId: result.requestID } });
+        return;
+      }
+      if (!result.success) setError(result.error || result.message || t('channels.dialogs.test.failed'));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('channels.dialogs.test.failed'));
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='flex max-h-[90vh] flex-col w-full max-w-full sm:max-w-2xl'>
+      <DialogContent className='w-[95vw] max-w-lg'>
         <DialogHeader>
-          <DialogTitle className='text-lg sm:text-xl'>{t('channels.dialogs.test.title')}</DialogTitle>
-          <DialogDescription className='text-sm sm:text-base'>{t('channels.dialogs.test.description', { name: channel.name })}</DialogDescription>
+          <DialogTitle>{t('channels.dialogs.test.title')}</DialogTitle>
+          <DialogDescription>{t('channels.dialogs.test.fixedTemplateDescription', { name: channel.name })}</DialogDescription>
         </DialogHeader>
-
-        <div className='min-h-0 flex-1 space-y-4'>
-          {/* Search */}
-          <div className='relative'>
-            <IconSearch className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform' />
-            <Input
-              placeholder={t('channels.dialogs.test.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className='pl-10 h-10 sm:h-9'
-            />
+        <div className='space-y-4'>
+          <div className='rounded-md border bg-muted/30 p-3 text-sm'>
+            <Badge variant='secondary'>{t('channels.dialogs.test.fixedTemplate')}</Badge>
+            <p className='text-muted-foreground mt-2'>{t('channels.dialogs.test.fixedTemplateText')}</p>
           </div>
-
-          {/* Models Table */}
-          <div className='min-h-0 flex-1 overflow-hidden rounded-lg border'>
-            <div className='max-h-96 overflow-auto'>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className='w-14 sm:w-12'>
-                      <Checkbox
-                        checked={isAllSelected}
-                        onCheckedChange={handleSelectAll}
-                        ref={(el) => {
-                          if (el) {
-                            const input = el.querySelector('input') as HTMLInputElement;
-                            if (input) {
-                              input.indeterminate = isIndeterminate;
-                            }
-                          }
-                        }}
-                        className='scale-100 sm:scale-75'
-                      />
-                    </TableHead>
-                    <TableHead>{t('channels.dialogs.test.modelNameColumn')}</TableHead>
-                    <TableHead className='w-32 sm:w-40'>{t('channels.dialogs.test.statusColumn')}</TableHead>
-                    <TableHead className='w-28 sm:w-24'></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredModels.map((model) => {
-                    const result = testResults[model];
-                    return (
-                      <TableRow key={model} className='align-top'>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedModels.includes(model)}
-                            onCheckedChange={(checked) => handleModelSelect(model, !!checked)}
-                            className='scale-100 sm:scale-75'
-                          />
-                        </TableCell>
-                        <TableCell className='pr-4 sm:pr-8 font-medium'>
-                          <div>{model}</div>
-                          {result?.error && (
-                            <div className='mt-2 max-w-full sm:max-w-[320px]'>
-                              <ErrorDisplay error={result.error} messageClassName='text-xs font-medium text-red-600' />
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className='min-w-[120px] sm:min-w-[140px] align-top'>
-                          <div className='pt-0.5'>{getStatusBadge(result?.status || 'not_started')}</div>
-                          {result?.latency && <div className='text-muted-foreground mt-2 text-xs'>{result.latency.toFixed(2)}s</div>}
-                        </TableCell>
-                        <TableCell className='align-top'>
-                          <div className='pt-0.5'>
-                            <Button
-                              size='sm'
-                              variant='outline'
-                              onClick={() => testModel(model)}
-                              disabled={result?.status === 'testing' || testChannel.isPending}
-                              className='h-9 sm:h-8'
-                            >
-                              <IconPlayerPlay className='mr-1 h-4 w-4 sm:h-3 sm:w-3' />
-                              {result?.status === 'testing' ? t('channels.dialogs.test.testingModel') : t('channels.dialogs.test.testModel')}
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+          <div className='space-y-2'>
+            <Label>{t('channels.dialogs.test.protocol')}</Label>
+            <Select
+              value={protocol}
+              onValueChange={(value) => {
+                setProtocol(value);
+                const nextModel = channel.protocolCapabilities?.models.find((item) => item.protocols.includes(value))?.modelId;
+                if (nextModel) setModelID(nextModel);
+              }}
+              disabled={protocols.length === 0}
+            >
+              <SelectTrigger><SelectValue placeholder={t('channels.dialogs.test.selectProtocol')} /></SelectTrigger>
+              <SelectContent>
+                {protocols.map((item) => <SelectItem key={item} value={item}>{protocolLabelKeys[item] ? t(protocolLabelKeys[item]) : item}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
+          <div className='space-y-2'>
+            <Label>{t('channels.dialogs.test.model')}</Label>
+            <Select value={modelID} onValueChange={setModelID} disabled={models.length === 0}>
+              <SelectTrigger><SelectValue placeholder={t('channels.dialogs.test.selectModel')} /></SelectTrigger>
+              <SelectContent>
+                {models.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          {protocols.length === 0 && <p className='text-destructive text-sm'>{t('channels.dialogs.test.noProtocol')}</p>}
+          {models.length === 0 && <p className='text-destructive text-sm'>{t('channels.dialogs.test.noModel')}</p>}
+          {error && <p className='text-destructive rounded-md border border-destructive/30 p-3 text-sm'>{error}</p>}
         </div>
-
-        <DialogFooter className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-2'>
-          <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
-            <Button variant='outline' onClick={() => onOpenChange(false)} className='w-full sm:w-auto'>
-              {t('common.buttons.cancel')}
-            </Button>
-            {failedModels.length > 0 && (
-              <Popover open={isRemovePopoverOpen} onOpenChange={setIsRemovePopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant='destructive' size='sm' className='h-10 sm:h-8'>
-                    {t('channels.dialogs.test.removeFailed')} ({failedModels.length})
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-full sm:w-80'>
-                  <div className='grid gap-4'>
-                    <div className='space-y-2'>
-                      <p className='text-muted-foreground text-sm'>{t('channels.dialogs.test.removeFailedConfirm')}</p>
-                    </div>
-                    <div className='flex justify-end gap-2'>
-                      <Button
-                        size='sm'
-                        variant='destructive'
-                        onClick={handleRemoveFailed}
-                        disabled={updateChannel.isPending}
-                        className='h-9 sm:h-8'
-                      >
-                        {updateChannel.isPending ? t('common.buttons.saving') : t('common.buttons.confirm')}
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-          <Button onClick={handleTestSelected} disabled={selectedModels.length === 0 || isTesting} className='h-10 sm:h-9'>
-            <IconPlayerPlay className='mr-2 h-4 w-4' />
-            {t('channels.dialogs.test.testAllButton', { count: selectedModels.length })}
+        <DialogFooter>
+          <Button variant='outline' onClick={() => onOpenChange(false)}>{t('common.buttons.cancel')}</Button>
+          <Button onClick={runTest} disabled={testChannel.isPending || !protocol || !modelID}>
+            {testChannel.isPending ? <IconLoader2 className='mr-2 h-4 w-4 animate-spin' /> : <IconPlayerPlay className='mr-2 h-4 w-4' />}
+            {testChannel.isPending ? t('channels.dialogs.test.testing') : t('channels.actions.test')}
           </Button>
         </DialogFooter>
       </DialogContent>

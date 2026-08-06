@@ -162,7 +162,13 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 	}
 	developerAssociationCount, modelAssociationCount, developerInheritanceDisabled := effectiveAssociationSourceCounts(systemSettings, model, protocol)
 	protocolPools := biz.EffectiveModelProtocolPools(systemSettings, model)
-	associations := protocolPools[protocol]
+	protocolPoolKey := normalizeProtocolPoolKey(protocol)
+	associations := protocolPools[protocolPoolKey]
+	if len(associations) == 0 && protocolPoolKey != protocol {
+		// 兼容尚未迁移的旧 settings；只回退到同一协议的完整格式键，
+		// 不会尝试读取其它协议池。
+		associations = protocolPools[protocol]
+	}
 	if log.DebugEnabled(ctx) {
 		log.Debug(ctx, "computed effective model associations",
 			log.String("model", model.ModelID),
@@ -204,6 +210,59 @@ func (s *DefaultSelector) selectModelCandidates(ctx context.Context, req *llm.Re
 	}
 
 	return candidates, nil
+}
+
+// DiscoverTestModelTargets 返回指定协议池中有完整匹配 endpoint 的具体目标。
+// 复用 DefaultSelector 的模型设置、开发者继承、条件关联和 runtime channel
+// cache；因此查询结果与随后执行测试使用的是同一套服务端裁决逻辑。
+func (s *DefaultSelector) DiscoverTestModelTargets(ctx context.Context, modelID string, protocol string) ([]*TestModelTarget, error) {
+	apiFormat, err := normalizeTestAPIFormat(protocol)
+	if err != nil {
+		return nil, err
+	}
+	if s == nil || s.ModelService == nil || s.ChannelService == nil || s.SystemService == nil {
+		return nil, fmt.Errorf("model test target selector is not configured")
+	}
+
+	systemPrompt, userPrompt, err := s.SystemService.ChannelTestPrompts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load test prompts: %w", err)
+	}
+	req := buildChannelTestRequest(modelID, false, systemPrompt, userPrompt)
+	req.APIFormat = apiFormat
+	req.RequestType = llm.RequestTypeChat
+	candidates, err := s.Select(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	protocolPool := normalizeProtocolPoolKey(string(apiFormat))
+	seen := make(map[string]struct{})
+	targets := make([]*TestModelTarget, 0)
+	for _, candidate := range candidates {
+		if candidate == nil || candidate.Channel == nil || candidate.APIFormat != string(apiFormat) || !hasOutboundEndpoint(candidate.Channel, string(apiFormat)) {
+			continue
+		}
+		for _, entry := range candidate.Models {
+			if entry.ActualModel == "" {
+				continue
+			}
+			key := fmt.Sprintf("%d:%s", candidate.Channel.ID, entry.ActualModel)
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			targets = append(targets, &TestModelTarget{
+				ChannelID:       objects.GUID{Type: "Channel", ID: candidate.Channel.ID},
+				ChannelName:     candidate.Channel.Name,
+				PhysicalModelID: entry.ActualModel,
+				Protocol:        protocolPool,
+				APIFormat:       string(apiFormat),
+			})
+		}
+	}
+
+	return targets, nil
 }
 
 // resolveAssociations resolves model associations into an intermediate form that

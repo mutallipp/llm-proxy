@@ -7,9 +7,10 @@ import { ModelsBulkEnableDialog } from './models-bulk-enable-dialog';
 import { ModelsDeleteDialog } from './models-delete-dialog';
 import { ModelSettingsDialog } from './models-settings-dialog';
 import { ModelsUnassociatedDialog } from './models-unassociated-dialog';
+import { ModelsTestDialog } from './models-test-dialog';
 
 export function ModelsDialogs() {
-  const { open } = useModels();
+  const { open, currentRow, setOpen } = useModels();
 
   return (
     <>
@@ -19,6 +20,7 @@ export function ModelsDialogs() {
       {open === 'archive' && <ModelsArchiveDialog />}
       {open === 'settings' && <ModelSettingsDialog />}
       {open === 'unassociated' && <ModelsUnassociatedDialog />}
+      {open === 'test' && currentRow && <ModelsTestDialog model={currentRow} open onOpenChange={(value) => setOpen(value ? 'test' : null)} />}
       <ModelsBulkDisableDialog />
       <ModelsBulkEnableDialog />
     </>

@@ -118,6 +118,9 @@ models:
   ProxyConfigInput:
     model:
       - github.com/mutallipp/llm-proxy/internal/objects.ProxyConfig
+  TestModelTarget:
+    model:
+      - github.com/mutallipp/llm-proxy/internal/server/orchestrator.TestModelTarget
   CapabilityPolicy:
     model:
       - github.com/mutallipp/llm-proxy/internal/objects.CapabilityPolicy

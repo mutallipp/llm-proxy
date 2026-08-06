@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useQueryAllModels } from '@/features/models/data/models';
 import type { Model } from '@/features/models/data/schema';
 import { extractNumberIDAsNumber } from '@/lib/utils';
+import { TestOriginHistoryDrawer } from '@/features/requests/components/test-origin-history-drawer';
 import {
   INBOUND_API_FORMATS,
   type AdapterBinding,
@@ -68,11 +69,11 @@ function findModelById(models: readonly Model[], modelId: number): Model | undef
 
 interface BindingTestButtonProps {
   adapterName: string;
-  inboundApiFormat: string;
   binding: Omit<AdapterBinding, 'id'> & { id?: number };
 }
 
-function BindingTestButton({ adapterName, inboundApiFormat, binding }: BindingTestButtonProps) {
+function BindingTestButton({ adapterName, binding }: BindingTestButtonProps) {
+  const navigate = useNavigate();
   const [state, setState] = useState<TestState>('idle');
 
   const run = async () => {
@@ -80,7 +81,6 @@ function BindingTestButton({ adapterName, inboundApiFormat, binding }: BindingTe
     try {
       const result = await testAdapterBinding({
         adapterName,
-        inboundApiFormat,
         sourceModelId: binding.source_model_id,
       });
       if (!result.ok) {
@@ -89,7 +89,10 @@ function BindingTestButton({ adapterName, inboundApiFormat, binding }: BindingTe
         toast.error(result.error ?? `HTTP ${result.status}`);
       } else {
         setState('success');
-        toast.success(`测试成功（${result.latency.toFixed(2)}s）：${result.summary || '无内容'}`);
+        toast.success(`测试成功（${result.latency.toFixed(2)}s）`);
+      }
+      if (result.requestID) {
+        await navigate({ to: '/requests/$requestId', params: { requestId: result.requestID } });
       }
     } catch (error) {
       setState('failed');
@@ -121,8 +124,8 @@ function BindingTestButton({ adapterName, inboundApiFormat, binding }: BindingTe
 // ===================== curl 预览生成 =====================
 
 /**
- * 根据入站协议和源模型 ID 生成与实际请求一致的 curl 命令预览。
- * 不含 Authorization/API Key，仅展示入站协议和请求体结构。
+ * 根据 Adapter 入站协议和源模型 ID 生成固定测试模板的入站请求示例。
+ * 该示例不是 Provider 的真实上游请求；真实请求应以 RequestExecution 为准。
  */
 function buildCurl(adapterName: string, inboundApiFormat: string, sourceModelId: string): string {
   const origin = window.location.origin;
@@ -177,6 +180,8 @@ interface AdapterTestDialogProps {
 }
 
 function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: modelsData } = useQueryAllModels({});
   const modelEdges = modelsData?.edges;
   const models = useMemo(
@@ -190,6 +195,7 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<AdapterTestResult | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // 弹窗打开时重置状态
   useEffect(() => {
@@ -219,16 +225,6 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
     ? buildCurl(adapter.name, adapter.inbound_api_format, selectedBinding.source_model_id)
     : '';
 
-  // 尝试将原始响应 JSON 格式化
-  const formattedResponse = (() => {
-    if (!result?.rawResponse) return '';
-    try {
-      return JSON.stringify(JSON.parse(result.rawResponse), null, 2);
-    } catch {
-      return result.rawResponse;
-    }
-  })();
-
   const runTest = async () => {
     if (!selectedBinding || testing) return;
     setTesting(true);
@@ -236,7 +232,6 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
     try {
       const res = await testAdapterBinding({
         adapterName: adapter.name,
-        inboundApiFormat: adapter.inbound_api_format,
         sourceModelId: selectedBinding.source_model_id,
       });
       setResult(res);
@@ -244,6 +239,11 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
         toast.success(`测试成功（${res.latency.toFixed(2)}s）`);
       } else {
         toast.error(res.error ?? `HTTP ${res.status}`);
+      }
+      if (res.requestID) {
+        onOpenChange(false);
+        await navigate({ to: '/requests/$requestId', params: { requestId: res.requestID } });
+        return;
       }
     } catch (err) {
       // testAdapterBinding 已捕获网络错误，这里仅作兴底处理
@@ -254,12 +254,13 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(o) => { if (!testing) onOpenChange(o); }}>
       <DialogContent className='w-[96vw] max-w-[1000px] max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>测试 Adapter：{adapter.display_name || adapter.name}</DialogTitle>
           <DialogDescription>
-            通过 Adapter 入站协议发送最小请求，验证整条链路连通性。
+            {t('requests.adapterTest.fixedTemplateDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -286,14 +287,14 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
                 </SelectContent>
               </Select>
               <p className='text-muted-foreground text-xs'>
-                测试使用真实 Adapter 入站协议和逆辑模型，不直接测试目标模型 ID。
+                {t('requests.adapterTest.bindingHint')}
               </p>
             </div>
 
-            {/* curl 预览 */}
+            {/* 固定测试模板入站请求示例 */}
             {curlPreview && (
               <div className='space-y-2'>
-                <Label>将要执行的请求（curl 预览）</Label>
+                <Label>{t('requests.adapterTest.inboundExample')}</Label>
                 <pre className='bg-muted text-muted-foreground overflow-x-auto rounded-md p-3 text-xs leading-relaxed whitespace-pre-wrap break-all'>
                   {curlPreview}
                 </pre>
@@ -310,7 +311,7 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
               ) : (
                 <>
                   <IconFlask className='mr-2 h-4 w-4' />
-                  执行测试
+                  {t('requests.adapterTest.run')}
                 </>
               )}
             </Button>
@@ -323,7 +324,7 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
                   <div className='flex items-center gap-2'>
                     <span className='text-sm font-medium'>状态：</span>
                     <Badge variant={result.ok ? 'default' : 'destructive'}>
-                      {result.status > 0 ? `HTTP ${result.status}` : '网络错误'}
+                      {result.ok ? t('requests.testOrigin.success') : t('requests.testOrigin.failed')}
                     </Badge>
                   </div>
                   <div className='flex items-center gap-2'>
@@ -335,30 +336,25 @@ function AdapterTestDialog({ adapter, open, onOpenChange }: AdapterTestDialogPro
                 {/* 错误信息 */}
                 {result.error && (
                   <div className='space-y-1'>
-                    <p className='text-sm font-medium text-destructive'>错误信息</p>
+                    <p className='text-sm font-medium text-destructive'>{t('common.messages.errorMessage')}</p>
                     <p className='text-destructive text-sm'>{result.error}</p>
                   </div>
                 )}
 
-                {/* 响应内容 */}
-                {formattedResponse && (
-                  <div className='space-y-1'>
-                    <p className='text-sm font-medium'>响应内容</p>
-                    <pre className='bg-muted max-h-64 overflow-y-auto overflow-x-auto rounded-md p-3 text-xs whitespace-pre-wrap break-all'>
-                      <code>{formattedResponse}</code>
-                    </pre>
-                  </div>
-                )}
+
               </div>
             )}
           </div>
         )}
 
         <DialogFooter>
-          <Button variant='outline' onClick={() => onOpenChange(false)} disabled={testing}>关闭</Button>
+          <Button variant='ghost' onClick={() => setHistoryOpen(true)} disabled={testing}>{t('requests.testOrigin.historyTitle')}</Button>
+          <Button variant='outline' onClick={() => onOpenChange(false)} disabled={testing}>{t('common.buttons.close')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <TestOriginHistoryDrawer open={historyOpen} onOpenChange={setHistoryOpen} originType='adapter' originID={String(adapter.id)} label={adapter.display_name || adapter.name} />
+    </>
   );
 }
 
@@ -557,8 +553,7 @@ function AdapterDialog({ adapter, open, onOpenChange }: AdapterDialogProps) {
                   {adapter && (
                     <BindingTestButton
                       adapterName={adapter.name}
-                      inboundApiFormat={adapter.inbound_api_format}
-                      binding={binding}
+                        binding={binding}
                     />
                   )}
                   <Button

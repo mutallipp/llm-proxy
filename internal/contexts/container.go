@@ -17,8 +17,15 @@ type contextContainer struct {
 	OperationName *string
 	APIKey        *ent.APIKey
 	User          *ent.User
-	Source        *request.Source
-	Thread        *ent.Thread
+	Source *request.Source
+	// TestOrigin 在 source=test 时写入，统一测试入口在 CreateRequest
+	// 之前调用 contexts.WithTestOrigin。普通请求路径不写入。
+	TestOrigin *TestOrigin
+	// TestRequestCapture 在 source=test 路径上，RequestService.CreateRequest
+	// 创建成功后写入 ent.Request。orchestrator.Test*Orchestrator 读取该值
+	// 以向调用方返回统一测试结果的主请求 ID。
+	TestRequestCapture *TestRequestCapture
+	Thread             *ent.Thread
 	Trace         *ent.Trace
 	Errors        []error
 	mu            sync.RWMutex

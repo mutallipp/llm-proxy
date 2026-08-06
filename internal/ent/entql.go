@@ -428,9 +428,15 @@ var schemaGraph = func() *sqlgraph.Schema {
 			request.FieldFormat:                     {Type: field.TypeString, Column: request.FieldFormat},
 			request.FieldRequestHeaders:             {Type: field.TypeJSON, Column: request.FieldRequestHeaders},
 			request.FieldRequestBody:                {Type: field.TypeJSON, Column: request.FieldRequestBody},
+			request.FieldRequestBodyAvailability:    {Type: field.TypeEnum, Column: request.FieldRequestBodyAvailability},
 			request.FieldResponseBody:               {Type: field.TypeJSON, Column: request.FieldResponseBody},
+			request.FieldResponseBodyAvailability:   {Type: field.TypeEnum, Column: request.FieldResponseBodyAvailability},
 			request.FieldResponseChunks:             {Type: field.TypeJSON, Column: request.FieldResponseChunks},
+			request.FieldResponseChunksAvailability: {Type: field.TypeEnum, Column: request.FieldResponseChunksAvailability},
 			request.FieldChannelID:                  {Type: field.TypeInt, Column: request.FieldChannelID},
+			request.FieldTestOriginType:             {Type: field.TypeEnum, Column: request.FieldTestOriginType},
+			request.FieldTestOriginID:               {Type: field.TypeInt, Column: request.FieldTestOriginID},
+			request.FieldTestOriginLabel:            {Type: field.TypeString, Column: request.FieldTestOriginLabel},
 			request.FieldExternalID:                 {Type: field.TypeString, Column: request.FieldExternalID},
 			request.FieldStatus:                     {Type: field.TypeEnum, Column: request.FieldStatus},
 			request.FieldStream:                     {Type: field.TypeBool, Column: request.FieldStream},
@@ -465,8 +471,11 @@ var schemaGraph = func() *sqlgraph.Schema {
 			requestexecution.FieldModelID:                    {Type: field.TypeString, Column: requestexecution.FieldModelID},
 			requestexecution.FieldFormat:                     {Type: field.TypeString, Column: requestexecution.FieldFormat},
 			requestexecution.FieldRequestBody:                {Type: field.TypeJSON, Column: requestexecution.FieldRequestBody},
+			requestexecution.FieldRequestBodyAvailability:    {Type: field.TypeEnum, Column: requestexecution.FieldRequestBodyAvailability},
 			requestexecution.FieldResponseBody:               {Type: field.TypeJSON, Column: requestexecution.FieldResponseBody},
+			requestexecution.FieldResponseBodyAvailability:   {Type: field.TypeEnum, Column: requestexecution.FieldResponseBodyAvailability},
 			requestexecution.FieldResponseChunks:             {Type: field.TypeJSON, Column: requestexecution.FieldResponseChunks},
+			requestexecution.FieldResponseChunksAvailability: {Type: field.TypeEnum, Column: requestexecution.FieldResponseChunksAvailability},
 			requestexecution.FieldErrorMessage:               {Type: field.TypeString, Column: requestexecution.FieldErrorMessage},
 			requestexecution.FieldResponseStatusCode:         {Type: field.TypeInt, Column: requestexecution.FieldResponseStatusCode},
 			requestexecution.FieldStatus:                     {Type: field.TypeEnum, Column: requestexecution.FieldStatus},
@@ -3454,9 +3463,19 @@ func (f *RequestFilter) WhereRequestBody(p entql.BytesP) {
 	f.Where(p.Field(request.FieldRequestBody))
 }
 
+// WhereRequestBodyAvailability applies the entql string predicate on the request_body_availability field.
+func (f *RequestFilter) WhereRequestBodyAvailability(p entql.StringP) {
+	f.Where(p.Field(request.FieldRequestBodyAvailability))
+}
+
 // WhereResponseBody applies the entql json.RawMessage predicate on the response_body field.
 func (f *RequestFilter) WhereResponseBody(p entql.BytesP) {
 	f.Where(p.Field(request.FieldResponseBody))
+}
+
+// WhereResponseBodyAvailability applies the entql string predicate on the response_body_availability field.
+func (f *RequestFilter) WhereResponseBodyAvailability(p entql.StringP) {
+	f.Where(p.Field(request.FieldResponseBodyAvailability))
 }
 
 // WhereResponseChunks applies the entql json.RawMessage predicate on the response_chunks field.
@@ -3464,9 +3483,29 @@ func (f *RequestFilter) WhereResponseChunks(p entql.BytesP) {
 	f.Where(p.Field(request.FieldResponseChunks))
 }
 
+// WhereResponseChunksAvailability applies the entql string predicate on the response_chunks_availability field.
+func (f *RequestFilter) WhereResponseChunksAvailability(p entql.StringP) {
+	f.Where(p.Field(request.FieldResponseChunksAvailability))
+}
+
 // WhereChannelID applies the entql int predicate on the channel_id field.
 func (f *RequestFilter) WhereChannelID(p entql.IntP) {
 	f.Where(p.Field(request.FieldChannelID))
+}
+
+// WhereTestOriginType applies the entql string predicate on the test_origin_type field.
+func (f *RequestFilter) WhereTestOriginType(p entql.StringP) {
+	f.Where(p.Field(request.FieldTestOriginType))
+}
+
+// WhereTestOriginID applies the entql int predicate on the test_origin_id field.
+func (f *RequestFilter) WhereTestOriginID(p entql.IntP) {
+	f.Where(p.Field(request.FieldTestOriginID))
+}
+
+// WhereTestOriginLabel applies the entql string predicate on the test_origin_label field.
+func (f *RequestFilter) WhereTestOriginLabel(p entql.StringP) {
+	f.Where(p.Field(request.FieldTestOriginLabel))
 }
 
 // WhereExternalID applies the entql string predicate on the external_id field.
@@ -3712,14 +3751,29 @@ func (f *RequestExecutionFilter) WhereRequestBody(p entql.BytesP) {
 	f.Where(p.Field(requestexecution.FieldRequestBody))
 }
 
+// WhereRequestBodyAvailability applies the entql string predicate on the request_body_availability field.
+func (f *RequestExecutionFilter) WhereRequestBodyAvailability(p entql.StringP) {
+	f.Where(p.Field(requestexecution.FieldRequestBodyAvailability))
+}
+
 // WhereResponseBody applies the entql json.RawMessage predicate on the response_body field.
 func (f *RequestExecutionFilter) WhereResponseBody(p entql.BytesP) {
 	f.Where(p.Field(requestexecution.FieldResponseBody))
 }
 
+// WhereResponseBodyAvailability applies the entql string predicate on the response_body_availability field.
+func (f *RequestExecutionFilter) WhereResponseBodyAvailability(p entql.StringP) {
+	f.Where(p.Field(requestexecution.FieldResponseBodyAvailability))
+}
+
 // WhereResponseChunks applies the entql json.RawMessage predicate on the response_chunks field.
 func (f *RequestExecutionFilter) WhereResponseChunks(p entql.BytesP) {
 	f.Where(p.Field(requestexecution.FieldResponseChunks))
+}
+
+// WhereResponseChunksAvailability applies the entql string predicate on the response_chunks_availability field.
+func (f *RequestExecutionFilter) WhereResponseChunksAvailability(p entql.StringP) {
+	f.Where(p.Field(requestexecution.FieldResponseChunksAvailability))
 }
 
 // WhereErrorMessage applies the entql string predicate on the error_message field.

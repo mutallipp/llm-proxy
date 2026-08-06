@@ -414,6 +414,15 @@ export const saveChannelEndpointsPayloadSchema = z.object({
 });
 export type SaveChannelEndpointsPayload = z.infer<typeof saveChannelEndpointsPayloadSchema>;
 
+export const testTargetPayloadSchema = z.object({
+  latency: z.number(),
+  success: z.boolean(),
+  message: z.string().nullable(),
+  error: z.string().nullable(),
+  requestID: z.string().nullable(),
+});
+export type TestTargetPayload = z.infer<typeof testTargetPayloadSchema>;
+
 export const testAPIKeyResultSchema = z.object({
   keyPrefix: z.string(),
   success: z.boolean(),

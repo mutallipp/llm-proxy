@@ -767,5 +767,19 @@
   "channels.capability.bulkEnable.unknownFailure": "Enable failed",
   "channels.capability.bulkEnable.result": "Enabled {{success}} associations; {{failed}} failed validation.",
   "channels.endpoints.revoked.autoDisabled": "{{count}} automatic associations were disabled after endpoint changes.",
-  "channels.endpoints.revoked.manualNotice": "Manual association needs review after endpoint changes: {{notice}}"
+  "channels.endpoints.revoked.manualNotice": "Manual association needs review after endpoint changes: {{notice}}",
+  "channels.dialogs.test.fixedTemplateDescription": "Run the fixed safe test template against {{name}}.",
+  "channels.dialogs.test.fixedTemplate": "Fixed template",
+  "channels.dialogs.test.fixedTemplateText": "Reply with OK. No custom prompt or JSON is sent.",
+  "channels.dialogs.test.protocol": "Protocol pool",
+  "channels.dialogs.test.selectProtocol": "Select a protocol",
+  "channels.dialogs.test.model": "Model",
+  "channels.dialogs.test.selectModel": "Select a model",
+  "channels.dialogs.test.noProtocol": "No enabled protocol pool is available.",
+  "channels.dialogs.test.noModel": "No model is available for this channel.",
+  "channels.dialogs.test.testing": "Testing…",
+  "channels.dialogs.test.failed": "Test failed",
+  "channels.dialogs.test.protocolName.openai": "OpenAI Chat Completions",
+  "channels.dialogs.test.protocolName.openaiResponses": "OpenAI Responses",
+  "channels.dialogs.test.protocolName.anthropic": "Anthropic Messages"
 }

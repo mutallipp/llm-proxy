@@ -545,6 +545,26 @@ func FormatContainsFold(v string) predicate.RequestExecution {
 	return predicate.RequestExecution(sql.FieldContainsFold(FieldFormat, v))
 }
 
+// RequestBodyAvailabilityEQ applies the EQ predicate on the "request_body_availability" field.
+func RequestBodyAvailabilityEQ(v RequestBodyAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldEQ(FieldRequestBodyAvailability, v))
+}
+
+// RequestBodyAvailabilityNEQ applies the NEQ predicate on the "request_body_availability" field.
+func RequestBodyAvailabilityNEQ(v RequestBodyAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldNEQ(FieldRequestBodyAvailability, v))
+}
+
+// RequestBodyAvailabilityIn applies the In predicate on the "request_body_availability" field.
+func RequestBodyAvailabilityIn(vs ...RequestBodyAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldIn(FieldRequestBodyAvailability, vs...))
+}
+
+// RequestBodyAvailabilityNotIn applies the NotIn predicate on the "request_body_availability" field.
+func RequestBodyAvailabilityNotIn(vs ...RequestBodyAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldNotIn(FieldRequestBodyAvailability, vs...))
+}
+
 // ResponseBodyIsNil applies the IsNil predicate on the "response_body" field.
 func ResponseBodyIsNil() predicate.RequestExecution {
 	return predicate.RequestExecution(sql.FieldIsNull(FieldResponseBody))
@@ -555,6 +575,26 @@ func ResponseBodyNotNil() predicate.RequestExecution {
 	return predicate.RequestExecution(sql.FieldNotNull(FieldResponseBody))
 }
 
+// ResponseBodyAvailabilityEQ applies the EQ predicate on the "response_body_availability" field.
+func ResponseBodyAvailabilityEQ(v ResponseBodyAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldEQ(FieldResponseBodyAvailability, v))
+}
+
+// ResponseBodyAvailabilityNEQ applies the NEQ predicate on the "response_body_availability" field.
+func ResponseBodyAvailabilityNEQ(v ResponseBodyAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldNEQ(FieldResponseBodyAvailability, v))
+}
+
+// ResponseBodyAvailabilityIn applies the In predicate on the "response_body_availability" field.
+func ResponseBodyAvailabilityIn(vs ...ResponseBodyAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldIn(FieldResponseBodyAvailability, vs...))
+}
+
+// ResponseBodyAvailabilityNotIn applies the NotIn predicate on the "response_body_availability" field.
+func ResponseBodyAvailabilityNotIn(vs ...ResponseBodyAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldNotIn(FieldResponseBodyAvailability, vs...))
+}
+
 // ResponseChunksIsNil applies the IsNil predicate on the "response_chunks" field.
 func ResponseChunksIsNil() predicate.RequestExecution {
 	return predicate.RequestExecution(sql.FieldIsNull(FieldResponseChunks))
@@ -563,6 +603,26 @@ func ResponseChunksIsNil() predicate.RequestExecution {
 // ResponseChunksNotNil applies the NotNil predicate on the "response_chunks" field.
 func ResponseChunksNotNil() predicate.RequestExecution {
 	return predicate.RequestExecution(sql.FieldNotNull(FieldResponseChunks))
+}
+
+// ResponseChunksAvailabilityEQ applies the EQ predicate on the "response_chunks_availability" field.
+func ResponseChunksAvailabilityEQ(v ResponseChunksAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldEQ(FieldResponseChunksAvailability, v))
+}
+
+// ResponseChunksAvailabilityNEQ applies the NEQ predicate on the "response_chunks_availability" field.
+func ResponseChunksAvailabilityNEQ(v ResponseChunksAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldNEQ(FieldResponseChunksAvailability, v))
+}
+
+// ResponseChunksAvailabilityIn applies the In predicate on the "response_chunks_availability" field.
+func ResponseChunksAvailabilityIn(vs ...ResponseChunksAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldIn(FieldResponseChunksAvailability, vs...))
+}
+
+// ResponseChunksAvailabilityNotIn applies the NotIn predicate on the "response_chunks_availability" field.
+func ResponseChunksAvailabilityNotIn(vs ...ResponseChunksAvailability) predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldNotIn(FieldResponseChunksAvailability, vs...))
 }
 
 // ErrorMessageEQ applies the EQ predicate on the "error_message" field.

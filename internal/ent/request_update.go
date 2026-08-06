@@ -58,6 +58,20 @@ func (_u *RequestUpdate) ClearRequestHeaders() *RequestUpdate {
 	return _u
 }
 
+// SetRequestBodyAvailability sets the "request_body_availability" field.
+func (_u *RequestUpdate) SetRequestBodyAvailability(v request.RequestBodyAvailability) *RequestUpdate {
+	_u.mutation.SetRequestBodyAvailability(v)
+	return _u
+}
+
+// SetNillableRequestBodyAvailability sets the "request_body_availability" field if the given value is not nil.
+func (_u *RequestUpdate) SetNillableRequestBodyAvailability(v *request.RequestBodyAvailability) *RequestUpdate {
+	if v != nil {
+		_u.SetRequestBodyAvailability(*v)
+	}
+	return _u
+}
+
 // SetResponseBody sets the "response_body" field.
 func (_u *RequestUpdate) SetResponseBody(v objects.JSONRawMessage) *RequestUpdate {
 	_u.mutation.SetResponseBody(v)
@@ -76,6 +90,20 @@ func (_u *RequestUpdate) ClearResponseBody() *RequestUpdate {
 	return _u
 }
 
+// SetResponseBodyAvailability sets the "response_body_availability" field.
+func (_u *RequestUpdate) SetResponseBodyAvailability(v request.ResponseBodyAvailability) *RequestUpdate {
+	_u.mutation.SetResponseBodyAvailability(v)
+	return _u
+}
+
+// SetNillableResponseBodyAvailability sets the "response_body_availability" field if the given value is not nil.
+func (_u *RequestUpdate) SetNillableResponseBodyAvailability(v *request.ResponseBodyAvailability) *RequestUpdate {
+	if v != nil {
+		_u.SetResponseBodyAvailability(*v)
+	}
+	return _u
+}
+
 // SetResponseChunks sets the "response_chunks" field.
 func (_u *RequestUpdate) SetResponseChunks(v []objects.JSONRawMessage) *RequestUpdate {
 	_u.mutation.SetResponseChunks(v)
@@ -91,6 +119,20 @@ func (_u *RequestUpdate) AppendResponseChunks(v []objects.JSONRawMessage) *Reque
 // ClearResponseChunks clears the value of the "response_chunks" field.
 func (_u *RequestUpdate) ClearResponseChunks() *RequestUpdate {
 	_u.mutation.ClearResponseChunks()
+	return _u
+}
+
+// SetResponseChunksAvailability sets the "response_chunks_availability" field.
+func (_u *RequestUpdate) SetResponseChunksAvailability(v request.ResponseChunksAvailability) *RequestUpdate {
+	_u.mutation.SetResponseChunksAvailability(v)
+	return _u
+}
+
+// SetNillableResponseChunksAvailability sets the "response_chunks_availability" field if the given value is not nil.
+func (_u *RequestUpdate) SetNillableResponseChunksAvailability(v *request.ResponseChunksAvailability) *RequestUpdate {
+	if v != nil {
+		_u.SetResponseChunksAvailability(*v)
+	}
 	return _u
 }
 
@@ -442,6 +484,21 @@ func (_u *RequestUpdate) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *RequestUpdate) check() error {
+	if v, ok := _u.mutation.RequestBodyAvailability(); ok {
+		if err := request.RequestBodyAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "request_body_availability", err: fmt.Errorf(`ent: validator failed for field "Request.request_body_availability": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ResponseBodyAvailability(); ok {
+		if err := request.ResponseBodyAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "response_body_availability", err: fmt.Errorf(`ent: validator failed for field "Request.response_body_availability": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ResponseChunksAvailability(); ok {
+		if err := request.ResponseChunksAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "response_chunks_availability", err: fmt.Errorf(`ent: validator failed for field "Request.response_chunks_availability": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ExternalID(); ok {
 		if err := request.ExternalIDValidator(v); err != nil {
 			return &ValidationError{Name: "external_id", err: fmt.Errorf(`ent: validator failed for field "Request.external_id": %w`, err)}
@@ -493,6 +550,9 @@ func (_u *RequestUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.RequestHeadersCleared() {
 		_spec.ClearField(request.FieldRequestHeaders, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.RequestBodyAvailability(); ok {
+		_spec.SetField(request.FieldRequestBodyAvailability, field.TypeEnum, value)
+	}
 	if value, ok := _u.mutation.ResponseBody(); ok {
 		_spec.SetField(request.FieldResponseBody, field.TypeJSON, value)
 	}
@@ -504,6 +564,9 @@ func (_u *RequestUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.ResponseBodyCleared() {
 		_spec.ClearField(request.FieldResponseBody, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.ResponseBodyAvailability(); ok {
+		_spec.SetField(request.FieldResponseBodyAvailability, field.TypeEnum, value)
+	}
 	if value, ok := _u.mutation.ResponseChunks(); ok {
 		_spec.SetField(request.FieldResponseChunks, field.TypeJSON, value)
 	}
@@ -514,6 +577,18 @@ func (_u *RequestUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ResponseChunksCleared() {
 		_spec.ClearField(request.FieldResponseChunks, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.ResponseChunksAvailability(); ok {
+		_spec.SetField(request.FieldResponseChunksAvailability, field.TypeEnum, value)
+	}
+	if _u.mutation.TestOriginTypeCleared() {
+		_spec.ClearField(request.FieldTestOriginType, field.TypeEnum)
+	}
+	if _u.mutation.TestOriginIDCleared() {
+		_spec.ClearField(request.FieldTestOriginID, field.TypeInt)
+	}
+	if _u.mutation.TestOriginLabelCleared() {
+		_spec.ClearField(request.FieldTestOriginLabel, field.TypeString)
 	}
 	if value, ok := _u.mutation.ExternalID(); ok {
 		_spec.SetField(request.FieldExternalID, field.TypeString, value)
@@ -740,6 +815,20 @@ func (_u *RequestUpdateOne) ClearRequestHeaders() *RequestUpdateOne {
 	return _u
 }
 
+// SetRequestBodyAvailability sets the "request_body_availability" field.
+func (_u *RequestUpdateOne) SetRequestBodyAvailability(v request.RequestBodyAvailability) *RequestUpdateOne {
+	_u.mutation.SetRequestBodyAvailability(v)
+	return _u
+}
+
+// SetNillableRequestBodyAvailability sets the "request_body_availability" field if the given value is not nil.
+func (_u *RequestUpdateOne) SetNillableRequestBodyAvailability(v *request.RequestBodyAvailability) *RequestUpdateOne {
+	if v != nil {
+		_u.SetRequestBodyAvailability(*v)
+	}
+	return _u
+}
+
 // SetResponseBody sets the "response_body" field.
 func (_u *RequestUpdateOne) SetResponseBody(v objects.JSONRawMessage) *RequestUpdateOne {
 	_u.mutation.SetResponseBody(v)
@@ -758,6 +847,20 @@ func (_u *RequestUpdateOne) ClearResponseBody() *RequestUpdateOne {
 	return _u
 }
 
+// SetResponseBodyAvailability sets the "response_body_availability" field.
+func (_u *RequestUpdateOne) SetResponseBodyAvailability(v request.ResponseBodyAvailability) *RequestUpdateOne {
+	_u.mutation.SetResponseBodyAvailability(v)
+	return _u
+}
+
+// SetNillableResponseBodyAvailability sets the "response_body_availability" field if the given value is not nil.
+func (_u *RequestUpdateOne) SetNillableResponseBodyAvailability(v *request.ResponseBodyAvailability) *RequestUpdateOne {
+	if v != nil {
+		_u.SetResponseBodyAvailability(*v)
+	}
+	return _u
+}
+
 // SetResponseChunks sets the "response_chunks" field.
 func (_u *RequestUpdateOne) SetResponseChunks(v []objects.JSONRawMessage) *RequestUpdateOne {
 	_u.mutation.SetResponseChunks(v)
@@ -773,6 +876,20 @@ func (_u *RequestUpdateOne) AppendResponseChunks(v []objects.JSONRawMessage) *Re
 // ClearResponseChunks clears the value of the "response_chunks" field.
 func (_u *RequestUpdateOne) ClearResponseChunks() *RequestUpdateOne {
 	_u.mutation.ClearResponseChunks()
+	return _u
+}
+
+// SetResponseChunksAvailability sets the "response_chunks_availability" field.
+func (_u *RequestUpdateOne) SetResponseChunksAvailability(v request.ResponseChunksAvailability) *RequestUpdateOne {
+	_u.mutation.SetResponseChunksAvailability(v)
+	return _u
+}
+
+// SetNillableResponseChunksAvailability sets the "response_chunks_availability" field if the given value is not nil.
+func (_u *RequestUpdateOne) SetNillableResponseChunksAvailability(v *request.ResponseChunksAvailability) *RequestUpdateOne {
+	if v != nil {
+		_u.SetResponseChunksAvailability(*v)
+	}
 	return _u
 }
 
@@ -1137,6 +1254,21 @@ func (_u *RequestUpdateOne) defaults() error {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *RequestUpdateOne) check() error {
+	if v, ok := _u.mutation.RequestBodyAvailability(); ok {
+		if err := request.RequestBodyAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "request_body_availability", err: fmt.Errorf(`ent: validator failed for field "Request.request_body_availability": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ResponseBodyAvailability(); ok {
+		if err := request.ResponseBodyAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "response_body_availability", err: fmt.Errorf(`ent: validator failed for field "Request.response_body_availability": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ResponseChunksAvailability(); ok {
+		if err := request.ResponseChunksAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "response_chunks_availability", err: fmt.Errorf(`ent: validator failed for field "Request.response_chunks_availability": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ExternalID(); ok {
 		if err := request.ExternalIDValidator(v); err != nil {
 			return &ValidationError{Name: "external_id", err: fmt.Errorf(`ent: validator failed for field "Request.external_id": %w`, err)}
@@ -1205,6 +1337,9 @@ func (_u *RequestUpdateOne) sqlSave(ctx context.Context) (_node *Request, err er
 	if _u.mutation.RequestHeadersCleared() {
 		_spec.ClearField(request.FieldRequestHeaders, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.RequestBodyAvailability(); ok {
+		_spec.SetField(request.FieldRequestBodyAvailability, field.TypeEnum, value)
+	}
 	if value, ok := _u.mutation.ResponseBody(); ok {
 		_spec.SetField(request.FieldResponseBody, field.TypeJSON, value)
 	}
@@ -1216,6 +1351,9 @@ func (_u *RequestUpdateOne) sqlSave(ctx context.Context) (_node *Request, err er
 	if _u.mutation.ResponseBodyCleared() {
 		_spec.ClearField(request.FieldResponseBody, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.ResponseBodyAvailability(); ok {
+		_spec.SetField(request.FieldResponseBodyAvailability, field.TypeEnum, value)
+	}
 	if value, ok := _u.mutation.ResponseChunks(); ok {
 		_spec.SetField(request.FieldResponseChunks, field.TypeJSON, value)
 	}
@@ -1226,6 +1364,18 @@ func (_u *RequestUpdateOne) sqlSave(ctx context.Context) (_node *Request, err er
 	}
 	if _u.mutation.ResponseChunksCleared() {
 		_spec.ClearField(request.FieldResponseChunks, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.ResponseChunksAvailability(); ok {
+		_spec.SetField(request.FieldResponseChunksAvailability, field.TypeEnum, value)
+	}
+	if _u.mutation.TestOriginTypeCleared() {
+		_spec.ClearField(request.FieldTestOriginType, field.TypeEnum)
+	}
+	if _u.mutation.TestOriginIDCleared() {
+		_spec.ClearField(request.FieldTestOriginID, field.TypeInt)
+	}
+	if _u.mutation.TestOriginLabelCleared() {
+		_spec.ClearField(request.FieldTestOriginLabel, field.TypeString)
 	}
 	if value, ok := _u.mutation.ExternalID(); ok {
 		_spec.SetField(request.FieldExternalID, field.TypeString, value)

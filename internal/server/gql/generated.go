@@ -38,6 +38,7 @@ import (
 	"github.com/mutallipp/llm-proxy/internal/server/backup"
 	"github.com/mutallipp/llm-proxy/internal/server/biz"
 	"github.com/mutallipp/llm-proxy/internal/server/gc"
+	"github.com/mutallipp/llm-proxy/internal/server/orchestrator"
 	"github.com/mutallipp/llm-proxy/llm"
 	"github.com/mutallipp/llm-proxy/llm/httpclient"
 	"github.com/mutallipp/llm-proxy/llm/oauth"
@@ -1039,9 +1040,11 @@ type ComplexityRoot struct {
 		SaveChannelModelPrices               func(childComplexity int, channelID objects.GUID, input []*biz.SaveChannelModelPriceInput) int
 		SaveProxyPreset                      func(childComplexity int, input biz.ProxyPreset) int
 		SyncChannelModels                    func(childComplexity int, channelID objects.GUID, pattern *string) int
+		TestAdapter                          func(childComplexity int, input TestAdapterInput) int
 		TestChannel                          func(childComplexity int, input TestChannelInput) int
 		TestChannelAPIKey                    func(childComplexity int, channelID objects.GUID, key string, modelID *string) int
 		TestChannelAPIKeys                   func(childComplexity int, channelID objects.GUID, modelID *string) int
+		TestModel                            func(childComplexity int, input TestModelInput) int
 		TriggerAutoBackup                    func(childComplexity int) int
 		TriggerGcCleanup                     func(childComplexity int, input gc.TriggerGcCleanupInput) int
 		UnarchiveThread                      func(childComplexity int, id objects.GUID) int
@@ -1425,6 +1428,7 @@ type ComplexityRoot struct {
 		SystemStatus                 func(childComplexity int) int
 		SystemVersion                func(childComplexity int) int
 		Systems                      func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.SystemOrder, where *ent.SystemWhereInput) int
+		TestModelTargets             func(childComplexity int, modelID string, protocol string) int
 		Threads                      func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.ThreadOrder, where *ent.ThreadWhereInput) int
 		TokenStats                   func(childComplexity int) int
 		TokenStatsByAPIKey           func(childComplexity int, timeWindow *string) int
@@ -1456,40 +1460,48 @@ type ComplexityRoot struct {
 	}
 
 	Request struct {
-		APIKey                     func(childComplexity int) int
-		APIKeyID                   func(childComplexity int) int
-		Channel                    func(childComplexity int) int
-		ChannelID                  func(childComplexity int) int
-		ClientIP                   func(childComplexity int) int
-		ContentSaved               func(childComplexity int) int
-		ContentSavedAt             func(childComplexity int) int
-		ContentStorageID           func(childComplexity int) int
-		ContentStorageKey          func(childComplexity int) int
-		CreatedAt                  func(childComplexity int) int
-		DataStorage                func(childComplexity int) int
-		DataStorageID              func(childComplexity int) int
-		Executions                 func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RequestExecutionOrder, where *ent.RequestExecutionWhereInput) int
-		ExternalID                 func(childComplexity int) int
-		Format                     func(childComplexity int) int
-		ID                         func(childComplexity int) int
-		MetricsFirstTokenLatencyMs func(childComplexity int) int
-		MetricsLatencyMs           func(childComplexity int) int
-		MetricsReasoningDurationMs func(childComplexity int) int
-		ModelID                    func(childComplexity int) int
-		Project                    func(childComplexity int) int
-		ProjectID                  func(childComplexity int) int
-		ReasoningEffort            func(childComplexity int) int
-		RequestBody                func(childComplexity int) int
-		RequestHeaders             func(childComplexity int) int
-		ResponseBody               func(childComplexity int) int
-		ResponseChunks             func(childComplexity int) int
-		Source                     func(childComplexity int) int
-		Status                     func(childComplexity int) int
-		Stream                     func(childComplexity int) int
-		Trace                      func(childComplexity int) int
-		TraceID                    func(childComplexity int) int
-		UpdatedAt                  func(childComplexity int) int
-		UsageLogs                  func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UsageLogOrder, where *ent.UsageLogWhereInput) int
+		APIKey                              func(childComplexity int) int
+		APIKeyID                            func(childComplexity int) int
+		Channel                             func(childComplexity int) int
+		ChannelID                           func(childComplexity int) int
+		ClientIP                            func(childComplexity int) int
+		ContentSaved                        func(childComplexity int) int
+		ContentSavedAt                      func(childComplexity int) int
+		ContentStorageID                    func(childComplexity int) int
+		ContentStorageKey                   func(childComplexity int) int
+		CreatedAt                           func(childComplexity int) int
+		DataStorage                         func(childComplexity int) int
+		DataStorageID                       func(childComplexity int) int
+		Executions                          func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RequestExecutionOrder, where *ent.RequestExecutionWhereInput) int
+		ExternalID                          func(childComplexity int) int
+		Format                              func(childComplexity int) int
+		ID                                  func(childComplexity int) int
+		MetricsFirstTokenLatencyMs          func(childComplexity int) int
+		MetricsLatencyMs                    func(childComplexity int) int
+		MetricsReasoningDurationMs          func(childComplexity int) int
+		ModelID                             func(childComplexity int) int
+		Project                             func(childComplexity int) int
+		ProjectID                           func(childComplexity int) int
+		ReasoningEffort                     func(childComplexity int) int
+		RequestBody                         func(childComplexity int) int
+		RequestBodyAvailability             func(childComplexity int) int
+		RequestHeaders                      func(childComplexity int) int
+		ResponseBody                        func(childComplexity int) int
+		ResponseBodyAvailability            func(childComplexity int) int
+		ResponseChunks                      func(childComplexity int) int
+		ResponseChunksAvailability          func(childComplexity int) int
+		ResponseChunksLive                  func(childComplexity int) int
+		ResponseChunksPersistedAvailability func(childComplexity int) int
+		Source                              func(childComplexity int) int
+		Status                              func(childComplexity int) int
+		Stream                              func(childComplexity int) int
+		TestOriginID                        func(childComplexity int) int
+		TestOriginLabel                     func(childComplexity int) int
+		TestOriginType                      func(childComplexity int) int
+		Trace                               func(childComplexity int) int
+		TraceID                             func(childComplexity int) int
+		UpdatedAt                           func(childComplexity int) int
+		UsageLogs                           func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UsageLogOrder, where *ent.UsageLogWhereInput) int
 	}
 
 	RequestConnection struct {
@@ -1504,32 +1516,37 @@ type ComplexityRoot struct {
 	}
 
 	RequestExecution struct {
-		Channel                    func(childComplexity int) int
-		ChannelID                  func(childComplexity int) int
-		CreatedAt                  func(childComplexity int) int
-		DataStorage                func(childComplexity int) int
-		DataStorageID              func(childComplexity int) int
-		ErrorMessage               func(childComplexity int) int
-		ExternalID                 func(childComplexity int) int
-		Format                     func(childComplexity int) int
-		ID                         func(childComplexity int) int
-		MetricsFirstTokenLatencyMs func(childComplexity int) int
-		MetricsLatencyMs           func(childComplexity int) int
-		MetricsReasoningDurationMs func(childComplexity int) int
-		ModelID                    func(childComplexity int) int
-		PassThroughApplied         func(childComplexity int) int
-		ProjectID                  func(childComplexity int) int
-		Request                    func(childComplexity int) int
-		RequestBody                func(childComplexity int) int
-		RequestHeaders             func(childComplexity int) int
-		RequestID                  func(childComplexity int) int
-		RequestURL                 func(childComplexity int) int
-		ResponseBody               func(childComplexity int) int
-		ResponseChunks             func(childComplexity int) int
-		ResponseStatusCode         func(childComplexity int) int
-		Status                     func(childComplexity int) int
-		Stream                     func(childComplexity int) int
-		UpdatedAt                  func(childComplexity int) int
+		Channel                             func(childComplexity int) int
+		ChannelID                           func(childComplexity int) int
+		CreatedAt                           func(childComplexity int) int
+		DataStorage                         func(childComplexity int) int
+		DataStorageID                       func(childComplexity int) int
+		ErrorMessage                        func(childComplexity int) int
+		ExternalID                          func(childComplexity int) int
+		Format                              func(childComplexity int) int
+		ID                                  func(childComplexity int) int
+		MetricsFirstTokenLatencyMs          func(childComplexity int) int
+		MetricsLatencyMs                    func(childComplexity int) int
+		MetricsReasoningDurationMs          func(childComplexity int) int
+		ModelID                             func(childComplexity int) int
+		PassThroughApplied                  func(childComplexity int) int
+		ProjectID                           func(childComplexity int) int
+		Request                             func(childComplexity int) int
+		RequestBody                         func(childComplexity int) int
+		RequestBodyAvailability             func(childComplexity int) int
+		RequestHeaders                      func(childComplexity int) int
+		RequestID                           func(childComplexity int) int
+		RequestURL                          func(childComplexity int) int
+		ResponseBody                        func(childComplexity int) int
+		ResponseBodyAvailability            func(childComplexity int) int
+		ResponseChunks                      func(childComplexity int) int
+		ResponseChunksAvailability          func(childComplexity int) int
+		ResponseChunksLive                  func(childComplexity int) int
+		ResponseChunksPersistedAvailability func(childComplexity int) int
+		ResponseStatusCode                  func(childComplexity int) int
+		Status                              func(childComplexity int) int
+		Stream                              func(childComplexity int) int
+		UpdatedAt                           func(childComplexity int) int
 	}
 
 	RequestExecutionConnection struct {
@@ -1821,10 +1838,27 @@ type ComplexityRoot struct {
 	}
 
 	TestChannelPayload struct {
-		Error   func(childComplexity int) int
-		Latency func(childComplexity int) int
-		Message func(childComplexity int) int
-		Success func(childComplexity int) int
+		Error     func(childComplexity int) int
+		Latency   func(childComplexity int) int
+		Message   func(childComplexity int) int
+		RequestID func(childComplexity int) int
+		Success   func(childComplexity int) int
+	}
+
+	TestModelTarget struct {
+		APIFormat       func(childComplexity int) int
+		ChannelID       func(childComplexity int) int
+		ChannelName     func(childComplexity int) int
+		PhysicalModelID func(childComplexity int) int
+		Protocol        func(childComplexity int) int
+	}
+
+	TestTargetPayload struct {
+		Error     func(childComplexity int) int
+		Latency   func(childComplexity int) int
+		Message   func(childComplexity int) int
+		RequestID func(childComplexity int) int
+		Success   func(childComplexity int) int
 	}
 
 	Thread struct {
@@ -2234,6 +2268,8 @@ type MutationResolver interface {
 	BulkRecoverChannels(ctx context.Context, ids []*objects.GUID) (bool, error)
 	BulkDeleteChannels(ctx context.Context, ids []*objects.GUID) (bool, error)
 	TestChannel(ctx context.Context, input TestChannelInput) (*TestChannelPayload, error)
+	TestModel(ctx context.Context, input TestModelInput) (*TestTargetPayload, error)
+	TestAdapter(ctx context.Context, input TestAdapterInput) (*TestTargetPayload, error)
 	TestChannelAPIKeys(ctx context.Context, channelID objects.GUID, modelID *string) (*TestChannelAPIKeysPayload, error)
 	TestChannelAPIKey(ctx context.Context, channelID objects.GUID, key string, modelID *string) (*TestAPIKeyResult, error)
 	BulkImportChannels(ctx context.Context, input BulkImportChannelsInput) (*biz.BulkImportChannelsResult, error)
@@ -2390,6 +2426,7 @@ type QueryResolver interface {
 	CountChannelsByType(ctx context.Context, input CountChannelsByTypeInput) ([]*ChannelTypeCount, error)
 	QueryChannels(ctx context.Context, input biz.QueryChannelsInput) (*ent.ChannelConnection, error)
 	APIKeyQuotaUsages(ctx context.Context, apiKeyID objects.GUID) ([]*APIKeyProfileQuotaUsage, error)
+	TestModelTargets(ctx context.Context, modelID string, protocol string) ([]*orchestrator.TestModelTarget, error)
 	DashboardOverview(ctx context.Context) (*DashboardOverview, error)
 	RequestStats(ctx context.Context) (*RequestStats, error)
 	RequestStatsByChannel(ctx context.Context, timeWindow *string) ([]*RequestStatsByChannel, error)
@@ -2454,11 +2491,17 @@ type RequestResolver interface {
 	DataStorageID(ctx context.Context, obj *ent.Request) (*objects.GUID, error)
 
 	RequestBody(ctx context.Context, obj *ent.Request) (objects.JSONRawMessage, error)
+	RequestBodyAvailability(ctx context.Context, obj *ent.Request) (request.RequestBodyAvailability, error)
 	ResponseBody(ctx context.Context, obj *ent.Request) (objects.JSONRawMessage, error)
+	ResponseBodyAvailability(ctx context.Context, obj *ent.Request) (request.ResponseBodyAvailability, error)
 	ResponseChunks(ctx context.Context, obj *ent.Request) ([]objects.JSONRawMessage, error)
+	ResponseChunksAvailability(ctx context.Context, obj *ent.Request) (request.ResponseChunksAvailability, error)
 	ChannelID(ctx context.Context, obj *ent.Request) (*objects.GUID, error)
 
 	Channel(ctx context.Context, obj *ent.Request) (*ent.Channel, error)
+
+	ResponseChunksLive(ctx context.Context, obj *ent.Request) (bool, error)
+	ResponseChunksPersistedAvailability(ctx context.Context, obj *ent.Request) (request.ResponseChunksAvailability, error)
 }
 type RequestExecutionResolver interface {
 	ID(ctx context.Context, obj *ent.RequestExecution) (*objects.GUID, error)
@@ -2468,10 +2511,16 @@ type RequestExecutionResolver interface {
 	DataStorageID(ctx context.Context, obj *ent.RequestExecution) (*objects.GUID, error)
 
 	RequestBody(ctx context.Context, obj *ent.RequestExecution) (objects.JSONRawMessage, error)
+	RequestBodyAvailability(ctx context.Context, obj *ent.RequestExecution) (requestexecution.RequestBodyAvailability, error)
 	ResponseBody(ctx context.Context, obj *ent.RequestExecution) (objects.JSONRawMessage, error)
+	ResponseBodyAvailability(ctx context.Context, obj *ent.RequestExecution) (requestexecution.ResponseBodyAvailability, error)
 	ResponseChunks(ctx context.Context, obj *ent.RequestExecution) ([]objects.JSONRawMessage, error)
+	ResponseChunksAvailability(ctx context.Context, obj *ent.RequestExecution) (requestexecution.ResponseChunksAvailability, error)
 
 	Channel(ctx context.Context, obj *ent.RequestExecution) (*ent.Channel, error)
+
+	ResponseChunksLive(ctx context.Context, obj *ent.RequestExecution) (bool, error)
+	ResponseChunksPersistedAvailability(ctx context.Context, obj *ent.RequestExecution) (requestexecution.ResponseChunksAvailability, error)
 }
 type RoleResolver interface {
 	ID(ctx context.Context, obj *ent.Role) (*objects.GUID, error)
@@ -6523,6 +6572,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.SyncChannelModels(childComplexity, args["channelID"].(objects.GUID), args["pattern"].(*string)), true
+	case "Mutation.testAdapter":
+		if e.complexity.Mutation.TestAdapter == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_testAdapter_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TestAdapter(childComplexity, args["input"].(TestAdapterInput)), true
 	case "Mutation.testChannel":
 		if e.complexity.Mutation.TestChannel == nil {
 			break
@@ -6556,6 +6616,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.TestChannelAPIKeys(childComplexity, args["channelID"].(objects.GUID), args["modelID"].(*string)), true
+	case "Mutation.testModel":
+		if e.complexity.Mutation.TestModel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_testModel_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TestModel(childComplexity, args["input"].(TestModelInput)), true
 	case "Mutation.triggerAutoBackup":
 		if e.complexity.Mutation.TriggerAutoBackup == nil {
 			break
@@ -8646,6 +8717,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Systems(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.SystemOrder), args["where"].(*ent.SystemWhereInput)), true
+	case "Query.testModelTargets":
+		if e.complexity.Query.TestModelTargets == nil {
+			break
+		}
+
+		args, err := ec.field_Query_testModelTargets_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.TestModelTargets(childComplexity, args["modelID"].(string), args["protocol"].(string)), true
 	case "Query.threads":
 		if e.complexity.Query.Threads == nil {
 			break
@@ -8953,6 +9035,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Request.RequestBody(childComplexity), true
+	case "Request.requestBodyAvailability":
+		if e.complexity.Request.RequestBodyAvailability == nil {
+			break
+		}
+
+		return e.complexity.Request.RequestBodyAvailability(childComplexity), true
 	case "Request.requestHeaders":
 		if e.complexity.Request.RequestHeaders == nil {
 			break
@@ -8965,12 +9053,36 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Request.ResponseBody(childComplexity), true
+	case "Request.responseBodyAvailability":
+		if e.complexity.Request.ResponseBodyAvailability == nil {
+			break
+		}
+
+		return e.complexity.Request.ResponseBodyAvailability(childComplexity), true
 	case "Request.responseChunks":
 		if e.complexity.Request.ResponseChunks == nil {
 			break
 		}
 
 		return e.complexity.Request.ResponseChunks(childComplexity), true
+	case "Request.responseChunksAvailability":
+		if e.complexity.Request.ResponseChunksAvailability == nil {
+			break
+		}
+
+		return e.complexity.Request.ResponseChunksAvailability(childComplexity), true
+	case "Request.responseChunksLive":
+		if e.complexity.Request.ResponseChunksLive == nil {
+			break
+		}
+
+		return e.complexity.Request.ResponseChunksLive(childComplexity), true
+	case "Request.responseChunksPersistedAvailability":
+		if e.complexity.Request.ResponseChunksPersistedAvailability == nil {
+			break
+		}
+
+		return e.complexity.Request.ResponseChunksPersistedAvailability(childComplexity), true
 	case "Request.source":
 		if e.complexity.Request.Source == nil {
 			break
@@ -8989,6 +9101,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Request.Stream(childComplexity), true
+	case "Request.testOriginID":
+		if e.complexity.Request.TestOriginID == nil {
+			break
+		}
+
+		return e.complexity.Request.TestOriginID(childComplexity), true
+	case "Request.testOriginLabel":
+		if e.complexity.Request.TestOriginLabel == nil {
+			break
+		}
+
+		return e.complexity.Request.TestOriginLabel(childComplexity), true
+	case "Request.testOriginType":
+		if e.complexity.Request.TestOriginType == nil {
+			break
+		}
+
+		return e.complexity.Request.TestOriginType(childComplexity), true
 	case "Request.trace":
 		if e.complexity.Request.Trace == nil {
 			break
@@ -9153,6 +9283,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RequestExecution.RequestBody(childComplexity), true
+	case "RequestExecution.requestBodyAvailability":
+		if e.complexity.RequestExecution.RequestBodyAvailability == nil {
+			break
+		}
+
+		return e.complexity.RequestExecution.RequestBodyAvailability(childComplexity), true
 	case "RequestExecution.requestHeaders":
 		if e.complexity.RequestExecution.RequestHeaders == nil {
 			break
@@ -9177,12 +9313,36 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RequestExecution.ResponseBody(childComplexity), true
+	case "RequestExecution.responseBodyAvailability":
+		if e.complexity.RequestExecution.ResponseBodyAvailability == nil {
+			break
+		}
+
+		return e.complexity.RequestExecution.ResponseBodyAvailability(childComplexity), true
 	case "RequestExecution.responseChunks":
 		if e.complexity.RequestExecution.ResponseChunks == nil {
 			break
 		}
 
 		return e.complexity.RequestExecution.ResponseChunks(childComplexity), true
+	case "RequestExecution.responseChunksAvailability":
+		if e.complexity.RequestExecution.ResponseChunksAvailability == nil {
+			break
+		}
+
+		return e.complexity.RequestExecution.ResponseChunksAvailability(childComplexity), true
+	case "RequestExecution.responseChunksLive":
+		if e.complexity.RequestExecution.ResponseChunksLive == nil {
+			break
+		}
+
+		return e.complexity.RequestExecution.ResponseChunksLive(childComplexity), true
+	case "RequestExecution.responseChunksPersistedAvailability":
+		if e.complexity.RequestExecution.ResponseChunksPersistedAvailability == nil {
+			break
+		}
+
+		return e.complexity.RequestExecution.ResponseChunksPersistedAvailability(childComplexity), true
 	case "RequestExecution.responseStatusCode":
 		if e.complexity.RequestExecution.ResponseStatusCode == nil {
 			break
@@ -10194,12 +10354,80 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.TestChannelPayload.Message(childComplexity), true
+	case "TestChannelPayload.requestID":
+		if e.complexity.TestChannelPayload.RequestID == nil {
+			break
+		}
+
+		return e.complexity.TestChannelPayload.RequestID(childComplexity), true
 	case "TestChannelPayload.success":
 		if e.complexity.TestChannelPayload.Success == nil {
 			break
 		}
 
 		return e.complexity.TestChannelPayload.Success(childComplexity), true
+
+	case "TestModelTarget.apiFormat":
+		if e.complexity.TestModelTarget.APIFormat == nil {
+			break
+		}
+
+		return e.complexity.TestModelTarget.APIFormat(childComplexity), true
+	case "TestModelTarget.channelID":
+		if e.complexity.TestModelTarget.ChannelID == nil {
+			break
+		}
+
+		return e.complexity.TestModelTarget.ChannelID(childComplexity), true
+	case "TestModelTarget.channelName":
+		if e.complexity.TestModelTarget.ChannelName == nil {
+			break
+		}
+
+		return e.complexity.TestModelTarget.ChannelName(childComplexity), true
+	case "TestModelTarget.physicalModelID":
+		if e.complexity.TestModelTarget.PhysicalModelID == nil {
+			break
+		}
+
+		return e.complexity.TestModelTarget.PhysicalModelID(childComplexity), true
+	case "TestModelTarget.protocol":
+		if e.complexity.TestModelTarget.Protocol == nil {
+			break
+		}
+
+		return e.complexity.TestModelTarget.Protocol(childComplexity), true
+
+	case "TestTargetPayload.error":
+		if e.complexity.TestTargetPayload.Error == nil {
+			break
+		}
+
+		return e.complexity.TestTargetPayload.Error(childComplexity), true
+	case "TestTargetPayload.latency":
+		if e.complexity.TestTargetPayload.Latency == nil {
+			break
+		}
+
+		return e.complexity.TestTargetPayload.Latency(childComplexity), true
+	case "TestTargetPayload.message":
+		if e.complexity.TestTargetPayload.Message == nil {
+			break
+		}
+
+		return e.complexity.TestTargetPayload.Message(childComplexity), true
+	case "TestTargetPayload.requestID":
+		if e.complexity.TestTargetPayload.RequestID == nil {
+			break
+		}
+
+		return e.complexity.TestTargetPayload.RequestID(childComplexity), true
+	case "TestTargetPayload.success":
+		if e.complexity.TestTargetPayload.Success == nil {
+			break
+		}
+
+		return e.complexity.TestTargetPayload.Success(childComplexity), true
 
 	case "Thread.archivedTracesCount":
 		if e.complexity.Thread.ArchivedTracesCount == nil {
@@ -11695,7 +11923,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSignInInput,
 		ec.unmarshalInputSystemOrder,
 		ec.unmarshalInputSystemWhereInput,
+		ec.unmarshalInputTestAdapterInput,
 		ec.unmarshalInputTestChannelInput,
+		ec.unmarshalInputTestModelInput,
 		ec.unmarshalInputThreadOrder,
 		ec.unmarshalInputThreadWhereInput,
 		ec.unmarshalInputTierCostInput,
@@ -12971,6 +13201,17 @@ func (ec *executionContext) field_Mutation_syncChannelModels_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_testAdapter_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNTestAdapterInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestAdapterInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_testChannelAPIKey_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -13012,6 +13253,17 @@ func (ec *executionContext) field_Mutation_testChannel_args(ctx context.Context,
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNTestChannelInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestChannelInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_testModel_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNTestModelInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestModelInput)
 	if err != nil {
 		return nil, err
 	}
@@ -14693,6 +14945,22 @@ func (ec *executionContext) field_Query_systems_args(ctx context.Context, rawArg
 		return nil, err
 	}
 	args["where"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_testModelTargets_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "modelID", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["modelID"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "protocol", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["protocol"] = arg1
 	return args, nil
 }
 
@@ -32604,6 +32872,8 @@ func (ec *executionContext) fieldContext_Mutation_testChannel(ctx context.Contex
 				return ec.fieldContext_TestChannelPayload_message(ctx, field)
 			case "error":
 				return ec.fieldContext_TestChannelPayload_error(ctx, field)
+			case "requestID":
+				return ec.fieldContext_TestChannelPayload_requestID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TestChannelPayload", field.Name)
 		},
@@ -32616,6 +32886,112 @@ func (ec *executionContext) fieldContext_Mutation_testChannel(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_testChannel_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_testModel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_testModel,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().TestModel(ctx, fc.Args["input"].(TestModelInput))
+		},
+		nil,
+		ec.marshalNTestTargetPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestTargetPayload,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_testModel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "latency":
+				return ec.fieldContext_TestTargetPayload_latency(ctx, field)
+			case "success":
+				return ec.fieldContext_TestTargetPayload_success(ctx, field)
+			case "message":
+				return ec.fieldContext_TestTargetPayload_message(ctx, field)
+			case "error":
+				return ec.fieldContext_TestTargetPayload_error(ctx, field)
+			case "requestID":
+				return ec.fieldContext_TestTargetPayload_requestID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TestTargetPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_testModel_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_testAdapter(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_testAdapter,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().TestAdapter(ctx, fc.Args["input"].(TestAdapterInput))
+		},
+		nil,
+		ec.marshalNTestTargetPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestTargetPayload,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_testAdapter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "latency":
+				return ec.fieldContext_TestTargetPayload_latency(ctx, field)
+			case "success":
+				return ec.fieldContext_TestTargetPayload_success(ctx, field)
+			case "message":
+				return ec.fieldContext_TestTargetPayload_message(ctx, field)
+			case "error":
+				return ec.fieldContext_TestTargetPayload_error(ctx, field)
+			case "requestID":
+				return ec.fieldContext_TestTargetPayload_requestID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TestTargetPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_testAdapter_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -44382,6 +44758,59 @@ func (ec *executionContext) fieldContext_Query_apiKeyQuotaUsages(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_testModelTargets(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_testModelTargets,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().TestModelTargets(ctx, fc.Args["modelID"].(string), fc.Args["protocol"].(string))
+		},
+		nil,
+		ec.marshalNTestModelTarget2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋorchestratorᚐTestModelTargetᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_testModelTargets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "channelID":
+				return ec.fieldContext_TestModelTarget_channelID(ctx, field)
+			case "channelName":
+				return ec.fieldContext_TestModelTarget_channelName(ctx, field)
+			case "physicalModelID":
+				return ec.fieldContext_TestModelTarget_physicalModelID(ctx, field)
+			case "protocol":
+				return ec.fieldContext_TestModelTarget_protocol(ctx, field)
+			case "apiFormat":
+				return ec.fieldContext_TestModelTarget_apiFormat(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TestModelTarget", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_testModelTargets_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_dashboardOverview(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -47519,6 +47948,35 @@ func (ec *executionContext) fieldContext_Request_requestBody(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Request_requestBodyAvailability(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_requestBodyAvailability,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Request().RequestBodyAvailability(ctx, obj)
+		},
+		nil,
+		ec.marshalNRequestRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_requestBodyAvailability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestRequestBodyAvailability does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Request_responseBody(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -47543,6 +48001,35 @@ func (ec *executionContext) fieldContext_Request_responseBody(_ context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type JSONRawMessage does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Request_responseBodyAvailability(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_responseBodyAvailability,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Request().ResponseBodyAvailability(ctx, obj)
+		},
+		nil,
+		ec.marshalNRequestResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_responseBodyAvailability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestResponseBodyAvailability does not have child fields")
 		},
 	}
 	return fc, nil
@@ -47577,6 +48064,35 @@ func (ec *executionContext) fieldContext_Request_responseChunks(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Request_responseChunksAvailability(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_responseChunksAvailability,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Request().ResponseChunksAvailability(ctx, obj)
+		},
+		nil,
+		ec.marshalNRequestResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_responseChunksAvailability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestResponseChunksAvailability does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Request_channelID(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -47601,6 +48117,93 @@ func (ec *executionContext) fieldContext_Request_channelID(_ context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Request_testOriginType(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_testOriginType,
+		func(ctx context.Context) (any, error) {
+			return obj.TestOriginType, nil
+		},
+		nil,
+		ec.marshalORequestTestOriginType2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_testOriginType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestTestOriginType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Request_testOriginID(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_testOriginID,
+		func(ctx context.Context) (any, error) {
+			return obj.TestOriginID, nil
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_testOriginID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Request_testOriginLabel(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_testOriginLabel,
+		func(ctx context.Context) (any, error) {
+			return obj.TestOriginLabel, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_testOriginLabel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -48356,6 +48959,64 @@ func (ec *executionContext) fieldContext_Request_usageLogs(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Request_responseChunksLive(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_responseChunksLive,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Request().ResponseChunksLive(ctx, obj)
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_responseChunksLive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Request_responseChunksPersistedAvailability(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_responseChunksPersistedAvailability,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Request().ResponseChunksPersistedAvailability(ctx, obj)
+		},
+		nil,
+		ec.marshalNRequestResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_responseChunksPersistedAvailability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestResponseChunksAvailability does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RequestConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.RequestConnection) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -48509,12 +49170,24 @@ func (ec *executionContext) fieldContext_RequestEdge_node(_ context.Context, fie
 				return ec.fieldContext_Request_requestHeaders(ctx, field)
 			case "requestBody":
 				return ec.fieldContext_Request_requestBody(ctx, field)
+			case "requestBodyAvailability":
+				return ec.fieldContext_Request_requestBodyAvailability(ctx, field)
 			case "responseBody":
 				return ec.fieldContext_Request_responseBody(ctx, field)
+			case "responseBodyAvailability":
+				return ec.fieldContext_Request_responseBodyAvailability(ctx, field)
 			case "responseChunks":
 				return ec.fieldContext_Request_responseChunks(ctx, field)
+			case "responseChunksAvailability":
+				return ec.fieldContext_Request_responseChunksAvailability(ctx, field)
 			case "channelID":
 				return ec.fieldContext_Request_channelID(ctx, field)
+			case "testOriginType":
+				return ec.fieldContext_Request_testOriginType(ctx, field)
+			case "testOriginID":
+				return ec.fieldContext_Request_testOriginID(ctx, field)
+			case "testOriginLabel":
+				return ec.fieldContext_Request_testOriginLabel(ctx, field)
 			case "externalID":
 				return ec.fieldContext_Request_externalID(ctx, field)
 			case "status":
@@ -48551,6 +49224,10 @@ func (ec *executionContext) fieldContext_RequestEdge_node(_ context.Context, fie
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "responseChunksLive":
+				return ec.fieldContext_Request_responseChunksLive(ctx, field)
+			case "responseChunksPersistedAvailability":
+				return ec.fieldContext_Request_responseChunksPersistedAvailability(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -48906,6 +49583,35 @@ func (ec *executionContext) fieldContext_RequestExecution_requestBody(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _RequestExecution_requestBodyAvailability(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RequestExecution_requestBodyAvailability,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.RequestExecution().RequestBodyAvailability(ctx, obj)
+		},
+		nil,
+		ec.marshalNRequestExecutionRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RequestExecution_requestBodyAvailability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestExecution",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestExecutionRequestBodyAvailability does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RequestExecution_responseBody(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -48935,6 +49641,35 @@ func (ec *executionContext) fieldContext_RequestExecution_responseBody(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _RequestExecution_responseBodyAvailability(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RequestExecution_responseBodyAvailability,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.RequestExecution().ResponseBodyAvailability(ctx, obj)
+		},
+		nil,
+		ec.marshalNRequestExecutionResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RequestExecution_responseBodyAvailability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestExecution",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestExecutionResponseBodyAvailability does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RequestExecution_responseChunks(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -48959,6 +49694,35 @@ func (ec *executionContext) fieldContext_RequestExecution_responseChunks(_ conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type JSONRawMessage does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RequestExecution_responseChunksAvailability(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RequestExecution_responseChunksAvailability,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.RequestExecution().ResponseChunksAvailability(ctx, obj)
+		},
+		nil,
+		ec.marshalNRequestExecutionResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RequestExecution_responseChunksAvailability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestExecution",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestExecutionResponseChunksAvailability does not have child fields")
 		},
 	}
 	return fc, nil
@@ -49304,12 +50068,24 @@ func (ec *executionContext) fieldContext_RequestExecution_request(_ context.Cont
 				return ec.fieldContext_Request_requestHeaders(ctx, field)
 			case "requestBody":
 				return ec.fieldContext_Request_requestBody(ctx, field)
+			case "requestBodyAvailability":
+				return ec.fieldContext_Request_requestBodyAvailability(ctx, field)
 			case "responseBody":
 				return ec.fieldContext_Request_responseBody(ctx, field)
+			case "responseBodyAvailability":
+				return ec.fieldContext_Request_responseBodyAvailability(ctx, field)
 			case "responseChunks":
 				return ec.fieldContext_Request_responseChunks(ctx, field)
+			case "responseChunksAvailability":
+				return ec.fieldContext_Request_responseChunksAvailability(ctx, field)
 			case "channelID":
 				return ec.fieldContext_Request_channelID(ctx, field)
+			case "testOriginType":
+				return ec.fieldContext_Request_testOriginType(ctx, field)
+			case "testOriginID":
+				return ec.fieldContext_Request_testOriginID(ctx, field)
+			case "testOriginLabel":
+				return ec.fieldContext_Request_testOriginLabel(ctx, field)
 			case "externalID":
 				return ec.fieldContext_Request_externalID(ctx, field)
 			case "status":
@@ -49346,6 +50122,10 @@ func (ec *executionContext) fieldContext_RequestExecution_request(_ context.Cont
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "responseChunksLive":
+				return ec.fieldContext_Request_responseChunksLive(ctx, field)
+			case "responseChunksPersistedAvailability":
+				return ec.fieldContext_Request_responseChunksPersistedAvailability(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -49494,6 +50274,64 @@ func (ec *executionContext) fieldContext_RequestExecution_dataStorage(_ context.
 				return ec.fieldContext_DataStorage_executions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DataStorage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RequestExecution_responseChunksLive(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RequestExecution_responseChunksLive,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.RequestExecution().ResponseChunksLive(ctx, obj)
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RequestExecution_responseChunksLive(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestExecution",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RequestExecution_responseChunksPersistedAvailability(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RequestExecution_responseChunksPersistedAvailability,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.RequestExecution().ResponseChunksPersistedAvailability(ctx, obj)
+		},
+		nil,
+		ec.marshalNRequestExecutionResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RequestExecution_responseChunksPersistedAvailability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestExecution",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RequestExecutionResponseChunksAvailability does not have child fields")
 		},
 	}
 	return fc, nil
@@ -49648,10 +50486,16 @@ func (ec *executionContext) fieldContext_RequestExecutionEdge_node(_ context.Con
 				return ec.fieldContext_RequestExecution_format(ctx, field)
 			case "requestBody":
 				return ec.fieldContext_RequestExecution_requestBody(ctx, field)
+			case "requestBodyAvailability":
+				return ec.fieldContext_RequestExecution_requestBodyAvailability(ctx, field)
 			case "responseBody":
 				return ec.fieldContext_RequestExecution_responseBody(ctx, field)
+			case "responseBodyAvailability":
+				return ec.fieldContext_RequestExecution_responseBodyAvailability(ctx, field)
 			case "responseChunks":
 				return ec.fieldContext_RequestExecution_responseChunks(ctx, field)
+			case "responseChunksAvailability":
+				return ec.fieldContext_RequestExecution_responseChunksAvailability(ctx, field)
 			case "errorMessage":
 				return ec.fieldContext_RequestExecution_errorMessage(ctx, field)
 			case "responseStatusCode":
@@ -49678,6 +50522,10 @@ func (ec *executionContext) fieldContext_RequestExecutionEdge_node(_ context.Con
 				return ec.fieldContext_RequestExecution_channel(ctx, field)
 			case "dataStorage":
 				return ec.fieldContext_RequestExecution_dataStorage(ctx, field)
+			case "responseChunksLive":
+				return ec.fieldContext_RequestExecution_responseChunksLive(ctx, field)
+			case "responseChunksPersistedAvailability":
+				return ec.fieldContext_RequestExecution_responseChunksPersistedAvailability(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RequestExecution", field.Name)
 		},
@@ -54602,6 +55450,325 @@ func (ec *executionContext) fieldContext_TestChannelPayload_error(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _TestChannelPayload_requestID(ctx context.Context, field graphql.CollectedField, obj *TestChannelPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestChannelPayload_requestID,
+		func(ctx context.Context) (any, error) {
+			return obj.RequestID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUID,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestChannelPayload_requestID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestChannelPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestModelTarget_channelID(ctx context.Context, field graphql.CollectedField, obj *orchestrator.TestModelTarget) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestModelTarget_channelID,
+		func(ctx context.Context) (any, error) {
+			return obj.ChannelID, nil
+		},
+		nil,
+		ec.marshalNID2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUID,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestModelTarget_channelID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestModelTarget",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestModelTarget_channelName(ctx context.Context, field graphql.CollectedField, obj *orchestrator.TestModelTarget) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestModelTarget_channelName,
+		func(ctx context.Context) (any, error) {
+			return obj.ChannelName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestModelTarget_channelName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestModelTarget",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestModelTarget_physicalModelID(ctx context.Context, field graphql.CollectedField, obj *orchestrator.TestModelTarget) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestModelTarget_physicalModelID,
+		func(ctx context.Context) (any, error) {
+			return obj.PhysicalModelID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestModelTarget_physicalModelID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestModelTarget",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestModelTarget_protocol(ctx context.Context, field graphql.CollectedField, obj *orchestrator.TestModelTarget) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestModelTarget_protocol,
+		func(ctx context.Context) (any, error) {
+			return obj.Protocol, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestModelTarget_protocol(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestModelTarget",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestModelTarget_apiFormat(ctx context.Context, field graphql.CollectedField, obj *orchestrator.TestModelTarget) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestModelTarget_apiFormat,
+		func(ctx context.Context) (any, error) {
+			return obj.APIFormat, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestModelTarget_apiFormat(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestModelTarget",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestTargetPayload_latency(ctx context.Context, field graphql.CollectedField, obj *TestTargetPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestTargetPayload_latency,
+		func(ctx context.Context) (any, error) {
+			return obj.Latency, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestTargetPayload_latency(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestTargetPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestTargetPayload_success(ctx context.Context, field graphql.CollectedField, obj *TestTargetPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestTargetPayload_success,
+		func(ctx context.Context) (any, error) {
+			return obj.Success, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestTargetPayload_success(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestTargetPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestTargetPayload_message(ctx context.Context, field graphql.CollectedField, obj *TestTargetPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestTargetPayload_message,
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestTargetPayload_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestTargetPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestTargetPayload_error(ctx context.Context, field graphql.CollectedField, obj *TestTargetPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestTargetPayload_error,
+		func(ctx context.Context) (any, error) {
+			return obj.Error, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestTargetPayload_error(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestTargetPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TestTargetPayload_requestID(ctx context.Context, field graphql.CollectedField, obj *TestTargetPayload) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TestTargetPayload_requestID,
+		func(ctx context.Context) (any, error) {
+			return obj.RequestID, nil
+		},
+		nil,
+		ec.marshalOID2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUID,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TestTargetPayload_requestID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TestTargetPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Thread_id(ctx context.Context, field graphql.CollectedField, obj *ent.Thread) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -58260,12 +59427,24 @@ func (ec *executionContext) fieldContext_UsageLog_request(_ context.Context, fie
 				return ec.fieldContext_Request_requestHeaders(ctx, field)
 			case "requestBody":
 				return ec.fieldContext_Request_requestBody(ctx, field)
+			case "requestBodyAvailability":
+				return ec.fieldContext_Request_requestBodyAvailability(ctx, field)
 			case "responseBody":
 				return ec.fieldContext_Request_responseBody(ctx, field)
+			case "responseBodyAvailability":
+				return ec.fieldContext_Request_responseBodyAvailability(ctx, field)
 			case "responseChunks":
 				return ec.fieldContext_Request_responseChunks(ctx, field)
+			case "responseChunksAvailability":
+				return ec.fieldContext_Request_responseChunksAvailability(ctx, field)
 			case "channelID":
 				return ec.fieldContext_Request_channelID(ctx, field)
+			case "testOriginType":
+				return ec.fieldContext_Request_testOriginType(ctx, field)
+			case "testOriginID":
+				return ec.fieldContext_Request_testOriginID(ctx, field)
+			case "testOriginLabel":
+				return ec.fieldContext_Request_testOriginLabel(ctx, field)
 			case "externalID":
 				return ec.fieldContext_Request_externalID(ctx, field)
 			case "status":
@@ -58302,6 +59481,10 @@ func (ec *executionContext) fieldContext_UsageLog_request(_ context.Context, fie
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "responseChunksLive":
+				return ec.fieldContext_Request_responseChunksLive(ctx, field)
+			case "responseChunksPersistedAvailability":
+				return ec.fieldContext_Request_responseChunksPersistedAvailability(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -70110,7 +71293,7 @@ func (ec *executionContext) unmarshalInputCreateRequestInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"source", "modelID", "reasoningEffort", "format", "requestHeaders", "requestBody", "responseBody", "responseChunks", "externalID", "status", "stream", "clientIP", "metricsLatencyMs", "metricsFirstTokenLatencyMs", "metricsReasoningDurationMs", "contentSaved", "contentStorageID", "contentStorageKey", "contentSavedAt", "apiKeyID", "projectID", "traceID", "dataStorageID", "channelID"}
+	fieldsInOrder := [...]string{"source", "modelID", "reasoningEffort", "format", "requestHeaders", "requestBody", "responseBody", "responseChunks", "testOriginType", "testOriginID", "testOriginLabel", "externalID", "status", "stream", "clientIP", "metricsLatencyMs", "metricsFirstTokenLatencyMs", "metricsReasoningDurationMs", "contentSaved", "contentStorageID", "contentStorageKey", "contentSavedAt", "apiKeyID", "projectID", "traceID", "dataStorageID", "channelID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -70173,6 +71356,27 @@ func (ec *executionContext) unmarshalInputCreateRequestInput(ctx context.Context
 				return it, err
 			}
 			it.ResponseChunks = data
+		case "testOriginType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginType"))
+			data, err := ec.unmarshalORequestTestOriginType2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginType = data
+		case "testOriginID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginID"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginID = data
+		case "testOriginLabel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabel"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabel = data
 		case "externalID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("externalID"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -77850,7 +79054,7 @@ func (ec *executionContext) unmarshalInputRequestExecutionWhereInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "projectID", "projectIDNEQ", "projectIDIn", "projectIDNotIn", "projectIDGT", "projectIDGTE", "projectIDLT", "projectIDLTE", "requestID", "requestIDNEQ", "requestIDIn", "requestIDNotIn", "channelID", "channelIDNEQ", "channelIDIn", "channelIDNotIn", "channelIDIsNil", "channelIDNotNil", "dataStorageID", "dataStorageIDNEQ", "dataStorageIDIn", "dataStorageIDNotIn", "dataStorageIDIsNil", "dataStorageIDNotNil", "externalID", "externalIDNEQ", "externalIDIn", "externalIDNotIn", "externalIDGT", "externalIDGTE", "externalIDLT", "externalIDLTE", "externalIDContains", "externalIDHasPrefix", "externalIDHasSuffix", "externalIDIsNil", "externalIDNotNil", "externalIDEqualFold", "externalIDContainsFold", "modelID", "modelIDNEQ", "modelIDIn", "modelIDNotIn", "modelIDGT", "modelIDGTE", "modelIDLT", "modelIDLTE", "modelIDContains", "modelIDHasPrefix", "modelIDHasSuffix", "modelIDEqualFold", "modelIDContainsFold", "format", "formatNEQ", "formatIn", "formatNotIn", "formatGT", "formatGTE", "formatLT", "formatLTE", "formatContains", "formatHasPrefix", "formatHasSuffix", "formatEqualFold", "formatContainsFold", "errorMessage", "errorMessageNEQ", "errorMessageIn", "errorMessageNotIn", "errorMessageGT", "errorMessageGTE", "errorMessageLT", "errorMessageLTE", "errorMessageContains", "errorMessageHasPrefix", "errorMessageHasSuffix", "errorMessageIsNil", "errorMessageNotNil", "errorMessageEqualFold", "errorMessageContainsFold", "responseStatusCode", "responseStatusCodeNEQ", "responseStatusCodeIn", "responseStatusCodeNotIn", "responseStatusCodeGT", "responseStatusCodeGTE", "responseStatusCodeLT", "responseStatusCodeLTE", "responseStatusCodeIsNil", "responseStatusCodeNotNil", "status", "statusNEQ", "statusIn", "statusNotIn", "stream", "streamNEQ", "metricsLatencyMs", "metricsLatencyMsNEQ", "metricsLatencyMsIn", "metricsLatencyMsNotIn", "metricsLatencyMsGT", "metricsLatencyMsGTE", "metricsLatencyMsLT", "metricsLatencyMsLTE", "metricsLatencyMsIsNil", "metricsLatencyMsNotNil", "metricsFirstTokenLatencyMs", "metricsFirstTokenLatencyMsNEQ", "metricsFirstTokenLatencyMsIn", "metricsFirstTokenLatencyMsNotIn", "metricsFirstTokenLatencyMsGT", "metricsFirstTokenLatencyMsGTE", "metricsFirstTokenLatencyMsLT", "metricsFirstTokenLatencyMsLTE", "metricsFirstTokenLatencyMsIsNil", "metricsFirstTokenLatencyMsNotNil", "metricsReasoningDurationMs", "metricsReasoningDurationMsNEQ", "metricsReasoningDurationMsIn", "metricsReasoningDurationMsNotIn", "metricsReasoningDurationMsGT", "metricsReasoningDurationMsGTE", "metricsReasoningDurationMsLT", "metricsReasoningDurationMsLTE", "metricsReasoningDurationMsIsNil", "metricsReasoningDurationMsNotNil", "requestURL", "requestURLNEQ", "requestURLIn", "requestURLNotIn", "requestURLGT", "requestURLGTE", "requestURLLT", "requestURLLTE", "requestURLContains", "requestURLHasPrefix", "requestURLHasSuffix", "requestURLIsNil", "requestURLNotNil", "requestURLEqualFold", "requestURLContainsFold", "passThroughApplied", "passThroughAppliedNEQ", "hasRequest", "hasRequestWith", "hasChannel", "hasChannelWith", "hasDataStorage", "hasDataStorageWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "projectID", "projectIDNEQ", "projectIDIn", "projectIDNotIn", "projectIDGT", "projectIDGTE", "projectIDLT", "projectIDLTE", "requestID", "requestIDNEQ", "requestIDIn", "requestIDNotIn", "channelID", "channelIDNEQ", "channelIDIn", "channelIDNotIn", "channelIDIsNil", "channelIDNotNil", "dataStorageID", "dataStorageIDNEQ", "dataStorageIDIn", "dataStorageIDNotIn", "dataStorageIDIsNil", "dataStorageIDNotNil", "externalID", "externalIDNEQ", "externalIDIn", "externalIDNotIn", "externalIDGT", "externalIDGTE", "externalIDLT", "externalIDLTE", "externalIDContains", "externalIDHasPrefix", "externalIDHasSuffix", "externalIDIsNil", "externalIDNotNil", "externalIDEqualFold", "externalIDContainsFold", "modelID", "modelIDNEQ", "modelIDIn", "modelIDNotIn", "modelIDGT", "modelIDGTE", "modelIDLT", "modelIDLTE", "modelIDContains", "modelIDHasPrefix", "modelIDHasSuffix", "modelIDEqualFold", "modelIDContainsFold", "format", "formatNEQ", "formatIn", "formatNotIn", "formatGT", "formatGTE", "formatLT", "formatLTE", "formatContains", "formatHasPrefix", "formatHasSuffix", "formatEqualFold", "formatContainsFold", "requestBodyAvailability", "requestBodyAvailabilityNEQ", "requestBodyAvailabilityIn", "requestBodyAvailabilityNotIn", "responseBodyAvailability", "responseBodyAvailabilityNEQ", "responseBodyAvailabilityIn", "responseBodyAvailabilityNotIn", "responseChunksAvailability", "responseChunksAvailabilityNEQ", "responseChunksAvailabilityIn", "responseChunksAvailabilityNotIn", "errorMessage", "errorMessageNEQ", "errorMessageIn", "errorMessageNotIn", "errorMessageGT", "errorMessageGTE", "errorMessageLT", "errorMessageLTE", "errorMessageContains", "errorMessageHasPrefix", "errorMessageHasSuffix", "errorMessageIsNil", "errorMessageNotNil", "errorMessageEqualFold", "errorMessageContainsFold", "responseStatusCode", "responseStatusCodeNEQ", "responseStatusCodeIn", "responseStatusCodeNotIn", "responseStatusCodeGT", "responseStatusCodeGTE", "responseStatusCodeLT", "responseStatusCodeLTE", "responseStatusCodeIsNil", "responseStatusCodeNotNil", "status", "statusNEQ", "statusIn", "statusNotIn", "stream", "streamNEQ", "metricsLatencyMs", "metricsLatencyMsNEQ", "metricsLatencyMsIn", "metricsLatencyMsNotIn", "metricsLatencyMsGT", "metricsLatencyMsGTE", "metricsLatencyMsLT", "metricsLatencyMsLTE", "metricsLatencyMsIsNil", "metricsLatencyMsNotNil", "metricsFirstTokenLatencyMs", "metricsFirstTokenLatencyMsNEQ", "metricsFirstTokenLatencyMsIn", "metricsFirstTokenLatencyMsNotIn", "metricsFirstTokenLatencyMsGT", "metricsFirstTokenLatencyMsGTE", "metricsFirstTokenLatencyMsLT", "metricsFirstTokenLatencyMsLTE", "metricsFirstTokenLatencyMsIsNil", "metricsFirstTokenLatencyMsNotNil", "metricsReasoningDurationMs", "metricsReasoningDurationMsNEQ", "metricsReasoningDurationMsIn", "metricsReasoningDurationMsNotIn", "metricsReasoningDurationMsGT", "metricsReasoningDurationMsGTE", "metricsReasoningDurationMsLT", "metricsReasoningDurationMsLTE", "metricsReasoningDurationMsIsNil", "metricsReasoningDurationMsNotNil", "requestURL", "requestURLNEQ", "requestURLIn", "requestURLNotIn", "requestURLGT", "requestURLGTE", "requestURLLT", "requestURLLTE", "requestURLContains", "requestURLHasPrefix", "requestURLHasSuffix", "requestURLIsNil", "requestURLNotNil", "requestURLEqualFold", "requestURLContainsFold", "passThroughApplied", "passThroughAppliedNEQ", "hasRequest", "hasRequestWith", "hasChannel", "hasChannelWith", "hasDataStorage", "hasDataStorageWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -78581,6 +79785,90 @@ func (ec *executionContext) unmarshalInputRequestExecutionWhereInput(ctx context
 				return it, err
 			}
 			it.FormatContainsFold = data
+		case "requestBodyAvailability":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestBodyAvailability"))
+			data, err := ec.unmarshalORequestExecutionRequestBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RequestBodyAvailability = data
+		case "requestBodyAvailabilityNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestBodyAvailabilityNEQ"))
+			data, err := ec.unmarshalORequestExecutionRequestBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RequestBodyAvailabilityNEQ = data
+		case "requestBodyAvailabilityIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestBodyAvailabilityIn"))
+			data, err := ec.unmarshalORequestExecutionRequestBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RequestBodyAvailabilityIn = data
+		case "requestBodyAvailabilityNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestBodyAvailabilityNotIn"))
+			data, err := ec.unmarshalORequestExecutionRequestBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RequestBodyAvailabilityNotIn = data
+		case "responseBodyAvailability":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseBodyAvailability"))
+			data, err := ec.unmarshalORequestExecutionResponseBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseBodyAvailability = data
+		case "responseBodyAvailabilityNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseBodyAvailabilityNEQ"))
+			data, err := ec.unmarshalORequestExecutionResponseBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseBodyAvailabilityNEQ = data
+		case "responseBodyAvailabilityIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseBodyAvailabilityIn"))
+			data, err := ec.unmarshalORequestExecutionResponseBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseBodyAvailabilityIn = data
+		case "responseBodyAvailabilityNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseBodyAvailabilityNotIn"))
+			data, err := ec.unmarshalORequestExecutionResponseBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseBodyAvailabilityNotIn = data
+		case "responseChunksAvailability":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseChunksAvailability"))
+			data, err := ec.unmarshalORequestExecutionResponseChunksAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseChunksAvailability = data
+		case "responseChunksAvailabilityNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseChunksAvailabilityNEQ"))
+			data, err := ec.unmarshalORequestExecutionResponseChunksAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseChunksAvailabilityNEQ = data
+		case "responseChunksAvailabilityIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseChunksAvailabilityIn"))
+			data, err := ec.unmarshalORequestExecutionResponseChunksAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseChunksAvailabilityIn = data
+		case "responseChunksAvailabilityNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseChunksAvailabilityNotIn"))
+			data, err := ec.unmarshalORequestExecutionResponseChunksAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseChunksAvailabilityNotIn = data
 		case "errorMessage":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessage"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -79220,7 +80508,7 @@ func (ec *executionContext) unmarshalInputRequestWhereInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "apiKeyID", "apiKeyIDNEQ", "apiKeyIDIn", "apiKeyIDNotIn", "apiKeyIDIsNil", "apiKeyIDNotNil", "projectID", "projectIDNEQ", "projectIDIn", "projectIDNotIn", "traceID", "traceIDNEQ", "traceIDIn", "traceIDNotIn", "traceIDIsNil", "traceIDNotNil", "dataStorageID", "dataStorageIDNEQ", "dataStorageIDIn", "dataStorageIDNotIn", "dataStorageIDIsNil", "dataStorageIDNotNil", "source", "sourceNEQ", "sourceIn", "sourceNotIn", "modelID", "modelIDNEQ", "modelIDIn", "modelIDNotIn", "modelIDGT", "modelIDGTE", "modelIDLT", "modelIDLTE", "modelIDContains", "modelIDHasPrefix", "modelIDHasSuffix", "modelIDEqualFold", "modelIDContainsFold", "reasoningEffort", "reasoningEffortNEQ", "reasoningEffortIn", "reasoningEffortNotIn", "reasoningEffortGT", "reasoningEffortGTE", "reasoningEffortLT", "reasoningEffortLTE", "reasoningEffortContains", "reasoningEffortHasPrefix", "reasoningEffortHasSuffix", "reasoningEffortIsNil", "reasoningEffortNotNil", "reasoningEffortEqualFold", "reasoningEffortContainsFold", "format", "formatNEQ", "formatIn", "formatNotIn", "formatGT", "formatGTE", "formatLT", "formatLTE", "formatContains", "formatHasPrefix", "formatHasSuffix", "formatEqualFold", "formatContainsFold", "channelID", "channelIDNEQ", "channelIDIn", "channelIDNotIn", "channelIDIsNil", "channelIDNotNil", "externalID", "externalIDNEQ", "externalIDIn", "externalIDNotIn", "externalIDGT", "externalIDGTE", "externalIDLT", "externalIDLTE", "externalIDContains", "externalIDHasPrefix", "externalIDHasSuffix", "externalIDIsNil", "externalIDNotNil", "externalIDEqualFold", "externalIDContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "stream", "streamNEQ", "clientIP", "clientIPNEQ", "clientIPIn", "clientIPNotIn", "clientIPGT", "clientIPGTE", "clientIPLT", "clientIPLTE", "clientIPContains", "clientIPHasPrefix", "clientIPHasSuffix", "clientIPEqualFold", "clientIPContainsFold", "metricsLatencyMs", "metricsLatencyMsNEQ", "metricsLatencyMsIn", "metricsLatencyMsNotIn", "metricsLatencyMsGT", "metricsLatencyMsGTE", "metricsLatencyMsLT", "metricsLatencyMsLTE", "metricsLatencyMsIsNil", "metricsLatencyMsNotNil", "metricsFirstTokenLatencyMs", "metricsFirstTokenLatencyMsNEQ", "metricsFirstTokenLatencyMsIn", "metricsFirstTokenLatencyMsNotIn", "metricsFirstTokenLatencyMsGT", "metricsFirstTokenLatencyMsGTE", "metricsFirstTokenLatencyMsLT", "metricsFirstTokenLatencyMsLTE", "metricsFirstTokenLatencyMsIsNil", "metricsFirstTokenLatencyMsNotNil", "metricsReasoningDurationMs", "metricsReasoningDurationMsNEQ", "metricsReasoningDurationMsIn", "metricsReasoningDurationMsNotIn", "metricsReasoningDurationMsGT", "metricsReasoningDurationMsGTE", "metricsReasoningDurationMsLT", "metricsReasoningDurationMsLTE", "metricsReasoningDurationMsIsNil", "metricsReasoningDurationMsNotNil", "contentSaved", "contentSavedNEQ", "contentStorageID", "contentStorageIDNEQ", "contentStorageIDIn", "contentStorageIDNotIn", "contentStorageIDGT", "contentStorageIDGTE", "contentStorageIDLT", "contentStorageIDLTE", "contentStorageIDIsNil", "contentStorageIDNotNil", "contentStorageKey", "contentStorageKeyNEQ", "contentStorageKeyIn", "contentStorageKeyNotIn", "contentStorageKeyGT", "contentStorageKeyGTE", "contentStorageKeyLT", "contentStorageKeyLTE", "contentStorageKeyContains", "contentStorageKeyHasPrefix", "contentStorageKeyHasSuffix", "contentStorageKeyIsNil", "contentStorageKeyNotNil", "contentStorageKeyEqualFold", "contentStorageKeyContainsFold", "contentSavedAt", "contentSavedAtNEQ", "contentSavedAtIn", "contentSavedAtNotIn", "contentSavedAtGT", "contentSavedAtGTE", "contentSavedAtLT", "contentSavedAtLTE", "contentSavedAtIsNil", "contentSavedAtNotNil", "hasAPIKey", "hasAPIKeyWith", "hasProject", "hasProjectWith", "hasTrace", "hasTraceWith", "hasDataStorage", "hasDataStorageWith", "hasExecutions", "hasExecutionsWith", "hasChannel", "hasChannelWith", "hasUsageLogs", "hasUsageLogsWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "apiKeyID", "apiKeyIDNEQ", "apiKeyIDIn", "apiKeyIDNotIn", "apiKeyIDIsNil", "apiKeyIDNotNil", "projectID", "projectIDNEQ", "projectIDIn", "projectIDNotIn", "traceID", "traceIDNEQ", "traceIDIn", "traceIDNotIn", "traceIDIsNil", "traceIDNotNil", "dataStorageID", "dataStorageIDNEQ", "dataStorageIDIn", "dataStorageIDNotIn", "dataStorageIDIsNil", "dataStorageIDNotNil", "source", "sourceNEQ", "sourceIn", "sourceNotIn", "modelID", "modelIDNEQ", "modelIDIn", "modelIDNotIn", "modelIDGT", "modelIDGTE", "modelIDLT", "modelIDLTE", "modelIDContains", "modelIDHasPrefix", "modelIDHasSuffix", "modelIDEqualFold", "modelIDContainsFold", "reasoningEffort", "reasoningEffortNEQ", "reasoningEffortIn", "reasoningEffortNotIn", "reasoningEffortGT", "reasoningEffortGTE", "reasoningEffortLT", "reasoningEffortLTE", "reasoningEffortContains", "reasoningEffortHasPrefix", "reasoningEffortHasSuffix", "reasoningEffortIsNil", "reasoningEffortNotNil", "reasoningEffortEqualFold", "reasoningEffortContainsFold", "format", "formatNEQ", "formatIn", "formatNotIn", "formatGT", "formatGTE", "formatLT", "formatLTE", "formatContains", "formatHasPrefix", "formatHasSuffix", "formatEqualFold", "formatContainsFold", "requestBodyAvailability", "requestBodyAvailabilityNEQ", "requestBodyAvailabilityIn", "requestBodyAvailabilityNotIn", "responseBodyAvailability", "responseBodyAvailabilityNEQ", "responseBodyAvailabilityIn", "responseBodyAvailabilityNotIn", "responseChunksAvailability", "responseChunksAvailabilityNEQ", "responseChunksAvailabilityIn", "responseChunksAvailabilityNotIn", "channelID", "channelIDNEQ", "channelIDIn", "channelIDNotIn", "channelIDIsNil", "channelIDNotNil", "testOriginType", "testOriginTypeNEQ", "testOriginTypeIn", "testOriginTypeNotIn", "testOriginTypeIsNil", "testOriginTypeNotNil", "testOriginID", "testOriginIDNEQ", "testOriginIDIn", "testOriginIDNotIn", "testOriginIDGT", "testOriginIDGTE", "testOriginIDLT", "testOriginIDLTE", "testOriginIDIsNil", "testOriginIDNotNil", "testOriginLabel", "testOriginLabelNEQ", "testOriginLabelIn", "testOriginLabelNotIn", "testOriginLabelGT", "testOriginLabelGTE", "testOriginLabelLT", "testOriginLabelLTE", "testOriginLabelContains", "testOriginLabelHasPrefix", "testOriginLabelHasSuffix", "testOriginLabelIsNil", "testOriginLabelNotNil", "testOriginLabelEqualFold", "testOriginLabelContainsFold", "externalID", "externalIDNEQ", "externalIDIn", "externalIDNotIn", "externalIDGT", "externalIDGTE", "externalIDLT", "externalIDLTE", "externalIDContains", "externalIDHasPrefix", "externalIDHasSuffix", "externalIDIsNil", "externalIDNotNil", "externalIDEqualFold", "externalIDContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "stream", "streamNEQ", "clientIP", "clientIPNEQ", "clientIPIn", "clientIPNotIn", "clientIPGT", "clientIPGTE", "clientIPLT", "clientIPLTE", "clientIPContains", "clientIPHasPrefix", "clientIPHasSuffix", "clientIPEqualFold", "clientIPContainsFold", "metricsLatencyMs", "metricsLatencyMsNEQ", "metricsLatencyMsIn", "metricsLatencyMsNotIn", "metricsLatencyMsGT", "metricsLatencyMsGTE", "metricsLatencyMsLT", "metricsLatencyMsLTE", "metricsLatencyMsIsNil", "metricsLatencyMsNotNil", "metricsFirstTokenLatencyMs", "metricsFirstTokenLatencyMsNEQ", "metricsFirstTokenLatencyMsIn", "metricsFirstTokenLatencyMsNotIn", "metricsFirstTokenLatencyMsGT", "metricsFirstTokenLatencyMsGTE", "metricsFirstTokenLatencyMsLT", "metricsFirstTokenLatencyMsLTE", "metricsFirstTokenLatencyMsIsNil", "metricsFirstTokenLatencyMsNotNil", "metricsReasoningDurationMs", "metricsReasoningDurationMsNEQ", "metricsReasoningDurationMsIn", "metricsReasoningDurationMsNotIn", "metricsReasoningDurationMsGT", "metricsReasoningDurationMsGTE", "metricsReasoningDurationMsLT", "metricsReasoningDurationMsLTE", "metricsReasoningDurationMsIsNil", "metricsReasoningDurationMsNotNil", "contentSaved", "contentSavedNEQ", "contentStorageID", "contentStorageIDNEQ", "contentStorageIDIn", "contentStorageIDNotIn", "contentStorageIDGT", "contentStorageIDGTE", "contentStorageIDLT", "contentStorageIDLTE", "contentStorageIDIsNil", "contentStorageIDNotNil", "contentStorageKey", "contentStorageKeyNEQ", "contentStorageKeyIn", "contentStorageKeyNotIn", "contentStorageKeyGT", "contentStorageKeyGTE", "contentStorageKeyLT", "contentStorageKeyLTE", "contentStorageKeyContains", "contentStorageKeyHasPrefix", "contentStorageKeyHasSuffix", "contentStorageKeyIsNil", "contentStorageKeyNotNil", "contentStorageKeyEqualFold", "contentStorageKeyContainsFold", "contentSavedAt", "contentSavedAtNEQ", "contentSavedAtIn", "contentSavedAtNotIn", "contentSavedAtGT", "contentSavedAtGTE", "contentSavedAtLT", "contentSavedAtLTE", "contentSavedAtIsNil", "contentSavedAtNotNil", "hasAPIKey", "hasAPIKeyWith", "hasProject", "hasProjectWith", "hasTrace", "hasTraceWith", "hasDataStorage", "hasDataStorageWith", "hasExecutions", "hasExecutionsWith", "hasChannel", "hasChannelWith", "hasUsageLogs", "hasUsageLogsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -79981,6 +81269,90 @@ func (ec *executionContext) unmarshalInputRequestWhereInput(ctx context.Context,
 				return it, err
 			}
 			it.FormatContainsFold = data
+		case "requestBodyAvailability":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestBodyAvailability"))
+			data, err := ec.unmarshalORequestRequestBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RequestBodyAvailability = data
+		case "requestBodyAvailabilityNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestBodyAvailabilityNEQ"))
+			data, err := ec.unmarshalORequestRequestBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RequestBodyAvailabilityNEQ = data
+		case "requestBodyAvailabilityIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestBodyAvailabilityIn"))
+			data, err := ec.unmarshalORequestRequestBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RequestBodyAvailabilityIn = data
+		case "requestBodyAvailabilityNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("requestBodyAvailabilityNotIn"))
+			data, err := ec.unmarshalORequestRequestBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RequestBodyAvailabilityNotIn = data
+		case "responseBodyAvailability":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseBodyAvailability"))
+			data, err := ec.unmarshalORequestResponseBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseBodyAvailability = data
+		case "responseBodyAvailabilityNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseBodyAvailabilityNEQ"))
+			data, err := ec.unmarshalORequestResponseBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseBodyAvailabilityNEQ = data
+		case "responseBodyAvailabilityIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseBodyAvailabilityIn"))
+			data, err := ec.unmarshalORequestResponseBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseBodyAvailabilityIn = data
+		case "responseBodyAvailabilityNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseBodyAvailabilityNotIn"))
+			data, err := ec.unmarshalORequestResponseBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseBodyAvailabilityNotIn = data
+		case "responseChunksAvailability":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseChunksAvailability"))
+			data, err := ec.unmarshalORequestResponseChunksAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseChunksAvailability = data
+		case "responseChunksAvailabilityNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseChunksAvailabilityNEQ"))
+			data, err := ec.unmarshalORequestResponseChunksAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseChunksAvailabilityNEQ = data
+		case "responseChunksAvailabilityIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseChunksAvailabilityIn"))
+			data, err := ec.unmarshalORequestResponseChunksAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseChunksAvailabilityIn = data
+		case "responseChunksAvailabilityNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responseChunksAvailabilityNotIn"))
+			data, err := ec.unmarshalORequestResponseChunksAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailabilityᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ResponseChunksAvailabilityNotIn = data
 		case "channelID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
 			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUID(ctx, v)
@@ -80039,6 +81411,223 @@ func (ec *executionContext) unmarshalInputRequestWhereInput(ctx context.Context,
 				return it, err
 			}
 			it.ChannelIDNotNil = data
+		case "testOriginType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginType"))
+			data, err := ec.unmarshalORequestTestOriginType2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginType = data
+		case "testOriginTypeNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginTypeNEQ"))
+			data, err := ec.unmarshalORequestTestOriginType2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginTypeNEQ = data
+		case "testOriginTypeIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginTypeIn"))
+			data, err := ec.unmarshalORequestTestOriginType2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginTypeIn = data
+		case "testOriginTypeNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginTypeNotIn"))
+			data, err := ec.unmarshalORequestTestOriginType2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginTypeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginTypeNotIn = data
+		case "testOriginTypeIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginTypeIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginTypeIsNil = data
+		case "testOriginTypeNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginTypeNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginTypeNotNil = data
+		case "testOriginID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginID"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginID = data
+		case "testOriginIDNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDNEQ"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDNEQ = data
+		case "testOriginIDIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDIn = data
+		case "testOriginIDNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDNotIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDNotIn = data
+		case "testOriginIDGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDGT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDGT = data
+		case "testOriginIDGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDGTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDGTE = data
+		case "testOriginIDLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDLT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDLT = data
+		case "testOriginIDLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDLTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDLTE = data
+		case "testOriginIDIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDIsNil = data
+		case "testOriginIDNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginIDNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginIDNotNil = data
+		case "testOriginLabel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabel"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabel = data
+		case "testOriginLabelNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelNEQ = data
+		case "testOriginLabelIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelIn = data
+		case "testOriginLabelNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelNotIn = data
+		case "testOriginLabelGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelGT = data
+		case "testOriginLabelGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelGTE = data
+		case "testOriginLabelLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelLT = data
+		case "testOriginLabelLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelLTE = data
+		case "testOriginLabelContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelContains = data
+		case "testOriginLabelHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelHasPrefix = data
+		case "testOriginLabelHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelHasSuffix = data
+		case "testOriginLabelIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelIsNil = data
+		case "testOriginLabelNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelNotNil = data
+		case "testOriginLabelEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelEqualFold = data
+		case "testOriginLabelContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("testOriginLabelContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TestOriginLabelContainsFold = data
 		case "externalID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("externalID"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -82196,6 +83785,47 @@ func (ec *executionContext) unmarshalInputSystemWhereInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputTestAdapterInput(ctx context.Context, obj any) (TestAdapterInput, error) {
+	var it TestAdapterInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"adapter", "modelID", "proxy"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "adapter":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("adapter"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Adapter = data
+		case "modelID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modelID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ModelID = data
+		case "proxy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("proxy"))
+			data, err := ec.unmarshalOProxyConfigInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋllmᚋhttpclientᚐProxyConfig(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Proxy = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTestChannelInput(ctx context.Context, obj any) (TestChannelInput, error) {
 	var it TestChannelInput
 	asMap := map[string]any{}
@@ -82203,7 +83833,7 @@ func (ec *executionContext) unmarshalInputTestChannelInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"channelID", "modelID", "proxy"}
+	fieldsInOrder := [...]string{"channelID", "modelID", "protocol", "proxy"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -82224,6 +83854,68 @@ func (ec *executionContext) unmarshalInputTestChannelInput(ctx context.Context, 
 				return it, err
 			}
 			it.ModelID = data
+		case "protocol":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocol"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Protocol = data
+		case "proxy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("proxy"))
+			data, err := ec.unmarshalOProxyConfigInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋllmᚋhttpclientᚐProxyConfig(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Proxy = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTestModelInput(ctx context.Context, obj any) (TestModelInput, error) {
+	var it TestModelInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"modelID", "protocol", "channelID", "physicalModelID", "proxy"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "modelID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("modelID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ModelID = data
+		case "protocol":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protocol"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Protocol = data
+		case "channelID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelID"))
+			data, err := ec.unmarshalNID2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋobjectsᚐGUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelID = data
+		case "physicalModelID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("physicalModelID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PhysicalModelID = data
 		case "proxy":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("proxy"))
 			data, err := ec.unmarshalOProxyConfigInput2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋllmᚋhttpclientᚐProxyConfig(ctx, v)
@@ -97282,6 +98974,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "testModel":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_testModel(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "testAdapter":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_testAdapter(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "testChannelAPIKeys":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_testChannelAPIKeys(ctx, field)
@@ -101146,6 +102852,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "testModelTargets":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_testModelTargets(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "dashboardOverview":
 			field := field
 
@@ -102735,6 +104463,42 @@ func (ec *executionContext) _Request(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "requestBodyAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Request_requestBodyAvailability(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "responseBody":
 			field := field
 
@@ -102745,6 +104509,42 @@ func (ec *executionContext) _Request(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Request_responseBody(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "responseBodyAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Request_responseBodyAvailability(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -102801,6 +104601,42 @@ func (ec *executionContext) _Request(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "responseChunksAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Request_responseChunksAvailability(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "channelID":
 			field := field
 
@@ -102834,6 +104670,12 @@ func (ec *executionContext) _Request(ctx context.Context, sel ast.SelectionSet, 
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "testOriginType":
+			out.Values[i] = ec._Request_testOriginType(ctx, field, obj)
+		case "testOriginID":
+			out.Values[i] = ec._Request_testOriginID(ctx, field, obj)
+		case "testOriginLabel":
+			out.Values[i] = ec._Request_testOriginLabel(ctx, field, obj)
 		case "externalID":
 			out.Values[i] = ec._Request_externalID(ctx, field, obj)
 		case "status":
@@ -103082,6 +104924,78 @@ func (ec *executionContext) _Request(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Request_usageLogs(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "responseChunksLive":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Request_responseChunksLive(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "responseChunksPersistedAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Request_responseChunksPersistedAvailability(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -103430,6 +105344,42 @@ func (ec *executionContext) _RequestExecution(ctx context.Context, sel ast.Selec
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "requestBodyAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RequestExecution_requestBodyAvailability(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "responseBody":
 			field := field
 
@@ -103463,6 +105413,42 @@ func (ec *executionContext) _RequestExecution(ctx context.Context, sel ast.Selec
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "responseBodyAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RequestExecution_responseBodyAvailability(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "responseChunks":
 			field := field
 
@@ -103473,6 +105459,42 @@ func (ec *executionContext) _RequestExecution(ctx context.Context, sel ast.Selec
 					}
 				}()
 				res = ec._RequestExecution_responseChunks(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "responseChunksAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RequestExecution_responseChunksAvailability(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -103604,6 +105626,78 @@ func (ec *executionContext) _RequestExecution(ctx context.Context, sel ast.Selec
 					}
 				}()
 				res = ec._RequestExecution_dataStorage(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "responseChunksLive":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RequestExecution_responseChunksLive(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "responseChunksPersistedAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RequestExecution_responseChunksPersistedAvailability(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -106089,6 +108183,117 @@ func (ec *executionContext) _TestChannelPayload(ctx context.Context, sel ast.Sel
 			out.Values[i] = ec._TestChannelPayload_message(ctx, field, obj)
 		case "error":
 			out.Values[i] = ec._TestChannelPayload_error(ctx, field, obj)
+		case "requestID":
+			out.Values[i] = ec._TestChannelPayload_requestID(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var testModelTargetImplementors = []string{"TestModelTarget"}
+
+func (ec *executionContext) _TestModelTarget(ctx context.Context, sel ast.SelectionSet, obj *orchestrator.TestModelTarget) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, testModelTargetImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TestModelTarget")
+		case "channelID":
+			out.Values[i] = ec._TestModelTarget_channelID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "channelName":
+			out.Values[i] = ec._TestModelTarget_channelName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "physicalModelID":
+			out.Values[i] = ec._TestModelTarget_physicalModelID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "protocol":
+			out.Values[i] = ec._TestModelTarget_protocol(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "apiFormat":
+			out.Values[i] = ec._TestModelTarget_apiFormat(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var testTargetPayloadImplementors = []string{"TestTargetPayload"}
+
+func (ec *executionContext) _TestTargetPayload(ctx context.Context, sel ast.SelectionSet, obj *TestTargetPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, testTargetPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TestTargetPayload")
+		case "latency":
+			out.Values[i] = ec._TestTargetPayload_latency(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "success":
+			out.Values[i] = ec._TestTargetPayload_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "message":
+			out.Values[i] = ec._TestTargetPayload_message(ctx, field, obj)
+		case "error":
+			out.Values[i] = ec._TestTargetPayload_error(ctx, field, obj)
+		case "requestID":
+			out.Values[i] = ec._TestTargetPayload_requestID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -114532,6 +116737,36 @@ func (ec *executionContext) marshalNRequestExecutionOrderField2ᚖgithubᚗcom�
 	return v
 }
 
+func (ec *executionContext) unmarshalNRequestExecutionRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability(ctx context.Context, v any) (requestexecution.RequestBodyAvailability, error) {
+	var res requestexecution.RequestBodyAvailability
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRequestExecutionRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability(ctx context.Context, sel ast.SelectionSet, v requestexecution.RequestBodyAvailability) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNRequestExecutionResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability(ctx context.Context, v any) (requestexecution.ResponseBodyAvailability, error) {
+	var res requestexecution.ResponseBodyAvailability
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRequestExecutionResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability(ctx context.Context, sel ast.SelectionSet, v requestexecution.ResponseBodyAvailability) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNRequestExecutionResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability(ctx context.Context, v any) (requestexecution.ResponseChunksAvailability, error) {
+	var res requestexecution.ResponseChunksAvailability
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRequestExecutionResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability(ctx context.Context, sel ast.SelectionSet, v requestexecution.ResponseChunksAvailability) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNRequestExecutionStatus2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐStatus(ctx context.Context, v any) (requestexecution.Status, error) {
 	var res requestexecution.Status
 	err := res.UnmarshalGQL(v)
@@ -114560,6 +116795,36 @@ func (ec *executionContext) marshalNRequestOrderField2ᚖgithubᚗcomᚋmutallip
 		}
 		return graphql.Null
 	}
+	return v
+}
+
+func (ec *executionContext) unmarshalNRequestRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability(ctx context.Context, v any) (request.RequestBodyAvailability, error) {
+	var res request.RequestBodyAvailability
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRequestRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability(ctx context.Context, sel ast.SelectionSet, v request.RequestBodyAvailability) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNRequestResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability(ctx context.Context, v any) (request.ResponseBodyAvailability, error) {
+	var res request.ResponseBodyAvailability
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRequestResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability(ctx context.Context, sel ast.SelectionSet, v request.ResponseBodyAvailability) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNRequestResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability(ctx context.Context, v any) (request.ResponseChunksAvailability, error) {
+	var res request.ResponseChunksAvailability
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRequestResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability(ctx context.Context, sel ast.SelectionSet, v request.ResponseChunksAvailability) graphql.Marshaler {
 	return v
 }
 
@@ -114756,6 +117021,16 @@ func (ec *executionContext) unmarshalNRequestStatus2githubᚗcomᚋmutallippᚋl
 }
 
 func (ec *executionContext) marshalNRequestStatus2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐStatus(ctx context.Context, sel ast.SelectionSet, v request.Status) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNRequestTestOriginType2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx context.Context, v any) (request.TestOriginType, error) {
+	var res request.TestOriginType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRequestTestOriginType2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx context.Context, sel ast.SelectionSet, v request.TestOriginType) graphql.Marshaler {
 	return v
 }
 
@@ -115305,6 +117580,11 @@ func (ec *executionContext) marshalNTestAPIKeyResult2ᚖgithubᚗcomᚋmutallipp
 	return ec._TestAPIKeyResult(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNTestAdapterInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestAdapterInput(ctx context.Context, v any) (TestAdapterInput, error) {
+	res, err := ec.unmarshalInputTestAdapterInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNTestChannelAPIKeysPayload2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestChannelAPIKeysPayload(ctx context.Context, sel ast.SelectionSet, v TestChannelAPIKeysPayload) graphql.Marshaler {
 	return ec._TestChannelAPIKeysPayload(ctx, sel, &v)
 }
@@ -115336,6 +117616,79 @@ func (ec *executionContext) marshalNTestChannelPayload2ᚖgithubᚗcomᚋmutalli
 		return graphql.Null
 	}
 	return ec._TestChannelPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTestModelInput2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestModelInput(ctx context.Context, v any) (TestModelInput, error) {
+	res, err := ec.unmarshalInputTestModelInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTestModelTarget2ᚕᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋorchestratorᚐTestModelTargetᚄ(ctx context.Context, sel ast.SelectionSet, v []*orchestrator.TestModelTarget) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTestModelTarget2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋorchestratorᚐTestModelTarget(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTestModelTarget2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋorchestratorᚐTestModelTarget(ctx context.Context, sel ast.SelectionSet, v *orchestrator.TestModelTarget) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TestModelTarget(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTestTargetPayload2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestTargetPayload(ctx context.Context, sel ast.SelectionSet, v TestTargetPayload) graphql.Marshaler {
+	return ec._TestTargetPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTestTargetPayload2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋserverᚋgqlᚐTestTargetPayload(ctx context.Context, sel ast.SelectionSet, v *TestTargetPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TestTargetPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNThreadConnection2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚐThreadConnection(ctx context.Context, sel ast.SelectionSet, v ent.ThreadConnection) graphql.Marshaler {
@@ -121273,6 +123626,249 @@ func (ec *executionContext) unmarshalORequestExecutionOrder2ᚖgithubᚗcomᚋmu
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalORequestExecutionRequestBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailabilityᚄ(ctx context.Context, v any) ([]requestexecution.RequestBodyAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]requestexecution.RequestBodyAvailability, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRequestExecutionRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORequestExecutionRequestBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []requestexecution.RequestBodyAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRequestExecutionRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalORequestExecutionRequestBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability(ctx context.Context, v any) (*requestexecution.RequestBodyAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(requestexecution.RequestBodyAvailability)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORequestExecutionRequestBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐRequestBodyAvailability(ctx context.Context, sel ast.SelectionSet, v *requestexecution.RequestBodyAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalORequestExecutionResponseBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailabilityᚄ(ctx context.Context, v any) ([]requestexecution.ResponseBodyAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]requestexecution.ResponseBodyAvailability, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRequestExecutionResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORequestExecutionResponseBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []requestexecution.ResponseBodyAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRequestExecutionResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalORequestExecutionResponseBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability(ctx context.Context, v any) (*requestexecution.ResponseBodyAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(requestexecution.ResponseBodyAvailability)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORequestExecutionResponseBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseBodyAvailability(ctx context.Context, sel ast.SelectionSet, v *requestexecution.ResponseBodyAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalORequestExecutionResponseChunksAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailabilityᚄ(ctx context.Context, v any) ([]requestexecution.ResponseChunksAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]requestexecution.ResponseChunksAvailability, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRequestExecutionResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORequestExecutionResponseChunksAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []requestexecution.ResponseChunksAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRequestExecutionResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalORequestExecutionResponseChunksAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability(ctx context.Context, v any) (*requestexecution.ResponseChunksAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(requestexecution.ResponseChunksAvailability)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORequestExecutionResponseChunksAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐResponseChunksAvailability(ctx context.Context, sel ast.SelectionSet, v *requestexecution.ResponseChunksAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalORequestExecutionStatus2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestexecutionᚐStatusᚄ(ctx context.Context, v any) ([]requestexecution.Status, error) {
 	if v == nil {
 		return nil, nil
@@ -121393,6 +123989,249 @@ func (ec *executionContext) unmarshalORequestOrder2ᚖgithubᚗcomᚋmutallipp�
 	}
 	res, err := ec.unmarshalInputRequestOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalORequestRequestBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailabilityᚄ(ctx context.Context, v any) ([]request.RequestBodyAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]request.RequestBodyAvailability, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRequestRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORequestRequestBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []request.RequestBodyAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRequestRequestBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalORequestRequestBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability(ctx context.Context, v any) (*request.RequestBodyAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(request.RequestBodyAvailability)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORequestRequestBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐRequestBodyAvailability(ctx context.Context, sel ast.SelectionSet, v *request.RequestBodyAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalORequestResponseBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailabilityᚄ(ctx context.Context, v any) ([]request.ResponseBodyAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]request.ResponseBodyAvailability, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRequestResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORequestResponseBodyAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []request.ResponseBodyAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRequestResponseBodyAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalORequestResponseBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability(ctx context.Context, v any) (*request.ResponseBodyAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(request.ResponseBodyAvailability)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORequestResponseBodyAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseBodyAvailability(ctx context.Context, sel ast.SelectionSet, v *request.ResponseBodyAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalORequestResponseChunksAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailabilityᚄ(ctx context.Context, v any) ([]request.ResponseChunksAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]request.ResponseChunksAvailability, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRequestResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORequestResponseChunksAvailability2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []request.ResponseChunksAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRequestResponseChunksAvailability2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalORequestResponseChunksAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability(ctx context.Context, v any) (*request.ResponseChunksAvailability, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(request.ResponseChunksAvailability)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORequestResponseChunksAvailability2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐResponseChunksAvailability(ctx context.Context, sel ast.SelectionSet, v *request.ResponseChunksAvailability) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalORequestSource2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐSourceᚄ(ctx context.Context, v any) ([]request.Source, error) {
@@ -121551,6 +124390,87 @@ func (ec *executionContext) unmarshalORequestStatus2ᚖgithubᚗcomᚋmutallipp�
 }
 
 func (ec *executionContext) marshalORequestStatus2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐStatus(ctx context.Context, sel ast.SelectionSet, v *request.Status) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalORequestTestOriginType2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginTypeᚄ(ctx context.Context, v any) ([]request.TestOriginType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]request.TestOriginType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNRequestTestOriginType2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalORequestTestOriginType2ᚕgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []request.TestOriginType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRequestTestOriginType2githubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalORequestTestOriginType2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx context.Context, v any) (*request.TestOriginType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(request.TestOriginType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalORequestTestOriginType2ᚖgithubᚗcomᚋmutallippᚋllmᚑproxyᚋinternalᚋentᚋrequestᚐTestOriginType(ctx context.Context, sel ast.SelectionSet, v *request.TestOriginType) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

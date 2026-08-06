@@ -55,16 +55,37 @@ func (RequestExecution) Fields() []ent.Field {
 		field.JSON("request_body", objects.JSONRawMessage{}).Immutable().Annotations(
 			entgql.Directives(forceResolver()),
 		),
+		field.Enum("request_body_availability").
+			Values("unknown", "available", "unavailable").
+			Default("unknown").
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.Directives(forceResolver()),
+			),
 		// The final response from the provider.
 		// e.g: the provider response with Claude format, and the user expects the response with OpenAI format, the response_body is the Claude response format.
 		field.JSON("response_body", objects.JSONRawMessage{}).Optional().Annotations(
 			entgql.Directives(forceResolver()),
 		),
+		field.Enum("response_body_availability").
+			Values("unknown", "available", "unavailable").
+			Default("unknown").
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.Directives(forceResolver()),
+			),
 		// The streaming response chunks from the provider.
 		// e.g: the provider response with Claude format, and the user expects the response with OpenAI format, the response_chunks is the Claude response format.
 		field.JSON("response_chunks", []objects.JSONRawMessage{}).Optional().Annotations(
 			entgql.Directives(forceResolver()),
 		),
+		field.Enum("response_chunks_availability").
+			Values("unknown", "available", "unavailable", "not_applicable").
+			Default("unknown").
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.Directives(forceResolver()),
+			),
 		field.String("error_message").Optional(),
 		field.Int("response_status_code").Optional().Nillable().
 			Comment("HTTP status code from the upstream provider"),

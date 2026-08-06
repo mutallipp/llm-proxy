@@ -16981,10 +16981,17 @@ type RequestMutation struct {
 	appendrequest_headers             objects.JSONRawMessage
 	request_body                      *objects.JSONRawMessage
 	appendrequest_body                objects.JSONRawMessage
+	request_body_availability         *request.RequestBodyAvailability
 	response_body                     *objects.JSONRawMessage
 	appendresponse_body               objects.JSONRawMessage
+	response_body_availability        *request.ResponseBodyAvailability
 	response_chunks                   *[]objects.JSONRawMessage
 	appendresponse_chunks             []objects.JSONRawMessage
+	response_chunks_availability      *request.ResponseChunksAvailability
+	test_origin_type                  *request.TestOriginType
+	test_origin_id                    *int
+	addtest_origin_id                 *int
+	test_origin_label                 *string
 	external_id                       *string
 	status                            *request.Status
 	stream                            *bool
@@ -17648,6 +17655,42 @@ func (m *RequestMutation) ResetRequestBody() {
 	m.appendrequest_body = nil
 }
 
+// SetRequestBodyAvailability sets the "request_body_availability" field.
+func (m *RequestMutation) SetRequestBodyAvailability(rba request.RequestBodyAvailability) {
+	m.request_body_availability = &rba
+}
+
+// RequestBodyAvailability returns the value of the "request_body_availability" field in the mutation.
+func (m *RequestMutation) RequestBodyAvailability() (r request.RequestBodyAvailability, exists bool) {
+	v := m.request_body_availability
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestBodyAvailability returns the old "request_body_availability" field's value of the Request entity.
+// If the Request object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestMutation) OldRequestBodyAvailability(ctx context.Context) (v request.RequestBodyAvailability, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestBodyAvailability is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestBodyAvailability requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestBodyAvailability: %w", err)
+	}
+	return oldValue.RequestBodyAvailability, nil
+}
+
+// ResetRequestBodyAvailability resets all changes to the "request_body_availability" field.
+func (m *RequestMutation) ResetRequestBodyAvailability() {
+	m.request_body_availability = nil
+}
+
 // SetResponseBody sets the "response_body" field.
 func (m *RequestMutation) SetResponseBody(orm objects.JSONRawMessage) {
 	m.response_body = &orm
@@ -17711,6 +17754,42 @@ func (m *RequestMutation) ResetResponseBody() {
 	m.response_body = nil
 	m.appendresponse_body = nil
 	delete(m.clearedFields, request.FieldResponseBody)
+}
+
+// SetResponseBodyAvailability sets the "response_body_availability" field.
+func (m *RequestMutation) SetResponseBodyAvailability(rba request.ResponseBodyAvailability) {
+	m.response_body_availability = &rba
+}
+
+// ResponseBodyAvailability returns the value of the "response_body_availability" field in the mutation.
+func (m *RequestMutation) ResponseBodyAvailability() (r request.ResponseBodyAvailability, exists bool) {
+	v := m.response_body_availability
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponseBodyAvailability returns the old "response_body_availability" field's value of the Request entity.
+// If the Request object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestMutation) OldResponseBodyAvailability(ctx context.Context) (v request.ResponseBodyAvailability, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponseBodyAvailability is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponseBodyAvailability requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponseBodyAvailability: %w", err)
+	}
+	return oldValue.ResponseBodyAvailability, nil
+}
+
+// ResetResponseBodyAvailability resets all changes to the "response_body_availability" field.
+func (m *RequestMutation) ResetResponseBodyAvailability() {
+	m.response_body_availability = nil
 }
 
 // SetResponseChunks sets the "response_chunks" field.
@@ -17778,6 +17857,42 @@ func (m *RequestMutation) ResetResponseChunks() {
 	delete(m.clearedFields, request.FieldResponseChunks)
 }
 
+// SetResponseChunksAvailability sets the "response_chunks_availability" field.
+func (m *RequestMutation) SetResponseChunksAvailability(rca request.ResponseChunksAvailability) {
+	m.response_chunks_availability = &rca
+}
+
+// ResponseChunksAvailability returns the value of the "response_chunks_availability" field in the mutation.
+func (m *RequestMutation) ResponseChunksAvailability() (r request.ResponseChunksAvailability, exists bool) {
+	v := m.response_chunks_availability
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponseChunksAvailability returns the old "response_chunks_availability" field's value of the Request entity.
+// If the Request object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestMutation) OldResponseChunksAvailability(ctx context.Context) (v request.ResponseChunksAvailability, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponseChunksAvailability is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponseChunksAvailability requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponseChunksAvailability: %w", err)
+	}
+	return oldValue.ResponseChunksAvailability, nil
+}
+
+// ResetResponseChunksAvailability resets all changes to the "response_chunks_availability" field.
+func (m *RequestMutation) ResetResponseChunksAvailability() {
+	m.response_chunks_availability = nil
+}
+
 // SetChannelID sets the "channel_id" field.
 func (m *RequestMutation) SetChannelID(i int) {
 	m.channel = &i
@@ -17825,6 +17940,174 @@ func (m *RequestMutation) ChannelIDCleared() bool {
 func (m *RequestMutation) ResetChannelID() {
 	m.channel = nil
 	delete(m.clearedFields, request.FieldChannelID)
+}
+
+// SetTestOriginType sets the "test_origin_type" field.
+func (m *RequestMutation) SetTestOriginType(rot request.TestOriginType) {
+	m.test_origin_type = &rot
+}
+
+// TestOriginType returns the value of the "test_origin_type" field in the mutation.
+func (m *RequestMutation) TestOriginType() (r request.TestOriginType, exists bool) {
+	v := m.test_origin_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTestOriginType returns the old "test_origin_type" field's value of the Request entity.
+// If the Request object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestMutation) OldTestOriginType(ctx context.Context) (v *request.TestOriginType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTestOriginType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTestOriginType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTestOriginType: %w", err)
+	}
+	return oldValue.TestOriginType, nil
+}
+
+// ClearTestOriginType clears the value of the "test_origin_type" field.
+func (m *RequestMutation) ClearTestOriginType() {
+	m.test_origin_type = nil
+	m.clearedFields[request.FieldTestOriginType] = struct{}{}
+}
+
+// TestOriginTypeCleared returns if the "test_origin_type" field was cleared in this mutation.
+func (m *RequestMutation) TestOriginTypeCleared() bool {
+	_, ok := m.clearedFields[request.FieldTestOriginType]
+	return ok
+}
+
+// ResetTestOriginType resets all changes to the "test_origin_type" field.
+func (m *RequestMutation) ResetTestOriginType() {
+	m.test_origin_type = nil
+	delete(m.clearedFields, request.FieldTestOriginType)
+}
+
+// SetTestOriginID sets the "test_origin_id" field.
+func (m *RequestMutation) SetTestOriginID(i int) {
+	m.test_origin_id = &i
+	m.addtest_origin_id = nil
+}
+
+// TestOriginID returns the value of the "test_origin_id" field in the mutation.
+func (m *RequestMutation) TestOriginID() (r int, exists bool) {
+	v := m.test_origin_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTestOriginID returns the old "test_origin_id" field's value of the Request entity.
+// If the Request object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestMutation) OldTestOriginID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTestOriginID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTestOriginID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTestOriginID: %w", err)
+	}
+	return oldValue.TestOriginID, nil
+}
+
+// AddTestOriginID adds i to the "test_origin_id" field.
+func (m *RequestMutation) AddTestOriginID(i int) {
+	if m.addtest_origin_id != nil {
+		*m.addtest_origin_id += i
+	} else {
+		m.addtest_origin_id = &i
+	}
+}
+
+// AddedTestOriginID returns the value that was added to the "test_origin_id" field in this mutation.
+func (m *RequestMutation) AddedTestOriginID() (r int, exists bool) {
+	v := m.addtest_origin_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearTestOriginID clears the value of the "test_origin_id" field.
+func (m *RequestMutation) ClearTestOriginID() {
+	m.test_origin_id = nil
+	m.addtest_origin_id = nil
+	m.clearedFields[request.FieldTestOriginID] = struct{}{}
+}
+
+// TestOriginIDCleared returns if the "test_origin_id" field was cleared in this mutation.
+func (m *RequestMutation) TestOriginIDCleared() bool {
+	_, ok := m.clearedFields[request.FieldTestOriginID]
+	return ok
+}
+
+// ResetTestOriginID resets all changes to the "test_origin_id" field.
+func (m *RequestMutation) ResetTestOriginID() {
+	m.test_origin_id = nil
+	m.addtest_origin_id = nil
+	delete(m.clearedFields, request.FieldTestOriginID)
+}
+
+// SetTestOriginLabel sets the "test_origin_label" field.
+func (m *RequestMutation) SetTestOriginLabel(s string) {
+	m.test_origin_label = &s
+}
+
+// TestOriginLabel returns the value of the "test_origin_label" field in the mutation.
+func (m *RequestMutation) TestOriginLabel() (r string, exists bool) {
+	v := m.test_origin_label
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTestOriginLabel returns the old "test_origin_label" field's value of the Request entity.
+// If the Request object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestMutation) OldTestOriginLabel(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTestOriginLabel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTestOriginLabel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTestOriginLabel: %w", err)
+	}
+	return oldValue.TestOriginLabel, nil
+}
+
+// ClearTestOriginLabel clears the value of the "test_origin_label" field.
+func (m *RequestMutation) ClearTestOriginLabel() {
+	m.test_origin_label = nil
+	m.clearedFields[request.FieldTestOriginLabel] = struct{}{}
+}
+
+// TestOriginLabelCleared returns if the "test_origin_label" field was cleared in this mutation.
+func (m *RequestMutation) TestOriginLabelCleared() bool {
+	_, ok := m.clearedFields[request.FieldTestOriginLabel]
+	return ok
+}
+
+// ResetTestOriginLabel resets all changes to the "test_origin_label" field.
+func (m *RequestMutation) ResetTestOriginLabel() {
+	m.test_origin_label = nil
+	delete(m.clearedFields, request.FieldTestOriginLabel)
 }
 
 // SetExternalID sets the "external_id" field.
@@ -18675,7 +18958,7 @@ func (m *RequestMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RequestMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 32)
 	if m.created_at != nil {
 		fields = append(fields, request.FieldCreatedAt)
 	}
@@ -18712,14 +18995,32 @@ func (m *RequestMutation) Fields() []string {
 	if m.request_body != nil {
 		fields = append(fields, request.FieldRequestBody)
 	}
+	if m.request_body_availability != nil {
+		fields = append(fields, request.FieldRequestBodyAvailability)
+	}
 	if m.response_body != nil {
 		fields = append(fields, request.FieldResponseBody)
+	}
+	if m.response_body_availability != nil {
+		fields = append(fields, request.FieldResponseBodyAvailability)
 	}
 	if m.response_chunks != nil {
 		fields = append(fields, request.FieldResponseChunks)
 	}
+	if m.response_chunks_availability != nil {
+		fields = append(fields, request.FieldResponseChunksAvailability)
+	}
 	if m.channel != nil {
 		fields = append(fields, request.FieldChannelID)
+	}
+	if m.test_origin_type != nil {
+		fields = append(fields, request.FieldTestOriginType)
+	}
+	if m.test_origin_id != nil {
+		fields = append(fields, request.FieldTestOriginID)
+	}
+	if m.test_origin_label != nil {
+		fields = append(fields, request.FieldTestOriginLabel)
 	}
 	if m.external_id != nil {
 		fields = append(fields, request.FieldExternalID)
@@ -18786,12 +19087,24 @@ func (m *RequestMutation) Field(name string) (ent.Value, bool) {
 		return m.RequestHeaders()
 	case request.FieldRequestBody:
 		return m.RequestBody()
+	case request.FieldRequestBodyAvailability:
+		return m.RequestBodyAvailability()
 	case request.FieldResponseBody:
 		return m.ResponseBody()
+	case request.FieldResponseBodyAvailability:
+		return m.ResponseBodyAvailability()
 	case request.FieldResponseChunks:
 		return m.ResponseChunks()
+	case request.FieldResponseChunksAvailability:
+		return m.ResponseChunksAvailability()
 	case request.FieldChannelID:
 		return m.ChannelID()
+	case request.FieldTestOriginType:
+		return m.TestOriginType()
+	case request.FieldTestOriginID:
+		return m.TestOriginID()
+	case request.FieldTestOriginLabel:
+		return m.TestOriginLabel()
 	case request.FieldExternalID:
 		return m.ExternalID()
 	case request.FieldStatus:
@@ -18847,12 +19160,24 @@ func (m *RequestMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldRequestHeaders(ctx)
 	case request.FieldRequestBody:
 		return m.OldRequestBody(ctx)
+	case request.FieldRequestBodyAvailability:
+		return m.OldRequestBodyAvailability(ctx)
 	case request.FieldResponseBody:
 		return m.OldResponseBody(ctx)
+	case request.FieldResponseBodyAvailability:
+		return m.OldResponseBodyAvailability(ctx)
 	case request.FieldResponseChunks:
 		return m.OldResponseChunks(ctx)
+	case request.FieldResponseChunksAvailability:
+		return m.OldResponseChunksAvailability(ctx)
 	case request.FieldChannelID:
 		return m.OldChannelID(ctx)
+	case request.FieldTestOriginType:
+		return m.OldTestOriginType(ctx)
+	case request.FieldTestOriginID:
+		return m.OldTestOriginID(ctx)
+	case request.FieldTestOriginLabel:
+		return m.OldTestOriginLabel(ctx)
 	case request.FieldExternalID:
 		return m.OldExternalID(ctx)
 	case request.FieldStatus:
@@ -18968,12 +19293,26 @@ func (m *RequestMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRequestBody(v)
 		return nil
+	case request.FieldRequestBodyAvailability:
+		v, ok := value.(request.RequestBodyAvailability)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestBodyAvailability(v)
+		return nil
 	case request.FieldResponseBody:
 		v, ok := value.(objects.JSONRawMessage)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetResponseBody(v)
+		return nil
+	case request.FieldResponseBodyAvailability:
+		v, ok := value.(request.ResponseBodyAvailability)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponseBodyAvailability(v)
 		return nil
 	case request.FieldResponseChunks:
 		v, ok := value.([]objects.JSONRawMessage)
@@ -18982,12 +19321,40 @@ func (m *RequestMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetResponseChunks(v)
 		return nil
+	case request.FieldResponseChunksAvailability:
+		v, ok := value.(request.ResponseChunksAvailability)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponseChunksAvailability(v)
+		return nil
 	case request.FieldChannelID:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetChannelID(v)
+		return nil
+	case request.FieldTestOriginType:
+		v, ok := value.(request.TestOriginType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTestOriginType(v)
+		return nil
+	case request.FieldTestOriginID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTestOriginID(v)
+		return nil
+	case request.FieldTestOriginLabel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTestOriginLabel(v)
 		return nil
 	case request.FieldExternalID:
 		v, ok := value.(string)
@@ -19074,6 +19441,9 @@ func (m *RequestMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *RequestMutation) AddedFields() []string {
 	var fields []string
+	if m.addtest_origin_id != nil {
+		fields = append(fields, request.FieldTestOriginID)
+	}
 	if m.addmetrics_latency_ms != nil {
 		fields = append(fields, request.FieldMetricsLatencyMs)
 	}
@@ -19094,6 +19464,8 @@ func (m *RequestMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *RequestMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case request.FieldTestOriginID:
+		return m.AddedTestOriginID()
 	case request.FieldMetricsLatencyMs:
 		return m.AddedMetricsLatencyMs()
 	case request.FieldMetricsFirstTokenLatencyMs:
@@ -19111,6 +19483,13 @@ func (m *RequestMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *RequestMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case request.FieldTestOriginID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTestOriginID(v)
+		return nil
 	case request.FieldMetricsLatencyMs:
 		v, ok := value.(int64)
 		if !ok {
@@ -19171,6 +19550,15 @@ func (m *RequestMutation) ClearedFields() []string {
 	if m.FieldCleared(request.FieldChannelID) {
 		fields = append(fields, request.FieldChannelID)
 	}
+	if m.FieldCleared(request.FieldTestOriginType) {
+		fields = append(fields, request.FieldTestOriginType)
+	}
+	if m.FieldCleared(request.FieldTestOriginID) {
+		fields = append(fields, request.FieldTestOriginID)
+	}
+	if m.FieldCleared(request.FieldTestOriginLabel) {
+		fields = append(fields, request.FieldTestOriginLabel)
+	}
 	if m.FieldCleared(request.FieldExternalID) {
 		fields = append(fields, request.FieldExternalID)
 	}
@@ -19229,6 +19617,15 @@ func (m *RequestMutation) ClearField(name string) error {
 		return nil
 	case request.FieldChannelID:
 		m.ClearChannelID()
+		return nil
+	case request.FieldTestOriginType:
+		m.ClearTestOriginType()
+		return nil
+	case request.FieldTestOriginID:
+		m.ClearTestOriginID()
+		return nil
+	case request.FieldTestOriginLabel:
+		m.ClearTestOriginLabel()
 		return nil
 	case request.FieldExternalID:
 		m.ClearExternalID()
@@ -19295,14 +19692,32 @@ func (m *RequestMutation) ResetField(name string) error {
 	case request.FieldRequestBody:
 		m.ResetRequestBody()
 		return nil
+	case request.FieldRequestBodyAvailability:
+		m.ResetRequestBodyAvailability()
+		return nil
 	case request.FieldResponseBody:
 		m.ResetResponseBody()
+		return nil
+	case request.FieldResponseBodyAvailability:
+		m.ResetResponseBodyAvailability()
 		return nil
 	case request.FieldResponseChunks:
 		m.ResetResponseChunks()
 		return nil
+	case request.FieldResponseChunksAvailability:
+		m.ResetResponseChunksAvailability()
+		return nil
 	case request.FieldChannelID:
 		m.ResetChannelID()
+		return nil
+	case request.FieldTestOriginType:
+		m.ResetTestOriginType()
+		return nil
+	case request.FieldTestOriginID:
+		m.ResetTestOriginID()
+		return nil
+	case request.FieldTestOriginLabel:
+		m.ResetTestOriginLabel()
 		return nil
 	case request.FieldExternalID:
 		m.ResetExternalID()
@@ -19556,10 +19971,13 @@ type RequestExecutionMutation struct {
 	format                            *string
 	request_body                      *objects.JSONRawMessage
 	appendrequest_body                objects.JSONRawMessage
+	request_body_availability         *requestexecution.RequestBodyAvailability
 	response_body                     *objects.JSONRawMessage
 	appendresponse_body               objects.JSONRawMessage
+	response_body_availability        *requestexecution.ResponseBodyAvailability
 	response_chunks                   *[]objects.JSONRawMessage
 	appendresponse_chunks             []objects.JSONRawMessage
+	response_chunks_availability      *requestexecution.ResponseChunksAvailability
 	error_message                     *string
 	response_status_code              *int
 	addresponse_status_code           *int
@@ -20119,6 +20537,42 @@ func (m *RequestExecutionMutation) ResetRequestBody() {
 	m.appendrequest_body = nil
 }
 
+// SetRequestBodyAvailability sets the "request_body_availability" field.
+func (m *RequestExecutionMutation) SetRequestBodyAvailability(rba requestexecution.RequestBodyAvailability) {
+	m.request_body_availability = &rba
+}
+
+// RequestBodyAvailability returns the value of the "request_body_availability" field in the mutation.
+func (m *RequestExecutionMutation) RequestBodyAvailability() (r requestexecution.RequestBodyAvailability, exists bool) {
+	v := m.request_body_availability
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestBodyAvailability returns the old "request_body_availability" field's value of the RequestExecution entity.
+// If the RequestExecution object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestExecutionMutation) OldRequestBodyAvailability(ctx context.Context) (v requestexecution.RequestBodyAvailability, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestBodyAvailability is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestBodyAvailability requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestBodyAvailability: %w", err)
+	}
+	return oldValue.RequestBodyAvailability, nil
+}
+
+// ResetRequestBodyAvailability resets all changes to the "request_body_availability" field.
+func (m *RequestExecutionMutation) ResetRequestBodyAvailability() {
+	m.request_body_availability = nil
+}
+
 // SetResponseBody sets the "response_body" field.
 func (m *RequestExecutionMutation) SetResponseBody(orm objects.JSONRawMessage) {
 	m.response_body = &orm
@@ -20184,6 +20638,42 @@ func (m *RequestExecutionMutation) ResetResponseBody() {
 	delete(m.clearedFields, requestexecution.FieldResponseBody)
 }
 
+// SetResponseBodyAvailability sets the "response_body_availability" field.
+func (m *RequestExecutionMutation) SetResponseBodyAvailability(rba requestexecution.ResponseBodyAvailability) {
+	m.response_body_availability = &rba
+}
+
+// ResponseBodyAvailability returns the value of the "response_body_availability" field in the mutation.
+func (m *RequestExecutionMutation) ResponseBodyAvailability() (r requestexecution.ResponseBodyAvailability, exists bool) {
+	v := m.response_body_availability
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponseBodyAvailability returns the old "response_body_availability" field's value of the RequestExecution entity.
+// If the RequestExecution object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestExecutionMutation) OldResponseBodyAvailability(ctx context.Context) (v requestexecution.ResponseBodyAvailability, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponseBodyAvailability is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponseBodyAvailability requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponseBodyAvailability: %w", err)
+	}
+	return oldValue.ResponseBodyAvailability, nil
+}
+
+// ResetResponseBodyAvailability resets all changes to the "response_body_availability" field.
+func (m *RequestExecutionMutation) ResetResponseBodyAvailability() {
+	m.response_body_availability = nil
+}
+
 // SetResponseChunks sets the "response_chunks" field.
 func (m *RequestExecutionMutation) SetResponseChunks(orm []objects.JSONRawMessage) {
 	m.response_chunks = &orm
@@ -20247,6 +20737,42 @@ func (m *RequestExecutionMutation) ResetResponseChunks() {
 	m.response_chunks = nil
 	m.appendresponse_chunks = nil
 	delete(m.clearedFields, requestexecution.FieldResponseChunks)
+}
+
+// SetResponseChunksAvailability sets the "response_chunks_availability" field.
+func (m *RequestExecutionMutation) SetResponseChunksAvailability(rca requestexecution.ResponseChunksAvailability) {
+	m.response_chunks_availability = &rca
+}
+
+// ResponseChunksAvailability returns the value of the "response_chunks_availability" field in the mutation.
+func (m *RequestExecutionMutation) ResponseChunksAvailability() (r requestexecution.ResponseChunksAvailability, exists bool) {
+	v := m.response_chunks_availability
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponseChunksAvailability returns the old "response_chunks_availability" field's value of the RequestExecution entity.
+// If the RequestExecution object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestExecutionMutation) OldResponseChunksAvailability(ctx context.Context) (v requestexecution.ResponseChunksAvailability, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponseChunksAvailability is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponseChunksAvailability requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponseChunksAvailability: %w", err)
+	}
+	return oldValue.ResponseChunksAvailability, nil
+}
+
+// ResetResponseChunksAvailability resets all changes to the "response_chunks_availability" field.
+func (m *RequestExecutionMutation) ResetResponseChunksAvailability() {
+	m.response_chunks_availability = nil
 }
 
 // SetErrorMessage sets the "error_message" field.
@@ -20915,7 +21441,7 @@ func (m *RequestExecutionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RequestExecutionMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, requestexecution.FieldCreatedAt)
 	}
@@ -20946,11 +21472,20 @@ func (m *RequestExecutionMutation) Fields() []string {
 	if m.request_body != nil {
 		fields = append(fields, requestexecution.FieldRequestBody)
 	}
+	if m.request_body_availability != nil {
+		fields = append(fields, requestexecution.FieldRequestBodyAvailability)
+	}
 	if m.response_body != nil {
 		fields = append(fields, requestexecution.FieldResponseBody)
 	}
+	if m.response_body_availability != nil {
+		fields = append(fields, requestexecution.FieldResponseBodyAvailability)
+	}
 	if m.response_chunks != nil {
 		fields = append(fields, requestexecution.FieldResponseChunks)
+	}
+	if m.response_chunks_availability != nil {
+		fields = append(fields, requestexecution.FieldResponseChunksAvailability)
 	}
 	if m.error_message != nil {
 		fields = append(fields, requestexecution.FieldErrorMessage)
@@ -21010,10 +21545,16 @@ func (m *RequestExecutionMutation) Field(name string) (ent.Value, bool) {
 		return m.Format()
 	case requestexecution.FieldRequestBody:
 		return m.RequestBody()
+	case requestexecution.FieldRequestBodyAvailability:
+		return m.RequestBodyAvailability()
 	case requestexecution.FieldResponseBody:
 		return m.ResponseBody()
+	case requestexecution.FieldResponseBodyAvailability:
+		return m.ResponseBodyAvailability()
 	case requestexecution.FieldResponseChunks:
 		return m.ResponseChunks()
+	case requestexecution.FieldResponseChunksAvailability:
+		return m.ResponseChunksAvailability()
 	case requestexecution.FieldErrorMessage:
 		return m.ErrorMessage()
 	case requestexecution.FieldResponseStatusCode:
@@ -21063,10 +21604,16 @@ func (m *RequestExecutionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldFormat(ctx)
 	case requestexecution.FieldRequestBody:
 		return m.OldRequestBody(ctx)
+	case requestexecution.FieldRequestBodyAvailability:
+		return m.OldRequestBodyAvailability(ctx)
 	case requestexecution.FieldResponseBody:
 		return m.OldResponseBody(ctx)
+	case requestexecution.FieldResponseBodyAvailability:
+		return m.OldResponseBodyAvailability(ctx)
 	case requestexecution.FieldResponseChunks:
 		return m.OldResponseChunks(ctx)
+	case requestexecution.FieldResponseChunksAvailability:
+		return m.OldResponseChunksAvailability(ctx)
 	case requestexecution.FieldErrorMessage:
 		return m.OldErrorMessage(ctx)
 	case requestexecution.FieldResponseStatusCode:
@@ -21166,6 +21713,13 @@ func (m *RequestExecutionMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetRequestBody(v)
 		return nil
+	case requestexecution.FieldRequestBodyAvailability:
+		v, ok := value.(requestexecution.RequestBodyAvailability)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestBodyAvailability(v)
+		return nil
 	case requestexecution.FieldResponseBody:
 		v, ok := value.(objects.JSONRawMessage)
 		if !ok {
@@ -21173,12 +21727,26 @@ func (m *RequestExecutionMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetResponseBody(v)
 		return nil
+	case requestexecution.FieldResponseBodyAvailability:
+		v, ok := value.(requestexecution.ResponseBodyAvailability)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponseBodyAvailability(v)
+		return nil
 	case requestexecution.FieldResponseChunks:
 		v, ok := value.([]objects.JSONRawMessage)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetResponseChunks(v)
+		return nil
+	case requestexecution.FieldResponseChunksAvailability:
+		v, ok := value.(requestexecution.ResponseChunksAvailability)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponseChunksAvailability(v)
 		return nil
 	case requestexecution.FieldErrorMessage:
 		v, ok := value.(string)
@@ -21467,11 +22035,20 @@ func (m *RequestExecutionMutation) ResetField(name string) error {
 	case requestexecution.FieldRequestBody:
 		m.ResetRequestBody()
 		return nil
+	case requestexecution.FieldRequestBodyAvailability:
+		m.ResetRequestBodyAvailability()
+		return nil
 	case requestexecution.FieldResponseBody:
 		m.ResetResponseBody()
 		return nil
+	case requestexecution.FieldResponseBodyAvailability:
+		m.ResetResponseBodyAvailability()
+		return nil
 	case requestexecution.FieldResponseChunks:
 		m.ResetResponseChunks()
+		return nil
+	case requestexecution.FieldResponseChunksAvailability:
+		m.ResetResponseChunksAvailability()
 		return nil
 	case requestexecution.FieldErrorMessage:
 		m.ResetErrorMessage()

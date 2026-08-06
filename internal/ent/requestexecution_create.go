@@ -142,15 +142,57 @@ func (_c *RequestExecutionCreate) SetRequestBody(v objects.JSONRawMessage) *Requ
 	return _c
 }
 
+// SetRequestBodyAvailability sets the "request_body_availability" field.
+func (_c *RequestExecutionCreate) SetRequestBodyAvailability(v requestexecution.RequestBodyAvailability) *RequestExecutionCreate {
+	_c.mutation.SetRequestBodyAvailability(v)
+	return _c
+}
+
+// SetNillableRequestBodyAvailability sets the "request_body_availability" field if the given value is not nil.
+func (_c *RequestExecutionCreate) SetNillableRequestBodyAvailability(v *requestexecution.RequestBodyAvailability) *RequestExecutionCreate {
+	if v != nil {
+		_c.SetRequestBodyAvailability(*v)
+	}
+	return _c
+}
+
 // SetResponseBody sets the "response_body" field.
 func (_c *RequestExecutionCreate) SetResponseBody(v objects.JSONRawMessage) *RequestExecutionCreate {
 	_c.mutation.SetResponseBody(v)
 	return _c
 }
 
+// SetResponseBodyAvailability sets the "response_body_availability" field.
+func (_c *RequestExecutionCreate) SetResponseBodyAvailability(v requestexecution.ResponseBodyAvailability) *RequestExecutionCreate {
+	_c.mutation.SetResponseBodyAvailability(v)
+	return _c
+}
+
+// SetNillableResponseBodyAvailability sets the "response_body_availability" field if the given value is not nil.
+func (_c *RequestExecutionCreate) SetNillableResponseBodyAvailability(v *requestexecution.ResponseBodyAvailability) *RequestExecutionCreate {
+	if v != nil {
+		_c.SetResponseBodyAvailability(*v)
+	}
+	return _c
+}
+
 // SetResponseChunks sets the "response_chunks" field.
 func (_c *RequestExecutionCreate) SetResponseChunks(v []objects.JSONRawMessage) *RequestExecutionCreate {
 	_c.mutation.SetResponseChunks(v)
+	return _c
+}
+
+// SetResponseChunksAvailability sets the "response_chunks_availability" field.
+func (_c *RequestExecutionCreate) SetResponseChunksAvailability(v requestexecution.ResponseChunksAvailability) *RequestExecutionCreate {
+	_c.mutation.SetResponseChunksAvailability(v)
+	return _c
+}
+
+// SetNillableResponseChunksAvailability sets the "response_chunks_availability" field if the given value is not nil.
+func (_c *RequestExecutionCreate) SetNillableResponseChunksAvailability(v *requestexecution.ResponseChunksAvailability) *RequestExecutionCreate {
+	if v != nil {
+		_c.SetResponseChunksAvailability(*v)
+	}
 	return _c
 }
 
@@ -344,6 +386,18 @@ func (_c *RequestExecutionCreate) defaults() {
 		v := requestexecution.DefaultFormat
 		_c.mutation.SetFormat(v)
 	}
+	if _, ok := _c.mutation.RequestBodyAvailability(); !ok {
+		v := requestexecution.DefaultRequestBodyAvailability
+		_c.mutation.SetRequestBodyAvailability(v)
+	}
+	if _, ok := _c.mutation.ResponseBodyAvailability(); !ok {
+		v := requestexecution.DefaultResponseBodyAvailability
+		_c.mutation.SetResponseBodyAvailability(v)
+	}
+	if _, ok := _c.mutation.ResponseChunksAvailability(); !ok {
+		v := requestexecution.DefaultResponseChunksAvailability
+		_c.mutation.SetResponseChunksAvailability(v)
+	}
 	if _, ok := _c.mutation.Stream(); !ok {
 		v := requestexecution.DefaultStream
 		_c.mutation.SetStream(v)
@@ -375,6 +429,30 @@ func (_c *RequestExecutionCreate) check() error {
 	}
 	if _, ok := _c.mutation.RequestBody(); !ok {
 		return &ValidationError{Name: "request_body", err: errors.New(`ent: missing required field "RequestExecution.request_body"`)}
+	}
+	if _, ok := _c.mutation.RequestBodyAvailability(); !ok {
+		return &ValidationError{Name: "request_body_availability", err: errors.New(`ent: missing required field "RequestExecution.request_body_availability"`)}
+	}
+	if v, ok := _c.mutation.RequestBodyAvailability(); ok {
+		if err := requestexecution.RequestBodyAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "request_body_availability", err: fmt.Errorf(`ent: validator failed for field "RequestExecution.request_body_availability": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ResponseBodyAvailability(); !ok {
+		return &ValidationError{Name: "response_body_availability", err: errors.New(`ent: missing required field "RequestExecution.response_body_availability"`)}
+	}
+	if v, ok := _c.mutation.ResponseBodyAvailability(); ok {
+		if err := requestexecution.ResponseBodyAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "response_body_availability", err: fmt.Errorf(`ent: validator failed for field "RequestExecution.response_body_availability": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ResponseChunksAvailability(); !ok {
+		return &ValidationError{Name: "response_chunks_availability", err: errors.New(`ent: missing required field "RequestExecution.response_chunks_availability"`)}
+	}
+	if v, ok := _c.mutation.ResponseChunksAvailability(); ok {
+		if err := requestexecution.ResponseChunksAvailabilityValidator(v); err != nil {
+			return &ValidationError{Name: "response_chunks_availability", err: fmt.Errorf(`ent: validator failed for field "RequestExecution.response_chunks_availability": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "RequestExecution.status"`)}
@@ -448,13 +526,25 @@ func (_c *RequestExecutionCreate) createSpec() (*RequestExecution, *sqlgraph.Cre
 		_spec.SetField(requestexecution.FieldRequestBody, field.TypeJSON, value)
 		_node.RequestBody = value
 	}
+	if value, ok := _c.mutation.RequestBodyAvailability(); ok {
+		_spec.SetField(requestexecution.FieldRequestBodyAvailability, field.TypeEnum, value)
+		_node.RequestBodyAvailability = value
+	}
 	if value, ok := _c.mutation.ResponseBody(); ok {
 		_spec.SetField(requestexecution.FieldResponseBody, field.TypeJSON, value)
 		_node.ResponseBody = value
 	}
+	if value, ok := _c.mutation.ResponseBodyAvailability(); ok {
+		_spec.SetField(requestexecution.FieldResponseBodyAvailability, field.TypeEnum, value)
+		_node.ResponseBodyAvailability = value
+	}
 	if value, ok := _c.mutation.ResponseChunks(); ok {
 		_spec.SetField(requestexecution.FieldResponseChunks, field.TypeJSON, value)
 		_node.ResponseChunks = value
+	}
+	if value, ok := _c.mutation.ResponseChunksAvailability(); ok {
+		_spec.SetField(requestexecution.FieldResponseChunksAvailability, field.TypeEnum, value)
+		_node.ResponseChunksAvailability = value
 	}
 	if value, ok := _c.mutation.ErrorMessage(); ok {
 		_spec.SetField(requestexecution.FieldErrorMessage, field.TypeString, value)
@@ -629,6 +719,18 @@ func (u *RequestExecutionUpsert) ClearExternalID() *RequestExecutionUpsert {
 	return u
 }
 
+// SetRequestBodyAvailability sets the "request_body_availability" field.
+func (u *RequestExecutionUpsert) SetRequestBodyAvailability(v requestexecution.RequestBodyAvailability) *RequestExecutionUpsert {
+	u.Set(requestexecution.FieldRequestBodyAvailability, v)
+	return u
+}
+
+// UpdateRequestBodyAvailability sets the "request_body_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsert) UpdateRequestBodyAvailability() *RequestExecutionUpsert {
+	u.SetExcluded(requestexecution.FieldRequestBodyAvailability)
+	return u
+}
+
 // SetResponseBody sets the "response_body" field.
 func (u *RequestExecutionUpsert) SetResponseBody(v objects.JSONRawMessage) *RequestExecutionUpsert {
 	u.Set(requestexecution.FieldResponseBody, v)
@@ -647,6 +749,18 @@ func (u *RequestExecutionUpsert) ClearResponseBody() *RequestExecutionUpsert {
 	return u
 }
 
+// SetResponseBodyAvailability sets the "response_body_availability" field.
+func (u *RequestExecutionUpsert) SetResponseBodyAvailability(v requestexecution.ResponseBodyAvailability) *RequestExecutionUpsert {
+	u.Set(requestexecution.FieldResponseBodyAvailability, v)
+	return u
+}
+
+// UpdateResponseBodyAvailability sets the "response_body_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsert) UpdateResponseBodyAvailability() *RequestExecutionUpsert {
+	u.SetExcluded(requestexecution.FieldResponseBodyAvailability)
+	return u
+}
+
 // SetResponseChunks sets the "response_chunks" field.
 func (u *RequestExecutionUpsert) SetResponseChunks(v []objects.JSONRawMessage) *RequestExecutionUpsert {
 	u.Set(requestexecution.FieldResponseChunks, v)
@@ -662,6 +776,18 @@ func (u *RequestExecutionUpsert) UpdateResponseChunks() *RequestExecutionUpsert 
 // ClearResponseChunks clears the value of the "response_chunks" field.
 func (u *RequestExecutionUpsert) ClearResponseChunks() *RequestExecutionUpsert {
 	u.SetNull(requestexecution.FieldResponseChunks)
+	return u
+}
+
+// SetResponseChunksAvailability sets the "response_chunks_availability" field.
+func (u *RequestExecutionUpsert) SetResponseChunksAvailability(v requestexecution.ResponseChunksAvailability) *RequestExecutionUpsert {
+	u.Set(requestexecution.FieldResponseChunksAvailability, v)
+	return u
+}
+
+// UpdateResponseChunksAvailability sets the "response_chunks_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsert) UpdateResponseChunksAvailability() *RequestExecutionUpsert {
+	u.SetExcluded(requestexecution.FieldResponseChunksAvailability)
 	return u
 }
 
@@ -943,6 +1069,20 @@ func (u *RequestExecutionUpsertOne) ClearExternalID() *RequestExecutionUpsertOne
 	})
 }
 
+// SetRequestBodyAvailability sets the "request_body_availability" field.
+func (u *RequestExecutionUpsertOne) SetRequestBodyAvailability(v requestexecution.RequestBodyAvailability) *RequestExecutionUpsertOne {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.SetRequestBodyAvailability(v)
+	})
+}
+
+// UpdateRequestBodyAvailability sets the "request_body_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsertOne) UpdateRequestBodyAvailability() *RequestExecutionUpsertOne {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.UpdateRequestBodyAvailability()
+	})
+}
+
 // SetResponseBody sets the "response_body" field.
 func (u *RequestExecutionUpsertOne) SetResponseBody(v objects.JSONRawMessage) *RequestExecutionUpsertOne {
 	return u.Update(func(s *RequestExecutionUpsert) {
@@ -964,6 +1104,20 @@ func (u *RequestExecutionUpsertOne) ClearResponseBody() *RequestExecutionUpsertO
 	})
 }
 
+// SetResponseBodyAvailability sets the "response_body_availability" field.
+func (u *RequestExecutionUpsertOne) SetResponseBodyAvailability(v requestexecution.ResponseBodyAvailability) *RequestExecutionUpsertOne {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.SetResponseBodyAvailability(v)
+	})
+}
+
+// UpdateResponseBodyAvailability sets the "response_body_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsertOne) UpdateResponseBodyAvailability() *RequestExecutionUpsertOne {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.UpdateResponseBodyAvailability()
+	})
+}
+
 // SetResponseChunks sets the "response_chunks" field.
 func (u *RequestExecutionUpsertOne) SetResponseChunks(v []objects.JSONRawMessage) *RequestExecutionUpsertOne {
 	return u.Update(func(s *RequestExecutionUpsert) {
@@ -982,6 +1136,20 @@ func (u *RequestExecutionUpsertOne) UpdateResponseChunks() *RequestExecutionUpse
 func (u *RequestExecutionUpsertOne) ClearResponseChunks() *RequestExecutionUpsertOne {
 	return u.Update(func(s *RequestExecutionUpsert) {
 		s.ClearResponseChunks()
+	})
+}
+
+// SetResponseChunksAvailability sets the "response_chunks_availability" field.
+func (u *RequestExecutionUpsertOne) SetResponseChunksAvailability(v requestexecution.ResponseChunksAvailability) *RequestExecutionUpsertOne {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.SetResponseChunksAvailability(v)
+	})
+}
+
+// UpdateResponseChunksAvailability sets the "response_chunks_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsertOne) UpdateResponseChunksAvailability() *RequestExecutionUpsertOne {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.UpdateResponseChunksAvailability()
 	})
 }
 
@@ -1458,6 +1626,20 @@ func (u *RequestExecutionUpsertBulk) ClearExternalID() *RequestExecutionUpsertBu
 	})
 }
 
+// SetRequestBodyAvailability sets the "request_body_availability" field.
+func (u *RequestExecutionUpsertBulk) SetRequestBodyAvailability(v requestexecution.RequestBodyAvailability) *RequestExecutionUpsertBulk {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.SetRequestBodyAvailability(v)
+	})
+}
+
+// UpdateRequestBodyAvailability sets the "request_body_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsertBulk) UpdateRequestBodyAvailability() *RequestExecutionUpsertBulk {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.UpdateRequestBodyAvailability()
+	})
+}
+
 // SetResponseBody sets the "response_body" field.
 func (u *RequestExecutionUpsertBulk) SetResponseBody(v objects.JSONRawMessage) *RequestExecutionUpsertBulk {
 	return u.Update(func(s *RequestExecutionUpsert) {
@@ -1479,6 +1661,20 @@ func (u *RequestExecutionUpsertBulk) ClearResponseBody() *RequestExecutionUpsert
 	})
 }
 
+// SetResponseBodyAvailability sets the "response_body_availability" field.
+func (u *RequestExecutionUpsertBulk) SetResponseBodyAvailability(v requestexecution.ResponseBodyAvailability) *RequestExecutionUpsertBulk {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.SetResponseBodyAvailability(v)
+	})
+}
+
+// UpdateResponseBodyAvailability sets the "response_body_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsertBulk) UpdateResponseBodyAvailability() *RequestExecutionUpsertBulk {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.UpdateResponseBodyAvailability()
+	})
+}
+
 // SetResponseChunks sets the "response_chunks" field.
 func (u *RequestExecutionUpsertBulk) SetResponseChunks(v []objects.JSONRawMessage) *RequestExecutionUpsertBulk {
 	return u.Update(func(s *RequestExecutionUpsert) {
@@ -1497,6 +1693,20 @@ func (u *RequestExecutionUpsertBulk) UpdateResponseChunks() *RequestExecutionUps
 func (u *RequestExecutionUpsertBulk) ClearResponseChunks() *RequestExecutionUpsertBulk {
 	return u.Update(func(s *RequestExecutionUpsert) {
 		s.ClearResponseChunks()
+	})
+}
+
+// SetResponseChunksAvailability sets the "response_chunks_availability" field.
+func (u *RequestExecutionUpsertBulk) SetResponseChunksAvailability(v requestexecution.ResponseChunksAvailability) *RequestExecutionUpsertBulk {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.SetResponseChunksAvailability(v)
+	})
+}
+
+// UpdateResponseChunksAvailability sets the "response_chunks_availability" field to the value that was provided on create.
+func (u *RequestExecutionUpsertBulk) UpdateResponseChunksAvailability() *RequestExecutionUpsertBulk {
+	return u.Update(func(s *RequestExecutionUpsert) {
+		s.UpdateResponseChunksAvailability()
 	})
 }
 

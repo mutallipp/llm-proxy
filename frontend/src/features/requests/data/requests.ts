@@ -1,9 +1,10 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { graphqlRequest } from '@/gql/graphql';
 import { useTranslation } from 'react-i18next';
 import { useSelectedProjectId } from '@/stores/projectStore';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { useRequestPermissions } from '../../../hooks/useRequestPermissions';
+import { extractNumberIDAsNumber } from '@/lib/utils';
 import {
   Request,
   RequestConnection,
@@ -55,6 +56,14 @@ function buildRequestsQuery(permissions: { canViewApiKeys: boolean; canViewChann
             createdAt
             updatedAt${apiKeyFields}${requestChannelFields}
             source
+            requestBodyAvailability
+            responseBodyAvailability
+            responseChunksAvailability
+            responseChunksLive
+            responseChunksPersistedAvailability
+            testOriginType
+            testOriginID
+            testOriginLabel
             modelID
             format
             reasoningEffort
@@ -135,6 +144,14 @@ function buildRequestDetailQuery(permissions: { canViewApiKeys: boolean; canView
           createdAt
           updatedAt${apiKeyFields}${requestChannelFields}
           source
+          requestBodyAvailability
+          responseBodyAvailability
+          responseChunksAvailability
+          responseChunksLive
+          responseChunksPersistedAvailability
+          testOriginType
+          testOriginID
+          testOriginLabel
           modelID
           stream
           clientIP
@@ -194,6 +211,14 @@ function buildRequestDetailPollingQuery(permissions: { canViewApiKeys: boolean; 
           createdAt
           updatedAt${apiKeyFields}${requestChannelFields}
           source
+          requestBodyAvailability
+          responseBodyAvailability
+          responseChunksAvailability
+          responseChunksLive
+          responseChunksPersistedAvailability
+          testOriginType
+          testOriginID
+          testOriginLabel
           modelID
           stream
           clientIP
@@ -201,6 +226,8 @@ function buildRequestDetailPollingQuery(permissions: { canViewApiKeys: boolean; 
           dataStorageID
           contentSaved
           contentStorageKey
+          responseChunks
+          responseChunksLive
           status
           format
           metricsReasoningDurationMs
@@ -245,6 +272,11 @@ function buildRequestExecutionsQuery(permissions: { canViewChannels: boolean }) 
                 requestBody
                 responseBody
                 responseChunks
+                responseChunksLive
+                requestBodyAvailability
+                responseBodyAvailability
+                responseChunksAvailability
+                responseChunksPersistedAvailability
                 errorMessage
                 responseStatusCode
                 status
@@ -380,7 +412,9 @@ export function useRequest(
           requestHeaders: previousRequest?.requestHeaders,
           requestBody: previousRequest?.requestBody,
           responseBody: previousRequest?.responseBody,
-          responseChunks: previousRequest?.responseChunks,
+          responseChunks: parsedRequest.responseChunks,
+          responseChunksLive: parsedRequest.responseChunksLive,
+          responseChunksPersistedAvailability: parsedRequest.responseChunksPersistedAvailability,
           usageLogs: previousRequest?.usageLogs,
         });
       } catch (error) {
@@ -431,6 +465,29 @@ export async function fetchAdjacentRequestPage(params: {
   return { requests: result.edges.map((e) => e.node), pageInfo: result.pageInfo };
 }
 
+export function useTestOriginHistory(
+  originType: 'channel' | 'model' | 'adapter',
+  originID: string,
+  options?: { enabled?: boolean; projectId?: string | null }
+) {
+  return useRequests(
+    {
+      first: 50,
+      where: {
+        source: 'test',
+        testOriginType: originType,
+        testOriginID: extractNumberIDAsNumber(originID),
+      },
+      orderBy: { field: 'CREATED_AT', direction: 'DESC' },
+    },
+    {
+      enabled: options?.enabled ?? true,
+      projectId: options?.projectId,
+      scopeToSelectedProject: false,
+    }
+  );
+}
+
 export function useRequestExecutions(
   requestID: string,
   variables?: {
@@ -447,15 +504,17 @@ export function useRequestExecutions(
   const selectedProjectId = useSelectedProjectId();
   const projectId = options?.projectId !== undefined ? options.projectId : selectedProjectId;
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['request-executions', requestID, variables, permissions, projectId],
-    queryFn: async () => {
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }) => {
       try {
         const query = buildRequestExecutionsQuery(permissions);
         const headers = projectId ? { 'X-Project-ID': projectId } : undefined;
         const finalVariables = {
           requestID,
           ...variables,
+          after: pageParam ?? variables?.after,
         };
         const data = await graphqlRequest<{ node: { executions: RequestExecutionConnection } }>(query, finalVariables, headers);
         return requestExecutionConnectionSchema.parse(data?.node?.executions);
@@ -464,6 +523,7 @@ export function useRequestExecutions(
         throw error;
       }
     },
+    getNextPageParam: (lastPage) => lastPage.pageInfo.hasNextPage ? lastPage.pageInfo.endCursor ?? undefined : undefined,
     enabled: !!requestID,
   });
 }

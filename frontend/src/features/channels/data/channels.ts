@@ -35,6 +35,8 @@ import {
   testChannelAPIKeysPayloadSchema,
   TestAPIKeyResult,
   testAPIKeyResultSchema,
+  TestTargetPayload,
+  testTargetPayloadSchema,
 } from './schema';
 
 const QUERY_CHANNEL_NAMES_QUERY = `
@@ -496,6 +498,7 @@ const TEST_CHANNEL_MUTATION = `
       success
       error
       message
+      requestID
     }
   }
 `;
@@ -1556,22 +1559,19 @@ export function useTestChannel(options?: { silent?: boolean }) {
     mutationFn: async ({
       channelID,
       modelID,
+      protocol,
       proxy,
     }: {
       channelID: string;
       modelID?: string;
+      protocol?: string;
       proxy?: ProxyConfig;
     }) => {
       try {
-        const data = await graphqlRequest<{
-          testChannel: {
-            latency: number;
-            success: boolean;
-            message?: string | null;
-            error?: string | null;
-          };
-        }>(TEST_CHANNEL_MUTATION, { input: { channelID, modelID, proxy } });
-        return data.testChannel;
+        const data = await graphqlRequest<{ testChannel: TestTargetPayload }>(TEST_CHANNEL_MUTATION, {
+          input: { channelID, modelID, protocol, proxy },
+        });
+        return testTargetPayloadSchema.parse(data.testChannel);
       } catch (error) {
         if (!silent) {
           handleError(error, { context: 'Test Channel' });

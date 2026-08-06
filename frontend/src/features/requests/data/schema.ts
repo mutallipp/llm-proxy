@@ -16,6 +16,15 @@ export type RequestSource = z.infer<typeof requestSourceSchema>;
 export const requestExecutionStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'canceled']);
 export type RequestExecutionStatus = z.infer<typeof requestExecutionStatusSchema>;
 
+const bodyAvailabilityValues = ['unknown', 'available', 'unavailable'] as const;
+const chunksAvailabilityValues = ['unknown', 'available', 'unavailable', 'not_applicable'] as const;
+export const requestBodyAvailabilitySchema = z.enum(bodyAvailabilityValues).default('unknown');
+export const requestResponseBodyAvailabilitySchema = z.enum(bodyAvailabilityValues).default('unknown');
+export const requestResponseChunksAvailabilitySchema = z.enum(chunksAvailabilityValues).default('unknown');
+export const requestResponseChunksPersistedAvailabilitySchema = z.enum(chunksAvailabilityValues).default('unknown');
+export type BodyAvailability = z.infer<typeof requestBodyAvailabilitySchema>;
+export type ChunksAvailability = z.infer<typeof requestResponseChunksAvailabilitySchema>;
+
 // Request Execution
 export const requestExecutionSchema = z.object({
   id: z.string(),
@@ -30,6 +39,11 @@ export const requestExecutionSchema = z.object({
   requestBody: z.any(), // JSONRawMessage
   responseBody: z.any().nullable(), // JSONRawMessage
   responseChunks: z.array(z.any()).nullable(), // [JSONRawMessage!]
+  responseChunksLive: z.boolean().default(false),
+  requestBodyAvailability: requestBodyAvailabilitySchema,
+  responseBodyAvailability: requestResponseBodyAvailabilitySchema,
+  responseChunksAvailability: requestResponseChunksAvailabilitySchema,
+  responseChunksPersistedAvailability: requestResponseChunksPersistedAvailabilitySchema,
   errorMessage: z.string().nullable(),
   responseStatusCode: z.number().nullable().optional(),
   status: requestExecutionStatusSchema,
@@ -52,6 +66,9 @@ export const requestSchema = z.object({
   // channelID: z.string().optional().nullable(),
   channel: channelSchema.partial().nullable().optional(),
   source: requestSourceSchema,
+  testOriginType: z.enum(['channel', 'model', 'adapter']).nullable().optional(),
+  testOriginID: z.number().nullable().optional(),
+  testOriginLabel: z.string().nullable().optional(),
   modelID: z.string(),
   reasoningEffort: z.string().nullable().optional(),
   contentSaved: z.boolean().optional(),
@@ -60,6 +77,11 @@ export const requestSchema = z.object({
   requestBody: z.any().nullable().optional(), // JSONRawMessage
   responseBody: z.any().nullable().optional(), // JSONRawMessage
   responseChunks: z.array(z.any()).nullable().optional(), // [JSONRawMessage!]
+  responseChunksLive: z.boolean().default(false),
+  requestBodyAvailability: requestBodyAvailabilitySchema,
+  responseBodyAvailability: requestResponseBodyAvailabilitySchema,
+  responseChunksAvailability: requestResponseChunksAvailabilitySchema,
+  responseChunksPersistedAvailability: requestResponseChunksPersistedAvailabilitySchema,
   status: requestStatusSchema,
   format: z.string().optional(),
   clientIP: z.string().nullable().optional(),

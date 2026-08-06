@@ -1796,6 +1796,18 @@ input CreateRequestInput {
   requestBody: JSONRawMessageInput!
   responseBody: JSONRawMessageInput
   responseChunks: [JSONRawMessageInput!]
+  """
+  Originating entity for source=test requests
+  """
+  testOriginType: RequestTestOriginType
+  """
+  Numeric ID of the originating Channel/Model/Adapter
+  """
+  testOriginID: Int
+  """
+  Human-readable label (name) of the originating entity, preserved for deleted entities
+  """
+  testOriginLabel: String
   externalID: String
   status: RequestStatus!
   stream: Boolean
@@ -4426,9 +4438,24 @@ type Request implements Node {
   """
   requestHeaders: JSONRawMessage
   requestBody: JSONRawMessage! @goField(forceResolver: true)
+  requestBodyAvailability: RequestRequestBodyAvailability! @goField(forceResolver: true)
   responseBody: JSONRawMessage @goField(forceResolver: true)
+  responseBodyAvailability: RequestResponseBodyAvailability! @goField(forceResolver: true)
   responseChunks: [JSONRawMessage!] @goField(forceResolver: true)
+  responseChunksAvailability: RequestResponseChunksAvailability! @goField(forceResolver: true)
   channelID: ID
+  """
+  Originating entity for source=test requests
+  """
+  testOriginType: RequestTestOriginType
+  """
+  Numeric ID of the originating Channel/Model/Adapter
+  """
+  testOriginID: Int
+  """
+  Human-readable label (name) of the originating entity, preserved for deleted entities
+  """
+  testOriginLabel: String
   externalID: String
   status: RequestStatus!
   stream: Boolean!
@@ -4568,8 +4595,11 @@ type RequestExecution implements Node {
   modelID: String!
   format: String!
   requestBody: JSONRawMessage! @goField(forceResolver: true)
+  requestBodyAvailability: RequestExecutionRequestBodyAvailability! @goField(forceResolver: true)
   responseBody: JSONRawMessage @goField(forceResolver: true)
+  responseBodyAvailability: RequestExecutionResponseBodyAvailability! @goField(forceResolver: true)
   responseChunks: [JSONRawMessage!] @goField(forceResolver: true)
+  responseChunksAvailability: RequestExecutionResponseChunksAvailability! @goField(forceResolver: true)
   errorMessage: String
   """
   HTTP status code from the upstream provider
@@ -4648,6 +4678,31 @@ Properties by which RequestExecution connections can be ordered.
 enum RequestExecutionOrderField {
   CREATED_AT
   UPDATED_AT
+}
+"""
+RequestExecutionRequestBodyAvailability is enum for the field request_body_availability
+"""
+enum RequestExecutionRequestBodyAvailability @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/requestexecution.RequestBodyAvailability") {
+  unknown
+  available
+  unavailable
+}
+"""
+RequestExecutionResponseBodyAvailability is enum for the field response_body_availability
+"""
+enum RequestExecutionResponseBodyAvailability @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/requestexecution.ResponseBodyAvailability") {
+  unknown
+  available
+  unavailable
+}
+"""
+RequestExecutionResponseChunksAvailability is enum for the field response_chunks_availability
+"""
+enum RequestExecutionResponseChunksAvailability @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/requestexecution.ResponseChunksAvailability") {
+  unknown
+  available
+  unavailable
+  not_applicable
 }
 """
 RequestExecutionStatus is enum for the field status
@@ -4786,6 +4841,27 @@ input RequestExecutionWhereInput {
   formatHasSuffix: String
   formatEqualFold: String
   formatContainsFold: String
+  """
+  request_body_availability field predicates
+  """
+  requestBodyAvailability: RequestExecutionRequestBodyAvailability
+  requestBodyAvailabilityNEQ: RequestExecutionRequestBodyAvailability
+  requestBodyAvailabilityIn: [RequestExecutionRequestBodyAvailability!]
+  requestBodyAvailabilityNotIn: [RequestExecutionRequestBodyAvailability!]
+  """
+  response_body_availability field predicates
+  """
+  responseBodyAvailability: RequestExecutionResponseBodyAvailability
+  responseBodyAvailabilityNEQ: RequestExecutionResponseBodyAvailability
+  responseBodyAvailabilityIn: [RequestExecutionResponseBodyAvailability!]
+  responseBodyAvailabilityNotIn: [RequestExecutionResponseBodyAvailability!]
+  """
+  response_chunks_availability field predicates
+  """
+  responseChunksAvailability: RequestExecutionResponseChunksAvailability
+  responseChunksAvailabilityNEQ: RequestExecutionResponseChunksAvailability
+  responseChunksAvailabilityIn: [RequestExecutionResponseChunksAvailability!]
+  responseChunksAvailabilityNotIn: [RequestExecutionResponseChunksAvailability!]
   """
   error_message field predicates
   """
@@ -4928,6 +5004,31 @@ enum RequestOrderField {
   UPDATED_AT
 }
 """
+RequestRequestBodyAvailability is enum for the field request_body_availability
+"""
+enum RequestRequestBodyAvailability @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/request.RequestBodyAvailability") {
+  unknown
+  available
+  unavailable
+}
+"""
+RequestResponseBodyAvailability is enum for the field response_body_availability
+"""
+enum RequestResponseBodyAvailability @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/request.ResponseBodyAvailability") {
+  unknown
+  available
+  unavailable
+}
+"""
+RequestResponseChunksAvailability is enum for the field response_chunks_availability
+"""
+enum RequestResponseChunksAvailability @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/request.ResponseChunksAvailability") {
+  unknown
+  available
+  unavailable
+  not_applicable
+}
+"""
 RequestSource is enum for the field source
 """
 enum RequestSource @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/request.Source") {
@@ -4944,6 +5045,14 @@ enum RequestStatus @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/
   completed
   failed
   canceled
+}
+"""
+RequestTestOriginType is enum for the field test_origin_type
+"""
+enum RequestTestOriginType @goModel(model: "github.com/mutallipp/llm-proxy/internal/ent/request.TestOriginType") {
+  channel
+  model
+  adapter
 }
 """
 RequestWhereInput is used for filtering Request objects.
@@ -5078,6 +5187,27 @@ input RequestWhereInput {
   formatEqualFold: String
   formatContainsFold: String
   """
+  request_body_availability field predicates
+  """
+  requestBodyAvailability: RequestRequestBodyAvailability
+  requestBodyAvailabilityNEQ: RequestRequestBodyAvailability
+  requestBodyAvailabilityIn: [RequestRequestBodyAvailability!]
+  requestBodyAvailabilityNotIn: [RequestRequestBodyAvailability!]
+  """
+  response_body_availability field predicates
+  """
+  responseBodyAvailability: RequestResponseBodyAvailability
+  responseBodyAvailabilityNEQ: RequestResponseBodyAvailability
+  responseBodyAvailabilityIn: [RequestResponseBodyAvailability!]
+  responseBodyAvailabilityNotIn: [RequestResponseBodyAvailability!]
+  """
+  response_chunks_availability field predicates
+  """
+  responseChunksAvailability: RequestResponseChunksAvailability
+  responseChunksAvailabilityNEQ: RequestResponseChunksAvailability
+  responseChunksAvailabilityIn: [RequestResponseChunksAvailability!]
+  responseChunksAvailabilityNotIn: [RequestResponseChunksAvailability!]
+  """
   channel_id field predicates
   """
   channelID: ID
@@ -5086,6 +5216,46 @@ input RequestWhereInput {
   channelIDNotIn: [ID!]
   channelIDIsNil: Boolean
   channelIDNotNil: Boolean
+  """
+  test_origin_type field predicates
+  """
+  testOriginType: RequestTestOriginType
+  testOriginTypeNEQ: RequestTestOriginType
+  testOriginTypeIn: [RequestTestOriginType!]
+  testOriginTypeNotIn: [RequestTestOriginType!]
+  testOriginTypeIsNil: Boolean
+  testOriginTypeNotNil: Boolean
+  """
+  test_origin_id field predicates
+  """
+  testOriginID: Int
+  testOriginIDNEQ: Int
+  testOriginIDIn: [Int!]
+  testOriginIDNotIn: [Int!]
+  testOriginIDGT: Int
+  testOriginIDGTE: Int
+  testOriginIDLT: Int
+  testOriginIDLTE: Int
+  testOriginIDIsNil: Boolean
+  testOriginIDNotNil: Boolean
+  """
+  test_origin_label field predicates
+  """
+  testOriginLabel: String
+  testOriginLabelNEQ: String
+  testOriginLabelIn: [String!]
+  testOriginLabelNotIn: [String!]
+  testOriginLabelGT: String
+  testOriginLabelGTE: String
+  testOriginLabelLT: String
+  testOriginLabelLTE: String
+  testOriginLabelContains: String
+  testOriginLabelHasPrefix: String
+  testOriginLabelHasSuffix: String
+  testOriginLabelIsNil: Boolean
+  testOriginLabelNotNil: Boolean
+  testOriginLabelEqualFold: String
+  testOriginLabelContainsFold: String
   """
   external_id field predicates
   """

@@ -935,6 +935,9 @@ type CreateRequestInput struct {
 	RequestBody                objects.JSONRawMessage
 	ResponseBody               objects.JSONRawMessage
 	ResponseChunks             []objects.JSONRawMessage
+	TestOriginType             *request.TestOriginType
+	TestOriginID               *int
+	TestOriginLabel            *string
 	ExternalID                 *string
 	Status                     request.Status
 	Stream                     *bool
@@ -976,6 +979,15 @@ func (i *CreateRequestInput) Mutate(m *RequestMutation) {
 	}
 	if v := i.ResponseChunks; v != nil {
 		m.SetResponseChunks(v)
+	}
+	if v := i.TestOriginType; v != nil {
+		m.SetTestOriginType(*v)
+	}
+	if v := i.TestOriginID; v != nil {
+		m.SetTestOriginID(*v)
+	}
+	if v := i.TestOriginLabel; v != nil {
+		m.SetTestOriginLabel(*v)
 	}
 	if v := i.ExternalID; v != nil {
 		m.SetExternalID(*v)

@@ -10,17 +10,21 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"entgo.io/ent/privacy"
 	"github.com/mutallipp/llm-proxy/internal/contexts"
 	"github.com/mutallipp/llm-proxy/internal/ent"
 	"github.com/mutallipp/llm-proxy/internal/ent/apikey"
 	"github.com/mutallipp/llm-proxy/internal/ent/channel"
+	"github.com/mutallipp/llm-proxy/internal/ent/model"
 	"github.com/mutallipp/llm-proxy/internal/ent/project"
 	"github.com/mutallipp/llm-proxy/internal/ent/request"
+	"github.com/mutallipp/llm-proxy/internal/ent/requestexecution"
 	"github.com/mutallipp/llm-proxy/internal/ent/trace"
 	"github.com/mutallipp/llm-proxy/internal/ent/user"
 	"github.com/mutallipp/llm-proxy/internal/objects"
 	"github.com/mutallipp/llm-proxy/internal/scopes"
 	"github.com/mutallipp/llm-proxy/internal/server/biz"
+	"github.com/mutallipp/llm-proxy/internal/server/orchestrator"
 	"github.com/mutallipp/llm-proxy/llm/httpclient"
 	"github.com/samber/lo"
 )
@@ -280,10 +284,21 @@ func (r *mutationResolver) BulkDeleteChannels(ctx context.Context, ids []*object
 
 // TestChannel is the resolver for the testChannel field.
 func (r *mutationResolver) TestChannel(ctx context.Context, input TestChannelInput) (*TestChannelPayload, error) {
-	// Set test source context for test channel requests
 	ctx = contexts.WithSource(ctx, request.SourceTest)
+	ch, err := r.channelService.GetChannel(ctx, input.ChannelID.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve test channel: %w", err)
+	}
+	if ch.Status != channel.StatusEnabled {
+		return nil, fmt.Errorf("channel %q is not enabled and cannot be tested", ch.Name)
+	}
+	ctx = contexts.WithTestOrigin(ctx, &contexts.TestOrigin{
+		Kind:  contexts.TestOriginChannel,
+		ID:    ch.ID,
+		Label: ch.Name,
+	})
 
-	result, err := r.TestChannelOrchestrator.TestChannel(ctx, input.ChannelID, input.ModelID, input.Proxy)
+	result, err := r.TestChannelOrchestrator.TestChannelWithProtocol(ctx, input.ChannelID, input.ModelID, lo.FromPtr(input.Protocol), input.Proxy)
 	if err != nil {
 		if httpclient.IsNotFoundErr(err) {
 			return nil, fmt.Errorf("URL not found, please check if the URL is correct and try again")
@@ -293,16 +308,91 @@ func (r *mutationResolver) TestChannel(ctx context.Context, input TestChannelInp
 	}
 
 	return &TestChannelPayload{
-		Latency: result.Latency,
-		Success: result.Success,
-		Message: result.Message,
-		Error:   result.Error,
+		Latency:   result.Latency,
+		Success:   result.Success,
+		Message:   result.Message,
+		Error:     result.Error,
+		RequestID: result.RequestID,
+	}, nil
+}
+
+// TestModel is the resolver for the testModel field.
+func (r *mutationResolver) TestModel(ctx context.Context, input TestModelInput) (*TestTargetPayload, error) {
+	ctx = contexts.WithSource(ctx, request.SourceTest)
+	configuredModel, err := r.modelService.GetModelByModelID(ctx, input.ModelID, model.StatusEnabled)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve test model: %w", err)
+	}
+	ctx = contexts.WithTestOrigin(ctx, &contexts.TestOrigin{
+		Kind:  contexts.TestOriginModel,
+		ID:    configuredModel.ID,
+		Label: configuredModel.ModelID,
+	})
+
+	result, err := r.TestChannelOrchestrator.TestModel(ctx, r.defaultSelector, input.ModelID, input.Protocol, input.ChannelID, input.PhysicalModelID, input.Proxy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to test model: %w", err)
+	}
+
+	return &TestTargetPayload{
+		Latency:   result.Latency,
+		Success:   result.Success,
+		Message:   result.Message,
+		Error:     result.Error,
+		RequestID: result.RequestID,
+	}, nil
+}
+
+// TestAdapter is the resolver for the testAdapter field.
+// Adapter 入站协议只取当前 runtime snapshot 的 InboundAPIFormat；输入不重复接收协议。
+func (r *mutationResolver) TestAdapter(ctx context.Context, input TestAdapterInput) (*TestTargetPayload, error) {
+	if !scopes.UserHasScope(ctx, scopes.ScopeWriteChannels) {
+		return nil, privacy.Deny
+	}
+	ctx = contexts.WithSource(ctx, request.SourceTest)
+	if r.adapterService == nil {
+		return nil, fmt.Errorf("adapter runtime snapshot service is not configured")
+	}
+	adapterService := r.adapterService
+	adapterConfig, err := adapterService.Resolve(ctx, input.Adapter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve test adapter: %w", err)
+	}
+	ctx = contexts.WithAdapterName(ctx, adapterConfig.Name)
+	ctx = contexts.WithRuntimeAdapter(ctx, adapterConfig)
+	adapterLabel := adapterConfig.DisplayName
+	if adapterLabel == "" {
+		adapterLabel = adapterConfig.Name
+	}
+	ctx = contexts.WithTestOrigin(ctx, &contexts.TestOrigin{
+		Kind:  contexts.TestOriginAdapter,
+		ID:    adapterConfig.ID,
+		Label: adapterLabel,
+	})
+
+	selector := orchestrator.NewAdapterCandidateSelector(adapterService, r.channelService)
+	result, err := r.TestChannelOrchestrator.TestAdapter(ctx, selector, input.ModelID, adapterConfig.InboundAPIFormat, input.Proxy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to test adapter: %w", err)
+	}
+
+	return &TestTargetPayload{
+		Latency:   result.Latency,
+		Success:   result.Success,
+		Message:   result.Message,
+		Error:     result.Error,
+		RequestID: result.RequestID,
 	}, nil
 }
 
 // TestChannelAPIKeys is the resolver for the testChannelAPIKeys field.
 func (r *mutationResolver) TestChannelAPIKeys(ctx context.Context, channelID objects.GUID, modelID *string) (*TestChannelAPIKeysPayload, error) {
 	ctx = contexts.WithSource(ctx, request.SourceTest)
+	channel, err := r.channelService.GetChannel(ctx, channelID.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve test channel: %w", err)
+	}
+	ctx = contexts.WithTestOrigin(ctx, &contexts.TestOrigin{Kind: contexts.TestOriginChannel, ID: channel.ID, Label: channel.Name})
 
 	result, err := r.TestChannelOrchestrator.TestChannelAPIKeys(ctx, channelID, modelID, nil)
 	if err != nil {
@@ -332,6 +422,11 @@ func (r *mutationResolver) TestChannelAPIKeys(ctx context.Context, channelID obj
 // TestChannelAPIKey is the resolver for the testChannelAPIKey field.
 func (r *mutationResolver) TestChannelAPIKey(ctx context.Context, channelID objects.GUID, key string, modelID *string) (*TestAPIKeyResult, error) {
 	ctx = contexts.WithSource(ctx, request.SourceTest)
+	channel, err := r.channelService.GetChannel(ctx, channelID.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve test channel: %w", err)
+	}
+	ctx = contexts.WithTestOrigin(ctx, &contexts.TestOrigin{Kind: contexts.TestOriginChannel, ID: channel.ID, Label: channel.Name})
 
 	result, err := r.TestChannelOrchestrator.TestSingleAPIKey(ctx, channelID, key, modelID, nil)
 	if err != nil {
@@ -903,6 +998,31 @@ func (r *queryResolver) APIKeyQuotaUsages(ctx context.Context, apiKeyID objects.
 	}
 
 	return result, nil
+}
+
+// TestModelTargets is the resolver for the testModelTargets field.
+func (r *queryResolver) TestModelTargets(ctx context.Context, modelID string, protocol string) ([]*orchestrator.TestModelTarget, error) {
+	return r.defaultSelector.DiscoverTestModelTargets(ctx, modelID, protocol)
+}
+
+// ResponseChunksLive is the resolver for the responseChunksLive field.
+func (r *requestResolver) ResponseChunksLive(ctx context.Context, obj *ent.Request) (bool, error) {
+	return r.requestService.IsRequestResponseChunksLive(obj), nil
+}
+
+// ResponseChunksPersistedAvailability is the resolver for the responseChunksPersistedAvailability field.
+func (r *requestResolver) ResponseChunksPersistedAvailability(ctx context.Context, obj *ent.Request) (request.ResponseChunksAvailability, error) {
+	return obj.ResponseChunksAvailability, nil
+}
+
+// ResponseChunksLive is the resolver for the responseChunksLive field.
+func (r *requestExecutionResolver) ResponseChunksLive(ctx context.Context, obj *ent.RequestExecution) (bool, error) {
+	return r.requestService.IsRequestExecutionResponseChunksLive(obj), nil
+}
+
+// ResponseChunksPersistedAvailability is the resolver for the responseChunksPersistedAvailability field.
+func (r *requestExecutionResolver) ResponseChunksPersistedAvailability(ctx context.Context, obj *ent.RequestExecution) (requestexecution.ResponseChunksAvailability, error) {
+	return obj.ResponseChunksAvailability, nil
 }
 
 // ID is the resolver for the id field.

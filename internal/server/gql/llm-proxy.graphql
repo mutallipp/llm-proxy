@@ -360,7 +360,35 @@ type SignInPayload {
 input TestChannelInput {
   channelID: ID!
   modelID: String
+  # 协议池 key 或完整 API 格式；为空时保持现有 OpenAI Chat 默认行为。
+  protocol: String
   proxy: ProxyConfigInput
+}
+
+input TestModelInput {
+  modelID: String!
+  # 只能使用 openai、openai_responses、anthropic 或对应完整格式。
+  protocol: String!
+  # 目标必须来自 testModelTargets 对同一 protocol 返回的选项。
+  channelID: ID!
+  physicalModelID: String!
+  proxy: ProxyConfigInput
+}
+
+# Adapter 的入站协议只由当前 runtime Adapter snapshot 的 inboundAPIFormat
+# 决定；调用方不得重复提交协议参数，服务端会按 source model binding 再次校验。
+input TestAdapterInput {
+  adapter: String!
+  modelID: String!
+  proxy: ProxyConfigInput
+}
+
+type TestModelTarget {
+  channelID: ID!
+  channelName: String!
+  physicalModelID: String!
+  protocol: String!
+  apiFormat: String!
 }
 
 type TestChannelPayload {
@@ -368,6 +396,17 @@ type TestChannelPayload {
   success: Boolean!
   message: String
   error: String
+  # requestID 是本次测试主 Request 的 Relay ID。
+  # 前置目标拒绝未创建 Request 时为空。
+  requestID: ID
+}
+
+type TestTargetPayload {
+  latency: Float!
+  success: Boolean!
+  message: String
+  error: String
+  requestID: ID
 }
 
 type TestAPIKeyResult {
@@ -713,6 +752,26 @@ type UsageMetadata {
   totalCost: Decimal!
 }
 
+extend type Request {
+  """
+  当前 responseChunks 是否包含临时内存流预览数据。
+  为 true 时，responseChunksAvailability 可供读取，但 Request 持久化 availability 仍可能是 unavailable。
+  """
+  responseChunksLive: Boolean! @goField(forceResolver: true)
+  """数据库中已确认保存的 response chunks availability，不受临时 preview 影响。"""
+  responseChunksPersistedAvailability: RequestResponseChunksAvailability! @goField(forceResolver: true)
+}
+
+extend type RequestExecution {
+  """
+  当前 responseChunks 是否包含临时内存流预览数据。
+  为 true 时，responseChunksAvailability 可供读取，但 RequestExecution 持久化 availability 仍可能是 unavailable。
+  """
+  responseChunksLive: Boolean! @goField(forceResolver: true)
+  """数据库中已确认保存的 response chunks availability，不受临时 preview 影响。"""
+  responseChunksPersistedAvailability: RequestExecutionResponseChunksAvailability! @goField(forceResolver: true)
+}
+
 extend type Trace {
   rootSegment: Segment
   rawRootSegment: JSONRawMessage
@@ -906,6 +965,8 @@ type Mutation {
   bulkRecoverChannels(ids: [ID!]!): Boolean!
   bulkDeleteChannels(ids: [ID!]!): Boolean!
   testChannel(input: TestChannelInput!): TestChannelPayload!
+  testModel(input: TestModelInput!): TestTargetPayload!
+  testAdapter(input: TestAdapterInput!): TestTargetPayload!
   testChannelAPIKeys(channelID: ID!, modelID: String): TestChannelAPIKeysPayload!
   testChannelAPIKey(channelID: ID!, key: String!, modelID: String): TestAPIKeyResult!
   bulkImportChannels(input: BulkImportChannelsInput!): BulkImportChannelsResult!
@@ -1065,4 +1126,6 @@ extend type Query {
   Returns quota usage for profiles that have quota enabled for an API key.
   """
   apiKeyQuotaUsages(apiKeyId: ID!): [APIKeyProfileQuotaUsage!]!
+  # 返回指定逻辑 Model 协议池中由服务端认可的 Channel/物理模型目标。
+  testModelTargets(modelID: String!, protocol: String!): [TestModelTarget!]!
 }

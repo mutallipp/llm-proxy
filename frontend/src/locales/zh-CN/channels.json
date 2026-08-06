@@ -767,5 +767,19 @@
   "channels.capability.bulkEnable.unknownFailure": "启用失败",
   "channels.capability.bulkEnable.result": "已启用 {{success}} 条关联，{{failed}} 条校验失败。",
   "channels.endpoints.revoked.autoDisabled": "端点变更后已禁用 {{count}} 条自动关联。",
-  "channels.endpoints.revoked.manualNotice": "端点变更后手动关联需要复核：{{notice}}"
+  "channels.endpoints.revoked.manualNotice": "端点变更后手动关联需要复核：{{notice}}",
+  "channels.dialogs.test.fixedTemplateDescription": "使用固定安全模板测试 {{name}}。",
+  "channels.dialogs.test.fixedTemplate": "固定模板",
+  "channels.dialogs.test.fixedTemplateText": "发送“Reply with OK.”，不支持自定义提示词或 JSON。",
+  "channels.dialogs.test.protocol": "协议池",
+  "channels.dialogs.test.selectProtocol": "选择协议",
+  "channels.dialogs.test.model": "模型",
+  "channels.dialogs.test.selectModel": "选择模型",
+  "channels.dialogs.test.noProtocol": "没有可用的启用协议池。",
+  "channels.dialogs.test.noModel": "该渠道没有可用模型。",
+  "channels.dialogs.test.testing": "测试中…",
+  "channels.dialogs.test.failed": "测试失败",
+  "channels.dialogs.test.protocolName.openai": "OpenAI Chat Completions",
+  "channels.dialogs.test.protocolName.openaiResponses": "OpenAI Responses",
+  "channels.dialogs.test.protocolName.anthropic": "Anthropic Messages"
 }

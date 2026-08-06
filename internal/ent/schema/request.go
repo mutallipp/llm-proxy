@@ -35,6 +35,10 @@ func (Request) Indexes() []ent.Index {
 		// Performance indexes for dashboard queries
 		index.Fields("created_at").
 			StorageKey("requests_by_created_at"),
+		// Test origin indexes support per-channel/per-model/per-adapter
+		// filtered test history without forcing a full-table scan.
+		index.Fields("test_origin_type", "test_origin_id", "created_at").
+			StorageKey("requests_by_test_origin_type_test_origin_id_created_at"),
 	}
 }
 
@@ -75,16 +79,58 @@ func (Request) Fields() []ent.Field {
 			Annotations(
 				entgql.Directives(forceResolver()),
 			),
+		field.Enum("request_body_availability").
+			Values("unknown", "available", "unavailable").
+			Default("unknown").
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.Directives(forceResolver()),
+			),
 		// The final response to the user.
 		// e.g: the provider response with Claude format, but the user expects the response with OpenAI format, the response_body is the OpenAI response format.
 		field.JSON("response_body", objects.JSONRawMessage{}).Optional().Annotations(
 			entgql.Directives(forceResolver()),
 		),
+		field.Enum("response_body_availability").
+			Values("unknown", "available", "unavailable").
+			Default("unknown").
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.Directives(forceResolver()),
+			),
 		// The response chunks to the user.
 		field.JSON("response_chunks", []objects.JSONRawMessage{}).Optional().Annotations(
 			entgql.Directives(forceResolver()),
 		),
+		field.Enum("response_chunks_availability").
+			Values("unknown", "available", "unavailable", "not_applicable").
+			Default("unknown").
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.Directives(forceResolver()),
+			),
 		field.Int("channel_id").Optional(),
+		// Test origin metadata is only set on requests produced by the unified
+		// Channel/Model/Adapter testing flow. Nullable + indexed so history
+		// queries can filter per originating entity without touching
+		// production request records.
+		field.Enum("test_origin_type").
+			Values("channel", "model", "adapter").
+			Optional().
+			Nillable().
+			Immutable().
+			Comment("Originating entity for source=test requests"),
+		field.Int("test_origin_id").
+			Optional().
+			Nillable().
+			Immutable().
+			Comment("Numeric ID of the originating Channel/Model/Adapter"),
+		field.String("test_origin_label").
+			Optional().
+			Nillable().
+			Immutable().
+			MaxLen(255).
+			Comment("Human-readable label (name) of the originating entity, preserved for deleted entities"),
 		// External ID for tracking requests in external systems
 		field.String("external_id").
 			Optional().

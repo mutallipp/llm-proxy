@@ -48,12 +48,24 @@ type Request struct {
 	RequestHeaders objects.JSONRawMessage `json:"request_headers,omitempty"`
 	// RequestBody holds the value of the "request_body" field.
 	RequestBody objects.JSONRawMessage `json:"request_body,omitempty"`
+	// RequestBodyAvailability holds the value of the "request_body_availability" field.
+	RequestBodyAvailability request.RequestBodyAvailability `json:"request_body_availability,omitempty"`
 	// ResponseBody holds the value of the "response_body" field.
 	ResponseBody objects.JSONRawMessage `json:"response_body,omitempty"`
+	// ResponseBodyAvailability holds the value of the "response_body_availability" field.
+	ResponseBodyAvailability request.ResponseBodyAvailability `json:"response_body_availability,omitempty"`
 	// ResponseChunks holds the value of the "response_chunks" field.
 	ResponseChunks []objects.JSONRawMessage `json:"response_chunks,omitempty"`
+	// ResponseChunksAvailability holds the value of the "response_chunks_availability" field.
+	ResponseChunksAvailability request.ResponseChunksAvailability `json:"response_chunks_availability,omitempty"`
 	// ChannelID holds the value of the "channel_id" field.
 	ChannelID int `json:"channel_id,omitempty"`
+	// Originating entity for source=test requests
+	TestOriginType *request.TestOriginType `json:"test_origin_type,omitempty"`
+	// Numeric ID of the originating Channel/Model/Adapter
+	TestOriginID *int `json:"test_origin_id,omitempty"`
+	// Human-readable label (name) of the originating entity, preserved for deleted entities
+	TestOriginLabel *string `json:"test_origin_label,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
 	ExternalID string `json:"external_id,omitempty"`
 	// Status holds the value of the "status" field.
@@ -190,9 +202,9 @@ func (*Request) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case request.FieldStream, request.FieldContentSaved:
 			values[i] = new(sql.NullBool)
-		case request.FieldID, request.FieldAPIKeyID, request.FieldProjectID, request.FieldTraceID, request.FieldDataStorageID, request.FieldChannelID, request.FieldMetricsLatencyMs, request.FieldMetricsFirstTokenLatencyMs, request.FieldMetricsReasoningDurationMs, request.FieldContentStorageID:
+		case request.FieldID, request.FieldAPIKeyID, request.FieldProjectID, request.FieldTraceID, request.FieldDataStorageID, request.FieldChannelID, request.FieldTestOriginID, request.FieldMetricsLatencyMs, request.FieldMetricsFirstTokenLatencyMs, request.FieldMetricsReasoningDurationMs, request.FieldContentStorageID:
 			values[i] = new(sql.NullInt64)
-		case request.FieldSource, request.FieldModelID, request.FieldReasoningEffort, request.FieldFormat, request.FieldExternalID, request.FieldStatus, request.FieldClientIP, request.FieldContentStorageKey:
+		case request.FieldSource, request.FieldModelID, request.FieldReasoningEffort, request.FieldFormat, request.FieldRequestBodyAvailability, request.FieldResponseBodyAvailability, request.FieldResponseChunksAvailability, request.FieldTestOriginType, request.FieldTestOriginLabel, request.FieldExternalID, request.FieldStatus, request.FieldClientIP, request.FieldContentStorageKey:
 			values[i] = new(sql.NullString)
 		case request.FieldCreatedAt, request.FieldUpdatedAt, request.FieldContentSavedAt:
 			values[i] = new(sql.NullTime)
@@ -293,6 +305,12 @@ func (_m *Request) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field request_body: %w", err)
 				}
 			}
+		case request.FieldRequestBodyAvailability:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_body_availability", values[i])
+			} else if value.Valid {
+				_m.RequestBodyAvailability = request.RequestBodyAvailability(value.String)
+			}
 		case request.FieldResponseBody:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field response_body", values[i])
@@ -300,6 +318,12 @@ func (_m *Request) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.ResponseBody); err != nil {
 					return fmt.Errorf("unmarshal field response_body: %w", err)
 				}
+			}
+		case request.FieldResponseBodyAvailability:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field response_body_availability", values[i])
+			} else if value.Valid {
+				_m.ResponseBodyAvailability = request.ResponseBodyAvailability(value.String)
 			}
 		case request.FieldResponseChunks:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -309,11 +333,38 @@ func (_m *Request) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field response_chunks: %w", err)
 				}
 			}
+		case request.FieldResponseChunksAvailability:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field response_chunks_availability", values[i])
+			} else if value.Valid {
+				_m.ResponseChunksAvailability = request.ResponseChunksAvailability(value.String)
+			}
 		case request.FieldChannelID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field channel_id", values[i])
 			} else if value.Valid {
 				_m.ChannelID = int(value.Int64)
+			}
+		case request.FieldTestOriginType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field test_origin_type", values[i])
+			} else if value.Valid {
+				_m.TestOriginType = new(request.TestOriginType)
+				*_m.TestOriginType = request.TestOriginType(value.String)
+			}
+		case request.FieldTestOriginID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field test_origin_id", values[i])
+			} else if value.Valid {
+				_m.TestOriginID = new(int)
+				*_m.TestOriginID = int(value.Int64)
+			}
+		case request.FieldTestOriginLabel:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field test_origin_label", values[i])
+			} else if value.Valid {
+				_m.TestOriginLabel = new(string)
+				*_m.TestOriginLabel = value.String
 			}
 		case request.FieldExternalID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -494,14 +545,38 @@ func (_m *Request) String() string {
 	builder.WriteString("request_body=")
 	builder.WriteString(fmt.Sprintf("%v", _m.RequestBody))
 	builder.WriteString(", ")
+	builder.WriteString("request_body_availability=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RequestBodyAvailability))
+	builder.WriteString(", ")
 	builder.WriteString("response_body=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ResponseBody))
+	builder.WriteString(", ")
+	builder.WriteString("response_body_availability=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ResponseBodyAvailability))
 	builder.WriteString(", ")
 	builder.WriteString("response_chunks=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ResponseChunks))
 	builder.WriteString(", ")
+	builder.WriteString("response_chunks_availability=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ResponseChunksAvailability))
+	builder.WriteString(", ")
 	builder.WriteString("channel_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ChannelID))
+	builder.WriteString(", ")
+	if v := _m.TestOriginType; v != nil {
+		builder.WriteString("test_origin_type=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TestOriginID; v != nil {
+		builder.WriteString("test_origin_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.TestOriginLabel; v != nil {
+		builder.WriteString("test_origin_label=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("external_id=")
 	builder.WriteString(_m.ExternalID)

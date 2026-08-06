@@ -42,10 +42,16 @@ type RequestExecution struct {
 	Format string `json:"format,omitempty"`
 	// RequestBody holds the value of the "request_body" field.
 	RequestBody objects.JSONRawMessage `json:"request_body,omitempty"`
+	// RequestBodyAvailability holds the value of the "request_body_availability" field.
+	RequestBodyAvailability requestexecution.RequestBodyAvailability `json:"request_body_availability,omitempty"`
 	// ResponseBody holds the value of the "response_body" field.
 	ResponseBody objects.JSONRawMessage `json:"response_body,omitempty"`
+	// ResponseBodyAvailability holds the value of the "response_body_availability" field.
+	ResponseBodyAvailability requestexecution.ResponseBodyAvailability `json:"response_body_availability,omitempty"`
 	// ResponseChunks holds the value of the "response_chunks" field.
 	ResponseChunks []objects.JSONRawMessage `json:"response_chunks,omitempty"`
+	// ResponseChunksAvailability holds the value of the "response_chunks_availability" field.
+	ResponseChunksAvailability requestexecution.ResponseChunksAvailability `json:"response_chunks_availability,omitempty"`
 	// ErrorMessage holds the value of the "error_message" field.
 	ErrorMessage string `json:"error_message,omitempty"`
 	// HTTP status code from the upstream provider
@@ -131,7 +137,7 @@ func (*RequestExecution) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case requestexecution.FieldID, requestexecution.FieldProjectID, requestexecution.FieldRequestID, requestexecution.FieldChannelID, requestexecution.FieldDataStorageID, requestexecution.FieldResponseStatusCode, requestexecution.FieldMetricsLatencyMs, requestexecution.FieldMetricsFirstTokenLatencyMs, requestexecution.FieldMetricsReasoningDurationMs:
 			values[i] = new(sql.NullInt64)
-		case requestexecution.FieldExternalID, requestexecution.FieldModelID, requestexecution.FieldFormat, requestexecution.FieldErrorMessage, requestexecution.FieldStatus, requestexecution.FieldRequestURL:
+		case requestexecution.FieldExternalID, requestexecution.FieldModelID, requestexecution.FieldFormat, requestexecution.FieldRequestBodyAvailability, requestexecution.FieldResponseBodyAvailability, requestexecution.FieldResponseChunksAvailability, requestexecution.FieldErrorMessage, requestexecution.FieldStatus, requestexecution.FieldRequestURL:
 			values[i] = new(sql.NullString)
 		case requestexecution.FieldCreatedAt, requestexecution.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -218,6 +224,12 @@ func (_m *RequestExecution) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field request_body: %w", err)
 				}
 			}
+		case requestexecution.FieldRequestBodyAvailability:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field request_body_availability", values[i])
+			} else if value.Valid {
+				_m.RequestBodyAvailability = requestexecution.RequestBodyAvailability(value.String)
+			}
 		case requestexecution.FieldResponseBody:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field response_body", values[i])
@@ -226,6 +238,12 @@ func (_m *RequestExecution) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field response_body: %w", err)
 				}
 			}
+		case requestexecution.FieldResponseBodyAvailability:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field response_body_availability", values[i])
+			} else if value.Valid {
+				_m.ResponseBodyAvailability = requestexecution.ResponseBodyAvailability(value.String)
+			}
 		case requestexecution.FieldResponseChunks:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field response_chunks", values[i])
@@ -233,6 +251,12 @@ func (_m *RequestExecution) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.ResponseChunks); err != nil {
 					return fmt.Errorf("unmarshal field response_chunks: %w", err)
 				}
+			}
+		case requestexecution.FieldResponseChunksAvailability:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field response_chunks_availability", values[i])
+			} else if value.Valid {
+				_m.ResponseChunksAvailability = requestexecution.ResponseChunksAvailability(value.String)
 			}
 		case requestexecution.FieldErrorMessage:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -381,11 +405,20 @@ func (_m *RequestExecution) String() string {
 	builder.WriteString("request_body=")
 	builder.WriteString(fmt.Sprintf("%v", _m.RequestBody))
 	builder.WriteString(", ")
+	builder.WriteString("request_body_availability=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RequestBodyAvailability))
+	builder.WriteString(", ")
 	builder.WriteString("response_body=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ResponseBody))
 	builder.WriteString(", ")
+	builder.WriteString("response_body_availability=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ResponseBodyAvailability))
+	builder.WriteString(", ")
 	builder.WriteString("response_chunks=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ResponseChunks))
+	builder.WriteString(", ")
+	builder.WriteString("response_chunks_availability=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ResponseChunksAvailability))
 	builder.WriteString(", ")
 	builder.WriteString("error_message=")
 	builder.WriteString(_m.ErrorMessage)

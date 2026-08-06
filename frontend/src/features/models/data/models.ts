@@ -3,7 +3,18 @@ import { graphqlRequest } from '@/gql/graphql';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useErrorHandler } from '@/hooks/use-error-handler';
-import { Model, ModelConnection, CreateModelInput, UpdateModelInput, modelConnectionSchema, modelSchema } from './schema';
+import {
+  Model,
+  ModelConnection,
+  CreateModelInput,
+  UpdateModelInput,
+  modelConnectionSchema,
+  modelSchema,
+  TestTargetPayload,
+  testTargetPayloadSchema,
+  TestModelTarget,
+  testModelTargetSchema,
+} from './schema';
 
 const MODEL_SETTINGS_FIELDS = `
   settings {
@@ -72,6 +83,30 @@ const MODEL_SETTINGS_FIELDS = `
           pattern
         }
       }
+    }
+  }
+`;
+
+const TEST_MODEL_TARGETS_QUERY = `
+  query TestModelTargets($modelID: String!, $protocol: String!) {
+    testModelTargets(modelID: $modelID, protocol: $protocol) {
+      channelID
+      channelName
+      physicalModelID
+      protocol
+      apiFormat
+    }
+  }
+`;
+
+const TEST_MODEL_MUTATION = `
+  mutation TestModel($input: TestModelInput!) {
+    testModel(input: $input) {
+      latency
+      success
+      message
+      error
+      requestID
     }
   }
 `;
@@ -321,6 +356,39 @@ interface QueryModelsArgs {
     field: 'CREATED_AT' | 'UPDATED_AT' | 'NAME';
     direction: 'ASC' | 'DESC';
   };
+}
+
+export function useTestModelTargets(modelID: string, protocol: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['test-model-targets', modelID, protocol],
+    enabled: (options?.enabled ?? true) && !!modelID && !!protocol,
+    queryFn: async (): Promise<TestModelTarget[]> => {
+      const data = await graphqlRequest<{ testModelTargets: TestModelTarget[] }>(TEST_MODEL_TARGETS_QUERY, {
+        modelID,
+        protocol,
+      });
+      return data.testModelTargets.map((target) => testModelTargetSchema.parse(target));
+    },
+  });
+}
+
+export function useTestModel(options?: { silent?: boolean }) {
+  const { handleError } = useErrorHandler();
+  const silent = options?.silent ?? false;
+
+  return useMutation({
+    mutationFn: async ({ modelID, protocol, channelID, physicalModelID }: { modelID: string; protocol: string; channelID: string; physicalModelID: string }) => {
+      try {
+        const data = await graphqlRequest<{ testModel: TestTargetPayload }>(TEST_MODEL_MUTATION, {
+          input: { modelID, protocol, channelID, physicalModelID },
+        });
+        return testTargetPayloadSchema.parse(data.testModel);
+      } catch (error) {
+        if (!silent) handleError(error, { context: 'Test Model' });
+        throw error;
+      }
+    },
+  });
 }
 
 export function useQueryModels(args: QueryModelsArgs, options?: { enabled?: boolean }) {

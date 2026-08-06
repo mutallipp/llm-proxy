@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/api-client';
-import { getTokenFromStorage } from '@/stores/authStore';
+import { graphqlRequest } from '@/gql/graphql';
 
 export type GatewayStatus = 'enabled' | 'disabled' | 'archived';
 export type ApiFormat = string;
@@ -161,125 +161,47 @@ export function useDeleteAdapter() {
 // ===================== Adapter 绑定测试 =====================
 
 export interface AdapterTestResult {
-  latency: number;      // 响应耗时（秒）
-  summary: string;      // 简短内容摘要（成功时提取）
-  status: number;       // HTTP 状态码，网络错误时为 0
-  ok: boolean;          // 是否为 2xx
-  rawResponse: string;  // 原始响应文本（JSON 字符串或纯文本）
-  error?: string;       // 错误信息（非 2xx 或网络错误时填充）
+  latency: number;
+  status: number;
+  ok: boolean;
+  requestID: string | null;
+  error?: string;
 }
 
-/**
- * 直接调用 Adapter 路由发送最小非流式请求，用于验证链路连通性。
- * 使用当前管理员 JWT 以便追踪，不传消费端 API Key。
- * 非 2xx 不再抛出，而是返回含 ok:false 和 error 的结果，便于 UI 展示完整错误信息。
- */
+const TEST_ADAPTER_MUTATION = `
+  mutation TestAdapter($input: TestAdapterInput!) {
+    testAdapter(input: $input) {
+      latency
+      success
+      message
+      error
+      requestID
+    }
+  }
+`;
+
 export async function testAdapterBinding(params: {
   adapterName: string;
-  inboundApiFormat: string;
   sourceModelId: string;
 }): Promise<AdapterTestResult> {
-  const { adapterName, inboundApiFormat, sourceModelId } = params;
-  const startTime = Date.now();
-
-  let url: string;
-  let body: Record<string, unknown>;
-
-  if (inboundApiFormat === 'anthropic/messages') {
-    url = `/${encodeURIComponent(adapterName)}/v1/messages`;
-    body = {
-      model: sourceModelId,
-      max_tokens: 16,
-      messages: [{ role: 'user', content: 'Reply with OK.' }],
-      stream: false,
+  const startedAt = Date.now();
+  const data = await graphqlRequest<{
+    testAdapter: {
+      latency: number;
+      success: boolean;
+      message: string | null;
+      error: string | null;
+      requestID: string | null;
     };
-  } else if (inboundApiFormat === 'openai/responses') {
-    url = `/${encodeURIComponent(adapterName)}/v1/responses`;
-    body = {
-      model: sourceModelId,
-      input: 'Reply with OK.',
-      max_output_tokens: 16,
-      stream: false,
-    };
-  } else {
-    // openai/chat_completions（默认）
-    url = `/${encodeURIComponent(adapterName)}/v1/chat/completions`;
-    body = {
-      model: sourceModelId,
-      max_tokens: 16,
-      messages: [{ role: 'user', content: 'Reply with OK.' }],
-      stream: false,
-    };
-  }
-
-  const token = getTokenFromStorage();
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  // 使用管理员 JWT 进行请求追踪，适配器中间件会在转发前移除此凭证
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  // 捕获网络层错误（DNS 失败、连接拒绝等）
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
-  } catch (networkError) {
-    const latency = (Date.now() - startTime) / 1000;
-    return {
-      latency,
-      summary: '',
-      status: 0,
-      ok: false,
-      rawResponse: '',
-      error: networkError instanceof Error ? networkError.message : '网络错误',
-    };
-  }
-
-  const latency = (Date.now() - startTime) / 1000;
-  // 先读取原始文本，保留完整响应内容供 UI 展示
-  const rawResponse = await response.text().catch(() => '');
-
-  if (!response.ok) {
-    // 非 2xx：尝试从响应体中提取可读错误信息
-    let errMsg = `HTTP ${response.status}`;
-    try {
-      const parsed = JSON.parse(rawResponse);
-      if (parsed?.message) errMsg = parsed.message;
-      else if (parsed?.error) errMsg = typeof parsed.error === 'string' ? parsed.error : (parsed.error?.message ?? errMsg);
-    } catch {
-      if (rawResponse) errMsg += `: ${rawResponse.slice(0, 200)}`;
-    }
-    return {
-      latency,
-      summary: '',
-      status: response.status,
-      ok: false,
-      rawResponse,
-      error: errMsg,
-    };
-  }
-
-  // 2xx：解析 JSON 并提取简短摘要
-  let data: Record<string, unknown> = {};
-  try {
-    data = JSON.parse(rawResponse);
-  } catch {
-    // 非 JSON 格式直接作为摘要返回
-    return { latency, summary: rawResponse.slice(0, 120), status: response.status, ok: true, rawResponse };
-  }
-
-  let summary = '';
-  if (inboundApiFormat === 'anthropic/messages') {
-    summary = ((data?.content as Array<{ text?: string }>)?.[0]?.text ?? '').slice(0, 120);
-  } else if (inboundApiFormat === 'openai/responses') {
-    summary = ((data?.output as Array<{ content?: Array<{ text?: string }> }>)?.[0]?.content?.[0]?.text ?? '').slice(0, 120);
-  } else {
-    summary = ((data?.choices as Array<{ message?: { content?: string } }>)?.[0]?.message?.content ?? '').slice(0, 120);
-  }
-
-  return { latency, summary, status: response.status, ok: true, rawResponse };
+  }>(TEST_ADAPTER_MUTATION, {
+    input: { adapter: adapterName, modelID: sourceModelId },
+  });
+  const result = data.testAdapter;
+  return {
+    latency: result.latency || (Date.now() - startedAt) / 1000,
+    status: 0,
+    ok: result.success,
+    requestID: result.requestID,
+    error: result.error ?? (result.success ? undefined : result.message ?? undefined),
+  };
 }

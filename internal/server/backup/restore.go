@@ -1,6 +1,7 @@
 package backup
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -928,6 +929,7 @@ func (svc *BackupService) restoreUsageRequests(
 			SetModelID(reqData.ModelID).
 			SetFormat(reqData.Format).
 			SetRequestBody(reqData.RequestBody).
+			SetRequestBodyAvailability(normalizeRequestBodyAvailability(reqData.RequestBodyAvailability, reqData.RequestBody)).
 			SetStatus(reqData.Status).
 			SetStream(reqData.Stream).
 			SetClientIP(reqData.ClientIP).
@@ -937,7 +939,9 @@ func (svc *BackupService) restoreUsageRequests(
 			SetNillableReasoningEffort(nilIfEmpty(reqData.ReasoningEffort)).
 			SetRequestHeaders(reqData.RequestHeaders).
 			SetResponseBody(reqData.ResponseBody).
+			SetResponseBodyAvailability(normalizeResponseBodyAvailability(reqData.ResponseBodyAvailability, reqData.ResponseBody)).
 			SetResponseChunks(reqData.ResponseChunks).
+			SetResponseChunksAvailability(normalizeResponseChunksAvailability(reqData.ResponseChunksAvailability, reqData.ResponseChunks, reqData.Stream)).
 			SetNillableExternalID(nilIfEmpty(reqData.ExternalID)).
 			SetNillableMetricsLatencyMs(reqData.MetricsLatencyMs).
 			SetNillableMetricsFirstTokenLatencyMs(reqData.MetricsFirstTokenLatencyMs).
@@ -945,6 +949,9 @@ func (svc *BackupService) restoreUsageRequests(
 			SetNillableContentStorageID(reqData.ContentStorageID).
 			SetNillableContentStorageKey(reqData.ContentStorageKey).
 			SetNillableContentSavedAt(reqData.ContentSavedAt).
+			SetNillableTestOriginType(reqData.TestOriginType).
+			SetNillableTestOriginID(reqData.TestOriginID).
+			SetNillableTestOriginLabel(reqData.TestOriginLabel).
 			Save(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to restore usage request %d: %w", oldID, err)
@@ -1052,6 +1059,9 @@ func usageRequestBackupFingerprint(req *BackupUsageRequest) string {
 		req.ProjectName,
 		req.ChannelName,
 		req.APIKeyKey,
+		testOriginTypeString(req.TestOriginType),
+		nillableInt(req.TestOriginID),
+		nillableString(req.TestOriginLabel),
 	)
 }
 
@@ -1084,7 +1094,34 @@ func usageRequestExistingFingerprint(req *ent.Request, includeAPIKey bool) strin
 		projectName,
 		channelName,
 		apiKeyKey,
+		testOriginTypeString(req.TestOriginType),
+		nillableInt(req.TestOriginID),
+		nillableString(req.TestOriginLabel),
 	)
+}
+
+func testOriginTypeString(value *request.TestOriginType) string {
+	if value == nil {
+		return ""
+	}
+
+	return string(*value)
+}
+
+func nillableInt(value *int) int {
+	if value == nil {
+		return 0
+	}
+
+	return *value
+}
+
+func nillableString(value *string) string {
+	if value == nil {
+		return ""
+	}
+
+	return *value
 }
 
 func usageRequestFingerprint(
@@ -1100,6 +1137,9 @@ func usageRequestFingerprint(
 	projectName string,
 	channelName string,
 	apiKeyKey string,
+	testOriginType string,
+	testOriginID int,
+	testOriginLabel string,
 ) string {
 	parts := []string{
 		createdAt.UTC().Format(time.RFC3339Nano),
@@ -1114,6 +1154,9 @@ func usageRequestFingerprint(
 		projectName,
 		channelName,
 		apiKeyKey,
+		testOriginType,
+		fmt.Sprintf("%d", testOriginID),
+		testOriginLabel,
 	}
 
 	return strings.Join(parts, "\x00")
@@ -1133,7 +1176,42 @@ func sameUsageRequest(existing *ent.Request, backup *BackupUsageRequest, project
 		existing.ClientIP == backup.ClientIP &&
 		existing.ExternalID == backup.ExternalID &&
 		existing.ReasoningEffort == backup.ReasoningEffort &&
+		sameTestOrigin(existing.TestOriginType, existing.TestOriginID, existing.TestOriginLabel, backup.TestOriginType, backup.TestOriginID, backup.TestOriginLabel) &&
 		existing.CreatedAt.Equal(backup.CreatedAt)
+}
+
+// sameTestOrigin compares the (nullable) origin triple so existing records
+// without origin don't accidentally collide with backup rows that have one.
+func sameTestOrigin(existingType *request.TestOriginType, existingID *int, existingLabel *string, backupType *request.TestOriginType, backupID *int, backupLabel *string) bool {
+	if backupType == nil && backupID == nil && backupLabel == nil {
+		return existingType == nil && existingID == nil && existingLabel == nil
+	}
+
+	if existingType == nil || backupType == nil {
+		return false
+	}
+
+	if *existingType != *backupType {
+		return false
+	}
+
+	if (existingID == nil) != (backupID == nil) {
+		return false
+	}
+
+	if existingID != nil && *existingID != *backupID {
+		return false
+	}
+
+	if (existingLabel == nil) != (backupLabel == nil) {
+		return false
+	}
+
+	if existingLabel != nil && *existingLabel != *backupLabel {
+		return false
+	}
+
+	return true
 }
 
 func (svc *BackupService) restoreUsageLogs(
@@ -1393,20 +1471,86 @@ func usageLogRequestShells(
 func usageLogRequestShell(usageData *BackupUsageLog) *BackupUsageRequest {
 	return &BackupUsageRequest{
 		Request: ent.Request{
-			ID:          usageData.RequestID,
-			CreatedAt:   usageData.CreatedAt,
-			UpdatedAt:   usageData.UpdatedAt,
-			Source:      request.Source(usageData.Source),
-			ModelID:     usageData.ModelID,
-			Format:      usageData.Format,
-			RequestBody: objects.JSONRawMessage("{}"),
-			Status:      request.StatusCompleted,
-			Stream:      false,
-			ClientIP:    "",
+			ID:                         usageData.RequestID,
+			CreatedAt:                  usageData.CreatedAt,
+			UpdatedAt:                  usageData.UpdatedAt,
+			Source:                     request.Source(usageData.Source),
+			ModelID:                    usageData.ModelID,
+			Format:                     usageData.Format,
+			RequestBody:                objects.JSONRawMessage("{}"),
+			RequestBodyAvailability:    request.RequestBodyAvailabilityUnavailable,
+			ResponseBodyAvailability:   request.ResponseBodyAvailabilityUnavailable,
+			ResponseChunksAvailability: request.ResponseChunksAvailabilityNotApplicable,
+			Status:                     request.StatusCompleted,
+			Stream:                     false,
+			ClientIP:                   "",
 		},
 		ProjectName: usageData.ProjectName,
 		ChannelName: usageData.ChannelName,
 		APIKeyKey:   usageData.APIKeyKey,
+	}
+}
+
+func normalizeRequestBodyAvailability(value request.RequestBodyAvailability, raw objects.JSONRawMessage) request.RequestBodyAvailability {
+	switch value {
+	case request.RequestBodyAvailabilityAvailable, request.RequestBodyAvailabilityUnavailable:
+		return value
+	default:
+		if hasBackupJSONEvidence(raw) {
+			return request.RequestBodyAvailabilityAvailable
+		}
+		return request.RequestBodyAvailabilityUnknown
+	}
+}
+
+func normalizeResponseBodyAvailability(value request.ResponseBodyAvailability, raw objects.JSONRawMessage) request.ResponseBodyAvailability {
+	switch value {
+	case request.ResponseBodyAvailabilityAvailable, request.ResponseBodyAvailabilityUnavailable:
+		return value
+	default:
+		if hasBackupJSONEvidence(raw) {
+			return request.ResponseBodyAvailabilityAvailable
+		}
+		return request.ResponseBodyAvailabilityUnknown
+	}
+}
+
+func normalizeResponseChunksAvailability(value request.ResponseChunksAvailability, raw []objects.JSONRawMessage, stream bool) request.ResponseChunksAvailability {
+	switch value {
+	case request.ResponseChunksAvailabilityAvailable, request.ResponseChunksAvailabilityUnavailable, request.ResponseChunksAvailabilityNotApplicable:
+		return value
+	default:
+		if hasBackupChunksEvidence(raw) {
+			return request.ResponseChunksAvailabilityAvailable
+		}
+		if !stream {
+			return request.ResponseChunksAvailabilityNotApplicable
+		}
+		return request.ResponseChunksAvailabilityUnknown
+	}
+}
+
+func hasBackupChunksEvidence(chunks []objects.JSONRawMessage) bool {
+	for _, chunk := range chunks {
+		if hasBackupJSONEvidence(chunk) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasBackupJSONEvidence(raw []byte) bool {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return false
+	}
+
+	switch string(trimmed) {
+	case "null", "{}", "[]", `{"message":"invalid text"}`:
+		return false
+	default:
+		return json.Valid(trimmed)
 	}
 }
 

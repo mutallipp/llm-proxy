@@ -71,6 +71,16 @@ func (s *RequestService) shouldUseExternalStorage(_ context.Context, ds *ent.Dat
 // _InvalidRequestBodyJSON returns a JSON object indicating invalid text.
 var _InvalidRequestBodyJSON = objects.JSONRawMessage(`{"message":"invalid text"}`)
 
+// requestIDToRelayID 将数值 Request ID 转换为 Relay GID，保持测试结果
+// 与 GraphQL Request 节点的定位格式一致。
+func requestIDToRelayID(id int) string {
+	if id <= 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("gid://axonhub/Request/%d", id)
+}
+
 // GenerateRequestBodyKey generates the storage key for request body.
 func GenerateRequestBodyKey(projectID, requestID int) string {
 	return fmt.Sprintf("/%d/requests/%d/request_body.json", projectID, requestID)
@@ -183,6 +193,10 @@ func (s *RequestService) CreateRequest(
 	}
 
 	client := s.entFromContext(ctx)
+	responseChunksAvailability := request.ResponseChunksAvailabilityNotApplicable
+	if isStream {
+		responseChunksAvailability = request.ResponseChunksAvailabilityUnavailable
+	}
 	mut := client.Request.Create().
 		SetProjectID(projectID).
 		SetModelID(llmRequest.Model).
@@ -190,7 +204,21 @@ func (s *RequestService) CreateRequest(
 		SetSource(contexts.GetSourceOrDefault(ctx, request.SourceAPI)).
 		SetStatus(request.StatusProcessing).
 		SetStream(isStream).
-		SetRequestHeaders(requestHeadersBytes)
+		SetRequestHeaders(requestHeadersBytes).
+		SetRequestBodyAvailability(request.RequestBodyAvailabilityUnavailable).
+		SetResponseBodyAvailability(request.ResponseBodyAvailabilityUnavailable).
+		SetResponseChunksAvailability(responseChunksAvailability)
+
+	// 测试归属只对 source=test 有意义，普通请求不能写入测试历史。
+	if testOrigin := contexts.GetTestOrigin(ctx); testOrigin.Valid() {
+		sourceValue := contexts.GetSourceOrDefault(ctx, request.SourceAPI)
+		if sourceValue == request.SourceTest {
+			mut = mut.
+				SetTestOriginType(request.TestOriginType(string(testOrigin.Kind))).
+				SetTestOriginID(testOrigin.ID).
+				SetTestOriginLabel(testOrigin.Label)
+		}
+	}
 
 	if httpRequest != nil {
 		mut = mut.SetClientIP(httpRequest.ClientIP)
@@ -204,11 +232,14 @@ func (s *RequestService) CreateRequest(
 	useExternalStorage := storeRequestBody && s.shouldUseExternalStorage(ctx, dataStorage)
 
 	if useExternalStorage {
-		// Set empty JSON for database, actual data will be in external storage
+		// 数据库存放占位 JSON，真实内容写入外部存储成功后才标记 available。
 		mut = mut.SetRequestBody([]byte("{}"))
 	} else {
-		// Store in database
+		// 直接落库的请求体可在创建成功后标记 available。
 		mut = mut.SetRequestBody(requestBodyBytes)
+		if storeRequestBody {
+			mut = mut.SetRequestBodyAvailability(request.RequestBodyAvailabilityAvailable)
+		}
 	}
 
 	if dataStorage != nil {
@@ -229,7 +260,9 @@ func (s *RequestService) CreateRequest(
 		if !useExternalStorage {
 			log.Warn(ctx, "Failed to save request body due to error, retrying with placeholder", log.Cause(err))
 
-			mut = mut.SetRequestBody(_InvalidRequestBodyJSON)
+			mut = mut.
+				SetRequestBody(_InvalidRequestBodyJSON).
+				SetRequestBodyAvailability(request.RequestBodyAvailabilityUnavailable)
 
 			req, err = mut.Save(ctx)
 			if err != nil {
@@ -241,6 +274,13 @@ func (s *RequestService) CreateRequest(
 		}
 	}
 
+	// 只有 source=test 记录需要捕获主 Request，供测试结果直接定位详情。
+	if contexts.GetSourceOrDefault(ctx, request.SourceAPI) == request.SourceTest {
+		relayID := requestIDToRelayID(req.ID)
+		// 上下文容器按指针共享，调用方从同一 ctx 可以读取捕获结果。
+		contexts.SetTestRequestCapture(ctx, &contexts.TestRequestCapture{RequestID: req.ID, RelayID: relayID})
+	}
+
 	// Save request body to external storage if needed
 	if useExternalStorage {
 		key := GenerateRequestBodyKey(projectID, req.ID)
@@ -248,7 +288,13 @@ func (s *RequestService) CreateRequest(
 		err := s.DataStorageService.SaveData(ctx, dataStorage, key, requestBodyBytes)
 		if err != nil {
 			log.Error(ctx, "Failed to save request body to external storage", log.Cause(err))
-			// Continue anyway, don't fail the request creation
+			// 继续请求，但保留 unavailable，避免把占位 JSON 当作真实请求体。
+		} else {
+			if _, updateErr := client.Request.UpdateOneID(req.ID).
+				SetRequestBodyAvailability(request.RequestBodyAvailabilityAvailable).
+				Save(ctx); updateErr != nil {
+				log.Error(ctx, "Failed to update request body availability", log.Cause(updateErr))
+			}
 		}
 	}
 
@@ -322,6 +368,14 @@ func (s *RequestService) CreateRequestExecution(
 		requestBodyForDB = requestBodyBytes
 	}
 
+	requestBodyAvailability := requestexecution.RequestBodyAvailabilityUnavailable
+	if storeRequestBody && !useExternalStorage {
+		requestBodyAvailability = requestexecution.RequestBodyAvailabilityAvailable
+	}
+	responseChunksAvailability := requestexecution.ResponseChunksAvailabilityNotApplicable
+	if request.Stream {
+		responseChunksAvailability = requestexecution.ResponseChunksAvailabilityUnavailable
+	}
 	mut := client.RequestExecution.Create().
 		SetFormat(string(format)).
 		SetRequestID(request.ID).
@@ -329,6 +383,9 @@ func (s *RequestService) CreateRequestExecution(
 		SetChannelID(channel.ID).
 		SetModelID(modelID).
 		SetRequestBody(requestBodyForDB).
+		SetRequestBodyAvailability(requestBodyAvailability).
+		SetResponseBodyAvailability(requestexecution.ResponseBodyAvailabilityUnavailable).
+		SetResponseChunksAvailability(responseChunksAvailability).
 		SetStatus(requestexecution.StatusProcessing).
 		SetStream(request.Stream).
 		SetRequestHeaders(requestHeadersBytes).
@@ -351,7 +408,9 @@ func (s *RequestService) CreateRequestExecution(
 
 		log.Warn(ctx, "Failed to save execution request body due to error, retrying with placeholder", log.Cause(err))
 
-		mut = mut.SetRequestBody(_InvalidRequestBodyJSON)
+		mut = mut.
+			SetRequestBody(_InvalidRequestBodyJSON).
+			SetRequestBodyAvailability(requestexecution.RequestBodyAvailabilityUnavailable)
 
 		execution, err = mut.Save(ctx)
 		if err != nil {
@@ -367,7 +426,13 @@ func (s *RequestService) CreateRequestExecution(
 		err := s.DataStorageService.SaveData(ctx, dataStorage, key, requestBodyBytes)
 		if err != nil {
 			log.Error(ctx, "Failed to save execution request body to external storage", log.Cause(err))
-			// Continue anyway, don't fail the execution creation
+			// 继续执行，但保留 unavailable，避免占位 JSON 被当作真实请求体。
+		} else {
+			if _, updateErr := client.RequestExecution.UpdateOneID(execution.ID).
+				SetRequestBodyAvailability(requestexecution.RequestBodyAvailabilityAvailable).
+				Save(ctx); updateErr != nil {
+				log.Error(ctx, "Failed to update execution request body availability", log.Cause(updateErr))
+			}
 		}
 	}
 
@@ -415,6 +480,7 @@ func (s *RequestService) UpdateRequestCompleted(
 		}
 	}
 
+	responseBodyAvailability := request.ResponseBodyAvailabilityUnavailable
 	upd := client.Request.UpdateOneID(requestID).
 		SetStatus(request.StatusCompleted).
 		SetExternalID(externalId)
@@ -449,13 +515,17 @@ func (s *RequestService) UpdateRequestCompleted(
 			err := s.DataStorageService.SaveData(ctx, dataStorage, key, responseBodyBytes)
 			if err != nil {
 				log.Error(ctx, "Failed to save response body to external storage", log.Cause(err))
-				// Continue anyway
+				// Continue anyway, but keep unavailable.
+			} else {
+				responseBodyAvailability = request.ResponseBodyAvailabilityAvailable
 			}
 		} else {
 			// Store in database
 			upd = upd.SetResponseBody(responseBodyBytes)
+			responseBodyAvailability = request.ResponseBodyAvailabilityAvailable
 		}
 	}
+	upd = upd.SetResponseBodyAvailability(responseBodyAvailability)
 
 	_, err = upd.Save(ctx)
 	if err != nil {
@@ -506,6 +576,7 @@ func (s *RequestService) UpdateRequestCompletedWithAudio(
 		}
 	}
 
+	responseBodyAvailability := request.ResponseBodyAvailabilityUnavailable
 	upd := client.Request.UpdateOneID(requestID).
 		SetStatus(request.StatusCompleted).
 		SetExternalID(externalId)
@@ -535,11 +606,15 @@ func (s *RequestService) UpdateRequestCompletedWithAudio(
 			key := GenerateResponseBodyKey(req.ProjectID, requestID)
 			if err := s.DataStorageService.SaveData(ctx, dataStorage, key, responseBodyBytes); err != nil {
 				log.Error(ctx, "Failed to save response body to external storage", log.Cause(err))
+			} else {
+				responseBodyAvailability = request.ResponseBodyAvailabilityAvailable
 			}
 		} else {
 			upd = upd.SetResponseBody(responseBodyBytes)
+			responseBodyAvailability = request.ResponseBodyAvailabilityAvailable
 		}
 	}
+	upd = upd.SetResponseBodyAvailability(responseBodyAvailability)
 
 	// Persist the binary audio to external storage when one is configured.
 	if len(audio) > 0 && s.shouldUseExternalStorage(ctx, dataStorage) {
@@ -600,6 +675,7 @@ func (s *RequestService) UpdateRequestStatusExternalIDAndResponseBody(
 		}
 	}
 
+	responseBodyAvailability := request.ResponseBodyAvailabilityUnavailable
 	upd := client.Request.UpdateOneID(requestID).
 		SetStatus(status).
 		SetExternalID(externalId)
@@ -634,13 +710,17 @@ func (s *RequestService) UpdateRequestStatusExternalIDAndResponseBody(
 			err := s.DataStorageService.SaveData(ctx, dataStorage, key, responseBodyBytes)
 			if err != nil {
 				log.Error(ctx, "Failed to save response body to external storage", log.Cause(err))
-				// Continue anyway
+				// Continue anyway, but keep unavailable.
+			} else {
+				responseBodyAvailability = request.ResponseBodyAvailabilityAvailable
 			}
 		} else {
 			// Store in database
 			upd = upd.SetResponseBody(responseBodyBytes)
+			responseBodyAvailability = request.ResponseBodyAvailabilityAvailable
 		}
 	}
+	upd = upd.SetResponseBodyAvailability(responseBodyAvailability)
 
 	_, err = upd.Save(ctx)
 	if err != nil {
@@ -685,6 +765,7 @@ func (s *RequestService) UpdateRequestExecutionCompleted(
 		}
 	}
 
+	responseBodyAvailability := requestexecution.ResponseBodyAvailabilityUnavailable
 	upd := client.RequestExecution.UpdateOneID(executionID).
 		SetStatus(requestexecution.StatusCompleted).
 		SetExternalID(externalId)
@@ -718,12 +799,16 @@ func (s *RequestService) UpdateRequestExecutionCompleted(
 			err := s.DataStorageService.SaveData(ctx, dataStorage, key, responseBodyBytes)
 			if err != nil {
 				log.Error(ctx, "Failed to save execution response body to external storage", log.Cause(err))
+			} else {
+				responseBodyAvailability = requestexecution.ResponseBodyAvailabilityAvailable
 			}
 		} else {
 			// Store in database
 			upd = upd.SetResponseBody(responseBodyBytes)
+			responseBodyAvailability = requestexecution.ResponseBodyAvailabilityAvailable
 		}
 	}
+	upd = upd.SetResponseBodyAvailability(responseBodyAvailability)
 
 	_, err = upd.Save(ctx)
 	if err != nil {
@@ -878,7 +963,7 @@ func (s *RequestService) SaveRequestExecutionChunks(
 	}
 
 	// Convert chunks to JSON format, filtering out done events
-	var chunkBytes []objects.JSONRawMessage
+	chunkBytes := make([]objects.JSONRawMessage, 0, len(chunks))
 
 	for _, chunk := range chunks {
 		if shouldSkipStoredStreamChunk(chunk) {
@@ -895,16 +980,18 @@ func (s *RequestService) SaveRequestExecutionChunks(
 		chunkBytes = append(chunkBytes, b)
 	}
 
-	if len(chunkBytes) == 0 {
-		return nil
-	}
-
 	client := s.entFromContext(ctx)
 
 	// Get the execution to check data storage
 	execution, err := client.RequestExecution.Get(ctx, executionID)
 	if err != nil {
 		return fmt.Errorf("failed to get request execution: %w", err)
+	}
+	if !execution.Stream {
+		_, err = client.RequestExecution.UpdateOneID(executionID).
+			SetResponseChunksAvailability(requestexecution.ResponseChunksAvailabilityNotApplicable).
+			Save(ctx)
+		return err
 	}
 
 	// Get data storage if set
@@ -929,10 +1016,14 @@ func (s *RequestService) SaveRequestExecutionChunks(
 		if err != nil {
 			return fmt.Errorf("failed to save chunks to external storage: %w", err)
 		}
+		_, err = client.RequestExecution.UpdateOneID(executionID).
+			SetResponseChunksAvailability(requestexecution.ResponseChunksAvailabilityAvailable).
+			Save(ctx)
 	} else {
 		// Store in database
 		_, err = client.RequestExecution.UpdateOneID(executionID).
 			SetResponseChunks(chunkBytes).
+			SetResponseChunksAvailability(requestexecution.ResponseChunksAvailabilityAvailable).
 			Save(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to save response chunks: %w", err)
@@ -966,7 +1057,7 @@ func (s *RequestService) SaveRequestChunks(
 	}
 
 	// Convert chunks to JSON format, filtering out done events
-	var chunkBytes []objects.JSONRawMessage
+	chunkBytes := make([]objects.JSONRawMessage, 0, len(chunks))
 
 	for _, chunk := range chunks {
 		if shouldSkipStoredStreamChunk(chunk) {
@@ -983,16 +1074,18 @@ func (s *RequestService) SaveRequestChunks(
 		chunkBytes = append(chunkBytes, b)
 	}
 
-	if len(chunkBytes) == 0 {
-		return nil
-	}
-
 	client := s.entFromContext(ctx)
 
 	// Get the request to check data storage
 	req, err := client.Request.Get(ctx, requestID)
 	if err != nil {
 		return fmt.Errorf("failed to get request: %w", err)
+	}
+	if !req.Stream {
+		_, err = client.Request.UpdateOneID(requestID).
+			SetResponseChunksAvailability(request.ResponseChunksAvailabilityNotApplicable).
+			Save(ctx)
+		return err
 	}
 
 	// Get data storage if set
@@ -1017,10 +1110,14 @@ func (s *RequestService) SaveRequestChunks(
 		if err != nil {
 			return fmt.Errorf("failed to save chunks to external storage: %w", err)
 		}
+		_, err = client.Request.UpdateOneID(requestID).
+			SetResponseChunksAvailability(request.ResponseChunksAvailabilityAvailable).
+			Save(ctx)
 	} else {
 		// Store in database
 		_, err = client.Request.UpdateOneID(requestID).
 			SetResponseChunks(chunkBytes).
+			SetResponseChunksAvailability(request.ResponseChunksAvailabilityAvailable).
 			Save(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to save response chunks: %w", err)
@@ -1139,6 +1236,170 @@ func (s *RequestService) UpdateRequestChannelID(ctx context.Context, requestID i
 	return nil
 }
 
+func hasRequestContentJSONEvidence(raw []byte) bool {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return false
+	}
+
+	switch string(trimmed) {
+	case "null", "{}", "[]", `{"message":"invalid text"}`:
+		return false
+	default:
+		return json.Valid(trimmed)
+	}
+}
+
+func hasRequestContentChunksEvidence(chunks []objects.JSONRawMessage) bool {
+	for _, chunk := range chunks {
+		if hasRequestContentJSONEvidence(chunk) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *RequestService) backfillRequestBodyAvailability(ctx context.Context, req *ent.Request, raw []byte) {
+	if req.RequestBodyAvailability != request.RequestBodyAvailabilityUnknown || !hasRequestContentJSONEvidence(raw) {
+		return
+	}
+
+	bypassCtx := authz.WithSystemBypass(ctx, "request-body-availability-backfill")
+	if _, err := s.entFromContext(bypassCtx).Request.UpdateOneID(req.ID).
+		SetRequestBodyAvailability(request.RequestBodyAvailabilityAvailable).
+		Save(bypassCtx); err != nil {
+		log.Warn(ctx, "Failed to backfill request body availability", log.Cause(err), log.Int("request_id", req.ID))
+		return
+	}
+
+	req.RequestBodyAvailability = request.RequestBodyAvailabilityAvailable
+}
+
+func (s *RequestService) backfillResponseBodyAvailability(ctx context.Context, req *ent.Request, raw []byte) {
+	if req.ResponseBodyAvailability != request.ResponseBodyAvailabilityUnknown || !hasRequestContentJSONEvidence(raw) {
+		return
+	}
+
+	bypassCtx := authz.WithSystemBypass(ctx, "response-body-availability-backfill")
+	if _, err := s.entFromContext(bypassCtx).Request.UpdateOneID(req.ID).
+		SetResponseBodyAvailability(request.ResponseBodyAvailabilityAvailable).
+		Save(bypassCtx); err != nil {
+		log.Warn(ctx, "Failed to backfill response body availability", log.Cause(err), log.Int("request_id", req.ID))
+		return
+	}
+
+	req.ResponseBodyAvailability = request.ResponseBodyAvailabilityAvailable
+}
+
+func (s *RequestService) backfillRequestChunksAvailability(ctx context.Context, req *ent.Request, chunks []objects.JSONRawMessage) {
+	if req.ResponseChunksAvailability != request.ResponseChunksAvailabilityUnknown || !hasRequestContentChunksEvidence(chunks) {
+		return
+	}
+
+	bypassCtx := authz.WithSystemBypass(ctx, "request-chunks-availability-backfill")
+	if _, err := s.entFromContext(bypassCtx).Request.UpdateOneID(req.ID).
+		SetResponseChunksAvailability(request.ResponseChunksAvailabilityAvailable).
+		Save(bypassCtx); err != nil {
+		log.Warn(ctx, "Failed to backfill request chunks availability", log.Cause(err), log.Int("request_id", req.ID))
+		return
+	}
+
+	req.ResponseChunksAvailability = request.ResponseChunksAvailabilityAvailable
+}
+
+func (s *RequestService) backfillExecutionRequestBodyAvailability(ctx context.Context, exec *ent.RequestExecution, raw []byte) {
+	if exec.RequestBodyAvailability != requestexecution.RequestBodyAvailabilityUnknown || !hasRequestContentJSONEvidence(raw) {
+		return
+	}
+
+	bypassCtx := authz.WithSystemBypass(ctx, "execution-request-body-availability-backfill")
+	if _, err := s.entFromContext(bypassCtx).RequestExecution.UpdateOneID(exec.ID).
+		SetRequestBodyAvailability(requestexecution.RequestBodyAvailabilityAvailable).
+		Save(bypassCtx); err != nil {
+		log.Warn(ctx, "Failed to backfill execution request body availability", log.Cause(err), log.Int("request_execution_id", exec.ID))
+		return
+	}
+
+	exec.RequestBodyAvailability = requestexecution.RequestBodyAvailabilityAvailable
+}
+
+func (s *RequestService) backfillExecutionResponseBodyAvailability(ctx context.Context, exec *ent.RequestExecution, raw []byte) {
+	if exec.ResponseBodyAvailability != requestexecution.ResponseBodyAvailabilityUnknown || !hasRequestContentJSONEvidence(raw) {
+		return
+	}
+
+	bypassCtx := authz.WithSystemBypass(ctx, "execution-response-body-availability-backfill")
+	if _, err := s.entFromContext(bypassCtx).RequestExecution.UpdateOneID(exec.ID).
+		SetResponseBodyAvailability(requestexecution.ResponseBodyAvailabilityAvailable).
+		Save(bypassCtx); err != nil {
+		log.Warn(ctx, "Failed to backfill execution response body availability", log.Cause(err), log.Int("request_execution_id", exec.ID))
+		return
+	}
+
+	exec.ResponseBodyAvailability = requestexecution.ResponseBodyAvailabilityAvailable
+}
+
+func (s *RequestService) backfillExecutionChunksAvailability(ctx context.Context, exec *ent.RequestExecution, chunks []objects.JSONRawMessage) {
+	if exec.ResponseChunksAvailability != requestexecution.ResponseChunksAvailabilityUnknown || !hasRequestContentChunksEvidence(chunks) {
+		return
+	}
+
+	bypassCtx := authz.WithSystemBypass(ctx, "execution-chunks-availability-backfill")
+	if _, err := s.entFromContext(bypassCtx).RequestExecution.UpdateOneID(exec.ID).
+		SetResponseChunksAvailability(requestexecution.ResponseChunksAvailabilityAvailable).
+		Save(bypassCtx); err != nil {
+		log.Warn(ctx, "Failed to backfill execution chunks availability", log.Cause(err), log.Int("request_execution_id", exec.ID))
+		return
+	}
+
+	exec.ResponseChunksAvailability = requestexecution.ResponseChunksAvailabilityAvailable
+}
+
+// ResolveRequestBodyAvailability 在读取旧记录时补充可确认的请求体证据。
+func (s *RequestService) ResolveRequestBodyAvailability(ctx context.Context, req *ent.Request) request.RequestBodyAvailability {
+	if req != nil && req.RequestBodyAvailability == request.RequestBodyAvailabilityUnknown && s.DataStorageService != nil {
+		_, _ = s.LoadRequestBody(ctx, req)
+	}
+	if req == nil {
+		return request.RequestBodyAvailabilityUnknown
+	}
+	return req.RequestBodyAvailability
+}
+
+// ResolveResponseBodyAvailability 在读取旧记录时补充可确认的响应体证据。
+func (s *RequestService) ResolveResponseBodyAvailability(ctx context.Context, req *ent.Request) request.ResponseBodyAvailability {
+	if req != nil && req.ResponseBodyAvailability == request.ResponseBodyAvailabilityUnknown && s.DataStorageService != nil {
+		_, _ = s.LoadResponseBody(ctx, req)
+	}
+	if req == nil {
+		return request.ResponseBodyAvailabilityUnknown
+	}
+	return req.ResponseBodyAvailability
+}
+
+// ResolveExecutionRequestBodyAvailability 在读取旧记录时补充可确认的 execution 请求体证据。
+func (s *RequestService) ResolveExecutionRequestBodyAvailability(ctx context.Context, exec *ent.RequestExecution) requestexecution.RequestBodyAvailability {
+	if exec != nil && exec.RequestBodyAvailability == requestexecution.RequestBodyAvailabilityUnknown && s.DataStorageService != nil {
+		_, _ = s.LoadRequestExecutionRequestBody(ctx, exec)
+	}
+	if exec == nil {
+		return requestexecution.RequestBodyAvailabilityUnknown
+	}
+	return exec.RequestBodyAvailability
+}
+
+// ResolveExecutionResponseBodyAvailability 在读取旧记录时补充可确认的 execution 响应体证据。
+func (s *RequestService) ResolveExecutionResponseBodyAvailability(ctx context.Context, exec *ent.RequestExecution) requestexecution.ResponseBodyAvailability {
+	if exec != nil && exec.ResponseBodyAvailability == requestexecution.ResponseBodyAvailabilityUnknown && s.DataStorageService != nil {
+		_, _ = s.LoadRequestExecutionResponseBody(ctx, exec)
+	}
+	if exec == nil {
+		return requestexecution.ResponseBodyAvailabilityUnknown
+	}
+	return exec.ResponseBodyAvailability
+}
+
 // LoadRequestBody returns the stored request body, loading from external storage when necessary.
 func (s *RequestService) LoadRequestBody(ctx context.Context, req *ent.Request) (objects.JSONRawMessage, error) {
 	if req == nil {
@@ -1156,6 +1417,7 @@ func (s *RequestService) LoadRequestBody(ctx context.Context, req *ent.Request) 
 			return xjson.EmptyJSONRawMessage, nil
 		}
 
+		s.backfillRequestBodyAvailability(ctx, req, req.RequestBody)
 		return req.RequestBody, nil
 	}
 
@@ -1167,6 +1429,7 @@ func (s *RequestService) LoadRequestBody(ctx context.Context, req *ent.Request) 
 	}
 
 	if json.Valid(data) {
+		s.backfillRequestBodyAvailability(ctx, req, data)
 		return objects.JSONRawMessage(data), nil
 	}
 
@@ -1195,6 +1458,7 @@ func (s *RequestService) LoadResponseBody(ctx context.Context, req *ent.Request)
 			return xjson.EmptyJSONRawMessage, nil
 		}
 
+		s.backfillResponseBodyAvailability(ctx, req, req.ResponseBody)
 		return req.ResponseBody, nil
 	}
 
@@ -1206,10 +1470,31 @@ func (s *RequestService) LoadResponseBody(ctx context.Context, req *ent.Request)
 	}
 
 	if json.Valid(data) {
+		s.backfillResponseBodyAvailability(ctx, req, data)
 		return objects.JSONRawMessage(data), nil
 	}
 
 	return xjson.EmptyJSONRawMessage, nil
+}
+
+// IsRequestResponseChunksLive 判断 Request 是否存在可读取的临时内存流预览。
+func (s *RequestService) IsRequestResponseChunksLive(req *ent.Request) bool {
+	if req == nil || !req.Stream || req.Status != request.StatusProcessing || s.LiveStreamRegistry == nil {
+		return false
+	}
+
+	buffer := s.LiveStreamRegistry.GetRequestBuffer(req.ID)
+	return buffer != nil && !buffer.IsClosed() && buffer.Len() > 0
+}
+
+// IsRequestExecutionResponseChunksLive 判断 RequestExecution 是否存在可读取的临时内存流预览。
+func (s *RequestService) IsRequestExecutionResponseChunksLive(exec *ent.RequestExecution) bool {
+	if exec == nil || !exec.Stream || exec.Status != requestexecution.StatusProcessing || s.LiveStreamRegistry == nil {
+		return false
+	}
+
+	buffer := s.LiveStreamRegistry.GetExecutionBuffer(exec.ID)
+	return buffer != nil && !buffer.IsClosed() && buffer.Len() > 0
 }
 
 // LoadResponseChunks returns the request response chunks, loading from external storage when necessary.
@@ -1218,7 +1503,7 @@ func (s *RequestService) LoadResponseChunks(ctx context.Context, req *ent.Reques
 		return nil, fmt.Errorf("request is nil")
 	}
 	// Live preview for active streaming requests
-	if req.Stream && req.Status == request.StatusProcessing {
+	if req.Stream && req.Status == request.StatusProcessing && s.LiveStreamRegistry != nil {
 		chunks := s.LiveStreamRegistry.GetRequestChunks(req.ID)
 		return chunks, nil
 	}
@@ -1234,6 +1519,7 @@ func (s *RequestService) LoadResponseChunks(ctx context.Context, req *ent.Reques
 	}
 
 	if !s.shouldUseExternalStorage(ctx, dataStorage) {
+		s.backfillRequestChunksAvailability(ctx, req, req.ResponseChunks)
 		return req.ResponseChunks, nil
 	}
 
@@ -1256,6 +1542,7 @@ func (s *RequestService) LoadResponseChunks(ctx context.Context, req *ent.Reques
 		return []objects.JSONRawMessage{}, nil
 	}
 
+	s.backfillRequestChunksAvailability(ctx, req, chunks)
 	return chunks, nil
 }
 
@@ -1276,6 +1563,7 @@ func (s *RequestService) LoadRequestExecutionRequestBody(ctx context.Context, ex
 			return xjson.EmptyJSONRawMessage, nil
 		}
 
+		s.backfillExecutionRequestBodyAvailability(ctx, exec, exec.RequestBody)
 		return exec.RequestBody, nil
 	}
 
@@ -1287,6 +1575,7 @@ func (s *RequestService) LoadRequestExecutionRequestBody(ctx context.Context, ex
 	}
 
 	if json.Valid(data) {
+		s.backfillExecutionRequestBodyAvailability(ctx, exec, data)
 		return objects.JSONRawMessage(data), nil
 	}
 
@@ -1315,6 +1604,7 @@ func (s *RequestService) LoadRequestExecutionResponseBody(ctx context.Context, e
 			return xjson.EmptyJSONRawMessage, nil
 		}
 
+		s.backfillExecutionResponseBodyAvailability(ctx, exec, exec.ResponseBody)
 		return exec.ResponseBody, nil
 	}
 
@@ -1326,6 +1616,7 @@ func (s *RequestService) LoadRequestExecutionResponseBody(ctx context.Context, e
 	}
 
 	if json.Valid(data) {
+		s.backfillExecutionResponseBodyAvailability(ctx, exec, data)
 		return objects.JSONRawMessage(data), nil
 	}
 
@@ -1339,7 +1630,7 @@ func (s *RequestService) LoadRequestExecutionResponseChunks(ctx context.Context,
 	}
 
 	// Live preview for active streaming executions
-	if exec.Stream && exec.Status == requestexecution.StatusProcessing {
+	if exec.Stream && exec.Status == requestexecution.StatusProcessing && s.LiveStreamRegistry != nil {
 		chunks := s.LiveStreamRegistry.GetExecutionChunks(exec.ID)
 		return chunks, nil
 	}
@@ -1355,6 +1646,7 @@ func (s *RequestService) LoadRequestExecutionResponseChunks(ctx context.Context,
 	}
 
 	if !s.shouldUseExternalStorage(ctx, dataStorage) {
+		s.backfillExecutionChunksAvailability(ctx, exec, exec.ResponseChunks)
 		return exec.ResponseChunks, nil
 	}
 
@@ -1374,6 +1666,7 @@ func (s *RequestService) LoadRequestExecutionResponseChunks(ctx context.Context,
 			return []objects.JSONRawMessage{}, nil
 		}
 
+		s.backfillExecutionChunksAvailability(ctx, exec, chunks)
 		return chunks, nil
 	}
 

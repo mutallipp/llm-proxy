@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
-import { IconEdit, IconArchive, IconTrash, IconArchiveOff } from '@tabler/icons-react';
+import { IconEdit, IconArchive, IconTrash, IconArchiveOff, IconPlayerPlay } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
@@ -61,6 +61,11 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         <DropdownMenuContent align='end' className='w-[160px]'>
           <PermissionGuard requiredScope='write_channels'>
             <>
+              <DropdownMenuItem onClick={() => openRowDialog('test')}>
+                <IconPlayerPlay size={16} className='mr-2' />
+                {t('models.test.action')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => openRowDialog('edit')}>
                 <IconEdit size={16} className='mr-2' />
                 {t('common.actions.edit')}

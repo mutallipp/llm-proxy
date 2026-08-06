@@ -12,6 +12,8 @@ import (
 	"github.com/tidwall/gjson"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/mutallipp/llm-proxy/internal/contexts"
+	entchannel "github.com/mutallipp/llm-proxy/internal/ent/channel"
 	"github.com/mutallipp/llm-proxy/internal/log"
 	"github.com/mutallipp/llm-proxy/internal/objects"
 	"github.com/mutallipp/llm-proxy/internal/pkg/xjson"
@@ -21,7 +23,10 @@ import (
 	"github.com/mutallipp/llm-proxy/llm/pipeline"
 	"github.com/mutallipp/llm-proxy/llm/pipeline/stream"
 	"github.com/mutallipp/llm-proxy/llm/streams"
+	"github.com/mutallipp/llm-proxy/llm/transformer"
+	"github.com/mutallipp/llm-proxy/llm/transformer/anthropic"
 	"github.com/mutallipp/llm-proxy/llm/transformer/openai"
+	openairesponses "github.com/mutallipp/llm-proxy/llm/transformer/openai/responses"
 )
 
 const testChannelAPIKeysMaxConcurrency = 8
@@ -88,33 +93,378 @@ func buildChannelTestRequest(model string, useStream bool, systemPrompt string, 
 	}
 }
 
-// TestChannelResult represents the result of a channel test.
-type TestChannelResult struct {
-	Latency float64
-	Success bool
-	Message *string
-	Error   *string
+// normalizeTestAPIFormat 将 GraphQL 传入的协议池 key 或完整格式统一为完整格式。
+// 测试执行只接受三种受支持的协议族，不允许未知协议借助默认路由继续执行。
+func normalizeTestAPIFormat(value string) (llm.APIFormat, error) {
+	switch value {
+	case "openai", string(llm.APIFormatOpenAIChatCompletion), "openai/chat/completions":
+		return llm.APIFormatOpenAIChatCompletion, nil
+	case "openai_responses", string(llm.APIFormatOpenAIResponse):
+		return llm.APIFormatOpenAIResponse, nil
+	case "anthropic", string(llm.APIFormatAnthropicMessage):
+		return llm.APIFormatAnthropicMessage, nil
+	default:
+		return "", fmt.Errorf("unsupported test protocol %q", value)
+	}
 }
 
-// TestChannel tests a specific channel with a simple request.
+// testInboundForAPIFormat 返回受管测试所需的入站协议转换器。
+func testInboundForAPIFormat(apiFormat llm.APIFormat) (transformer.Inbound, error) {
+	switch apiFormat {
+	case llm.APIFormatOpenAIChatCompletion:
+		return openai.NewInboundTransformer(), nil
+	case llm.APIFormatOpenAIResponse:
+		return openairesponses.NewInboundTransformer(), nil
+	case llm.APIFormatAnthropicMessage:
+		return anthropic.NewInboundTransformer(), nil
+	default:
+		return nil, fmt.Errorf("unsupported test protocol %q", apiFormat)
+	}
+}
+
+// buildManagedTestBody 构造三种入站协议共用的固定、低成本测试模板。
+func buildManagedTestBody(apiFormat llm.APIFormat, model string, useStream bool, systemPrompt string, userPrompt string) ([]byte, error) {
+	if apiFormat == llm.APIFormatOpenAIChatCompletion {
+		return json.Marshal(buildChannelTestRequest(model, useStream, systemPrompt, userPrompt))
+	}
+
+	var request any
+	switch apiFormat {
+	case llm.APIFormatOpenAIResponse:
+		request = struct {
+			Model           string `json:"model"`
+			Instructions    string `json:"instructions"`
+			Input           string `json:"input"`
+			MaxOutputTokens int64  `json:"max_output_tokens"`
+			Stream          bool   `json:"stream"`
+		}{
+			Model:           model,
+			Instructions:    systemPrompt,
+			Input:           userPrompt,
+			MaxOutputTokens: 256,
+			Stream:          useStream,
+		}
+	case llm.APIFormatAnthropicMessage:
+		request = struct {
+			Model    string `json:"model"`
+			System   string `json:"system"`
+			Messages []struct {
+				Role    string `json:"role"`
+				Content string `json:"content"`
+			} `json:"messages"`
+			MaxTokens int64 `json:"max_tokens"`
+			Stream    bool  `json:"stream"`
+		}{
+			Model:  model,
+			System: systemPrompt,
+			Messages: []struct {
+				Role    string `json:"role"`
+				Content string `json:"content"`
+			}{{Role: "user", Content: userPrompt}},
+			MaxTokens: 256,
+			Stream:    useStream,
+		}
+	default:
+		return nil, fmt.Errorf("unsupported test protocol %q", apiFormat)
+	}
+
+	return json.Marshal(request)
+}
+
+// exactProtocolSelector 防止已有 selector 在没有匹配 endpoint 时跨协议回退。
+type exactProtocolSelector struct {
+	wrapped   CandidateSelector
+	apiFormat string
+}
+
+func (s exactProtocolSelector) Select(ctx context.Context, req *llm.Request) ([]*ChannelModelsCandidate, error) {
+	candidates, err := s.wrapped.Select(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	filtered := make([]*ChannelModelsCandidate, 0, len(candidates))
+	for _, candidate := range candidates {
+		if candidate != nil && candidate.APIFormat == s.apiFormat {
+			filtered = append(filtered, candidate)
+		}
+	}
+	if len(filtered) == 0 {
+		return nil, fmt.Errorf("no usable target for test protocol %q", s.apiFormat)
+	}
+
+	return filtered, nil
+}
+
+// selectedModelTargetSelector 将前端选择绑定到服务端已解析的单一目标。
+// 它包在 exactProtocolSelector 外层，保证 Channel/物理模型选择不能跨协议池。
+type selectedModelTargetSelector struct {
+	wrapped         CandidateSelector
+	channelID       int
+	physicalModelID string
+}
+
+func (s selectedModelTargetSelector) Select(ctx context.Context, req *llm.Request) ([]*ChannelModelsCandidate, error) {
+	if s.channelID <= 0 || s.physicalModelID == "" {
+		return nil, fmt.Errorf("channel and physical model are required for model test")
+	}
+	candidates, err := s.wrapped.Select(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	filtered := make([]*ChannelModelsCandidate, 0, 1)
+	for _, candidate := range candidates {
+		if candidate == nil || candidate.Channel == nil || candidate.Channel.ID != s.channelID {
+			continue
+		}
+		models := make([]biz.ChannelModelEntry, 0, 1)
+		for _, entry := range candidate.Models {
+			if entry.ActualModel == s.physicalModelID {
+				models = append(models, entry)
+			}
+		}
+		if len(models) == 0 {
+			continue
+		}
+
+		selected := *candidate
+		selected.Models = models
+		filtered = append(filtered, &selected)
+	}
+	if len(filtered) == 0 {
+		return nil, fmt.Errorf("selected model target %d:%s is not available in the requested protocol pool", s.channelID, s.physicalModelID)
+	}
+
+	return filtered, nil
+}
+
+// TestModelTarget 是逻辑 Model 某个协议池中由服务端认可的具体目标。
+type TestModelTarget struct {
+	ChannelID       objects.GUID
+	ChannelName     string
+	PhysicalModelID string
+	Protocol        string
+	APIFormat       string
+}
+
+// TestChannelResult 表示一次受管测试的结果。
+// RequestID 是本次主 Request 的 Relay ID；只有 pipeline 到达
+// RequestService.CreateRequest 后才会赋值，前置拒绝不会创建记录。
+type TestChannelResult struct {
+	Latency   float64
+	Success   bool
+	Message   *string
+	Error     *string
+	RequestID *objects.GUID
+}
+
+// TestChannel tests a specific channel with the default OpenAI Chat protocol.
 func (processor *TestChannelOrchestrator) TestChannel(
 	ctx context.Context,
 	channelID objects.GUID,
 	modelID *string,
 	proxy *httpclient.ProxyConfig,
 ) (*TestChannelResult, error) {
-	inbound := openai.NewInboundTransformer()
-	// Create ChatCompletionOrchestrator for this test request
-	chatProcessor := &ChatCompletionOrchestrator{
-		channelSelector: NewSpecifiedChannelSelector(processor.channelService, channelID),
-		RequestService:  processor.requestService,
-		ChannelService:  processor.channelService,
-		PromptProvider:  &stubPromptProvider{},
-		PromptProtecter: processor.promptProtectionRuleService,
-		PipelineFactory: pipeline.NewFactory(processor.httpClient),
-		Middlewares: []pipeline.Middleware{
-			stream.EnsureUsage(),
-		},
+	return processor.TestChannelWithProtocol(ctx, channelID, modelID, "", proxy)
+}
+
+// TestChannelWithProtocol tests a specific channel without allowing a different
+// protocol endpoint to be selected as a fallback.
+func (processor *TestChannelOrchestrator) TestChannelWithProtocol(
+	ctx context.Context,
+	channelID objects.GUID,
+	modelID *string,
+	protocol string,
+	proxy *httpclient.ProxyConfig,
+) (*TestChannelResult, error) {
+	channel, err := processor.channelService.GetChannel(ctx, channelID.ID)
+	if err != nil {
+		return nil, err
+	}
+	if channel.Status != entchannel.StatusEnabled {
+		return nil, fmt.Errorf("channel %q is not enabled and cannot be tested", channel.Name)
+	}
+
+	testModel := lo.FromPtr(modelID)
+	if testModel == "" {
+		testModel = channel.DefaultTestModel
+	}
+	apiFormat := llm.APIFormatOpenAIChatCompletion
+	if protocol != "" {
+		apiFormat, err = normalizeTestAPIFormat(protocol)
+		if err != nil {
+			return nil, err
+		}
+	}
+	inbound, err := testInboundForAPIFormat(apiFormat)
+	if err != nil {
+		return nil, err
+	}
+	systemPrompt, userPrompt, err := processor.systemService.ChannelTestPrompts(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 渠道测试保留现有的强制流式策略；其它协议也由相同模板表达该要求。
+	useStream := channel.Policies.Stream == objects.CapabilityPolicyRequire
+	body, err := buildManagedTestBody(apiFormat, testModel, useStream, systemPrompt, userPrompt)
+	if err != nil {
+		return nil, err
+	}
+	selector := exactProtocolSelector{
+		wrapped:   NewSpecifiedChannelSelector(processor.channelService, channelID),
+		apiFormat: string(apiFormat),
+	}
+
+	return processor.executeManagedTest(ctx, selector, inbound, body, proxy)
+}
+
+// TestModel 执行逻辑 Model 的协议池测试。selector 必须由服务端根据该
+// Model 的有效协议池构造，调用方不得把它替换成全渠道 selector。
+func (processor *TestChannelOrchestrator) TestModel(
+	ctx context.Context,
+	selector CandidateSelector,
+	modelID string,
+	protocol string,
+	channelID objects.GUID,
+	physicalModelID string,
+	proxy *httpclient.ProxyConfig,
+) (*TestChannelResult, error) {
+	apiFormat, err := normalizeTestAPIFormat(protocol)
+	if err != nil {
+		return nil, err
+	}
+	inbound, err := testInboundForAPIFormat(apiFormat)
+	if err != nil {
+		return nil, err
+	}
+	systemPrompt, userPrompt, err := processor.systemService.ChannelTestPrompts(ctx)
+	if err != nil {
+		return nil, err
+	}
+	body, err := buildManagedTestBody(apiFormat, modelID, false, systemPrompt, userPrompt)
+	if err != nil {
+		return nil, err
+	}
+
+	selectedTarget := selectedModelTargetSelector{
+		wrapped:         exactProtocolSelector{wrapped: selector, apiFormat: string(apiFormat)},
+		channelID:       channelID.ID,
+		physicalModelID: physicalModelID,
+	}
+
+	return processor.executeManagedTest(ctx, selectedTarget, inbound, body, proxy)
+}
+
+// TestAdapter 执行 Adapter runtime snapshot 中的指定逻辑模型绑定。
+func (processor *TestChannelOrchestrator) TestAdapter(
+	ctx context.Context,
+	selector CandidateSelector,
+	modelID string,
+	apiFormat string,
+	proxy *httpclient.ProxyConfig,
+) (*TestChannelResult, error) {
+	format, err := normalizeTestAPIFormat(apiFormat)
+	if err != nil {
+		return nil, err
+	}
+	inbound, err := testInboundForAPIFormat(format)
+	if err != nil {
+		return nil, err
+	}
+	systemPrompt, userPrompt, err := processor.systemService.ChannelTestPrompts(ctx)
+	if err != nil {
+		return nil, err
+	}
+	body, err := buildManagedTestBody(format, modelID, false, systemPrompt, userPrompt)
+	if err != nil {
+		return nil, err
+	}
+
+	return processor.executeManagedTest(ctx, selector, inbound, body, proxy)
+}
+
+// executeManagedTest 是三类测试入口共享的 pipeline 执行器。
+func (processor *TestChannelOrchestrator) executeManagedTest(
+	ctx context.Context,
+	selector CandidateSelector,
+	inbound transformer.Inbound,
+	body []byte,
+	proxy *httpclient.ProxyConfig,
+) (*TestChannelResult, error) {
+	contexts.ClearTestRequestCapture(ctx)
+	if selector == nil || inbound == nil {
+		return nil, fmt.Errorf("test target selector and inbound transformer are required")
+	}
+	chatProcessor := processor.newTestChatProcessor(selector, inbound, proxy)
+	startTime := time.Now()
+	rawResponse, err := chatProcessor.Process(ctx, &httpclient.Request{
+		Headers:  http.Header{"Content-Type": []string{"application/json"}},
+		Body:     body,
+		JSONBody: body,
+	})
+	if err != nil {
+		rawErr := inbound.TransformError(ctx, err)
+		message := gjson.GetBytes(rawErr.Body, "error.message").String()
+		if message == "" {
+			message = err.Error()
+		}
+
+		return &TestChannelResult{
+			Latency:   time.Since(startTime).Seconds(),
+			Success:   false,
+			Message:   lo.ToPtr(""),
+			Error:     lo.ToPtr(message),
+			RequestID: testRequestRelayIDFromContext(ctx),
+		}, nil
+	}
+	if rawResponse.ChatCompletionStream != nil {
+		result, streamErr := processor.handleStreamResponse(ctx, rawResponse.ChatCompletionStream, startTime)
+		if result != nil {
+			result.RequestID = testRequestRelayIDFromContext(ctx)
+		}
+
+		return result, streamErr
+	}
+	if rawResponse.ChatCompletion == nil {
+		return &TestChannelResult{
+			Latency:   time.Since(startTime).Seconds(),
+			Success:   false,
+			Message:   lo.ToPtr(""),
+			Error:     lo.ToPtr("empty upstream response"),
+			RequestID: testRequestRelayIDFromContext(ctx),
+		}, nil
+	}
+
+	latency := time.Since(startTime).Seconds()
+	message, ok := extractManagedTestMessage(rawResponse.ChatCompletion.Body)
+	if !ok {
+		return &TestChannelResult{
+			Latency:   latency,
+			Success:   false,
+			Message:   lo.ToPtr(""),
+			Error:     lo.ToPtr("no message in response"),
+			RequestID: testRequestRelayIDFromContext(ctx),
+		}, nil
+	}
+
+	return &TestChannelResult{
+		Latency:   latency,
+		Success:   true,
+		Message:   lo.ToPtr(message),
+		RequestID: testRequestRelayIDFromContext(ctx),
+	}, nil
+}
+
+func (processor *TestChannelOrchestrator) newTestChatProcessor(selector CandidateSelector, inbound transformer.Inbound, proxy *httpclient.ProxyConfig) *ChatCompletionOrchestrator {
+	return &ChatCompletionOrchestrator{
+		channelSelector:            selector,
+		RequestService:             processor.requestService,
+		ChannelService:             processor.channelService,
+		PromptProvider:             &stubPromptProvider{},
+		PromptProtecter:            processor.promptProtectionRuleService,
+		PipelineFactory:            pipeline.NewFactory(processor.httpClient),
+		Middlewares:                []pipeline.Middleware{stream.EnsureUsage()},
 		Inbound:                    inbound,
 		SystemService:              processor.systemService,
 		UsageLogService:            processor.usageLogService,
@@ -126,85 +476,31 @@ func (processor *TestChannelOrchestrator) TestChannel(
 		channelLimiterManager:      processor.channelLimiterManager,
 		modelCircuitBreaker:        processor.modelCircuitBreaker,
 	}
+}
 
-	channel, err := processor.channelService.GetChannel(ctx, channelID.ID)
-	if err != nil {
-		return nil, err
+func extractManagedTestMessage(body []byte) (string, bool) {
+	for _, path := range []string{
+		"choices.0.message.content",
+		"content.0.text",
+		"output.0.content.0.text",
+	} {
+		value := gjson.GetBytes(body, path)
+		if value.Exists() && value.String() != "" {
+			return value.String(), true
+		}
+	}
+	return "", false
+}
+
+// testRequestRelayIDFromContext 读取 RequestService.CreateRequest 的捕获结果。
+// pipeline 未创建主 Request 时返回 nil，避免生成不存在的详情链接。
+func testRequestRelayIDFromContext(ctx context.Context) *objects.GUID {
+	capture := contexts.GetTestRequestCapture(ctx)
+	if capture == nil || capture.RequestID <= 0 {
+		return nil
 	}
 
-	testModel := lo.FromPtr(modelID)
-	if testModel == "" {
-		testModel = channel.DefaultTestModel
-	}
-	systemPrompt, userPrompt, err := processor.systemService.ChannelTestPrompts(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if the channel requires streaming
-	useStream := channel != nil && channel.Policies.Stream == objects.CapabilityPolicyRequire
-
-	llmRequest := buildChannelTestRequest(testModel, useStream, systemPrompt, userPrompt)
-
-	body, err := json.Marshal(llmRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	// Measure latency
-	startTime := time.Now()
-	rawResponse, err := chatProcessor.Process(ctx, &httpclient.Request{
-		Headers: http.Header{
-			"Content-Type": []string{"application/json"},
-		},
-		Body: body,
-	})
-
-	rawErr := inbound.TransformError(ctx, err)
-	message := gjson.GetBytes(rawErr.Body, "error.message").String()
-
-	if err != nil {
-		return &TestChannelResult{
-			Latency: time.Since(startTime).Seconds(),
-			Success: false,
-			Message: new(""),
-			Error:   new(message),
-		}, nil
-	}
-
-	// Handle streaming response
-	if rawResponse.ChatCompletionStream != nil {
-		return processor.handleStreamResponse(ctx, rawResponse.ChatCompletionStream, startTime)
-	}
-
-	latency := time.Since(startTime).Seconds()
-
-	// Handle non-streaming response
-	response, err := xjson.To[llm.Response](rawResponse.ChatCompletion.Body)
-	if err != nil {
-		return &TestChannelResult{
-			Latency: latency,
-			Success: false,
-			Message: new(""),
-			Error:   new(err.Error()),
-		}, nil
-	}
-
-	if len(response.Choices) == 0 {
-		return &TestChannelResult{
-			Latency: latency,
-			Success: false,
-			Message: new(""),
-			Error:   new("No message in response"),
-		}, nil
-	}
-
-	return &TestChannelResult{
-		Latency: latency,
-		Success: true,
-		Message: response.Choices[0].Message.Content.Content,
-		Error:   nil,
-	}, nil
+	return &objects.GUID{Type: "Request", ID: capture.RequestID}
 }
 
 // handleStreamResponse processes a streaming response and accumulates the content.
@@ -468,10 +764,13 @@ func (processor *TestChannelOrchestrator) testSingleKey(
 	inbound := openai.NewInboundTransformer()
 
 	chatProcessor := &ChatCompletionOrchestrator{
-		channelSelector: &SpecifiedChannelSelector{
-			ChannelService: processor.channelService,
-			ChannelID:      channelID,
-			SelectedAPIKey: key,
+		channelSelector: exactProtocolSelector{
+			wrapped: &SpecifiedChannelSelector{
+				ChannelService: processor.channelService,
+				ChannelID:      channelID,
+				SelectedAPIKey: key,
+			},
+			apiFormat: string(llm.APIFormatOpenAIChatCompletion),
 		},
 		RequestService:  processor.requestService,
 		ChannelService:  processor.channelService,

@@ -37,10 +37,16 @@ const (
 	FieldFormat = "format"
 	// FieldRequestBody holds the string denoting the request_body field in the database.
 	FieldRequestBody = "request_body"
+	// FieldRequestBodyAvailability holds the string denoting the request_body_availability field in the database.
+	FieldRequestBodyAvailability = "request_body_availability"
 	// FieldResponseBody holds the string denoting the response_body field in the database.
 	FieldResponseBody = "response_body"
+	// FieldResponseBodyAvailability holds the string denoting the response_body_availability field in the database.
+	FieldResponseBodyAvailability = "response_body_availability"
 	// FieldResponseChunks holds the string denoting the response_chunks field in the database.
 	FieldResponseChunks = "response_chunks"
+	// FieldResponseChunksAvailability holds the string denoting the response_chunks_availability field in the database.
+	FieldResponseChunksAvailability = "response_chunks_availability"
 	// FieldErrorMessage holds the string denoting the error_message field in the database.
 	FieldErrorMessage = "error_message"
 	// FieldResponseStatusCode holds the string denoting the response_status_code field in the database.
@@ -105,8 +111,11 @@ var Columns = []string{
 	FieldModelID,
 	FieldFormat,
 	FieldRequestBody,
+	FieldRequestBodyAvailability,
 	FieldResponseBody,
+	FieldResponseBodyAvailability,
 	FieldResponseChunks,
+	FieldResponseChunksAvailability,
 	FieldErrorMessage,
 	FieldResponseStatusCode,
 	FieldStatus,
@@ -147,6 +156,88 @@ var (
 	// DefaultPassThroughApplied holds the default value on creation for the "pass_through_applied" field.
 	DefaultPassThroughApplied bool
 )
+
+// RequestBodyAvailability defines the type for the "request_body_availability" enum field.
+type RequestBodyAvailability string
+
+// RequestBodyAvailabilityUnknown is the default value of the RequestBodyAvailability enum.
+const DefaultRequestBodyAvailability = RequestBodyAvailabilityUnknown
+
+// RequestBodyAvailability values.
+const (
+	RequestBodyAvailabilityUnknown     RequestBodyAvailability = "unknown"
+	RequestBodyAvailabilityAvailable   RequestBodyAvailability = "available"
+	RequestBodyAvailabilityUnavailable RequestBodyAvailability = "unavailable"
+)
+
+func (rba RequestBodyAvailability) String() string {
+	return string(rba)
+}
+
+// RequestBodyAvailabilityValidator is a validator for the "request_body_availability" field enum values. It is called by the builders before save.
+func RequestBodyAvailabilityValidator(rba RequestBodyAvailability) error {
+	switch rba {
+	case RequestBodyAvailabilityUnknown, RequestBodyAvailabilityAvailable, RequestBodyAvailabilityUnavailable:
+		return nil
+	default:
+		return fmt.Errorf("requestexecution: invalid enum value for request_body_availability field: %q", rba)
+	}
+}
+
+// ResponseBodyAvailability defines the type for the "response_body_availability" enum field.
+type ResponseBodyAvailability string
+
+// ResponseBodyAvailabilityUnknown is the default value of the ResponseBodyAvailability enum.
+const DefaultResponseBodyAvailability = ResponseBodyAvailabilityUnknown
+
+// ResponseBodyAvailability values.
+const (
+	ResponseBodyAvailabilityUnknown     ResponseBodyAvailability = "unknown"
+	ResponseBodyAvailabilityAvailable   ResponseBodyAvailability = "available"
+	ResponseBodyAvailabilityUnavailable ResponseBodyAvailability = "unavailable"
+)
+
+func (rba ResponseBodyAvailability) String() string {
+	return string(rba)
+}
+
+// ResponseBodyAvailabilityValidator is a validator for the "response_body_availability" field enum values. It is called by the builders before save.
+func ResponseBodyAvailabilityValidator(rba ResponseBodyAvailability) error {
+	switch rba {
+	case ResponseBodyAvailabilityUnknown, ResponseBodyAvailabilityAvailable, ResponseBodyAvailabilityUnavailable:
+		return nil
+	default:
+		return fmt.Errorf("requestexecution: invalid enum value for response_body_availability field: %q", rba)
+	}
+}
+
+// ResponseChunksAvailability defines the type for the "response_chunks_availability" enum field.
+type ResponseChunksAvailability string
+
+// ResponseChunksAvailabilityUnknown is the default value of the ResponseChunksAvailability enum.
+const DefaultResponseChunksAvailability = ResponseChunksAvailabilityUnknown
+
+// ResponseChunksAvailability values.
+const (
+	ResponseChunksAvailabilityUnknown       ResponseChunksAvailability = "unknown"
+	ResponseChunksAvailabilityAvailable     ResponseChunksAvailability = "available"
+	ResponseChunksAvailabilityUnavailable   ResponseChunksAvailability = "unavailable"
+	ResponseChunksAvailabilityNotApplicable ResponseChunksAvailability = "not_applicable"
+)
+
+func (rca ResponseChunksAvailability) String() string {
+	return string(rca)
+}
+
+// ResponseChunksAvailabilityValidator is a validator for the "response_chunks_availability" field enum values. It is called by the builders before save.
+func ResponseChunksAvailabilityValidator(rca ResponseChunksAvailability) error {
+	switch rca {
+	case ResponseChunksAvailabilityUnknown, ResponseChunksAvailabilityAvailable, ResponseChunksAvailabilityUnavailable, ResponseChunksAvailabilityNotApplicable:
+		return nil
+	default:
+		return fmt.Errorf("requestexecution: invalid enum value for response_chunks_availability field: %q", rca)
+	}
+}
 
 // Status defines the type for the "status" enum field.
 type Status string
@@ -225,6 +316,21 @@ func ByModelID(opts ...sql.OrderTermOption) OrderOption {
 // ByFormat orders the results by the format field.
 func ByFormat(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFormat, opts...).ToFunc()
+}
+
+// ByRequestBodyAvailability orders the results by the request_body_availability field.
+func ByRequestBodyAvailability(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequestBodyAvailability, opts...).ToFunc()
+}
+
+// ByResponseBodyAvailability orders the results by the response_body_availability field.
+func ByResponseBodyAvailability(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResponseBodyAvailability, opts...).ToFunc()
+}
+
+// ByResponseChunksAvailability orders the results by the response_chunks_availability field.
+func ByResponseChunksAvailability(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResponseChunksAvailability, opts...).ToFunc()
 }
 
 // ByErrorMessage orders the results by the error_message field.
@@ -312,6 +418,60 @@ func newDataStorageStep() *sqlgraph.Step {
 		sqlgraph.To(DataStorageInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, DataStorageTable, DataStorageColumn),
 	)
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e RequestBodyAvailability) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *RequestBodyAvailability) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = RequestBodyAvailability(str)
+	if err := RequestBodyAvailabilityValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid RequestBodyAvailability", str)
+	}
+	return nil
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e ResponseBodyAvailability) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *ResponseBodyAvailability) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = ResponseBodyAvailability(str)
+	if err := ResponseBodyAvailabilityValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid ResponseBodyAvailability", str)
+	}
+	return nil
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e ResponseChunksAvailability) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *ResponseChunksAvailability) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = ResponseChunksAvailability(str)
+	if err := ResponseChunksAvailabilityValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid ResponseChunksAvailability", str)
+	}
+	return nil
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

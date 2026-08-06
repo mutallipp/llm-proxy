@@ -480,6 +480,12 @@ type TestAPIKeyResult struct {
 	Disabled  bool    `json:"disabled"`
 }
 
+type TestAdapterInput struct {
+	Adapter string                  `json:"adapter"`
+	ModelID string                  `json:"modelID"`
+	Proxy   *httpclient.ProxyConfig `json:"proxy,omitempty"`
+}
+
 type TestChannelAPIKeysPayload struct {
 	ChannelID    objects.GUID        `json:"channelID"`
 	Total        int                 `json:"total"`
@@ -491,14 +497,32 @@ type TestChannelAPIKeysPayload struct {
 type TestChannelInput struct {
 	ChannelID objects.GUID            `json:"channelID"`
 	ModelID   *string                 `json:"modelID,omitempty"`
+	Protocol  *string                 `json:"protocol,omitempty"`
 	Proxy     *httpclient.ProxyConfig `json:"proxy,omitempty"`
 }
 
 type TestChannelPayload struct {
-	Latency float64 `json:"latency"`
-	Success bool    `json:"success"`
-	Message *string `json:"message,omitempty"`
-	Error   *string `json:"error,omitempty"`
+	Latency   float64       `json:"latency"`
+	Success   bool          `json:"success"`
+	Message   *string       `json:"message,omitempty"`
+	Error     *string       `json:"error,omitempty"`
+	RequestID *objects.GUID `json:"requestID,omitempty"`
+}
+
+type TestModelInput struct {
+	ModelID         string                  `json:"modelID"`
+	Protocol        string                  `json:"protocol"`
+	ChannelID       objects.GUID            `json:"channelID"`
+	PhysicalModelID string                  `json:"physicalModelID"`
+	Proxy           *httpclient.ProxyConfig `json:"proxy,omitempty"`
+}
+
+type TestTargetPayload struct {
+	Latency   float64       `json:"latency"`
+	Success   bool          `json:"success"`
+	Message   *string       `json:"message,omitempty"`
+	Error     *string       `json:"error,omitempty"`
+	RequestID *objects.GUID `json:"requestID,omitempty"`
 }
 
 type TokenStats struct {

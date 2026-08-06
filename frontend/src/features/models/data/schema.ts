@@ -1,6 +1,24 @@
 import { z } from 'zod';
 import { pageInfoSchema } from '@/gql/pagination';
 
+export const testTargetPayloadSchema = z.object({
+  latency: z.number(),
+  success: z.boolean(),
+  message: z.string().nullable(),
+  error: z.string().nullable(),
+  requestID: z.string().nullable(),
+});
+export type TestTargetPayload = z.infer<typeof testTargetPayloadSchema>;
+
+export const testModelTargetSchema = z.object({
+  channelID: z.string(),
+  channelName: z.string(),
+  physicalModelID: z.string(),
+  protocol: z.string(),
+  apiFormat: z.string(),
+});
+export type TestModelTarget = z.infer<typeof testModelTargetSchema>;
+
 export const modelTypeSchema = z.enum(['chat', 'embedding', 'rerank', 'image_generation', 'video_generation']);
 export type ModelType = z.infer<typeof modelTypeSchema>;
 
