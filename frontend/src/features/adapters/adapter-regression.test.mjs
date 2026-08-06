@@ -9,6 +9,12 @@ function read(relativePath) {
   return readFileSync(join(srcRoot, relativePath), 'utf8');
 }
 
+test('adapter page imports the navigation hook used by its dialogs', () => {
+  const source = read('features/adapters/index.tsx');
+
+  assert.match(source, /import \{ useNavigate \} from '@tanstack\/react-router';/);
+});
+
 test('adapter model initialization keeps query-derived arrays stable', () => {
   const source = read('features/adapters/index.tsx');
   const dialogStart = source.indexOf('function AdapterDialog');
