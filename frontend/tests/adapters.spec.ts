@@ -94,7 +94,7 @@ test.describe('Admin Adapters Management', () => {
     await expect(dialog).toBeVisible()
     await dialog.getByRole('button', { name: /执行固定测试|Run fixed test/i }).click()
 
-    await expect(dialog).toContainText(/成功|Success/i)
+    await expect(dialog).toContainText(/成功|Success|Succeeded/i)
     expect(testAdapterInput).toEqual({
       adapter: adapterFixture.name,
       modelID: adapterFixture.bindings[0].source_model_id,
