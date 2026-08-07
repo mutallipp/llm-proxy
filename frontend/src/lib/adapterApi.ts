@@ -194,7 +194,7 @@ export async function testAdapterBinding(params: {
       requestID: string | null;
     };
   }>(TEST_ADAPTER_MUTATION, {
-    input: { adapter: adapterName, modelID: sourceModelId },
+    input: { adapter: params.adapterName, modelID: params.sourceModelId },
   });
   const result = data.testAdapter;
   return {
